@@ -16,13 +16,14 @@ export type newUser = Omit<user, "id" | "name" | "image" | "email" | "emailVerif
 }
 
 
-
+// this is what each template send to the main site
 export const templateInfoPostMessageSchema = z.object({
     fromTemplate: z.string().min(1),
     data: z.string().min(1),
 })
 export type templateInfoPostMessageType = z.infer<typeof templateInfoPostMessageSchema>
 
+// this is what's written to each website template
 export const websiteCustomizationsSchema = z.object({
     projectName: z.string().min(1),
     customerGlobalFormData: z.string().min(1),
@@ -71,20 +72,3 @@ export type websiteCustomizationsType = z.infer<typeof websiteCustomizationsSche
 
 
 
-export type templatesInfoType = {
-    [key: string]: {//id
-        name: string,
-        githubUrl: string,
-        domain: string
-    };
-}
-
-//different domain addresses in production vs dev
-// domain: "http://localhost:3001"
-export const templatesInfo: templatesInfoType = {
-    "aaaa": {
-        name: "testwebsite1",
-        githubUrl: "https://github.com/MaxwellW32/aaaa.git",
-        domain: "https://onedaywebsite-templates-aaaa.vercel.app"
-    }
-}

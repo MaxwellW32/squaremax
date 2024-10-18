@@ -1,6 +1,4 @@
-"use client"
-
-import { templatesInfo } from "@/types"
+import { templatesInfo } from "@/lib/templatesInfo"
 
 export default function Page({ params }: { params: { templateId: string } }) {
 

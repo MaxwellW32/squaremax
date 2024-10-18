@@ -1,5 +1,6 @@
 "use client"
-import { templateInfoPostMessageSchema, templateInfoPostMessageType, templatesInfo, websiteCustomizationsType } from '@/types'
+import { templatesInfo } from '@/lib/templatesInfo'
+import { templateInfoPostMessageSchema, templateInfoPostMessageType, websiteCustomizationsType } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
@@ -42,7 +43,6 @@ export default function Page({ params }: { params: { templateId: string } }) {
                 }
 
                 websiteCustomizationsSet(newWebsiteCustomizations)
-                // console.log(`$newWebsiteCustomizations`, newWebsiteCustomizations);
 
             } catch (error) {
                 console.log(`$error reading template`, error);
