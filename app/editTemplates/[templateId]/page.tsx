@@ -38,7 +38,7 @@ export default function Page({ params }: { params: { templateId: string } }) {
 
     return (
         <div style={{ display: "grid", gap: "1rem" }}>
-            <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={`${window.location.protocol}//${window.location.hostname}:${templatesInfo[params.templateId].port}`} />
+            <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={templatesInfo[params.templateId].domain} />
 
             <button className='smallButton'
                 onClick={async () => {

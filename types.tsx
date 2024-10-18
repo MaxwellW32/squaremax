@@ -52,14 +52,16 @@ export const sharedFormInfo: sharedFormInfoType = {
 
 export type templatesInfoType = {
     [key: string]: {//id
-        port: number;
-        name: string
+        name: string,
+        githubUrl: string,
+        domain: string
     };
 }
 
 export const templatesInfo: templatesInfoType = {
     "aaaa": {
-        port: 3001,
-        name: "testwebsite1"
+        name: "testwebsite1",
+        githubUrl: "https://github.com/MaxwellW32/aaaa.git",
+        domain: "https://onedaywebsite-templates-aaaa.vercel.app"
     }
 }
