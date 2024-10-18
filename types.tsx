@@ -17,6 +17,17 @@ export type newUser = Omit<user, "id" | "name" | "image" | "email" | "emailVerif
 
 
 
+export const templateInfoPostMessageSchema = z.object({
+    fromTemplate: z.string().min(1),
+    data: z.string().min(1),
+})
+export type templateInfoPostMessageType = z.infer<typeof templateInfoPostMessageSchema>
+
+export const websiteCustomizationsSchema = z.object({
+    projectName: z.string().min(1),
+    customerGlobalFormData: z.string().min(1),
+})
+export type websiteCustomizationsType = z.infer<typeof websiteCustomizationsSchema>
 
 
 
@@ -35,17 +46,27 @@ export type newUser = Omit<user, "id" | "name" | "image" | "email" | "emailVerif
 
 
 
-export type sharedFormInfoType = {
-    testimonials: string;
-    address: string;
-    phoneNumber: string;
-}
 
-export const sharedFormInfo: sharedFormInfoType = {
-    testimonials: "",
-    address: "",
-    phoneNumber: "",
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -58,10 +79,12 @@ export type templatesInfoType = {
     };
 }
 
+//different domain addresses in production vs dev
 export const templatesInfo: templatesInfoType = {
     "aaaa": {
         name: "testwebsite1",
         githubUrl: "https://github.com/MaxwellW32/aaaa.git",
-        domain: "https://onedaywebsite-templates-aaaa.vercel.app"
+        domain: "http://localhost:3001"
+        // domain: "https://onedaywebsite-templates-aaaa.vercel.app"
     }
 }

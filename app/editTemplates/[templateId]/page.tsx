@@ -1,10 +1,11 @@
 "use client"
-import { templatesInfo } from '@/types'
-import React, { useRef, useEffect } from 'react'
+import { templateInfoPostMessageSchema, templateInfoPostMessageType, templatesInfo, websiteCustomizationsType } from '@/types'
+import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 export default function Page({ params }: { params: { templateId: string } }) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
+    const [websiteCustomizations, websiteCustomizationsSet] = useState<websiteCustomizationsType | null>(null)
 
     //send of data to iframe template
     // useEffect(() => {
@@ -22,10 +23,30 @@ export default function Page({ params }: { params: { templateId: string } }) {
 
     // }, [sharedFormObj, templateSpecificFormObj])
 
+    //receive websiteCustomizations from template
     useEffect(() => {
         function handleMessage(message: MessageEvent<unknown>) {
-            const seenResponse = message.data
-            console.log(`$main seeing response`, seenResponse);
+            try {
+                const seenResponse = message.data
+                const templateInfoPostMessageCheck = templateInfoPostMessageSchema.safeParse(seenResponse)
+
+                if (!templateInfoPostMessageCheck.success) return
+
+                const templateInfoPostMessage: templateInfoPostMessageType = templateInfoPostMessageCheck.data
+
+                if (templateInfoPostMessage.fromTemplate !== params.templateId) return
+
+                const newWebsiteCustomizations: websiteCustomizationsType = {
+                    projectName: `myPerfectWebsite`,
+                    customerGlobalFormData: templateInfoPostMessage.data
+                }
+
+                websiteCustomizationsSet(newWebsiteCustomizations)
+                // console.log(`$newWebsiteCustomizations`, newWebsiteCustomizations);
+
+            } catch (error) {
+                console.log(`$error reading template`, error);
+            }
         }
 
         window.addEventListener("message", handleMessage)
@@ -43,7 +64,15 @@ export default function Page({ params }: { params: { templateId: string } }) {
             <button className='smallButton'
                 onClick={async () => {
                     try {
-                        const response = await fetch(`/api/downloadWebsite?githubUrl=${templatesInfo[params.templateId].githubUrl}`)
+                        if (websiteCustomizations === null) return
+
+                        const response = await fetch(`/api/downloadWebsite?githubUrl=${templatesInfo[params.templateId].githubUrl}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(websiteCustomizations),
+                        })
                         const responseBlob = await response.blob()
 
                         const url = window.URL.createObjectURL(responseBlob);

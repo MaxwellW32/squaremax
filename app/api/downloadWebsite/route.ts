@@ -3,76 +3,28 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import simpleGit from 'simple-git';
+import { websiteCustomizationsSchema, websiteCustomizationsType } from "@/types";
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
     try {
-        //get github download url
         const { searchParams } = new URL(request.url);
+
+        //get websiteCustomizations
+        const seenWebsiteCustomizations = await request.json();
+        const websiteCustomizations: websiteCustomizationsType = websiteCustomizationsSchema.parse(seenWebsiteCustomizations)
+
+        //get github download url
         const githubUrl = searchParams.get("githubUrl");
         if (!githubUrl) throw new Error("GitHub URL is required");
 
-        //clone files to temp folder
+        //clone github files to a temp folder
         const tempStagingId = uuidv4()
         const tempPath = path.join(process.cwd(), "stagingArea", tempStagingId);
         const git = simpleGit();
         await git.clone(githubUrl, tempPath);
 
         //editing necessary files with customer data
-        await customizeProject(tempPath, {
-            projectName: "myBeautifulWebsiteA".toLowerCase(),
-            customerSpecificDataObj: `
-            import { globalFormDataType } from "@/types";
-
-            export const globalFormData: globalFormDataType = {
-                siteInfo: {
-                    name: "testWebsite1",
-                    title: "testWebsite1",
-                    description: "this is a testWebsite1",
-                    favIcon: ""
-                },
-                pages: {
-                    home: {
-                        sectionCont: {
-                            using: true,
-                            label: "Section Cont",
-                            inputType: "checkbox",
-                            value: "",
-                        },
-                        section1: {
-                            value: "customized section1 baby"
-                        },
-                        section2: {
-                            value: "section2"
-                        },
-                        section3: {
-                            value: "section3"
-                        },
-                    },
-                    about: {
-                        section1: {
-                            value: "about section1"
-                        },
-                        section2: {
-                            value: "about section2"
-                        },
-                        section3: {
-                            value: "about section3"
-                        },
-                    }
-                },
-                navLinks: [
-                    {
-                        title: "home",
-                        link: "/",
-                    },
-                    {
-                        title: "about",
-                        link: "/about",
-                    }
-                ]
-            }
-            `,
-        });
+        await customizeProject(tempPath, websiteCustomizations);
 
         //zip the folder
         const zip = new JSZip();
@@ -93,6 +45,7 @@ export async function GET(request: Request) {
                 }
             }
         };
+
         // Add the entire temp folder to the zip object
         await addFolderToZip(tempPath, "");
         const archive = await zip.generateAsync({ type: "blob" });
@@ -109,7 +62,7 @@ export async function GET(request: Request) {
 }
 
 // Function to clone and customize the folder
-async function customizeProject(sourcePath: string, customization: { projectName: string, customerSpecificDataObj: string }) {
+async function customizeProject(sourcePath: string, websiteCustomizations: websiteCustomizationsType) {
     const files = await fs.readdir(sourcePath);
 
     for (const file of files) {
@@ -118,7 +71,7 @@ async function customizeProject(sourcePath: string, customization: { projectName
 
         if (stats.isDirectory()) {
             // Recursively clone directories
-            await customizeProject(sourceFilePath, customization);
+            await customizeProject(sourceFilePath, websiteCustomizations);
 
         } else if (file === ".env.local") {
             // Replace .env.local with dummy values
@@ -127,13 +80,13 @@ async function customizeProject(sourcePath: string, customization: { projectName
 
         } else if (file === "globalFormData.tsx") {
             // Replace globalFormData with client values
-            await fs.writeFile(sourceFilePath, customization.customerSpecificDataObj);
+            await fs.writeFile(sourceFilePath, websiteCustomizations.customerGlobalFormData);
 
         } else if (file === "package.json") {
             // Customize package.json
             const packageJsonContent = await fs.readFile(sourceFilePath, "utf-8");
             const packageJson = JSON.parse(packageJsonContent);
-            packageJson.name = customization.projectName;
+            packageJson.name = websiteCustomizations.projectName;
             await fs.writeFile(sourceFilePath, JSON.stringify(packageJson, null, 2));
 
         }
