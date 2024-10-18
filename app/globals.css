@@ -2,10 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {}
+:root {
+    --color1: aliceblue;
+    --gray1: #ddd;
+}
 
 *,
 *::before,
 *::after {
     border: 1px solid red !important;
+}
+
+label {
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+input,
+textarea {
+    padding: 1rem;
+    background-color: var(--color1);
+    border-radius: .2rem;
+    border: 1px solid var(--gray1);
+}
+
+input:focus,
+textarea:focus {
+    background-color: #fff;
+    outline: none;
 }

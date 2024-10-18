@@ -1,7 +1,8 @@
 "use client"
 import { updateNewUser } from '@/serverFunctions/handleUser';
+import { newUser } from '@/types';
 import { consoleErrorWithToast } from '@/usefulFunctions/consoleErrorWithToast';
-import React from 'react'
+import React, { useState } from 'react'
 import { toast } from 'react-hot-toast';
 
 //go over all fields you want with a form
@@ -9,12 +10,13 @@ import { toast } from 'react-hot-toast';
 //update user
 
 export default function Page() {
+    const initialFormObj: newUser = {}
+    const [formObj, formObjSet] = useState<newUser>({ ...initialFormObj })
 
     async function submitForm() {
         try {
-            await updateNewUser({
-                completedUserSetup: true
-            })
+            return
+            await updateNewUser(formObj)
 
             toast.success("updated")
         } catch (error) {
