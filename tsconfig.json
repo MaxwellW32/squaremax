@@ -34,7 +34,6 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "websiteFiles"
+    "node_modules"
   ]
 }
