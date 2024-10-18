@@ -80,11 +80,11 @@ export type templatesInfoType = {
 }
 
 //different domain addresses in production vs dev
+// domain: "http://localhost:3001"
 export const templatesInfo: templatesInfoType = {
     "aaaa": {
         name: "testwebsite1",
         githubUrl: "https://github.com/MaxwellW32/aaaa.git",
-        domain: "http://localhost:3001"
-        // domain: "https://onedaywebsite-templates-aaaa.vercel.app"
+        domain: "https://onedaywebsite-templates-aaaa.vercel.app"
     }
 }
