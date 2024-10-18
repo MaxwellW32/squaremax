@@ -49,7 +49,8 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
         [key in templateKeys]: string
     }>>({})
 
-    function checkIfValid(seenFormObj: newTemplate, seenName: keyof newTemplate, schema: any) {
+    function checkIfValid(seenFormObj: newTemplate, seenName: keyof newTemplate, schema: typeof newTemplatesSchema) {
+        //@ts-expect-error can check name here
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 
         if (testSchema.success) {//worked
@@ -66,7 +67,7 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
 
                 let errorMessage = ""
 
-                JSON.parse(testSchema.error.message).forEach((eachErrorObj: any) => {
+                JSON.parse(testSchema.error.message).forEach((eachErrorObj: Error) => {
                     errorMessage += ` ${eachErrorObj.message}`
                 })
 

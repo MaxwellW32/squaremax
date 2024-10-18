@@ -1,9 +1,11 @@
-import { templatesInfo } from "@/lib/templatesInfo"
+import { getSpecificTemplate } from "@/serverFunctions/handleTemplates"
 
-export default function Page({ params }: { params: { templateId: string } }) {
+export default async function Page({ params }: { params: { templateId: string } }) {
+    const seenTemplate = await getSpecificTemplate({ id: params.templateId })
+    if (seenTemplate === undefined) return <p>not seeing template</p>
 
     return (
-        <iframe src={templatesInfo[params.templateId].domain} />
+        <iframe src={seenTemplate.url} />
     )
 }
 
