@@ -43,17 +43,18 @@ export default function Page({ params }: { params: { templateId: string } }) {
             <button className='smallButton'
                 onClick={async () => {
                     try {
-                        const response = await fetch(`/api/downloadWebsite?id=${params.templateId}`)
+                        const response = await fetch(`/api/downloadWebsite?githubUrl=${templatesInfo[params.templateId].githubUrl}`)
                         const responseBlob = await response.blob()
 
                         const url = window.URL.createObjectURL(responseBlob);
 
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `${params.templateId}.zip`;
+                        a.download = `${templatesInfo[params.templateId].name}.zip`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
+
                     } catch (error) {
                         toast.error("Error downloading zip")
                         console.error('Error downloading zip:', error);
