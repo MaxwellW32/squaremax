@@ -94,6 +94,9 @@ export const globalFormData: globalFormDataType = {
 
     const archive = await zip.generateAsync({ type: "blob" });
 
+    //delete temp directory
+    await fs.rm(tempPath, { force: true, recursive: true })
+
     return new Response(archive);
 }
 
