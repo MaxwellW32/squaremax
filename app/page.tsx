@@ -1,15 +1,29 @@
-//can talk to db
-//can get back all
-//can check for incomplete
-//do checks there
+import { getTemplates } from "@/serverFunctions/handleTemplates"
+import styles from "./page.module.css"
 
-//do all checks on server functions q
-
-export default function Home() {
+export default async function Home() {
+  const templates = await getTemplates()
 
   return (
-    <main>
-      <p>home</p>
+    <main className={styles.main}>
+      <p>Get a Website today</p>
+
+      <div className={styles.templateCont}>
+        {templates.map(eachTemplate => {
+          return (
+            <div key={eachTemplate.id} style={{ width: "min(300px, 100%)", height: "400px", position: "relative", zIndex: 0 }}>
+              <iframe src={eachTemplate.url} style={{ width: "100%", height: "100%" }} />
+
+              <div style={{ zIndex: 1, position: "absolute", bottom: 0, left: 0, width: "100%" }}>
+                <p>{eachTemplate.name}</p>
+
+                {/* categories */}
+                {/* styles */}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </main>
   )
 }

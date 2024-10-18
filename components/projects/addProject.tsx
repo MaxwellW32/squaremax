@@ -1,21 +1,19 @@
 "use client"
 import TextArea from '@/components/textArea/TextArea'
 import TextInput from '@/components/textInput/TextInput'
-import { addTemplate, deleteTemplate, updateTemplate } from '@/serverFunctions/handleTemplates'
-import { newTemplate, newTemplatesSchema, template } from '@/types'
 import React, { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
+import { newProject, newProjectsSchema } from '@/types'
+import { addProject } from '@/serverFunctions/handleProjects'
 
-export default function AddTemplate({ oldTemplate }: { oldTemplate?: template }) {
-    const initialFormObj: template | newTemplate = oldTemplate ? { ...oldTemplate } : {
-        id: "",
+export default function AddProject() {
+    const initialFormObj: newProject = {
         name: "",
-        github: "",
-        url: "",
     }
-    const [formObj, formObjSet] = useState<newTemplate>({ ...initialFormObj })
-    type templateKeys = keyof newTemplate
+
+    const [formObj, formObjSet] = useState<newProject>({ ...initialFormObj })
+    type templateKeys = keyof newProject
 
     type moreFormInfoType = {
         [key in templateKeys]: {
@@ -27,21 +25,9 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
         }
     }
     const [moreFormInfo,] = useState<moreFormInfoType>({
-        "id": {
-            label: "id",
-            placeHolder: "Enter template id",
-        },
         "name": {
             label: "name",
-            placeHolder: "Enetr template name",
-        },
-        "github": {
-            label: "github",
-            placeHolder: "Enter github clone link",
-        },
-        "url": {
-            label: "url",
-            placeHolder: "Enter link template can be viewed",
+            placeHolder: "Enter project name",
         },
     });
 
@@ -49,10 +35,7 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
         [key in templateKeys]: string
     }>>({})
 
-    const [confirmedDeletion, confirmedDeletionSet] = useState(false)
-
-    function checkIfValid(seenFormObj: newTemplate, seenName: keyof newTemplate, schema: typeof newTemplatesSchema) {
-        //@ts-expect-error can check name here
+    function checkIfValid(seenFormObj: newProject, seenName: keyof newProject, schema: typeof newProjectsSchema) {
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 
         if (testSchema.success) {//worked
@@ -82,37 +65,14 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
 
     async function handleSubmit() {
         try {
-            if (!newTemplatesSchema.safeParse(formObj).success) return toast.error("Form not valid")
+            if (!newProjectsSchema.safeParse(formObj).success) return toast.error("Form not valid")
 
-            if (oldTemplate === undefined) {
-                //new templae
-                await addTemplate(formObj)
+            //update template
+            await addProject(formObj)
 
-            } else {
-
-                //update template
-                await updateTemplate(formObj)
-            }
-
-            toast.success("Sent!")
+            toast.success(`Created Project ${formObj.name}!`)
             formObjSet({ ...initialFormObj })
 
-        } catch (error) {
-            toast.error("Couldn't send")
-            console.log(`Couldn't send`, error);
-        }
-    }
-
-    async function handleDelete() {
-        try {
-            if (!confirmedDeletion) {
-                confirmedDeletionSet(true)
-                return
-            }
-
-            await deleteTemplate({ id: formObj.id })
-            toast.success("Deleted template")
-            confirmedDeletionSet(false)
         } catch (error) {
             toast.error("Couldn't send")
             console.log(`Couldn't send`, error);
@@ -141,7 +101,7 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
                                             return newFormObj
                                         })
                                     }}
-                                    onBlur={() => { checkIfValid(formObj, eachKey, newTemplatesSchema) }}
+                                    onBlur={() => { checkIfValid(formObj, eachKey, newProjectsSchema) }}
                                     errors={formErrors[eachKey]}
                                 />
                             ) : moreFormInfo[eachKey].inputType === "textarea" ? (
@@ -158,7 +118,7 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
                                             return newFormObj
                                         })
                                     }}
-                                    onBlur={() => { checkIfValid(formObj, eachKey, newTemplatesSchema) }}
+                                    onBlur={() => { checkIfValid(formObj, eachKey, newProjectsSchema) }}
                                     errors={formErrors[eachKey]}
                                 />
                             ) : null}
@@ -169,22 +129,6 @@ export default function AddTemplate({ oldTemplate }: { oldTemplate?: template })
                 <button
                     onClick={handleSubmit}
                 >Submit</button>
-
-                {oldTemplate !== undefined && (
-                    <>
-                        <button
-                            onClick={handleDelete}
-                        >{confirmedDeletion ? "Confirm " : ""}Delete</button>
-
-                        {confirmedDeletion && (
-                            <button
-                                onClick={() => {
-                                    confirmedDeletionSet(false)
-                                }}
-                            >Cancel</button>
-                        )}
-                    </>
-                )}
             </form>
         </div>
     )

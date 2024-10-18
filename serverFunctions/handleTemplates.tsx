@@ -6,6 +6,15 @@ import { templates } from "@/db/schema"
 import { newTemplate, newTemplatesSchema, template, templatesSchema } from "@/types"
 import { eq } from "drizzle-orm"
 
+export async function getTemplates(seenLimit = 50, seenOffset = 0): Promise<template[]> {
+
+    const results = await db.query.templates.findMany({
+        limit: seenLimit,
+        offset: seenOffset,
+    });
+
+    return results
+}
 
 export async function addTemplate(seenTemplate: newTemplate) {
     const session = await auth()
@@ -28,16 +37,6 @@ export async function updateTemplate(seenTemplate: template) {
             ...seenTemplate
         })
         .where(eq(templates.id, seenTemplate.id));
-}
-
-export async function getTemplates(seenLimit = 50, seenOffset = 0): Promise<template[]> {
-
-    const results = await db.query.templates.findMany({
-        limit: seenLimit,
-        offset: seenOffset,
-    });
-
-    return results
 }
 
 export async function deleteTemplate(templateIdObj: Pick<template, "id">) {

@@ -32,7 +32,8 @@ export const projects = pgTable("projects", {
     id: varchar("id", { length: 255 }).primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
-    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
+
+    templateId: varchar("templateId", { length: 255 }).references(() => templates.id),
 })
 export const projectsRelations = relations(projects, ({ one }) => ({
     fromUser: one(users, {

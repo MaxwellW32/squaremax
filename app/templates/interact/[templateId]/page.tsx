@@ -1,4 +1,4 @@
-import InteractwithTemplates from '@/components/interactWithTemplates/InteractWithTemplates'
+import InteractwithTemplates from '@/components/templates/InteractWithTemplates'
 import { getSpecificTemplate } from '@/serverFunctions/handleTemplates'
 import React from 'react'
 

@@ -22,11 +22,17 @@ export const projectsSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     userId: z.string().min(1),
-    templateId: z.string().min(1),
+
+    templateId: z.string().min(1).nullable(),
 })
 export type project = z.infer<typeof projectsSchema> & {
     fromUser?: user
 }
+export const newProjectsSchema = projectsSchema.pick({ name: true })
+export type newProject = z.infer<typeof newProjectsSchema>
+
+
+
 
 
 
@@ -43,7 +49,6 @@ export type template = z.infer<typeof templatesSchema> & {
     templatesToStyles?: templatesToStyles[]
 }
 export const newTemplatesSchema = templatesSchema.omit({})
-
 export type newTemplate = z.infer<typeof newTemplatesSchema>
 
 
