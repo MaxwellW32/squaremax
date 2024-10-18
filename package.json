@@ -1,5 +1,5 @@
 {
-  "name": "100dwebsites",
+  "name": "onedaywebsite",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,18 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.7.0",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.34.1",
+    "jszip": "^3.10.1",
+    "next": "14.2.15",
+    "next-auth": "^5.0.0-beta.22",
+    "postgres": "^3.4.4",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.15"
+    "react-hot-toast": "^2.4.1",
+    "uuid": "^10.0.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^10.0.0",
+    "drizzle-kit": "^0.25.0",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.15",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.15"
+    "typescript": "^5"
   }
 }
