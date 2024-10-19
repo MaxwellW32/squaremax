@@ -1,35 +1,30 @@
-"use client"
-import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import SignOutButton from "../SignOutButton"
+import { auth } from "@/auth/auth"
+import { getProjectsFromUser } from "@/serverFunctions/handleProjects"
+import ViewNavProjects from "../ViewNavProjects"
+import { project } from "@/types"
 
-export default function Nav() {
-    const session = useSession()
-    const pathname = usePathname()
+export default async function Nav() {
+    const session = await auth()
+
+    let seenUserProjects: project[] = []
+    if (session !== null) {
+        seenUserProjects = await getProjectsFromUser()
+    }
 
     return (
-        <nav>
-            {session.status === "authenticated" && (
-                <button
-                    onClick={() => {
-                        signOut({
-                            redirectTo: "/"
-                        })
-                    }}
-                >Logout
-                </button>
-            )}
-
-            {session.status === "unauthenticated" && (
+        <nav style={{ display: "grid", gridAutoFlow: "column", position: "relative", zIndex: 9999 }}>
+            {session === null ? (
                 <Link href={"/login"}>
                     <button>Login</button>
                 </Link>
-            )}
+            ) : (
+                <>
+                    <SignOutButton />
 
-            {pathname === "/" && (
-                <Link href={"/projects/new"}>
-                    <button>New Project</button>
-                </Link>
+                    <ViewNavProjects seenUserProjects={seenUserProjects} />
+                </>
             )}
         </nav>
     )

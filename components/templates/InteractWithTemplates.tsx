@@ -1,42 +1,58 @@
 "use client"
-import { template, postMessageSchemaTemplateInfo, postMessageSchemaTemplateInfoType, project } from '@/types'
+import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
+import { postMessageTemplateInfoSchema, postMessageTemplateInfoType, project } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 export default function InteractwithTemplates({ seenProject }: { seenProject: project }) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
-    const [templateInfoPostMessage, templateInfoPostMessageSet] = useState<postMessageSchemaTemplateInfoType | null>(null)
+    const syncDebounce = useRef<NodeJS.Timeout>()
 
-    //will use this for sending save data
-    //send of data to iframe template
-    // useEffect(() => {
-    //     if (iframeRef.current === null || iframeRef.current.contentWindow === null || templateSpecificFormObj === null) return
+    const [heardBackFromTemplate, heardBackFromTemplateSet] = useState(false)
+    const loopInterval = useRef<NodeJS.Timeout>()
 
-    //     const masterObj = {
-    //         forTemplate: params.templateName,
-    //         info: {
-    //             sharedFormObj,
-    //             templateSpecificFormObj
-    //         }
-    //     }
+    //send saved data from database
+    useEffect(() => {
+        // stop loop when heard back from template
+        if (heardBackFromTemplate) {
+            if (loopInterval.current) clearInterval(loopInterval.current)
+            return
+        }
 
-    //     iframeRef.current.contentWindow.postMessage(masterObj, "*")
+        //loop to send data to template
+        loopInterval.current = setInterval(() => {
+            if (iframeRef.current === null || iframeRef.current.contentWindow === null) return
 
-    // }, [sharedFormObj, templateSpecificFormObj])
+            iframeRef.current.contentWindow.postMessage({
+                sentGlobalFormData: seenProject.templateData
+            }, "*")
+        }, 1000)
 
-    //receive websiteCustomizations from template
+        return () => {
+            if (loopInterval.current) clearInterval(loopInterval.current)
+        }
+
+    }, [heardBackFromTemplate])
 
     //receive data from template and set templateInfoPostMessage
     useEffect(() => {
         function handleMessage(message: MessageEvent<unknown>) {
             try {
+                //the template won't send back data until it gets an acknowledgment from here
+
                 //ensure data in correct format
                 const seenResponse = message.data
-                const templateInfoPostMessageCheck = postMessageSchemaTemplateInfo.safeParse(seenResponse)
-                if (!templateInfoPostMessageCheck.success || seenProject.template === null || seenProject.template === undefined || templateInfoPostMessageCheck.data.fromTemplate !== seenProject.template.id) return
+                const postMessageTemplateInfoCheck = postMessageTemplateInfoSchema.safeParse(seenResponse)
+                if (!postMessageTemplateInfoCheck.success || seenProject.template === null || seenProject.template === undefined || postMessageTemplateInfoCheck.data.fromTemplate !== seenProject.template.id) return
 
-                //set latest template data
-                templateInfoPostMessageSet(templateInfoPostMessageCheck.data)
+                if (!heardBackFromTemplate) {
+                    heardBackFromTemplateSet(true)
+                    console.log(`$main heard from template`);
+                    return
+                }
+
+                //set the latest template data to server
+                saveTemplateDataToServer(postMessageTemplateInfoCheck.data)
 
             } catch (error) {
                 console.log(`$error reading template`, error);
@@ -47,46 +63,30 @@ export default function InteractwithTemplates({ seenProject }: { seenProject: pr
         return () => {
             window.removeEventListener("message", handleMessage)
         }
-    }, [])
+    }, [heardBackFromTemplate])
 
     if (seenProject.template === null || seenProject.template === undefined) return null
 
+    function saveTemplateDataToServer(postMessageTemplateInfo: postMessageTemplateInfoType) {
+        if (syncDebounce.current) clearTimeout(syncDebounce.current)
+
+        syncDebounce.current = setTimeout(async () => {
+            // update project with new template id
+
+            await updateProject({
+                id: seenProject.id,
+                templateData: postMessageTemplateInfo.globalFormData
+            })
+
+            toast.success("saved!")
+            console.log(`$synced with server`);
+
+            await refreshProjectPath({ name: seenProject.name })
+        }, 3000);
+    }
+
     return (
-        <div style={{ display: "grid", gap: "1rem" }}>
-            <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={seenProject.template!.url} />
-
-            <button className='smallButton'
-                onClick={async () => {
-                    try {
-                        if (templateInfoPostMessage === null || seenProject.template === null || seenProject.template === undefined) return
-
-                        const response = await fetch(`/api/downloadWebsite?githubUrl=${seenProject.template.github}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(templateInfoPostMessage),
-                        })
-                        const responseBlob = await response.blob()
-
-                        const url = window.URL.createObjectURL(responseBlob);
-
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${seenProject.template.name}.zip`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-
-                    } catch (error) {
-                        toast.error("Error downloading zip")
-                        console.error('Error downloading zip:', error);
-                    }
-                }}
-            >
-                Download Website
-            </button>
-        </div>
+        <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={seenProject.template.url} />
     )
 }
 

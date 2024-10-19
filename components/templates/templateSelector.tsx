@@ -1,7 +1,7 @@
 "use client"
 import { getTemplatesByName } from '@/serverFunctions/handleTemplates'
 import { template } from '@/types'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 
 export default function TemplateSelector({ setterFunc }: { setterFunc: (id: Pick<template, "id">) => void }) {
     const [userInteracting, userInteractingSet] = useState(false)

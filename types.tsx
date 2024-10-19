@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-//the data type for all templates globalFormData obj
-const templateGlobalFormDataSchema = z.object({
+//the data type for all templates globalFormData object
+export const templateGlobalFormDataSchema = z.object({
     siteInfo: z.object({
         name: z.string().min(1),
         fonts: z.string().array(),
@@ -11,12 +11,12 @@ export type templateGlobalFormDataType = z.infer<typeof templateGlobalFormDataSc
 
 
 
-// this is what each template sends to the main site
-export const postMessageSchemaTemplateInfo = z.object({
+// what main site expects to receive from each template
+export const postMessageTemplateInfoSchema = z.object({
     fromTemplate: z.string().min(1),
     globalFormData: templateGlobalFormDataSchema
 })
-export type postMessageSchemaTemplateInfoType = z.infer<typeof postMessageSchemaTemplateInfo>
+export type postMessageTemplateInfoType = z.infer<typeof postMessageTemplateInfoSchema>
 
 
 

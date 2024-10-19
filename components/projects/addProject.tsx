@@ -113,6 +113,7 @@ export default function AddProject() {
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
+
                                             newFormObj[eachKey] = e.target.value
                                             return newFormObj
                                         })

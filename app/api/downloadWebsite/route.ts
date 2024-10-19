@@ -3,15 +3,15 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import simpleGit from 'simple-git';
-import { postMessageSchemaTemplateInfo, postMessageSchemaTemplateInfoType } from "@/types";
+import { templateGlobalFormDataSchema, templateGlobalFormDataType } from "@/types";
 
 export async function POST(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
 
         //get websiteCustomizations
-        const templateInfoPostMessage = await request.json();
-        postMessageSchemaTemplateInfo.parse(templateInfoPostMessage)
+        const templateGlobalFormData = await request.json();
+        templateGlobalFormDataSchema.parse(templateGlobalFormData)
 
         //get github download url
         const githubUrl = searchParams.get("githubUrl");
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         await git.clone(githubUrl, tempPath);
 
         //editing necessary files with customer data
-        await customizeProject(tempPath, templateInfoPostMessage);
+        await customizeProject(tempPath, templateGlobalFormData);
 
         //zip the folder
         const zip = new JSZip();
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 }
 
-async function customizeProject(sourcePath: string, seenTemplateInfoPostMessage: postMessageSchemaTemplateInfoType) {
+async function customizeProject(sourcePath: string, templateGlobalFormData: templateGlobalFormDataType) {
     const files = await fs.readdir(sourcePath);
 
     for (const file of files) {
@@ -70,20 +70,20 @@ async function customizeProject(sourcePath: string, seenTemplateInfoPostMessage:
 
         if (stats.isDirectory()) {
             // Recursively clone directories
-            await customizeProject(sourceFilePath, seenTemplateInfoPostMessage);
+            await customizeProject(sourceFilePath, templateGlobalFormData);
 
         } else if (file === "globalFormData.tsx") {
             // Replace globalFormData with client values
             await fs.writeFile(sourceFilePath, `
 import { globalFormDataType } from "@/types";
-export const globalFormData: globalFormDataType = ${JSON.stringify(seenTemplateInfoPostMessage.globalFormData, null, 2)}
+export const globalFormData: globalFormDataType = ${JSON.stringify(templateGlobalFormData, null, 2)}
 `);
 
         } else if (file === "package.json") {
             // Customize package.json
             const packageJsonContent = await fs.readFile(sourceFilePath, "utf-8");
             const packageJson = JSON.parse(packageJsonContent);
-            packageJson.name = seenTemplateInfoPostMessage.globalFormData.siteInfo.name;
+            packageJson.name = templateGlobalFormData.siteInfo.name;
             await fs.writeFile(sourceFilePath, JSON.stringify(packageJson, null, 2));
         }
     }

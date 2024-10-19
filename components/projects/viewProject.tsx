@@ -16,7 +16,7 @@ import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProje
 //returns a template Id
 
 export default function ViewProject({ seenProject }: { seenProject: project }) {
-    const [sideBarShowing, sideBarShowingSet] = useState(true)
+    const [sideBarShowing, sideBarShowingSet] = useState(false)
     const [confirmDelete, confirmDeleteSet] = useState(false)
 
     async function handleTemplateSelectorId(templateId: Pick<template, "id">) {
@@ -66,6 +66,40 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
                 {seenProject.template !== undefined && seenProject.template !== null && (
                     <div>
+                        <button className='smallButton'
+                            onClick={async () => {
+                                try {
+                                    //get latest template info here
+
+                                    if (seenProject.templateData === null || seenProject.template === null || seenProject.template === undefined) return
+
+                                    const response = await fetch(`/api/downloadWebsite?githubUrl=${seenProject.template.github}`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify(seenProject.templateData),
+                                    })
+                                    const responseBlob = await response.blob()
+
+                                    const url = window.URL.createObjectURL(responseBlob);
+
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `${seenProject.template.name}.zip`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+
+                                } catch (error) {
+                                    toast.error("Error downloading zip")
+                                    console.error('Error downloading zip:', error);
+                                }
+                            }}
+                        >
+                            Download Website
+                        </button>
+
                         <button
                             onClick={async () => {
                                 if (!confirmDelete) {
