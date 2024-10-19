@@ -1,10 +1,10 @@
 "use client"
 import TextArea from '@/components/textArea/TextArea'
 import TextInput from '@/components/textInput/TextInput'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
-import { newProject, newProjectsSchema, project } from '@/types'
+import { newProject, newProjectsSchema } from '@/types'
 import { addProject, getProjectsFromUser } from '@/serverFunctions/handleProjects'
 import { useRouter } from 'next/navigation'
 
