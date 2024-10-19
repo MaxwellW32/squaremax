@@ -55,7 +55,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
             )}
 
             {/* side bar */}
-            <div style={{ display: sideBarShowing ? "" : "none", position: "absolute", top: 0, left: 0, height: "100%", width: "min(500px, 90%)", zIndex: 1, backgroundColor: "beige" }}>
+            <div style={{ display: sideBarShowing ? "grid" : "none", gap: "1rem", alignContent: "flex-start", position: "absolute", top: 0, left: 0, height: "100%", width: "min(500px, 90%)", zIndex: 1, backgroundColor: "beige" }}>
                 <button
                     onClick={() => { sideBarShowingSet(false) }}
                 >close</button>
@@ -65,7 +65,39 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                 <TemplateSelector setterFunc={handleTemplateSelectorId} />
 
                 {seenProject.template !== undefined && seenProject.template !== null && (
-                    <div>
+                    <>
+                        <div style={{ display: "flex", gap: ".5rem" }}>
+                            <button
+                                onClick={async () => {
+                                    if (!confirmDelete) {
+                                        // ensure user confirms deletion
+                                        confirmDeleteSet(true)
+                                        return
+                                    }
+
+                                    // clears template id and data
+                                    await updateProject({
+                                        id: seenProject.id,
+                                        templateId: null,
+                                        templateData: null
+                                    })
+
+                                    toast.success("template unlinked")
+                                    refreshProjectPath({ name: seenProject.name })
+
+                                    confirmDeleteSet(false)
+                                }}
+                            >{confirmDelete && "confirm "}unlink {!confirmDelete && "template"}</button>
+
+                            {confirmDelete && (
+                                <button
+                                    onClick={() => {
+                                        confirmDeleteSet(false)
+                                    }}
+                                >cancel</button>
+                            )}
+                        </div>
+
                         <button className='smallButton'
                             onClick={async () => {
                                 try {
@@ -96,40 +128,8 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                                     console.error('Error downloading zip:', error);
                                 }
                             }}
-                        >
-                            Download Website
-                        </button>
-
-                        <button
-                            onClick={async () => {
-                                if (!confirmDelete) {
-                                    // ensure user confirms deletion
-                                    confirmDeleteSet(true)
-                                    return
-                                }
-
-                                // clears template id and data
-                                await updateProject({
-                                    id: seenProject.id,
-                                    templateId: null,
-                                    templateData: null
-                                })
-
-                                toast.success("template unlinked")
-                                refreshProjectPath({ name: seenProject.name })
-
-                                confirmDeleteSet(false)
-                            }}
-                        >{confirmDelete && "confirm "}unlink template</button>
-
-                        {confirmDelete && (
-                            <button
-                                onClick={() => {
-                                    confirmDeleteSet(false)
-                                }}
-                            >cancel</button>
-                        )}
-                    </div>
+                        >Download Website</button>
+                    </>
                 )}
             </div>
 

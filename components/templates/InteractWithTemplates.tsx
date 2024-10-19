@@ -86,7 +86,7 @@ export default function InteractwithTemplates({ seenProject }: { seenProject: pr
     }
 
     return (
-        <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={seenProject.template.url} />
+        <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={process.env.NEXT_PUBLIC_IN_DEVELOPMENT === "TRUE" ? "http://localhost:3001" : seenProject.template.url} />
     )
 }
 
