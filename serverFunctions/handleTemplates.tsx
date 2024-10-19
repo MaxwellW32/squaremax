@@ -4,7 +4,7 @@ import { auth } from "@/auth/auth"
 import { db } from "@/db"
 import { templates } from "@/db/schema"
 import { newTemplate, newTemplatesSchema, template, templatesSchema } from "@/types"
-import { eq } from "drizzle-orm"
+import { eq, like } from "drizzle-orm"
 
 export async function getTemplates(seenLimit = 50, seenOffset = 0): Promise<template[]> {
 
@@ -50,11 +50,21 @@ export async function deleteTemplate(templateIdObj: Pick<template, "id">) {
     await db.delete(templates).where(eq(templates.id, templateIdObj.id));
 }
 
-export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): Promise<template | undefined> {
+export async function getTemplateById(templateIdObj: Pick<template, "id">): Promise<template | undefined> {
     templatesSchema.pick({ id: true }).parse(templateIdObj)
 
     const result = await db.query.templates.findFirst({
         where: eq(templates.id, templateIdObj.id)
+    });
+
+    return result
+}
+
+export async function getTemplatesByName(templateNameObj: Pick<template, "name">): Promise<template[]> {
+    templatesSchema.pick({ name: true }).parse(templateNameObj)
+
+    const result = await db.query.templates.findMany({
+        where: like(templates.name, `%${templateNameObj.name}%`),
     });
 
     return result

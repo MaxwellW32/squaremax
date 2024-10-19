@@ -1,13 +1,16 @@
 "use client"
 import TextArea from '@/components/textArea/TextArea'
 import TextInput from '@/components/textInput/TextInput'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
-import { newProject, newProjectsSchema } from '@/types'
-import { addProject } from '@/serverFunctions/handleProjects'
+import { newProject, newProjectsSchema, project } from '@/types'
+import { addProject, getProjectsFromUser } from '@/serverFunctions/handleProjects'
+import { useRouter } from 'next/navigation'
 
 export default function AddProject() {
+    const router = useRouter()
+
     const initialFormObj: newProject = {
         name: "",
     }
@@ -67,11 +70,24 @@ export default function AddProject() {
         try {
             if (!newProjectsSchema.safeParse(formObj).success) return toast.error("Form not valid")
 
-            //update template
+            const projectName = formObj.name
+
+            // ensure project names are unique
+            const seenProjects = await getProjectsFromUser()
+            if (seenProjects.findIndex(eachProject => eachProject.name === projectName) !== -1) {
+                toast.error("project names must be unique")
+
+                return
+            }
+
             await addProject(formObj)
 
             toast.success(`Created Project ${formObj.name}!`)
             formObjSet({ ...initialFormObj })
+
+            setTimeout(() => {
+                router.push(`/projects/${projectName}`)
+            }, 2000);
 
         } catch (error) {
             toast.error("Couldn't send")
@@ -81,7 +97,7 @@ export default function AddProject() {
 
     return (
         <div>
-            <form className={styles.form} action={() => { }} >
+            <form className={styles.form} action={() => { }}>
                 {Object.entries(formObj).map(eachEntry => {
                     const eachKey = eachEntry[0] as templateKeys
 

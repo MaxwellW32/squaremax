@@ -1,10 +1,10 @@
 "use server"
-
 import { auth } from "@/auth/auth"
 import { db } from "@/db"
 import { projects } from "@/db/schema"
 import { newProject, newProjectsSchema, project, projectsSchema } from "@/types"
 import { eq } from "drizzle-orm"
+import { revalidatePath } from "next/cache"
 import { v4 as uuidV4 } from "uuid"
 
 // export async function getTemplates(seenLimit = 50, seenOffset = 0): Promise<template[]> {
@@ -26,8 +26,9 @@ export async function addProject(seenProject: newProject) {
     const fullProject: project = {
         ...seenProject,
         id: uuidV4(),
-        templateId: null,
         userId: session.user.id,
+        templateId: null,
+        templateData: null
     }
 
     projectsSchema.parse(fullProject)
@@ -35,19 +36,44 @@ export async function addProject(seenProject: newProject) {
     await db.insert(projects).values(fullProject)
 }
 
-// export async function updateTemplate(seenTemplate: template) {
-//     const session = await auth()
-//     if (!session) throw new Error("not signed in")
+export async function getProjectsFromUser(): Promise<project[]> {
+    const session = await auth()
+    if (!session) throw new Error("not signed in")
 
-//     templatesSchema.parse(seenTemplate)
+    const results = await db.query.projects.findMany({
+        where: eq(projects.userId, session.user.id),
+        with: {
+            template: true,
+        }
+    })
 
-//     await db.update(templates)
+    return results
+}
 
-//         .set({
-//             ...seenTemplate
-//         })
-//         .where(eq(templates.id, seenTemplate.id));
-// }
+export async function updateProject(projectObj: Partial<project>) {
+    const session = await auth()
+    if (!session) throw new Error("not signed in")
+
+    if (projectObj.id === undefined) throw new Error("need to provide id")
+
+    projectsSchema.partial().parse(projectObj)
+
+    await db.update(projects)
+        .set({
+            ...projectObj
+        })
+        .where(eq(projects.id, projectObj.id));
+}
+
+export async function refreshProjectPath(name: Pick<project, "name">) {
+    const session = await auth()
+    if (!session) throw new Error("not signed in")
+
+    projectsSchema.pick({ name: true }).parse(name)
+
+    revalidatePath(`/projects/${name.name}`)
+}
+
 
 // export async function deleteTemplate(templateIdObj: Pick<template, "id">) {
 //     const session = await auth()
@@ -60,11 +86,11 @@ export async function addProject(seenProject: newProject) {
 //     await db.delete(templates).where(eq(templates.id, templateIdObj.id));
 // }
 
-export async function getSpecificProject(projectIdObj: Pick<project, "id">): Promise<project | undefined> {
-    projectsSchema.pick({ id: true }).parse(projectIdObj)
+export async function getSpecificProject(projectObj: Pick<project, "id">): Promise<project | undefined> {
+    projectsSchema.pick({ id: true }).parse(projectObj)
 
     const result = await db.query.projects.findFirst({
-        where: eq(projects.id, projectIdObj.id)
+        where: eq(projects.id, projectObj.id)
     });
 
     return result

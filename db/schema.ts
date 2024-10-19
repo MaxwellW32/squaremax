@@ -1,5 +1,6 @@
+import { templateGlobalFormDataType } from "@/types";
 import { relations } from "drizzle-orm";
-import { boolean, timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, } from "drizzle-orm/pg-core"
+import { boolean, timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 // typeof users.$inferSelect;
 
@@ -34,11 +35,22 @@ export const projects = pgTable("projects", {
     userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
 
     templateId: varchar("templateId", { length: 255 }).references(() => templates.id),
-})
+    templateData: json("templateData").$type<templateGlobalFormDataType | null>().default(null),
+},
+    (table) => {
+        return {
+            nameIndex: index("nameIndex").on(table.name),
+            projectUserIdIndex: index("projectUserIdIndex").on(table.userId),
+        };
+    })
 export const projectsRelations = relations(projects, ({ one }) => ({
     fromUser: one(users, {
         fields: [projects.userId],
         references: [users.id]
+    }),
+    template: one(templates, {
+        fields: [projects.templateId],
+        references: [templates.id]
     }),
 }));
 
@@ -48,7 +60,7 @@ export const projectsRelations = relations(projects, ({ one }) => ({
 
 export const templates = pgTable("templates", {
     id: varchar("id", { length: 255 }).primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
+    name: varchar("name", { length: 255 }).notNull().unique(),
     github: varchar("github", { length: 255 }).notNull(),
     url: varchar("url", { length: 255 }).notNull(),
 })

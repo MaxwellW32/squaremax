@@ -1,5 +1,27 @@
 import { z } from "zod";
 
+//the data type for all templates globalFormData obj
+const templateGlobalFormDataSchema = z.object({
+    siteInfo: z.object({
+        name: z.string().min(1),
+        fonts: z.string().array(),
+    }).passthrough()
+}).passthrough()
+export type templateGlobalFormDataType = z.infer<typeof templateGlobalFormDataSchema>
+
+
+
+// this is what each template sends to the main site
+export const postMessageSchemaTemplateInfo = z.object({
+    fromTemplate: z.string().min(1),
+    globalFormData: templateGlobalFormDataSchema
+})
+export type postMessageSchemaTemplateInfoType = z.infer<typeof postMessageSchemaTemplateInfo>
+
+
+
+
+
 export const userSchema = z.object({
     id: z.string().min(1),
 
@@ -17,16 +39,17 @@ export type newUser = {
 
 
 
-
 export const projectsSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     userId: z.string().min(1),
 
     templateId: z.string().min(1).nullable(),
+    templateData: templateGlobalFormDataSchema.nullable()
 })
 export type project = z.infer<typeof projectsSchema> & {
-    fromUser?: user
+    fromUser?: user,
+    template?: template | null
 }
 export const newProjectsSchema = projectsSchema.pick({ name: true })
 export type newProject = z.infer<typeof newProjectsSchema>
@@ -97,24 +120,6 @@ export type templatesToStyles = z.infer<typeof templatesToStylesSchema> & {
     template?: template,
     style?: style
 }
-
-
-
-
-
-// this is what each template send to the main site
-export const templateInfoPostMessageSchema = z.object({
-    fromTemplate: z.string().min(1),
-    data: z.string().min(1),
-})
-export type templateInfoPostMessageType = z.infer<typeof templateInfoPostMessageSchema>
-
-// this is what's written to each website template
-export const websiteCustomizationsSchema = z.object({
-    projectName: z.string().min(1),
-    customerGlobalFormData: z.string().min(1),
-})
-export type websiteCustomizationsType = z.infer<typeof websiteCustomizationsSchema>
 
 
 

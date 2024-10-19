@@ -1,7 +1,7 @@
-import { getSpecificTemplate } from "@/serverFunctions/handleTemplates"
+import { getTemplateById } from "@/serverFunctions/handleTemplates"
 
 export default async function Page({ params }: { params: { templateId: string } }) {
-    const seenTemplate = await getSpecificTemplate({ id: params.templateId })
+    const seenTemplate = await getTemplateById({ id: params.templateId })
     if (seenTemplate === undefined) return <p>not seeing template</p>
 
     return (

@@ -3,15 +3,15 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import simpleGit from 'simple-git';
-import { websiteCustomizationsSchema, websiteCustomizationsType } from "@/types";
+import { postMessageSchemaTemplateInfo, postMessageSchemaTemplateInfoType } from "@/types";
 
 export async function POST(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
 
         //get websiteCustomizations
-        const seenWebsiteCustomizations = await request.json();
-        const websiteCustomizations: websiteCustomizationsType = websiteCustomizationsSchema.parse(seenWebsiteCustomizations)
+        const templateInfoPostMessage = await request.json();
+        postMessageSchemaTemplateInfo.parse(templateInfoPostMessage)
 
         //get github download url
         const githubUrl = searchParams.get("githubUrl");
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         await git.clone(githubUrl, tempPath);
 
         //editing necessary files with customer data
-        await customizeProject(tempPath, websiteCustomizations);
+        await customizeProject(tempPath, templateInfoPostMessage);
 
         //zip the folder
         const zip = new JSZip();
@@ -61,8 +61,7 @@ export async function POST(request: Request) {
     }
 }
 
-// Function to clone and customize the folder
-async function customizeProject(sourcePath: string, websiteCustomizations: websiteCustomizationsType) {
+async function customizeProject(sourcePath: string, seenTemplateInfoPostMessage: postMessageSchemaTemplateInfoType) {
     const files = await fs.readdir(sourcePath);
 
     for (const file of files) {
@@ -71,24 +70,21 @@ async function customizeProject(sourcePath: string, websiteCustomizations: websi
 
         if (stats.isDirectory()) {
             // Recursively clone directories
-            await customizeProject(sourceFilePath, websiteCustomizations);
-
-        } else if (file === ".env.local") {
-            // Replace .env.local with dummy values
-            const dummyEnvContent = `API_KEY=dummy\nDATABASE_URL=dummy`;
-            await fs.writeFile(sourceFilePath, dummyEnvContent);
+            await customizeProject(sourceFilePath, seenTemplateInfoPostMessage);
 
         } else if (file === "globalFormData.tsx") {
             // Replace globalFormData with client values
-            await fs.writeFile(sourceFilePath, websiteCustomizations.customerGlobalFormData);
+            await fs.writeFile(sourceFilePath, `
+import { globalFormDataType } from "@/types";
+export const globalFormData: globalFormDataType = ${JSON.stringify(seenTemplateInfoPostMessage.globalFormData, null, 2)}
+`);
 
         } else if (file === "package.json") {
             // Customize package.json
             const packageJsonContent = await fs.readFile(sourceFilePath, "utf-8");
             const packageJson = JSON.parse(packageJsonContent);
-            packageJson.name = websiteCustomizations.projectName;
+            packageJson.name = seenTemplateInfoPostMessage.globalFormData.siteInfo.name;
             await fs.writeFile(sourceFilePath, JSON.stringify(packageJson, null, 2));
-
         }
     }
 }

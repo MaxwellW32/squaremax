@@ -27,7 +27,7 @@ export default function Nav() {
             )}
 
             {pathname === "/" && (
-                <Link href={"/newProject"}>
+                <Link href={"/projects/new"}>
                     <button>New Project</button>
                 </Link>
             )}
