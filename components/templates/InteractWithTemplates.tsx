@@ -4,7 +4,7 @@ import { postMessageTemplateInfoSchema, postMessageTemplateInfoType, project } f
 import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function InteractwithTemplates({ seenProject }: { seenProject: project }) {
+export default function InteractwithTemplates({ seenProject, savedSet }: { seenProject: project, savedSet: React.Dispatch<React.SetStateAction<boolean | "in progress">> }) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
     const syncDebounce = useRef<NodeJS.Timeout>()
 
@@ -68,21 +68,29 @@ export default function InteractwithTemplates({ seenProject }: { seenProject: pr
     if (seenProject.template === null || seenProject.template === undefined) return null
 
     function saveTemplateDataToServer(postMessageTemplateInfo: postMessageTemplateInfoType) {
-        if (syncDebounce.current) clearTimeout(syncDebounce.current)
+        try {
+            if (syncDebounce.current) clearTimeout(syncDebounce.current)
+            savedSet("in progress")
 
-        syncDebounce.current = setTimeout(async () => {
-            // update project with new template id
+            syncDebounce.current = setTimeout(async () => {
+                // update project with new template id
 
-            await updateProject({
-                id: seenProject.id,
-                templateData: postMessageTemplateInfo.globalFormData
-            })
+                await updateProject({
+                    id: seenProject.id,
+                    templateData: postMessageTemplateInfo.globalFormData
+                })
 
-            toast.success("saved!")
-            console.log(`$synced with server`);
+                savedSet(true)
 
-            await refreshProjectPath({ name: seenProject.name })
-        }, 3000);
+                console.log(`$saved templateData`);
+
+                await refreshProjectPath({ name: seenProject.name })
+            }, 5000);
+
+        } catch (error) {
+            toast.error("error saving")
+            console.log(`$error`, error);
+        }
     }
 
     return (

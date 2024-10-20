@@ -1,0 +1,16 @@
+globalFormData.tsx has the same layout
+
+file must be called globalFormData.tsx,  type must be globalFormDataType from "@/types" and variable must be export const globalFormData: globalFormDataType = {}
+
+jotai is in jotai.tsx - variable must be called globalFormDataJotai 
+
+Deploy to github 
+
+.env loval variables will be copied into the .env blank with a notice
+
+npm build templates before pushing to github
+
+all templates have site info, specifies:
+    name
+    color
+    fonts

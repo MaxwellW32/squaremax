@@ -1,4 +1,4 @@
-import { templateGlobalFormDataType } from "@/types";
+import { syncFromTemplateType } from "@/types";
 import { relations } from "drizzle-orm";
 import { boolean, timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -35,7 +35,7 @@ export const projects = pgTable("projects", {
     userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
 
     templateId: varchar("templateId", { length: 255 }).references(() => templates.id),
-    templateData: json("templateData").$type<templateGlobalFormDataType | null>().default(null),
+    templateData: json("templateData").$type<syncFromTemplateType | null>().default(null),
 },
     (table) => {
         return {

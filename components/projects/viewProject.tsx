@@ -18,8 +18,9 @@ import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProje
 export default function ViewProject({ seenProject }: { seenProject: project }) {
     const [sideBarShowing, sideBarShowingSet] = useState(false)
     const [confirmDelete, confirmDeleteSet] = useState(false)
+    const [saved, savedSet] = useState<"in progress" | boolean>(false)
 
-    async function handleTemplateSelectorId(templateId: Pick<template, "id">) {
+    async function handleTemplateSelection(templateId: Pick<template, "id">) {
         try {
             // ensure only chooses a new template when empty
             if (seenProject.template !== undefined && seenProject.template !== null) {
@@ -62,10 +63,11 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
                 <p>Project: {seenProject.name}</p>
 
-                <TemplateSelector setterFunc={handleTemplateSelectorId} />
+                <TemplateSelector setterFunc={handleTemplateSelection} />
 
                 {seenProject.template !== undefined && seenProject.template !== null && (
                     <>
+                        {/* we have a template active */}
                         <div style={{ display: "flex", gap: ".5rem" }}>
                             <button
                                 onClick={async () => {
@@ -102,8 +104,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                             onClick={async () => {
                                 try {
                                     //get latest template info here
-
-                                    if (seenProject.templateData === null || seenProject.template === null || seenProject.template === undefined) return
+                                    if (saved === "in progress" || seenProject.templateData === null || seenProject.template === null || seenProject.template === undefined) return
 
                                     const response = await fetch(`/api/downloadWebsite?githubUrl=${seenProject.template.github}`, {
                                         method: 'POST',
@@ -128,12 +129,12 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                                     console.error('Error downloading zip:', error);
                                 }
                             }}
-                        >Download Website</button>
+                        >{saved === "in progress" ? "saving" : "Download Website"}</button>
                     </>
                 )}
             </div>
 
-            <InteractwithTemplates seenProject={seenProject} />
+            <InteractwithTemplates seenProject={seenProject} savedSet={savedSet} />
         </div>
     )
 }
