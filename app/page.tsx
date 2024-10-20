@@ -14,8 +14,6 @@ export default async function Home() {
     <main className={styles.main}>
       <p>Get a Website today</p>
 
-      {/* <AddDefaultDataButton /> */}
-
       <div className={styles.templateCont}>
         {templates.map(eachTemplate => {
           return (

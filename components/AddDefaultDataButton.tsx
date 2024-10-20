@@ -6,16 +6,18 @@ import { toast } from 'react-hot-toast'
 export default function AddDefaultDataButton() {
     return (
         <button
-            onClick={() => {
+            onClick={async () => {
                 try {
-                    addDefaultData({
+                    await addDefaultData({
                         project: true,
                         template: true,
                     })
 
                     toast.success("made default data")
-                } catch (error) {
 
+                } catch (error) {
+                    toast.error("error creating default data")
+                    console.log(`$error creating default data`, error);
                 }
             }}
         >make default data</button>
