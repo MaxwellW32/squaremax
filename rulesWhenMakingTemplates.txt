@@ -10,6 +10,8 @@ Deploy to github
 
 npm build templates before pushing to github
 
+use //replace to turn client components into server components
+
 all templates have site info, specifies:
     name
     color
