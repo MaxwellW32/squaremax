@@ -1,6 +1,5 @@
 import { getTemplates } from "@/serverFunctions/handleTemplates"
 import styles from "./page.module.css"
-import AddDefaultDataButton from "@/components/AddDefaultDataButton"
 
 //each  template on build overrides the jotai variable for the regular object, imported from the same global file - so keep names the same
 //get rid of "use clients" if the next line doesn't have keep under it
@@ -15,7 +14,7 @@ export default async function Home() {
     <main className={styles.main}>
       <p>Get a Website today</p>
 
-      <AddDefaultDataButton />
+      {/* <AddDefaultDataButton /> */}
 
       <div className={styles.templateCont}>
         {templates.map(eachTemplate => {
