@@ -38,8 +38,6 @@ export default function InteractwithTemplates({ seenProject, savedSet }: { seenP
     useEffect(() => {
         function handleMessage(message: MessageEvent<unknown>) {
             try {
-                //the template won't send back data until it gets an acknowledgment from here
-
                 //ensure data in correct format
                 const seenResponse = message.data
                 const postMessageTemplateInfoCheck = postMessageTemplateInfoSchema.safeParse(seenResponse)
