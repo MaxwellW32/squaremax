@@ -5,7 +5,7 @@ import React, { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { newProject, newProjectsSchema } from '@/types'
-import { addProject, getProjectsFromUser } from '@/serverFunctions/handleProjects'
+import { addProject, getSpecificProject } from '@/serverFunctions/handleProjects'
 import { useRouter } from 'next/navigation'
 
 export default function AddProject() {
@@ -73,8 +73,8 @@ export default function AddProject() {
             const projectName = formObj.name
 
             // ensure project names are unique
-            const seenProjects = await getProjectsFromUser()
-            if (seenProjects.findIndex(eachProject => eachProject.name === projectName) !== -1) {
+            const seenProject = await getSpecificProject({ option: "name", data: { name: projectName } })
+            if (seenProject !== undefined) {
                 toast.error("project names must be unique")
 
                 return

@@ -1,6 +1,6 @@
 import React from 'react'
 import { auth } from '@/auth/auth'
-import { getProjectsFromUser } from '@/serverFunctions/handleProjects'
+import { getSpecificProject } from '@/serverFunctions/handleProjects'
 import ViewProject from '@/components/projects/viewProject'
 
 export default async function Page({ params }: { params: { projectName: string } }) {
@@ -9,10 +9,10 @@ export default async function Page({ params }: { params: { projectName: string }
 
     const seenProjectName = decodeURIComponent(params.projectName);
 
-    const userProjects = await getProjectsFromUser()
-    const seenProject = userProjects.find(eachProject => eachProject.name === seenProjectName)
-
+    const seenProject = await getSpecificProject({ option: "name", data: { name: seenProjectName } })
     if (seenProject === undefined) return <p>not seeing seenProject</p>
+
+    if (seenProject.userId !== session.user.id) return <p>no authorization to view this project</p>
 
     return (
         <ViewProject seenProject={seenProject} />

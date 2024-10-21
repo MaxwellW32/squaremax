@@ -12,7 +12,7 @@ export async function addDefaultData(making: { project?: boolean, template?: boo
     if (making.project) {
         const newProject: project = {
             id: uuidv4(),
-            name: `newProject${uuidv4()}`,
+            name: `my fist project`,
             templateData: null,
             templateId: null,
             userId: session.user.id
@@ -26,7 +26,7 @@ export async function addDefaultData(making: { project?: boolean, template?: boo
     if (making.template) {
         const newTemplate: template = {
             id: "aaaa",
-            name: `FirstRemplater`,
+            name: `TemplaterOne`,
             github: "https://github.com/MaxwellW32/aaaa.git",
             url: "https://onedaywebsite-templates-aaaa.vercel.app"
         }
