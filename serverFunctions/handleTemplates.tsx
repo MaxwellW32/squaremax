@@ -16,13 +16,13 @@ export async function getTemplates(seenLimit = 50, seenOffset = 0): Promise<temp
     return results
 }
 
-export async function addTemplate(seenTemplate: newTemplate) {
+export async function addTemplate(newTemplate: newTemplate) {
     const session = await auth()
     if (!session) throw new Error("not signed in")
 
-    newTemplatesSchema.parse(seenTemplate)
+    newTemplatesSchema.parse(newTemplate)
 
-    await db.insert(templates).values(seenTemplate)
+    await db.insert(templates).values(newTemplate)
 }
 
 export async function updateTemplate(seenTemplate: template) {

@@ -1,8 +1,6 @@
 import { getTemplates } from "@/serverFunctions/handleTemplates"
 import styles from "./page.module.css"
-
 // import AddDefaultDataButton from "@/components/AddDefaultDataButton"
-//make a global list of font and allow allow file download into the downloaded template - check out how to dynamically load fonts 
 
 export default async function Home() {
   const templates = await getTemplates()

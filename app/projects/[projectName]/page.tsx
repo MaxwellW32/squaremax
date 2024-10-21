@@ -12,7 +12,7 @@ export default async function Page({ params }: { params: { projectName: string }
     const seenProject = await getSpecificProject({ option: "name", data: { name: seenProjectName } })
     if (seenProject === undefined) return <p>not seeing seenProject</p>
 
-    if (seenProject.userId !== session.user.id) return <p>no authorization to view this project</p>
+    if (seenProject.userId !== session.user.id) return <p>not authorized to view this project</p>
 
     return (
         <ViewProject seenProject={seenProject} />

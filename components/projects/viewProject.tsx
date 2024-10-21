@@ -119,7 +119,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
                                     const a = document.createElement('a');
                                     a.href = url;
-                                    a.download = `${seenProject.template.name}.zip`;
+                                    a.download = `${seenProject.templateData.siteInfo.name}.zip`;
                                     document.body.appendChild(a);
                                     a.click();
                                     document.body.removeChild(a);
@@ -134,7 +134,9 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                 )}
             </div>
 
-            <InteractwithTemplates seenProject={seenProject} savedSet={savedSet} />
+            {seenProject.template !== null && seenProject.template !== undefined && (
+                <InteractwithTemplates seenProject={seenProject} savedSet={savedSet} />
+            )}
         </div>
     )
 }

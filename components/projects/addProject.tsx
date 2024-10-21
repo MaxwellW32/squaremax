@@ -69,7 +69,6 @@ export default function AddProject() {
     async function handleSubmit() {
         try {
             if (!newProjectsSchema.safeParse(formObj).success) return toast.error("Form not valid")
-
             const projectName = formObj.name
 
             // ensure project names are unique
@@ -113,8 +112,14 @@ export default function AddProject() {
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
+                                            let seenText = e.target.value
 
-                                            newFormObj[eachKey] = e.target.value
+                                            // ensure name is in correct format
+                                            if (eachKey === "name") {
+                                                seenText = seenText.replace(/\s+/g, '-')
+                                            }
+
+                                            newFormObj[eachKey] = seenText
                                             return newFormObj
                                         })
                                     }}
@@ -131,7 +136,14 @@ export default function AddProject() {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
                                             //@ts-expect-error can write e.target.value
-                                            newFormObj[eachKey] = e.target.value
+                                            let seenText = e.target.value
+
+                                            // ensure name is in correct format
+                                            if (eachKey === "name") {
+                                                seenText = seenText.replace(/\s+/g, '-')
+                                            }
+
+                                            newFormObj[eachKey] = seenText
                                             return newFormObj
                                         })
                                     }}

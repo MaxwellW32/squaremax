@@ -73,6 +73,9 @@ export default function InteractwithTemplates({ seenProject, savedSet }: { seenP
             syncDebounce.current = setTimeout(async () => {
                 // update project with new template id
 
+                //ensure project name is in correct format 
+                postMessageTemplateInfo.globalFormData.siteInfo.name = postMessageTemplateInfo.globalFormData.siteInfo.name.replace(/\s+/g, '-')
+
                 await updateProject({
                     id: seenProject.id,
                     templateData: postMessageTemplateInfo.globalFormData

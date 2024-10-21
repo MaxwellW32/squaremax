@@ -80,7 +80,10 @@ export async function getSpecificProject(projectObj: { option: "id", data: Pick<
         projectsSchema.pick({ id: true }).parse(projectObj.data)
 
         const result = await db.query.projects.findFirst({
-            where: eq(projects.id, projectObj.data.id)
+            where: eq(projects.id, projectObj.data.id),
+            with: {
+                template: true,
+            }
         });
 
         return result
@@ -89,7 +92,10 @@ export async function getSpecificProject(projectObj: { option: "id", data: Pick<
         projectsSchema.pick({ name: true }).parse(projectObj.data)
 
         const result = await db.query.projects.findFirst({
-            where: and(eq(projects.name, projectObj.data.name), eq(projects.userId, session.user.id))
+            where: and(eq(projects.name, projectObj.data.name), eq(projects.userId, session.user.id)),
+            with: {
+                template: true,
+            }
         });
 
         return result
@@ -101,10 +107,7 @@ export async function getProjectsFromUser(): Promise<project[]> {
     if (!session) throw new Error("not signed in")
 
     const results = await db.query.projects.findMany({
-        where: eq(projects.userId, session.user.id),
-        with: {
-            template: true,
-        }
+        where: eq(projects.userId, session.user.id)
     })
 
     return results
