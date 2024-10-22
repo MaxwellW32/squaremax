@@ -1,7 +1,7 @@
 import { getTemplates } from "@/serverFunctions/handleTemplates"
 import styles from "./page.module.css"
 // import AddDefaultDataButton from "@/components/AddDefaultDataButton"
-
+// now we squaremax baby
 export default async function Home() {
   const templates = await getTemplates()
 
