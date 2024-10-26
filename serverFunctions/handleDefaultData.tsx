@@ -19,7 +19,7 @@ export async function addDefaultData(making: { project?: boolean, template?: boo
     if (making.template) {
         const newTemplate: newTemplate = {
             id: "aaaa",
-            name: `TemplaterOne`,
+            name: "Template-cool-one",
             github: "https://github.com/MaxwellW32/aaaa.git",
             url: "https://squaremax-templates-aaaa.vercel.app"
         }
