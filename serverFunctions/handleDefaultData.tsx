@@ -21,7 +21,7 @@ export async function addDefaultData(making: { project?: boolean, template?: boo
             id: "aaaa",
             name: `TemplaterOne`,
             github: "https://github.com/MaxwellW32/aaaa.git",
-            url: "https://onedaywebsite-templates-aaaa.vercel.app"
+            url: "https://squaremax-templates-aaaa.vercel.app"
         }
 
         await addTemplate(newTemplate)
