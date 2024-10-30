@@ -5,12 +5,19 @@
 :root {
     --color1: aliceblue;
     --gray1: #ddd;
+
+    /* property name / size */
+    --gapSmall: 1rem;
+
+    --paddingSmall: 1rem;
+
+    --radiusSmall: 1rem
 }
 
 *,
 *::before,
 *::after {
-    border: 1px solid red !important;
+    /* border: 1px solid red !important; */
 }
 
 body {

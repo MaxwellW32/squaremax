@@ -13,7 +13,7 @@ export async function addDefaultData(making: { project?: boolean, template?: boo
             name: `my fist project`,
         }
 
-        await addProject({ name: newProject.name.replace(/\s+/g, '-') })
+        await addProject({ name: newProject.name })
     }
 
     if (making.template) {

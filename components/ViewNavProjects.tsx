@@ -24,10 +24,10 @@ export default function ViewNavProjects({ seenUserProjects }: { seenUserProjects
                 </Link>
 
                 {seenUserProjects.map(eachProject => {
-                    const foundInUrl = decodeURIComponent(pathname).includes(eachProject.name)
+                    const foundInUrl = pathname.includes(eachProject.id)
 
                     return (
-                        <Link key={eachProject.id} href={`/projects/${eachProject.name}`} style={{ border: foundInUrl ? "1px solid #000" : "", padding: "1rem" }}>{eachProject.name}</Link>
+                        <Link key={eachProject.id} href={`/projects/${eachProject.id}`} style={{ border: foundInUrl ? "1px solid #000" : "", padding: "1rem" }}>{eachProject.name}</Link>
                     )
                 })}
             </div>

@@ -5,7 +5,7 @@ import React, { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { newProject, newProjectsSchema } from '@/types'
-import { addProject, getSpecificProject } from '@/serverFunctions/handleProjects'
+import { addProject } from '@/serverFunctions/handleProjects'
 import { useRouter } from 'next/navigation'
 
 export default function AddProject() {
@@ -69,23 +69,14 @@ export default function AddProject() {
     async function handleSubmit() {
         try {
             if (!newProjectsSchema.safeParse(formObj).success) return toast.error("Form not valid")
-            const projectName = formObj.name
 
-            // ensure project names are unique
-            const seenProject = await getSpecificProject({ option: "name", data: { name: projectName } })
-            if (seenProject !== undefined) {
-                toast.error("project names must be unique")
-
-                return
-            }
-
-            await addProject(formObj)
+            const addedProjectId = await addProject(formObj)
 
             toast.success(`Created Project ${formObj.name}!`)
             formObjSet({ ...initialFormObj })
 
             setTimeout(() => {
-                router.push(`/projects/${projectName}`)
+                router.push(`/projects/${addedProjectId}`)
             }, 2000);
 
         } catch (error) {
@@ -112,14 +103,7 @@ export default function AddProject() {
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
-                                            let seenText = e.target.value
-
-                                            // ensure name is in correct format
-                                            if (eachKey === "name") {
-                                                seenText = seenText.replace(/\s+/g, '-')
-                                            }
-
-                                            newFormObj[eachKey] = seenText
+                                            newFormObj[eachKey] = e.target.value
                                             return newFormObj
                                         })
                                     }}
@@ -135,15 +119,9 @@ export default function AddProject() {
                                     onInput={(e) => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
-                                            //@ts-expect-error can write e.target.value
-                                            let seenText = e.target.value
 
-                                            // ensure name is in correct format
-                                            if (eachKey === "name") {
-                                                seenText = seenText.replace(/\s+/g, '-')
-                                            }
-
-                                            newFormObj[eachKey] = seenText
+                                            //@ts-expect-error typing fix
+                                            newFormObj[eachKey] = e.target.value
                                             return newFormObj
                                         })
                                     }}

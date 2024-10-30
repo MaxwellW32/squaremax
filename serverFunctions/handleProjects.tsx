@@ -23,9 +23,11 @@ export async function addProject(seenProject: newProject) {
 
     newProjectsSchema.parse(seenProject)
 
+    const id = uuidV4()
+
     const fullProject: project = {
         ...seenProject,
-        id: uuidV4(),
+        id: id,
         userId: session.user.id,
         templateId: null,
         templateData: null
@@ -34,6 +36,8 @@ export async function addProject(seenProject: newProject) {
     projectsSchema.parse(fullProject)
 
     await db.insert(projects).values(fullProject)
+
+    return id
 }
 
 export async function updateProject(projectObj: Partial<project>) {

@@ -4,4 +4,22 @@
 
 .templateCont {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
+    gap: var(--gapSmall);
+}
+
+.template {
+    z-index: 0;
+    position: relative;
+    display: grid;
+    align-items: flex-end;
+}
+
+.templateInfo {
+    position: relative;
+    padding: var(--paddingSmall);
+    z-index: 1;
+    background-color: var(--color1);
+    border-top-left-radius: var(--radiusSmall);
+    border-top-right-radius: var(--radiusSmall);
 }
