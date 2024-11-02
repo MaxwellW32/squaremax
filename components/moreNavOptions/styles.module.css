@@ -1,0 +1,26 @@
+.contDiv {
+    display: grid;
+    position: relative;
+    align-items: center;
+}
+
+.moreItemsMenu {
+    padding: var(--gapExtraSmall);
+    display: grid;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: min(300px, 100vw);
+    background-color: var(--shade1);
+}
+
+.moreIntemsItem {
+    padding: var(--paddingExtraSmall);
+    transition: color var(--transitionSmall), background-color var(--transitionSmall);
+    cursor: pointer;
+}
+
+.moreIntemsItem:hover {
+    background-color: var(--shade2);
+    color: var(--shade4);
+}

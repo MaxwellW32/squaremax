@@ -3,21 +3,33 @@
 @tailwind utilities;
 
 :root {
-    --color1: aliceblue;
-    --gray1: #ddd;
+    --color1: red;
+
+    /* white background */
+    --shade1: #fff;
+    /* borders / element background */
+    --shade2: #ebebeb;
+    /* text color 1 */
+    --shade3: #777;
+    /* text color 2 */
+    --shade4: #171717;
 
     /* property name / size */
+    --gapExtraSmall: .5rem;
     --gapSmall: 1rem;
 
+    --paddingExtraSmall: .5rem;
     --paddingSmall: 1rem;
 
-    --radiusSmall: 1rem
+    --radiusSmall: 1rem;
+
+    --transitionSmall: 400ms;
 }
 
 *,
 *::before,
 *::after {
-    /* border: 1px solid red !important; */
+    border: 1px solid red !important;
 }
 
 body {
@@ -25,6 +37,7 @@ body {
     width: 100%;
     display: grid;
     grid-template-rows: auto 1fr;
+    color: var(--shade3);
 }
 
 label {
@@ -35,9 +48,8 @@ label {
 input,
 textarea {
     padding: 1rem;
-    background-color: var(--color1);
     border-radius: .2rem;
-    border: 1px solid var(--gray1);
+    border: 1px solid var(--shade1);
 }
 
 input:focus,

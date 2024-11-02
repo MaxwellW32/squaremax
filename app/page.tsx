@@ -1,11 +1,19 @@
 import { getTemplates } from "@/serverFunctions/handleTemplates"
 import styles from "./page.module.css"
-import { template } from "@/types"
+// import { template } from "@/types"
 // import AddDefaultDataButton from "@/components/AddDefaultDataButton"
 
 export default async function Home() {
-  // const templates = await getTemplates()
-  const templates: template[] = []
+  const templates = await getTemplates()
+
+  // const templates: template[] = [
+  //   {
+  //     id: "aaaa",
+  //     name: "temp-templaterOne",
+  //     github: "https://github.com/MaxwellW32/aaaa.git",
+  //     url: "https://squaremax-templates-aaaa.vercel.app"
+  //   }
+  // ]
 
   return (
     <main className={styles.main}>
