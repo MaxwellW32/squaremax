@@ -13,13 +13,13 @@ export async function addDefaultData(making: { project?: boolean, template?: boo
             name: `my fist project`,
         }
 
-        await addProject({ name: newProject.name })
+        await addProject(newProject)
     }
 
     if (making.template) {
         const newTemplate: newTemplate = {
             id: "aaaa",
-            name: "Template-cool-one",
+            name: "first template",
             github: "https://github.com/MaxwellW32/aaaa.git",
             url: "https://squaremax-templates-aaaa.vercel.app"
         }

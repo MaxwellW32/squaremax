@@ -3,7 +3,7 @@ import { getTemplatesByName } from '@/serverFunctions/handleTemplates'
 import { template } from '@/types'
 import React, { useRef, useState } from 'react'
 
-export default function TemplateSelector({ setterFunc }: { setterFunc: (id: Pick<template, "id">) => void }) {
+export default function TemplateSelector({ setterFunc }: { setterFunc: (templateIdObj: Pick<template, "id">) => void }) {
     const [userInteracting, userInteractingSet] = useState(false)
 
     const [search, searchSet] = useState("")

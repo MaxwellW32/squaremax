@@ -1,15 +1,9 @@
-import { syncFromTemplateType } from "@/types";
+import { sharedDataType, specificDataType } from "@/types";
 import { relations } from "drizzle-orm";
-import { boolean, timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, } from "drizzle-orm/pg-core"
+import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 // typeof users.$inferSelect;
 
-//models to make
-// Users - each user manages everything
-// Projects - each user creates a proect that uses a template, and stores their client info
-// templates - each template has an id, githubUrl and domain it can be viewed at
-// Categories - each categorizes templates
-// Styles - notes styles each template matches
 export const roleEnum = pgEnum("role", ['admin', 'normal']);
 
 export const users = pgTable("users", {
@@ -30,12 +24,11 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 
 export const projects = pgTable("projects", {
-    id: varchar("id", { length: 255 }).primaryKey(),
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
     name: varchar("name", { length: 255 }).notNull(),
     userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
 
-    templateId: varchar("templateId", { length: 255 }).references(() => templates.id),
-    templateData: json("templateData").$type<syncFromTemplateType | null>().default(null),
+    sharedData: json("sharedData").$type<sharedDataType | null>().default(null),
 },
     (table) => {
         return {
@@ -43,15 +36,12 @@ export const projects = pgTable("projects", {
             projectUserIdIndex: index("projectUserIdIndex").on(table.userId),
         };
     })
-export const projectsRelations = relations(projects, ({ one }) => ({
+export const projectsRelations = relations(projects, ({ one, many }) => ({
     fromUser: one(users, {
         fields: [projects.userId],
         references: [users.id]
     }),
-    template: one(templates, {
-        fields: [projects.templateId],
-        references: [templates.id]
-    }),
+    projectsToTemplates: many(projectsToTemplates),
 }));
 
 
@@ -67,6 +57,7 @@ export const templates = pgTable("templates", {
 export const templatesRelations = relations(templates, ({ many }) => ({
     templatesToCategories: many(templatesToCategories),
     templatesToStyles: many(templatesToStyles),
+    projectsToTemplates: many(projectsToTemplates),
 }));
 
 
@@ -89,6 +80,32 @@ export const styles = pgTable("styles", {
 })
 export const stylesRelations = relations(styles, ({ many }) => ({
     templatesToStyles: many(templatesToStyles),
+}));
+
+
+
+
+
+export const projectsToTemplates = pgTable('projectsToTemplates', {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    projectId: varchar("projectId", { length: 255 }).notNull().references(() => projects.id),
+    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
+
+    specificData: json("specificData").$type<specificDataType | null>().default(null),
+}, (t) => ({
+    projectIdIndex: index("projectIdIndex").on(t.projectId),
+
+}),
+);
+export const projectsToTemplatesRelations = relations(projectsToTemplates, ({ one }) => ({
+    project: one(projects, {
+        fields: [projectsToTemplates.projectId],
+        references: [projects.id],
+    }),
+    template: one(templates, {
+        fields: [projectsToTemplates.templateId],
+        references: [templates.id],
+    }),
 }));
 
 

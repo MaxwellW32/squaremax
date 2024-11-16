@@ -1,10 +1,12 @@
 "use client"
 import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
-import { postMessageTemplateInfoSchema, postMessageTemplateInfoType, project } from '@/types'
+import { updateProjectsToTemplates } from '@/serverFunctions/handleProjectsToTemplates'
+import { dataFromTemplateSchema, dataFromTemplateType, dataToTemplateType, project, projectsToTemplate, template } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function InteractwithTemplates({ seenProject, savedSet }: { seenProject: project, savedSet: React.Dispatch<React.SetStateAction<boolean | "in progress">> }) {
+
+export default function InteractwithTemplates({ seenProject, seenProjectToTemplate, savedSet }: { seenProject: project, seenProjectToTemplate: projectsToTemplate, savedSet: React.Dispatch<React.SetStateAction<boolean | "in progress">> }) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
     const syncDebounce = useRef<NodeJS.Timeout>()
 
@@ -23,9 +25,12 @@ export default function InteractwithTemplates({ seenProject, savedSet }: { seenP
         loopInterval.current = setInterval(() => {
             if (iframeRef.current === null || iframeRef.current.contentWindow === null) return
 
-            iframeRef.current.contentWindow.postMessage({
-                sentGlobalFormData: seenProject.templateData
-            }, "*")
+            const newDataToTemplate: dataToTemplateType = {
+                sharedData: seenProject.sharedData,
+                specificData: seenProjectToTemplate.specificData
+            }
+
+            iframeRef.current.contentWindow.postMessage(newDataToTemplate, "*")
         }, 1000)
 
         return () => {
@@ -38,10 +43,14 @@ export default function InteractwithTemplates({ seenProject, savedSet }: { seenP
     useEffect(() => {
         function handleMessage(message: MessageEvent<unknown>) {
             try {
+                //ensure the template is here
+                if (seenProjectToTemplate.template === undefined) return
+
                 //ensure data in correct format
                 const seenResponse = message.data
-                const postMessageTemplateInfoCheck = postMessageTemplateInfoSchema.safeParse(seenResponse)
-                if (!postMessageTemplateInfoCheck.success || seenProject.template === null || seenProject.template === undefined || postMessageTemplateInfoCheck.data.fromTemplate !== seenProject.template.id) return
+                const dataFromTemplateCheck = dataFromTemplateSchema.safeParse(seenResponse)
+
+                if (!dataFromTemplateCheck.success || dataFromTemplateCheck.data.fromTemplate !== seenProjectToTemplate.template.id) return
 
                 if (!heardBackFromTemplate) {
                     heardBackFromTemplateSet(true)
@@ -50,7 +59,7 @@ export default function InteractwithTemplates({ seenProject, savedSet }: { seenP
                 }
 
                 //set the latest template data to server
-                saveTemplateDataToServer(postMessageTemplateInfoCheck.data)
+                saveTemplateDataToServer(dataFromTemplateCheck.data)
 
             } catch (error) {
                 console.log(`$error reading template`, error);
@@ -63,29 +72,21 @@ export default function InteractwithTemplates({ seenProject, savedSet }: { seenP
         }
     }, [heardBackFromTemplate])
 
-    if (seenProject.template === null || seenProject.template === undefined) return null
-
-    function saveTemplateDataToServer(postMessageTemplateInfo: postMessageTemplateInfoType) {
+    function saveTemplateDataToServer(dataFromTemplate: dataFromTemplateType) {
         try {
             if (syncDebounce.current) clearTimeout(syncDebounce.current)
             savedSet("in progress")
 
             syncDebounce.current = setTimeout(async () => {
-                // update project with new template id
-
-                //ensure project name is in correct format 
-                postMessageTemplateInfo.globalFormData.siteInfo.name = postMessageTemplateInfo.globalFormData.siteInfo.name.replace(/\s+/g, '-')
-
-                await updateProject({
-                    id: seenProject.id,
-                    templateData: postMessageTemplateInfo.globalFormData
+                // update projects to templates with new template data
+                await updateProjectsToTemplates({
+                    id: seenProjectToTemplate.id,
+                    specificData: dataFromTemplate.specificData
                 })
 
                 savedSet(true)
 
                 console.log(`$saved templateData`);
-
-                await refreshProjectPath({ name: seenProject.name })
             }, 5000);
 
         } catch (error) {
@@ -94,8 +95,10 @@ export default function InteractwithTemplates({ seenProject, savedSet }: { seenP
         }
     }
 
+    if (seenProjectToTemplate.template === undefined) return null
+
     return (
-        <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={process.env.NEXT_PUBLIC_IN_DEVELOPMENT === "TRUE" ? "http://localhost:3001" : seenProject.template.url} />
+        <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={process.env.NEXT_PUBLIC_IN_DEVELOPMENT === "TRUE" ? "http://localhost:3001" : seenProjectToTemplate.template.url} />
     )
 }
 

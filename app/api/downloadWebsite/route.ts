@@ -3,15 +3,15 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import simpleGit from 'simple-git';
-import { syncFromTemplateSchema, syncFromTemplateType } from "@/types";
+import { templateGlobalFormDataSchema, templateGlobalFormDataType } from "@/types";
 
 export async function POST(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
 
         //get websiteCustomizations
-        const templateGlobalFormData = await request.json();
-        syncFromTemplateSchema.parse(templateGlobalFormData)
+        const templateGlobalFormData: templateGlobalFormDataType = await request.json();
+        templateGlobalFormDataSchema.parse(templateGlobalFormData)
 
         //get github download url
         const githubUrl = searchParams.get("githubUrl");
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 }
 
-async function customizeProject(sourcePath: string, syncFromTemplate: syncFromTemplateType) {
+async function customizeProject(sourcePath: string, templateGlobalFormData: templateGlobalFormDataType) {
     const files = await fs.readdir(sourcePath);
 
     for (const file of files) {
@@ -70,7 +70,7 @@ async function customizeProject(sourcePath: string, syncFromTemplate: syncFromTe
 
         if (stats.isDirectory()) {
             // Recursively clone directories
-            await customizeProject(sourceFilePath, syncFromTemplate);
+            await customizeProject(sourceFilePath, templateGlobalFormData);
 
         } else {
             //handling files
@@ -135,16 +135,23 @@ async function customizeProject(sourcePath: string, syncFromTemplate: syncFromTe
                 // Replace globalFormData with client values
                 await fs.writeFile(sourceFilePath, `
     import { globalFormDataType } from "@/types";
-    export const globalFormData: globalFormDataType = ${JSON.stringify(syncFromTemplate, null, 2)}
+    export const globalFormData: globalFormDataType = ${JSON.stringify(templateGlobalFormData, null, 2)}
     `);
 
             } else if (file === "package.json") {
+                // Remove invalid characters (allow only a-z, 0-9, hyphens, underscores)
+                let sanitizedName = templateGlobalFormData.sharedData.siteInfo.websiteName.replace(/[^a-z0-9-_]/g, '');
+                // Convert to lowercase
+                sanitizedName = sanitizedName.toLowerCase();
+                // Ensure no leading or trailing hyphens/underscores
+                sanitizedName = sanitizedName.replace(/^[-_]+|[-_]+$/g, '');
+
                 // Customize package.json
                 const packageJsonContent = await fs.readFile(sourceFilePath, "utf-8");
                 const packageJson = JSON.parse(packageJsonContent);
-                packageJson.name = syncFromTemplate.siteInfo.name;
-                await fs.writeFile(sourceFilePath, JSON.stringify(packageJson, null, 2));
+                packageJson.name = sanitizedName;
 
+                await fs.writeFile(sourceFilePath, JSON.stringify(packageJson, null, 2));
             }
         }
     }
