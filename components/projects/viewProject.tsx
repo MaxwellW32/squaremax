@@ -6,7 +6,6 @@ import TemplateSelector from '../templates/templateSelector'
 import { toast } from 'react-hot-toast'
 import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
 import { addTemplateToProject, deleteTemplateFromProject } from '@/serverFunctions/handleProjectsToTemplates'
-import { revalidatePath } from 'next/cache'
 
 export default function ViewProject({ seenProject }: { seenProject: project }) {
     const [sideBarShowing, sideBarShowingSet] = useState(false)

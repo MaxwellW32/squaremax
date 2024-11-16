@@ -1,7 +1,6 @@
 "use client"
-import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
 import { updateProjectsToTemplates } from '@/serverFunctions/handleProjectsToTemplates'
-import { dataFromTemplateSchema, dataFromTemplateType, dataToTemplateType, project, projectsToTemplate, template } from '@/types'
+import { dataFromTemplateSchema, dataFromTemplateType, dataToTemplateType, project, projectsToTemplate } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
