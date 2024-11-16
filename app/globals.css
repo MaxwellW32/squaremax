@@ -3,27 +3,26 @@
 @tailwind utilities;
 
 :root {
-    --color1: red;
-
     /* white background */
-    --shade1: #fff;
-    /* borders / element background */
-    --shade2: #ebebeb;
-    /* text color 1 */
-    --shade3: #777;
-    /* text color 2 */
-    --shade4: #171717;
+    --viewColor1: #0000ff;
+    --viewShade1: #171717;
+    --viewShade2: #ffffff;
+    --viewShade3: #fafafa;
 
-    /* property name / size */
-    --gapExtraSmall: .5rem;
-    --gapSmall: 1rem;
+    --shade1: 23, 23, 23;
+    --shade2: 255, 255, 255;
+    --shade3: 250, 250, 250;
 
-    --paddingExtraSmall: .5rem;
-    --paddingSmall: 1rem;
+    /* property name / size / es / s/ r / m / l /el */
+    --gapEs: .5rem;
+    --gapR: 1rem;
 
-    --radiusSmall: 1rem;
+    --paddingEs: .5rem;
+    --paddingR: 1rem;
 
-    --transitionSmall: 400ms;
+    --radiusR: 1rem;
+
+    --transitionR: 400ms;
 }
 
 *,
@@ -37,7 +36,8 @@ body {
     width: 100%;
     display: grid;
     grid-template-rows: auto 1fr;
-    color: var(--shade3);
+    color: rgb(var(--shade1));
+    background-color: rgb(var(--shade2));
 }
 
 label {
@@ -54,6 +54,6 @@ textarea {
 
 input:focus,
 textarea:focus {
-    background-color: #fff;
+    background-color: rgb(var(--shade2));
     outline: none;
 }

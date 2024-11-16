@@ -5,7 +5,7 @@ import ViewNavProjects from "../ViewNavProjects"
 import { project } from "@/types"
 import styles from "./styles.module.css"
 import Image from "next/image"
-import defaultImage from "@/public/defaultImage.jpg"
+import logo from "@/public/logo.svg"
 import MoreNavOptions from "../moreNavOptions/MoreNavOptions"
 
 export default async function Nav() {
@@ -18,7 +18,9 @@ export default async function Nav() {
 
     return (
         <nav className={styles.nav}>
-            <Image alt="logo" src={defaultImage} width={50} height={50} style={{ objectFit: "cover" }} />
+            <Link href={"/"}>
+                <Image alt="logo" src={logo} width={30} height={30} style={{ objectFit: "contain" }} />
+            </Link>
 
             <ul className={styles.menu}>
                 {session === null ? (

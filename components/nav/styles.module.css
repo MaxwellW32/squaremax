@@ -3,16 +3,16 @@
     justify-content: space-between;
     white-space: nowrap;
     text-transform: capitalize;
-    padding-inline: var(--paddingSmall);
-    background-color: var(--shade1);
+    padding-inline: var(--paddingEs);
+    align-items: center;
 }
 
 .menu {
     display: flex;
-    gap: var(--gapSmall);
+    gap: var(--gapR);
 }
 
 .menuItem {
     display: grid;
-    padding: var(--paddingExtraSmall);
+    padding: var(--paddingEs);
 }

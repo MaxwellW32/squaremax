@@ -36,7 +36,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
     }
 
     return (
-        <div style={{ position: "relative", backgroundColor: "green", zIndex: 0 }}>
+        <div style={{ position: "relative", zIndex: 0 }}>
             {/* side bar button */}
             {!sideBarShowing && (
                 <button

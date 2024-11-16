@@ -5,15 +5,9 @@ import Nav from "@/components/nav/Nav";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const geist = localFont({
+  src: "./fonts/Geist.ttf",
+  variable: "--geist",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +25,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geist.variable} antialiased`}
       >
         <SessionProvider>
           <Toaster position="top-center" reverseOrder={false} />
