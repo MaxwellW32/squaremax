@@ -12,7 +12,7 @@ export default function ViewNavProjects({ seenUserProjects }: { seenUserProjects
         <div style={{ position: "relative", display: "grid" }}>
             <button
                 onClick={() => { showingSet(prev => !prev) }}
-            >{showing ? "hide" : "show"}</button>
+            >{showing ? "hide" : "projects"}</button>
 
             <div style={{ display: showing ? "grid" : "none", position: "absolute", right: 0, maxHeight: "60vh", overflowY: "auto", top: "100%", backgroundColor: "#fff", paddingBlock: "1rem", }}
                 onClick={() => {

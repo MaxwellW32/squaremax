@@ -1,18 +1,19 @@
-
 import { getTemplates } from "@/serverFunctions/handleTemplates"
 import styles from "./page.module.css"
-import Image from "next/image"
-import Link from "next/link"
+// import { template } from "@/types"
 // import AddDefaultDataButton from "@/components/AddDefaultDataButton"
-
-//want to feel like im making progress
-//complete aaaa
-//allow opening in new tab
-//add basic styles
-//maybe start a new template - landing page
 
 export default async function Home() {
   const templates = await getTemplates()
+
+  // const templates: template[] = [
+  //   {
+  //     id: "aaaa",
+  //     name: "temp-templaterOne",
+  //     github: "https://github.com/MaxwellW32/aaaa.git",
+  //     url: "https://squaremax-templates-aaaa.vercel.app"
+  //   }
+  // ]
 
   return (
     <main className={styles.main}>
@@ -23,13 +24,11 @@ export default async function Home() {
       <div className={styles.templateCont}>
         {templates.map(eachTemplate => {
           return (
-            <div key={eachTemplate.id} className={styles.template}>
-              {/* background image */}
-              <Image alt="bg" src={"https://images.pexels.com/photos/159045/the-interior-of-the-repair-interior-design-159045.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"} fill={true} style={{ objectFit: "cover" }} sizes="(max-width: 300px) 100vw, (max-width: 600px) 50vw, 33vw" />
+            <div key={eachTemplate.id} style={{ width: "min(300px, 100%)", height: "400px", position: "relative", zIndex: 0 }}>
+              <iframe src={eachTemplate.url} style={{ width: "100%", height: "100%" }} />
 
-              <div className={styles.templateInfo}>
-                {/* more info */}
-                <Link href={eachTemplate.url} target="blank_">{eachTemplate.name}</Link>
+              <div style={{ zIndex: 1, position: "absolute", bottom: 0, left: 0, width: "100%" }}>
+                <p>{eachTemplate.name}</p>
 
                 {/* categories */}
                 {/* styles */}

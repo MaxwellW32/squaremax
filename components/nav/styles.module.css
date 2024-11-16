@@ -1,0 +1,18 @@
+.nav {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+    text-transform: capitalize;
+    padding-inline: var(--paddingSmall);
+    background-color: var(--shade1);
+}
+
+.menu {
+    display: flex;
+    gap: var(--gapSmall);
+}
+
+.menuItem {
+    display: grid;
+    padding: var(--paddingExtraSmall);
+}
