@@ -15,7 +15,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
     //set first seen template to activeProjectTemplateId on load
     useEffect(() => {
-        if (seenProject.projectsToTemplates === undefined) return
+        if (seenProject.projectsToTemplates === undefined || seenProject.projectsToTemplates.length === 0) return
 
         activeProjectTemplateIdSet(seenProject.projectsToTemplates[0].id)
     }, [])
