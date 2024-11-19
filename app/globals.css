@@ -57,3 +57,8 @@ textarea:focus {
     background-color: rgb(var(--shade2));
     outline: none;
 }
+
+svg {
+    width: 1rem;
+    height: 1rem;
+}

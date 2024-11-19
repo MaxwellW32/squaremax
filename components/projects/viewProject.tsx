@@ -1,5 +1,5 @@
 "use client"
-import { project, sharedDataSchema, sharedDataType, template, templateGlobalFormDataType } from '@/types'
+import { project, projectsToTemplate, sharedDataSchema, sharedDataType, template, templateGlobalFormDataType } from '@/types'
 import React, { useState, useEffect } from 'react'
 import InteractwithTemplates from '../templates/InteractWithTemplates'
 import TemplateSelector from '../templates/templateSelector'
@@ -8,31 +8,105 @@ import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProje
 import { addTemplateToProject, deleteTemplateFromProject } from '@/serverFunctions/handleProjectsToTemplates'
 
 export default function ViewProject({ seenProject }: { seenProject: project }) {
+    const [project, projectSet] = useState<project>({ ...seenProject })
+
+    type projectToTemplatePlusType = projectsToTemplate & {
+        confirmDelete: boolean,
+        saveState: "saved" | "saving" | null,
+        active: boolean
+    }
+    const [projectsToTemplatesPlus, projectsToTemplatesPlusSet] = useState<projectToTemplatePlusType[]>([])
+
     const [sideBarShowing, sideBarShowingSet] = useState(false)
-    const [confirmDelete, confirmDeleteSet] = useState(false)
-    const [saved, savedSet] = useState<"in progress" | boolean>(false)
-    const [activeProjectTemplateId, activeProjectTemplateIdSet] = useState("")
 
-    //set first seen template to activeProjectTemplateId on load
+    //keep projects in sync with server
     useEffect(() => {
-        if (seenProject.projectsToTemplates === undefined || seenProject.projectsToTemplates.length === 0) return
+        projectSet({ ...seenProject })
+    }, [seenProject])
 
-        activeProjectTemplateIdSet(seenProject.projectsToTemplates[0].id)
-    }, [])
+    //keep projectsToTemplatePlus synced with server
+    useEffect(() => {
+        projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+            const newProjectToTemplatePlus = [...prevProjectToTemplatePlus]
+            //if nothing on server return []
+            if (project.projectsToTemplates === undefined) return newProjectToTemplatePlus
+
+            // current list reduced to only those on server
+            let projectToTemplatePlusSynced = newProjectToTemplatePlus.filter(eachProjectToTemplatePlus => {
+                if (project.projectsToTemplates === undefined) return false
+
+                //look through server current list
+                const foundInServerIndex = project.projectsToTemplates.findIndex(eachServerProjectToTemplate => eachServerProjectToTemplate.id === eachProjectToTemplatePlus.id)
+
+                if (foundInServerIndex < 0) {
+                    return false
+                } else {
+                    return true
+                }
+            })
+
+            // local list has additional server projectsToTemplates added
+            project.projectsToTemplates.forEach(eachServerProjectToTemplate => {
+                const foundInCurrentIndex = projectToTemplatePlusSynced.findIndex(eachProjectsToTemplatePlusInServer => eachProjectsToTemplatePlusInServer.id === eachServerProjectToTemplate.id)
+
+                // add to the current list
+                if (foundInCurrentIndex < 0) {
+                    const newProjectsToTemplatePlus: projectToTemplatePlusType = {
+                        ...eachServerProjectToTemplate,
+                        confirmDelete: false,
+                        saveState: null,
+                        active: false
+                    }
+
+                    projectToTemplatePlusSynced = [...projectToTemplatePlusSynced, newProjectsToTemplatePlus]
+                }
+            })
+
+            //if nothing active in list make first template active
+            const activeCheckIndex = projectToTemplatePlusSynced.findIndex(eachProjectToTemplatePlusSynced => eachProjectToTemplatePlusSynced.active)
+            if (activeCheckIndex < 0 && projectToTemplatePlusSynced.length > 0) {
+                projectToTemplatePlusSynced[0].active = true
+            }
+
+            return projectToTemplatePlusSynced
+        })
+
+    }, [project.projectsToTemplates])
 
     async function handleTemplateSelection(templateIdObj: Pick<template, "id">) {
         try {
             //update project many many table with template
-            await addTemplateToProject({ id: seenProject.id }, { id: templateIdObj.id })
+            await addTemplateToProject({ id: project.id }, { id: templateIdObj.id })
 
             toast.success("using template")
 
-            refreshProjectPath({ id: seenProject.id })
+            refreshProjectPath({ id: project.id })
 
         } catch (error) {
             toast.error("error getting template")
             console.log(`$error`, error);
         }
+    }
+
+    function markTemplateSave(id: string, option: "saving" | "saved") {
+        projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+            const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachProjectToTemplatePlus => {
+
+                if (eachProjectToTemplatePlus.id === id) {
+                    if (option === "saving") {
+
+                        eachProjectToTemplatePlus.saveState = "saving"
+
+                    } else if (option === "saved") {
+                        eachProjectToTemplatePlus.saveState = "saved"
+                    }
+                }
+
+                return eachProjectToTemplatePlus
+            })
+
+            return newProjectToTemplatePlus
+        })
     }
 
     return (
@@ -50,11 +124,11 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                     onClick={() => { sideBarShowingSet(false) }}
                 >close</button>
 
-                <p>Project name: {seenProject.name}</p>
+                <p>Project name: {project.name}</p>
 
                 {/* make shared project data here, sync on server */}
                 <div>
-                    {seenProject.sharedData === null && (
+                    {project.sharedData === null && (
                         <button
                             onClick={async () => {
                                 try {
@@ -83,11 +157,11 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                                     sharedDataSchema.parse(newSharedData)
 
                                     await updateProject({
-                                        id: seenProject.id,
+                                        id: project.id,
                                         sharedData: newSharedData
                                     })
 
-                                    refreshProjectPath({ id: seenProject.id })
+                                    refreshProjectPath({ id: project.id })
                                 } catch (error) {
                                     console.log(`$err setting shared data`, error);
                                 }
@@ -100,71 +174,121 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
                 <TemplateSelector setterFunc={handleTemplateSelection} />
 
-                {seenProject.projectsToTemplates !== undefined && (
+                {projectsToTemplatesPlus.length > 0 && (
                     <>
                         {/* seeing templates on this project */}
                         <h2>Choose active template</h2>
 
                         {/* active template selection */}
                         <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-                            {seenProject.projectsToTemplates.map(eachProjectToTemplate => {
+                            {projectsToTemplatesPlus.map(eachProjectToTemplatePlus => {
 
-                                if (eachProjectToTemplate.template === undefined) return null
+                                if (eachProjectToTemplatePlus.template === undefined) return null
 
                                 return (
-                                    <div key={eachProjectToTemplate.id}>
-                                        <button style={{ backgroundColor: eachProjectToTemplate.id === activeProjectTemplateId ? "blue" : "" }}
+                                    <div key={eachProjectToTemplatePlus.id}>
+                                        <button style={{ backgroundColor: eachProjectToTemplatePlus.active ? "blue" : "" }}
                                             onClick={() => {
-                                                activeProjectTemplateIdSet(eachProjectToTemplate.id)
+                                                projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+                                                    const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
+                                                        eachSmallProjectToTemplatePlus.active = false
+
+                                                        if (eachSmallProjectToTemplatePlus.id === eachProjectToTemplatePlus.id) {
+                                                            eachSmallProjectToTemplatePlus.active = true
+                                                        }
+
+                                                        return eachProjectToTemplatePlus
+                                                    })
+
+                                                    return newProjectToTemplatePlus
+                                                })
                                             }}
-                                        >{eachProjectToTemplate.template.name}</button>
+                                        >{eachProjectToTemplatePlus.template.name}</button>
 
                                         <button
                                             onClick={async () => {
-                                                if (!confirmDelete) {
+                                                if (!eachProjectToTemplatePlus.confirmDelete) {
                                                     // ensure user confirms deletion
-                                                    confirmDeleteSet(true)
+                                                    projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+                                                        const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
+                                                            eachSmallProjectToTemplatePlus.confirmDelete = false
+
+                                                            if (eachSmallProjectToTemplatePlus.id === eachProjectToTemplatePlus.id) {
+                                                                eachSmallProjectToTemplatePlus.confirmDelete = true
+                                                            }
+
+                                                            return eachProjectToTemplatePlus
+                                                        })
+
+                                                        return newProjectToTemplatePlus
+                                                    })
+
+                                                    //stop here on first delete try
                                                     return
                                                 }
 
                                                 // clears template from projectsToTemplates
                                                 await deleteTemplateFromProject({
-                                                    id: seenProject.id
+                                                    id: project.id
                                                 })
 
                                                 toast.success("template unlinked")
 
-                                                refreshProjectPath({ id: seenProject.id })
+                                                refreshProjectPath({ id: project.id })
 
-                                                confirmDeleteSet(false)
+                                                projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+                                                    const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
+                                                        eachSmallProjectToTemplatePlus.confirmDelete = false
+
+                                                        return eachProjectToTemplatePlus
+                                                    })
+
+                                                    return newProjectToTemplatePlus
+                                                })
                                             }}
-                                        >{confirmDelete && "confirm "}unlink {!confirmDelete && "template"}</button>
+                                        >{eachProjectToTemplatePlus.confirmDelete && "confirm "}remove {!eachProjectToTemplatePlus.confirmDelete && "template"}</button>
 
-                                        {confirmDelete && (
+                                        {eachProjectToTemplatePlus.confirmDelete && (
                                             <button
                                                 onClick={() => {
-                                                    confirmDeleteSet(false)
+                                                    projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+                                                        const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
+                                                            eachSmallProjectToTemplatePlus.confirmDelete = false
+
+                                                            return eachProjectToTemplatePlus
+                                                        })
+
+                                                        return newProjectToTemplatePlus
+                                                    })
                                                 }}
                                             >cancel</button>
                                         )}
 
-                                        <button className='smallButton'
+                                        <button
                                             onClick={async () => {
+                                                console.log(`$seeing click`);
                                                 try {
                                                     //get latest template info here
-                                                    if (saved === "in progress" || eachProjectToTemplate.template === undefined) return
+                                                    if (eachProjectToTemplatePlus.saveState === "saving") {
+                                                        toast.error("saving in progress")
+                                                        return
+                                                    }
+                                                    if (eachProjectToTemplatePlus.template === undefined) {
+                                                        toast.error("no template to download")
+                                                        return
+                                                    }
 
-                                                    if (seenProject.sharedData === null || eachProjectToTemplate.specificData === null) {
-                                                        console.log(`$didn't have shared data / specific data`);
+                                                    if (project.sharedData === null || eachProjectToTemplatePlus.specificData === null) {
+                                                        toast.error("please add both shared and specific data")
                                                         return
                                                     }
 
                                                     const newTemplateGlobalFormData: templateGlobalFormDataType = {
-                                                        sharedData: seenProject.sharedData,
-                                                        specificData: eachProjectToTemplate.specificData,
+                                                        sharedData: project.sharedData,
+                                                        specificData: eachProjectToTemplatePlus.specificData,
                                                     }
 
-                                                    const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectToTemplate.template.github}`, {
+                                                    const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectToTemplatePlus.template.github}`, {
                                                         method: 'POST',
                                                         headers: {
                                                             'Content-Type': 'application/json',
@@ -177,7 +301,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
                                                     const a = document.createElement('a');
                                                     a.href = url;
-                                                    a.download = `${eachProjectToTemplate.template.name}.zip`;
+                                                    a.download = `${eachProjectToTemplatePlus.template.name}.zip`;
                                                     document.body.appendChild(a);
                                                     a.click();
                                                     document.body.removeChild(a);
@@ -187,7 +311,12 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                                                     console.error('Error downloading zip:', error);
                                                 }
                                             }}
-                                        >{saved === "in progress" ? "saving" : "Download Website"}</button>
+                                        >{eachProjectToTemplatePlus.saveState === "saving" ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
+                                        )}
+                                        </button>
                                     </div>
                                 )
                             })}
@@ -196,15 +325,19 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                 )}
             </div>
 
-            {seenProject.projectsToTemplates !== undefined && (
+            {project.projectsToTemplates !== undefined && project.projectsToTemplates.length > 0 && (
                 <>
-                    {seenProject.projectsToTemplates.map(eachProjectToTemplate => {
-
+                    {project.projectsToTemplates.map(eachProjectToTemplate => {
                         if (eachProjectToTemplate.template === undefined) return null
-                        if (eachProjectToTemplate.id !== activeProjectTemplateId) return null
+
+                        // ensure only original projectsToTemplates are used
+                        const foundProjectToTemplatePlus = projectsToTemplatesPlus.find(eachProjectsToTemplatesPlus => eachProjectsToTemplatesPlus.id === eachProjectToTemplate.id)
+                        if (foundProjectToTemplatePlus === undefined) return null
+
+                        if (!foundProjectToTemplatePlus.active) return null
 
                         return (
-                            <InteractwithTemplates key={eachProjectToTemplate.id} seenProject={seenProject} seenProjectToTemplate={eachProjectToTemplate} savedSet={savedSet} />
+                            <InteractwithTemplates key={eachProjectToTemplate.id} seenProject={project} seenProjectToTemplate={eachProjectToTemplate} markTemplateSave={markTemplateSave} />
                         )
                     })}
                 </>

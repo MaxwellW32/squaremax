@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast'
 
 //send shared data as project updates
 
-export default function InteractwithTemplates({ seenProject, seenProjectToTemplate, savedSet }: { seenProject: project, seenProjectToTemplate: projectsToTemplate, savedSet: React.Dispatch<React.SetStateAction<boolean | "in progress">> }) {
+export default function InteractwithTemplates({ seenProject, seenProjectToTemplate, markTemplateSave }: { seenProject: project, seenProjectToTemplate: projectsToTemplate, markTemplateSave: (id: string, option: "saving" | "saved") => void }) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
     const syncDebounce = useRef<NodeJS.Timeout>()
 
@@ -36,7 +36,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
 
     }, [heardBackFromTemplate])
 
-    //receive data from template and set templateInfoPostMessage
+    //receive data from template and set heardBackFromTemplate
     useEffect(() => {
         function handleMessage(message: MessageEvent<unknown>) {
             try {
@@ -72,7 +72,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
     }, [heardBackFromTemplate])
 
     //send shared data from database
-    async function sendSharedData() {
+    function sendSharedData() {
         if (iframeRef.current === null || iframeRef.current.contentWindow === null) return
 
         const newSharedDataToTemplate: sharedDataToTemplateType = {
@@ -83,7 +83,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
     }
 
     //send specific data from database
-    async function sendSpecificData() {
+    function sendSpecificData() {
         if (iframeRef.current === null || iframeRef.current.contentWindow === null) return
 
         const newSpecificDataToTemplate: specificDataToTemplateType = {
@@ -96,7 +96,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
     function saveTemplateDataToServer(dataFromTemplate: dataFromTemplateType) {
         try {
             if (syncDebounce.current) clearTimeout(syncDebounce.current)
-            savedSet("in progress")
+            markTemplateSave(seenProjectToTemplate.id, "saving")
 
             syncDebounce.current = setTimeout(async () => {
                 // update projects to templates with new template data
@@ -105,10 +105,10 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
                     specificData: dataFromTemplate.specificData
                 })
 
-                savedSet(true)
+                markTemplateSave(seenProjectToTemplate.id, "saved")
 
                 console.log(`$saved templateData`);
-            }, 3000);
+            }, 5000);
 
         } catch (error) {
             toast.error("error saving")
