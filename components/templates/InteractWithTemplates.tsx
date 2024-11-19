@@ -1,9 +1,10 @@
 "use client"
 import { updateProjectsToTemplates } from '@/serverFunctions/handleProjectsToTemplates'
-import { dataFromTemplateSchema, dataFromTemplateType, dataToTemplateType, project, projectsToTemplate } from '@/types'
+import { dataFromTemplateSchema, dataFromTemplateType, project, projectsToTemplate, sharedDataToTemplateType, specificDataToTemplateType } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
+//send shared data as project updates
 
 export default function InteractwithTemplates({ seenProject, seenProjectToTemplate, savedSet }: { seenProject: project, seenProjectToTemplate: projectsToTemplate, savedSet: React.Dispatch<React.SetStateAction<boolean | "in progress">> }) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
@@ -12,7 +13,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
     const [heardBackFromTemplate, heardBackFromTemplateSet] = useState(false)
     const loopInterval = useRef<NodeJS.Timeout>()
 
-    //send saved data from database
+    //send saved data from database on first load
     useEffect(() => {
         // stop loop when heard back from template
         if (heardBackFromTemplate) {
@@ -24,12 +25,9 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
         loopInterval.current = setInterval(() => {
             if (iframeRef.current === null || iframeRef.current.contentWindow === null) return
 
-            const newDataToTemplate: dataToTemplateType = {
-                sharedData: seenProject.sharedData,
-                specificData: seenProjectToTemplate.specificData
-            }
-
-            iframeRef.current.contentWindow.postMessage(newDataToTemplate, "*")
+            //send this on load once
+            sendSharedData()
+            sendSpecificData()
         }, 1000)
 
         return () => {
@@ -49,8 +47,10 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
                 const seenResponse = message.data
                 const dataFromTemplateCheck = dataFromTemplateSchema.safeParse(seenResponse)
 
+                // ensure tempalte data valid and meant for this template
                 if (!dataFromTemplateCheck.success || dataFromTemplateCheck.data.fromTemplate !== seenProjectToTemplate.template.id) return
 
+                // set heard back from template once
                 if (!heardBackFromTemplate) {
                     heardBackFromTemplateSet(true)
                     console.log(`$main heard from template`);
@@ -71,6 +71,28 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
         }
     }, [heardBackFromTemplate])
 
+    //send shared data from database
+    async function sendSharedData() {
+        if (iframeRef.current === null || iframeRef.current.contentWindow === null) return
+
+        const newSharedDataToTemplate: sharedDataToTemplateType = {
+            sharedData: seenProject.sharedData,
+        }
+
+        iframeRef.current.contentWindow.postMessage(newSharedDataToTemplate, "*")
+    }
+
+    //send specific data from database
+    async function sendSpecificData() {
+        if (iframeRef.current === null || iframeRef.current.contentWindow === null) return
+
+        const newSpecificDataToTemplate: specificDataToTemplateType = {
+            specificData: seenProjectToTemplate.specificData
+        }
+
+        iframeRef.current.contentWindow.postMessage(newSpecificDataToTemplate, "*")
+    }
+
     function saveTemplateDataToServer(dataFromTemplate: dataFromTemplateType) {
         try {
             if (syncDebounce.current) clearTimeout(syncDebounce.current)
@@ -86,7 +108,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
                 savedSet(true)
 
                 console.log(`$saved templateData`);
-            }, 5000);
+            }, 3000);
 
         } catch (error) {
             toast.error("error saving")
@@ -94,6 +116,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
         }
     }
 
+    // ensure there is a template
     if (seenProjectToTemplate.template === undefined) return null
 
     return (

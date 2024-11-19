@@ -107,11 +107,16 @@ export type dataFromTemplateType = z.infer<typeof dataFromTemplateSchema>
 
 
 //info sent to templates -- write data
-export const dataToTemplateSchema = z.object({
+export const sharedDataToTemplateSchema = z.object({
     sharedData: sharedDataSchema.nullable(),
+})
+export type sharedDataToTemplateType = z.infer<typeof sharedDataToTemplateSchema>
+
+//info sent to templates -- write data
+export const specificDataToTemplateSchema = z.object({
     specificData: specificDataSchema.nullable()
 })
-export type dataToTemplateType = z.infer<typeof dataToTemplateSchema>
+export type specificDataToTemplateType = z.infer<typeof specificDataToTemplateSchema>
 
 
 //info sent when downloading template
@@ -120,6 +125,8 @@ export const templateGlobalFormDataSchema = z.object({
     specificData: specificDataSchema
 })
 export type templateGlobalFormDataType = z.infer<typeof templateGlobalFormDataSchema>
+
+
 
 
 
