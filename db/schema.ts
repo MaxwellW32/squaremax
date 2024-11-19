@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 // typeof users.$inferSelect;
+// typeof users.$inferInsert 
 
 export const roleEnum = pgEnum("role", ['admin', 'normal']);
 
