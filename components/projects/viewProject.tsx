@@ -160,8 +160,8 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
     function fitElement(elementWidth: number, elementHeight: number, contElementWidth: number, contElementHeight: number) {
         const scaleX = contElementWidth / elementWidth
         const scaleY = contElementHeight / elementHeight
-        return Math.min(scaleX, scaleY); // Use the smaller scale to ensure fit
-    };
+        return Math.min(scaleX, scaleY);
+    }
 
     return (
         <div className={styles.barCont}>
@@ -169,7 +169,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                 onMouseEnter={() => { dimSideBarSet(false) }}
                 onMouseLeave={() => { dimSideBarSet(true) }}
             >
-                <p>Project name: {project.name}</p>
+                <h2>{project.name}</h2>
 
                 {/* make shared project data here, sync on server */}
                 <div>
@@ -219,30 +219,46 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
                 <TemplateSelector setterFunc={handleTemplateSelection} />
 
+                {/* active template selection */}
                 {projectsToTemplatesPlus.length > 0 && (
-                    <>
-                        {/* seeing templates on this project */}
-                        <h2>Choose active template</h2>
+                    <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+                        {projectsToTemplatesPlus.map(eachProjectToTemplatePlus => {
 
-                        {/* active template selection */}
-                        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-                            {projectsToTemplatesPlus.map(eachProjectToTemplatePlus => {
+                            if (eachProjectToTemplatePlus.template === undefined) return null
 
-                                if (eachProjectToTemplatePlus.template === undefined) return null
+                            return (
+                                <div key={eachProjectToTemplatePlus.id} className={styles.templateOptionCont}>
+                                    <div style={{ width: "1rem", aspectRatio: "1/1", backgroundColor: eachProjectToTemplatePlus.connected ? "green" : "#eee" }}>
+                                    </div>
 
-                                return (
-                                    <div key={eachProjectToTemplatePlus.id} className={styles.templateOptionCont}>
-                                        <div style={{ width: "1rem", aspectRatio: "1/1", backgroundColor: eachProjectToTemplatePlus.connected ? "green" : "#eee" }}>
-                                        </div>
+                                    <button style={{ backgroundColor: eachProjectToTemplatePlus.active ? "blue" : "" }}
+                                        onClick={() => {
+                                            projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+                                                const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
+                                                    eachSmallProjectToTemplatePlus.active = false
 
-                                        <button style={{ backgroundColor: eachProjectToTemplatePlus.active ? "blue" : "" }}
-                                            onClick={() => {
+                                                    if (eachSmallProjectToTemplatePlus.id === eachProjectToTemplatePlus.id) {
+                                                        eachSmallProjectToTemplatePlus.active = true
+                                                    }
+
+                                                    return eachProjectToTemplatePlus
+                                                })
+
+                                                return newProjectToTemplatePlus
+                                            })
+                                        }}
+                                    >{eachProjectToTemplatePlus.template.name}</button>
+
+                                    <button
+                                        onClick={async () => {
+                                            if (!eachProjectToTemplatePlus.confirmDelete) {
+                                                // ensure user confirms deletion
                                                 projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
                                                     const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
-                                                        eachSmallProjectToTemplatePlus.active = false
+                                                        eachSmallProjectToTemplatePlus.confirmDelete = false
 
                                                         if (eachSmallProjectToTemplatePlus.id === eachProjectToTemplatePlus.id) {
-                                                            eachSmallProjectToTemplatePlus.active = true
+                                                            eachSmallProjectToTemplatePlus.confirmDelete = true
                                                         }
 
                                                         return eachProjectToTemplatePlus
@@ -250,40 +266,35 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
                                                     return newProjectToTemplatePlus
                                                 })
-                                            }}
-                                        >{eachProjectToTemplatePlus.template.name}</button>
 
-                                        <button
-                                            onClick={async () => {
-                                                if (!eachProjectToTemplatePlus.confirmDelete) {
-                                                    // ensure user confirms deletion
-                                                    projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
-                                                        const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
-                                                            eachSmallProjectToTemplatePlus.confirmDelete = false
+                                                //stop here on first delete try
+                                                return
+                                            }
 
-                                                            if (eachSmallProjectToTemplatePlus.id === eachProjectToTemplatePlus.id) {
-                                                                eachSmallProjectToTemplatePlus.confirmDelete = true
-                                                            }
+                                            // clears template from projectsToTemplates
+                                            await deleteTemplateFromProject({
+                                                id: project.id
+                                            })
 
-                                                            return eachProjectToTemplatePlus
-                                                        })
+                                            toast.success("template unlinked")
 
-                                                        return newProjectToTemplatePlus
-                                                    })
+                                            refreshProjectPath({ id: project.id })
 
-                                                    //stop here on first delete try
-                                                    return
-                                                }
+                                            projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
+                                                const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
+                                                    eachSmallProjectToTemplatePlus.confirmDelete = false
 
-                                                // clears template from projectsToTemplates
-                                                await deleteTemplateFromProject({
-                                                    id: project.id
+                                                    return eachProjectToTemplatePlus
                                                 })
 
-                                                toast.success("template unlinked")
+                                                return newProjectToTemplatePlus
+                                            })
+                                        }}
+                                    >{eachProjectToTemplatePlus.confirmDelete && "confirm "}remove {!eachProjectToTemplatePlus.confirmDelete && "template"}</button>
 
-                                                refreshProjectPath({ id: project.id })
-
+                                    {eachProjectToTemplatePlus.confirmDelete && (
+                                        <button
+                                            onClick={() => {
                                                 projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
                                                     const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
                                                         eachSmallProjectToTemplatePlus.confirmDelete = false
@@ -294,82 +305,66 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                                                     return newProjectToTemplatePlus
                                                 })
                                             }}
-                                        >{eachProjectToTemplatePlus.confirmDelete && "confirm "}remove {!eachProjectToTemplatePlus.confirmDelete && "template"}</button>
+                                        >cancel</button>
+                                    )}
 
-                                        {eachProjectToTemplatePlus.confirmDelete && (
-                                            <button
-                                                onClick={() => {
-                                                    projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
-                                                        const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
-                                                            eachSmallProjectToTemplatePlus.confirmDelete = false
-
-                                                            return eachProjectToTemplatePlus
-                                                        })
-
-                                                        return newProjectToTemplatePlus
-                                                    })
-                                                }}
-                                            >cancel</button>
-                                        )}
-
-                                        <button
-                                            onClick={async () => {
-                                                console.log(`$seeing click`);
-                                                try {
-                                                    //get latest template info here
-                                                    if (eachProjectToTemplatePlus.saveState === "saving") {
-                                                        toast.error("saving in progress")
-                                                        return
-                                                    }
-                                                    if (eachProjectToTemplatePlus.template === undefined) {
-                                                        toast.error("no template to download")
-                                                        return
-                                                    }
-
-                                                    if (project.sharedData === null || eachProjectToTemplatePlus.specificData === null) {
-                                                        toast.error("please add both shared and specific data")
-                                                        return
-                                                    }
-
-                                                    const newTemplateGlobalFormData: templateGlobalFormDataType = {
-                                                        sharedData: project.sharedData,
-                                                        specificData: eachProjectToTemplatePlus.specificData,
-                                                    }
-
-                                                    const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectToTemplatePlus.template.github}`, {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Content-Type': 'application/json',
-                                                        },
-                                                        body: JSON.stringify(newTemplateGlobalFormData),
-                                                    })
-                                                    const responseBlob = await response.blob()
-
-                                                    const url = window.URL.createObjectURL(responseBlob);
-
-                                                    const a = document.createElement('a');
-                                                    a.href = url;
-                                                    a.download = `${eachProjectToTemplatePlus.template.name}.zip`;
-                                                    document.body.appendChild(a);
-                                                    a.click();
-                                                    document.body.removeChild(a);
-
-                                                } catch (error) {
-                                                    toast.error("Error downloading zip")
-                                                    console.error('Error downloading zip:', error);
+                                    <button
+                                        onClick={async () => {
+                                            console.log(`$seeing click`);
+                                            try {
+                                                //get latest template info here
+                                                if (eachProjectToTemplatePlus.saveState === "saving") {
+                                                    toast.error("saving in progress")
+                                                    return
                                                 }
-                                            }}
-                                        >{eachProjectToTemplatePlus.saveState === "saving" ? (
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
-                                        ) : (
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
-                                        )}
-                                        </button>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </>
+                                                if (eachProjectToTemplatePlus.template === undefined) {
+                                                    toast.error("no template to download")
+                                                    return
+                                                }
+
+                                                if (project.sharedData === null || eachProjectToTemplatePlus.specificData === null) {
+                                                    toast.error("please add both shared and specific data")
+                                                    return
+                                                }
+
+                                                const newTemplateGlobalFormData: templateGlobalFormDataType = {
+                                                    sharedData: project.sharedData,
+                                                    specificData: eachProjectToTemplatePlus.specificData,
+                                                }
+
+                                                const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectToTemplatePlus.template.github}`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify(newTemplateGlobalFormData),
+                                                })
+                                                const responseBlob = await response.blob()
+
+                                                const url = window.URL.createObjectURL(responseBlob);
+
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `${eachProjectToTemplatePlus.template.name}.zip`;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+
+                                            } catch (error) {
+                                                toast.error("Error downloading zip")
+                                                console.error('Error downloading zip:', error);
+                                            }
+                                        }}
+                                    >{eachProjectToTemplatePlus.saveState === "saving" ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
+                                    )}
+                                    </button>
+                                </div>
+                            )
+                        })}
+                    </div>
                 )}
             </div>
 

@@ -59,6 +59,7 @@ export const sharedDataSchema = z.object({
         featured: z.boolean(),
         discounts: z.string(),
         ratings: z.number(),
+        productTestimonials: testimonialSchema,
     })),
     gallery: z.array(z.object({
         title: z.string(),
