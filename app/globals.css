@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+*,
+*::before,
+*::after {
+    /* border: 1px solid red !important; */
+}
+
 :root {
     /* white background */
     --viewColor1: #0000ff;
@@ -25,11 +31,6 @@
     --transitionR: 400ms;
 }
 
-*,
-*::before,
-*::after {
-    /* border: 1px solid red !important; */
-}
 
 body {
     min-height: 100vh;
@@ -60,5 +61,17 @@ textarea:focus {
 
 svg {
     width: 1rem;
-    height: 1rem;
+    aspect-ratio: 1/1;
+    transition: scale 400ms;
+}
+
+svg:hover {
+    scale: 1.05;
+}
+
+
+/* custom classes */
+
+.noScrollBar::-webkit-scrollbar {
+    display: none;
 }

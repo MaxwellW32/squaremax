@@ -218,6 +218,13 @@ export type projectsToTemplate = z.infer<typeof projectsToTemplatesSchema> & {
     template?: template,
 }
 
+export type projectToTemplatePlusType = projectsToTemplate & {
+    confirmDelete: boolean,
+    saveState: "saved" | "saving" | null,
+    active: boolean,
+    connected: boolean
+}
+
 
 
 

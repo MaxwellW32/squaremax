@@ -1,12 +1,14 @@
 "use client"
 import { updateProjectsToTemplates } from '@/serverFunctions/handleProjectsToTemplates'
-import { dataFromTemplateSchema, dataFromTemplateType, project, projectsToTemplate, sharedDataToTemplateType, specificDataToTemplateType } from '@/types'
+import { dataFromTemplateSchema, dataFromTemplateType, project, projectToTemplatePlusType, projectsToTemplate, sharedDataToTemplateType, specificDataToTemplateType } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
+//notify template connected
 //send shared data as project updates
+//build out shared data ui
 
-export default function InteractwithTemplates({ seenProject, seenProjectToTemplate, markTemplateSave }: { seenProject: project, seenProjectToTemplate: projectsToTemplate, markTemplateSave: (id: string, option: "saving" | "saved") => void }) {
+export default function InteractwithTemplates({ seenProject, seenProjectToTemplate, updateProjectToTemplatePlus, width, height, ...elProps }: { seenProject: project, seenProjectToTemplate: projectsToTemplate, updateProjectToTemplatePlus: (id: string, data: Partial<projectToTemplatePlusType>) => void, width: number, height: number } & React.HtmlHTMLAttributes<HTMLDivElement>) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
     const syncDebounce = useRef<NodeJS.Timeout>()
 
@@ -54,6 +56,9 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
                 if (!heardBackFromTemplate) {
                     heardBackFromTemplateSet(true)
                     console.log(`$main heard from template`);
+
+                    //update template as connected
+                    updateProjectToTemplatePlus(seenProjectToTemplate.id, { connected: true })
                     return
                 }
 
@@ -96,7 +101,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
     function saveTemplateDataToServer(dataFromTemplate: dataFromTemplateType) {
         try {
             if (syncDebounce.current) clearTimeout(syncDebounce.current)
-            markTemplateSave(seenProjectToTemplate.id, "saving")
+            updateProjectToTemplatePlus(seenProjectToTemplate.id, { saveState: "saving" })
 
             syncDebounce.current = setTimeout(async () => {
                 // update projects to templates with new template data
@@ -105,7 +110,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
                     specificData: dataFromTemplate.specificData
                 })
 
-                markTemplateSave(seenProjectToTemplate.id, "saved")
+                updateProjectToTemplatePlus(seenProjectToTemplate.id, { saveState: "saved" })
 
                 console.log(`$saved templateData`);
             }, 5000);
@@ -120,7 +125,7 @@ export default function InteractwithTemplates({ seenProject, seenProjectToTempla
     if (seenProjectToTemplate.template === undefined) return null
 
     return (
-        <iframe ref={iframeRef} style={{ height: "100vh", width: "90vw", margin: "0 auto" }} src={process.env.NEXT_PUBLIC_IN_DEVELOPMENT === "TRUE" ? "http://localhost:3001" : seenProjectToTemplate.template.url} />
+        <iframe {...elProps} ref={iframeRef} width={width} height={height} src={process.env.NEXT_PUBLIC_IN_DEVELOPMENT === "TRUE" ? "http://localhost:3001" : seenProjectToTemplate.template.url} />
     )
 }
 

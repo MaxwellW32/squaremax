@@ -1,23 +1,60 @@
 "use client"
-import { project, projectsToTemplate, sharedDataSchema, sharedDataType, template, templateGlobalFormDataType } from '@/types'
-import React, { useState, useEffect } from 'react'
+import { project, projectToTemplatePlusType, projectsToTemplate, sharedDataSchema, sharedDataType, template, templateGlobalFormDataType } from '@/types'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import InteractwithTemplates from '../templates/InteractWithTemplates'
 import TemplateSelector from '../templates/templateSelector'
 import { toast } from 'react-hot-toast'
 import { refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
 import { addTemplateToProject, deleteTemplateFromProject } from '@/serverFunctions/handleProjectsToTemplates'
+import styles from "./style.module.css"
 
 export default function ViewProject({ seenProject }: { seenProject: project }) {
     const [project, projectSet] = useState<project>({ ...seenProject })
 
-    type projectToTemplatePlusType = projectsToTemplate & {
-        confirmDelete: boolean,
-        saveState: "saved" | "saving" | null,
-        active: boolean
-    }
     const [projectsToTemplatesPlus, projectsToTemplatesPlusSet] = useState<projectToTemplatePlusType[]>([])
 
-    const [sideBarShowing, sideBarShowingSet] = useState(false)
+    const [showSideBar, showSideBarSet] = useState(false)
+    const [dimSideBar, dimSideBarSet] = useState(false)
+    const [fitActive, fitActiveSet] = useState(false)
+    const [contentScale, contentScaleSet] = useState(1)
+
+    type sizeOptionType = {
+        name: string,
+        width: number,
+        height: number,
+        active: boolean,
+        icon: JSX.Element
+    }
+    const [sizeOptions, sizeOptionsSet] = useState<sizeOptionType[]>([
+        {
+            name: "mobile",
+            width: 375,
+            height: 667,
+            active: false,
+            icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M80 0C44.7 0 16 28.7 16 64l0 384c0 35.3 28.7 64 64 64l224 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L80 0zM192 400a32 32 0 1 1 0 64 32 32 0 1 1 0-64z" /></svg>
+        },
+        {
+            name: "tablet",
+            width: 768,
+            height: 1024,
+            active: false,
+            icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM176 432l96 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-96 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z" /></svg>
+        },
+        {
+            name: "desktop",
+            width: 1920,
+            height: 1080,
+            active: true,
+            icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l176 0-10.7 32L160 448c-17.7 0-32 14.3-32 32s14.3 32 32 32l256 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-69.3 0L336 416l176 0c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0zM512 64l0 224L64 288 64 64l448 0z" /></svg>
+        },
+    ])
+
+    const activeSizeOption = useMemo(() => {
+        return sizeOptions.find(eachSizeOption => eachSizeOption.active)
+    }, [sizeOptions])
+
+    const middleBarContentRef = useRef<HTMLDivElement | null>(null)
+    const [middleBarContentSize, middleBarContentSizeSet] = useState({ width: 0, height: 0 })
 
     //keep projects in sync with server
     useEffect(() => {
@@ -46,7 +83,7 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
             })
 
             // local list has additional server projectsToTemplates added
-            project.projectsToTemplates.forEach(eachServerProjectToTemplate => {
+            project.projectsToTemplates.forEach((eachServerProjectToTemplate: projectsToTemplate) => {
                 const foundInCurrentIndex = projectToTemplatePlusSynced.findIndex(eachProjectsToTemplatePlusInServer => eachProjectsToTemplatePlusInServer.id === eachServerProjectToTemplate.id)
 
                 // add to the current list
@@ -55,7 +92,8 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                         ...eachServerProjectToTemplate,
                         confirmDelete: false,
                         saveState: null,
-                        active: false
+                        active: false,
+                        connected: false
                     }
 
                     projectToTemplatePlusSynced = [...projectToTemplatePlusSynced, newProjectsToTemplatePlus]
@@ -73,6 +111,16 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
 
     }, [project.projectsToTemplates])
 
+    //get proper height of middleBarContent element
+    useEffect(() => {
+        getMiddleBarContentSize()
+
+        // keep height current if window size changes
+        window.addEventListener("resize", getMiddleBarContentSize)
+
+        return () => { window.removeEventListener("resize", getMiddleBarContentSize) }
+    }, [])
+
     async function handleTemplateSelection(templateIdObj: Pick<template, "id">) {
         try {
             //update project many many table with template
@@ -88,18 +136,12 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
         }
     }
 
-    function markTemplateSave(id: string, option: "saving" | "saved") {
+    function updateProjectToTemplatePlus(id: string, data: Partial<projectToTemplatePlusType>) {
         projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
             const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachProjectToTemplatePlus => {
 
                 if (eachProjectToTemplatePlus.id === id) {
-                    if (option === "saving") {
-
-                        eachProjectToTemplatePlus.saveState = "saving"
-
-                    } else if (option === "saved") {
-                        eachProjectToTemplatePlus.saveState = "saved"
-                    }
+                    eachProjectToTemplatePlus = { ...eachProjectToTemplatePlus, ...data }
                 }
 
                 return eachProjectToTemplatePlus
@@ -109,21 +151,24 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
         })
     }
 
+    function getMiddleBarContentSize() {
+        if (middleBarContentRef.current === null) return
+
+        middleBarContentSizeSet({ height: middleBarContentRef.current.clientHeight - 20, width: middleBarContentRef.current.clientWidth })
+    }
+
+    function fitElement(elementWidth: number, elementHeight: number, contElementWidth: number, contElementHeight: number) {
+        const scaleX = contElementWidth / elementWidth
+        const scaleY = contElementHeight / elementHeight
+        return Math.min(scaleX, scaleY); // Use the smaller scale to ensure fit
+    };
+
     return (
-        <div style={{ position: "relative", zIndex: 0 }}>
-            {/* side bar button */}
-            {!sideBarShowing && (
-                <button
-                    onClick={() => { sideBarShowingSet(true) }}
-                >show</button>
-            )}
-
-            {/* side bar */}
-            <div style={{ display: sideBarShowing ? "grid" : "none", gap: "1rem", alignContent: "flex-start", position: "absolute", top: 0, left: 0, height: "100%", width: "min(500px, 90%)", zIndex: 1, backgroundColor: "beige" }}>
-                <button
-                    onClick={() => { sideBarShowingSet(false) }}
-                >close</button>
-
+        <div className={styles.barCont}>
+            <div className={styles.leftBar} style={{ display: showSideBar ? "" : "none", opacity: dimSideBar ? 0.1 : "", }}
+                onMouseEnter={() => { dimSideBarSet(false) }}
+                onMouseLeave={() => { dimSideBarSet(true) }}
+            >
                 <p>Project name: {project.name}</p>
 
                 {/* make shared project data here, sync on server */}
@@ -186,7 +231,10 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                                 if (eachProjectToTemplatePlus.template === undefined) return null
 
                                 return (
-                                    <div key={eachProjectToTemplatePlus.id}>
+                                    <div key={eachProjectToTemplatePlus.id} className={styles.templateOptionCont}>
+                                        <div style={{ width: "1rem", aspectRatio: "1/1", backgroundColor: eachProjectToTemplatePlus.connected ? "green" : "#eee" }}>
+                                        </div>
+
                                         <button style={{ backgroundColor: eachProjectToTemplatePlus.active ? "blue" : "" }}
                                             onClick={() => {
                                                 projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
@@ -325,24 +373,101 @@ export default function ViewProject({ seenProject }: { seenProject: project }) {
                 )}
             </div>
 
-            {project.projectsToTemplates !== undefined && project.projectsToTemplates.length > 0 && (
-                <>
-                    {project.projectsToTemplates.map(eachProjectToTemplate => {
-                        if (eachProjectToTemplate.template === undefined) return null
+            <div className={styles.middleBar}>
+                <div className={styles.middleBarSettings}>
+                    <button
+                        onClick={() => {
+                            showSideBarSet(prev => !prev)
+                            dimSideBarSet(false)
+                        }}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z" /></svg>
+                    </button>
 
-                        // ensure only original projectsToTemplates are used
-                        const foundProjectToTemplatePlus = projectsToTemplatesPlus.find(eachProjectsToTemplatesPlus => eachProjectsToTemplatesPlus.id === eachProjectToTemplate.id)
-                        if (foundProjectToTemplatePlus === undefined) return null
+                    <div className={styles.sizeOptions}>
+                        {sizeOptions.map(eachSizeOption => {
+                            return (
+                                <button key={eachSizeOption.name}
+                                    onClick={() => {
+                                        sizeOptionsSet(prevSizeOptions => {
+                                            const newSizeOptions = prevSizeOptions.map(eachSmallSizeOption => {
+                                                if (eachSmallSizeOption.name === eachSizeOption.name) {
+                                                    eachSmallSizeOption.active = true
+                                                } else {
+                                                    eachSmallSizeOption.active = false
+                                                }
 
-                        if (!foundProjectToTemplatePlus.active) return null
+                                                return eachSmallSizeOption
+                                            })
 
-                        return (
-                            <InteractwithTemplates key={eachProjectToTemplate.id} seenProject={project} seenProjectToTemplate={eachProjectToTemplate} markTemplateSave={markTemplateSave} />
-                        )
-                    })}
-                </>
+                                            return newSizeOptions
+                                        })
 
-            )}
+                                        fitActiveSet(false)
+                                    }}
+                                >
+                                    {eachSizeOption.icon}
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    {/* only show fit button if overflowing on width */}
+                    <button
+                        onClick={() => {
+                            if (activeSizeOption === undefined || middleBarContentRef.current === null) return;
+
+                            if (!fitActive) {
+                                fitActiveSet(true)
+
+                                const scale = fitElement(activeSizeOption.width, activeSizeOption.height, middleBarContentSize.width, middleBarContentSize.height);
+                                contentScaleSet(scale)
+                            } else {
+                                fitActiveSet(false)
+                            }
+
+                            // ensure horizantal scroll is left
+                            middleBarContentRef.current.scrollLeft = 0
+                        }}
+                    >
+                        fit
+                    </button>
+                </div>
+
+                <div ref={middleBarContentRef} className={`${styles.middleBarContent} noScrollBar`} style={{ overflow: fitActive ? "hidden" : "" }}>
+                    {project.projectsToTemplates !== undefined && project.projectsToTemplates.length > 0 && (
+                        <>
+                            {project.projectsToTemplates.map(eachProjectToTemplate => {
+                                if (eachProjectToTemplate.template === undefined) return null
+
+                                // ensure only original projectsToTemplates are used
+                                const foundProjectToTemplatePlus = projectsToTemplatesPlus.find(eachProjectsToTemplatesPlus => eachProjectsToTemplatesPlus.id === eachProjectToTemplate.id)
+                                if (foundProjectToTemplatePlus === undefined) return null
+
+                                if (!foundProjectToTemplatePlus.active) return null
+
+                                if (activeSizeOption === undefined) {
+                                    console.log(`$no size option active`);
+                                    return null
+                                }
+
+                                return (
+                                    <InteractwithTemplates
+                                        style={{ scale: fitActive ? contentScale : "", transformOrigin: "top left" }}
+                                        key={eachProjectToTemplate.id}
+                                        seenProject={project}
+                                        seenProjectToTemplate={eachProjectToTemplate}
+                                        updateProjectToTemplatePlus={updateProjectToTemplatePlus}
+                                        width={activeSizeOption.width}
+                                        height={fitActive ? activeSizeOption.height : middleBarContentSize.height} />
+                                )
+                            })}
+                        </>
+                    )}
+                </div>
+            </div>
         </div>
     )
 }
+
+
