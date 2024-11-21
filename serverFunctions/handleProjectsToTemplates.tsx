@@ -17,7 +17,7 @@ export async function addTemplateToProject(projectObj: Pick<project, "id">, temp
     })
 }
 
-export async function updateProjectsToTemplates(projectsToTemplatesObj: Partial<projectsToTemplate>) {
+export async function updateTemplateInProject(projectsToTemplatesObj: Partial<projectsToTemplate>) {
     await sessionCheckWithError()
 
     if (projectsToTemplatesObj.id === undefined) throw new Error("need to provide id")

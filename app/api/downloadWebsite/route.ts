@@ -3,15 +3,15 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import simpleGit from 'simple-git';
-import { templateGlobalFormDataSchema, templateGlobalFormDataType } from "@/types";
+import { globalFormDataSchema, globalFormDataType } from "@/types";
 
 export async function POST(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
 
         //get websiteCustomizations
-        const templateGlobalFormData: templateGlobalFormDataType = await request.json();
-        templateGlobalFormDataSchema.parse(templateGlobalFormData)
+        const templateGlobalFormData: globalFormDataType = await request.json();
+        globalFormDataSchema.parse(templateGlobalFormData)
 
         //get github download url
         const githubUrl = searchParams.get("githubUrl");
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 }
 
-async function customizeProject(sourcePath: string, templateGlobalFormData: templateGlobalFormDataType) {
+async function customizeProject(sourcePath: string, templateGlobalFormData: globalFormDataType) {
     const files = await fs.readdir(sourcePath);
 
     for (const file of files) {
@@ -140,7 +140,7 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: temp
 
             } else if (file === "package.json") {
                 // Remove invalid characters (allow only a-z, 0-9, hyphens, underscores)
-                let sanitizedName = templateGlobalFormData.sharedData.siteInfo.websiteName.replace(/[^a-z0-9-_]/g, '');
+                let sanitizedName = templateGlobalFormData.linkedData.siteInfo.websiteName.replace(/[^a-z0-9-_]/g, '');
                 // Convert to lowercase
                 sanitizedName = sanitizedName.toLowerCase();
                 // Ensure no leading or trailing hyphens/underscores

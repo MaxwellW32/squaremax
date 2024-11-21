@@ -13,7 +13,7 @@ export default async function Page({ params }: { params: { projectId: string } }
     if (seenProject.userId !== session.user.id) return <p>not authorized to view this project</p>
 
     return (
-        <ViewProject seenProject={seenProject} />
+        <ViewProject projectFromServer={seenProject} />
     )
 }
 

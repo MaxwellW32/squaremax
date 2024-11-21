@@ -1,15 +1,9 @@
 import { z } from "zod";
+import { specificDataForAAAASchema } from "./templateSpecificDataTypes/aaaaTypes";
+import { specificDataForAAABSchema } from "./templateSpecificDataTypes/aaabTypes";
 
-//send shared data to templates
-//send specific data to templates on load
-
-//from template save the specific data
-
-
-
-
-
-// start can copy on templates //
+//keep linked data same on all templates
+// start copy on templates //
 export const testimonialSchema = z.array(z.object({
     name: z.string(),
     position: z.string(),
@@ -21,7 +15,7 @@ export const testimonialSchema = z.array(z.object({
     company: z.string(),
 }))
 
-export const sharedDataSchema = z.object({
+export const linkedDataSchema = z.object({
     siteInfo: z.object({
         phone: z.string(),
         address: z.string(),
@@ -89,45 +83,37 @@ export const sharedDataSchema = z.object({
         description: z.string(),
     })),
 })
-export type sharedDataType = z.infer<typeof sharedDataSchema>
-// end can copy on templates //
+export type linkedDataType = z.infer<typeof linkedDataSchema>
+// end copy on templates //
 
 
-export const specificDataSchema = z.object({}).passthrough()
-export type specificDataType = z.infer<typeof specificDataSchema>
+
+
+
+//keep specific data for each template synced with respective template
+//go to specific type e.g linkedDataForAAAA to copy the exact schema to the template
+
+//allow specific data to change based on template
+export const specificDataSwitchSchema = z.union([specificDataForAAAASchema, specificDataForAAABSchema])
+
+
+//govern both specific and shared data from template
+export const globalFormDataSchema = z.object({
+    specificData: specificDataSwitchSchema,
+    linkedData: linkedDataSchema,
+})
+export type globalFormDataType = z.infer<typeof globalFormDataSchema>
+
 
 
 
 
 //info received from templates -- save data
 export const dataFromTemplateSchema = z.object({
-    fromTemplate: z.string().min(1),
-    specificData: specificDataSchema
+    globalFormData: globalFormDataSchema,
+    fromTemplate: z.string().min(1)
 })
 export type dataFromTemplateType = z.infer<typeof dataFromTemplateSchema>
-
-
-//info sent to templates -- write data
-export const sharedDataToTemplateSchema = z.object({
-    sharedData: sharedDataSchema.nullable(),
-})
-export type sharedDataToTemplateType = z.infer<typeof sharedDataToTemplateSchema>
-
-//info sent to templates -- write data
-export const specificDataToTemplateSchema = z.object({
-    specificData: specificDataSchema.nullable()
-})
-export type specificDataToTemplateType = z.infer<typeof specificDataToTemplateSchema>
-
-
-//info sent when downloading template
-export const templateGlobalFormDataSchema = z.object({
-    sharedData: sharedDataSchema,
-    specificData: specificDataSchema
-})
-export type templateGlobalFormDataType = z.infer<typeof templateGlobalFormDataSchema>
-
-
 
 
 
@@ -150,12 +136,12 @@ export type newUser = {
 
 
 
+
+
 export const projectsSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     userId: z.string().min(1),
-
-    sharedData: sharedDataSchema.nullable()
 })
 export type project = z.infer<typeof projectsSchema> & {
     fromUser?: user,
@@ -163,7 +149,6 @@ export type project = z.infer<typeof projectsSchema> & {
 }
 export const newProjectsSchema = projectsSchema.pick({ name: true })
 export type newProject = z.infer<typeof newProjectsSchema>
-
 
 
 
@@ -184,15 +169,16 @@ export const newTemplatesSchema = templatesSchema.omit({})
 export type newTemplate = z.infer<typeof newTemplatesSchema>
 
 
-
+// "selfCare", "portfolio", "ownService", "educational", "hospitality", "media" add later
+export const categoryNameSchema = z.enum(["food", "ecommerce"])
+export type categoryName = z.infer<typeof categoryNameSchema>
 
 export const categoriesSchema = z.object({
-    name: z.string().min(1),
+    name: categoryNameSchema,
 })
 export type category = z.infer<typeof categoriesSchema> & {
     templatesToCategories?: templatesToCategory[]
 }
-
 
 
 
@@ -207,23 +193,25 @@ export type style = z.infer<typeof stylesSchema> & {
 
 
 
+
+
 export const projectsToTemplatesSchema = z.object({
     id: z.string().min(1),
     projectId: z.string().min(1),
     templateId: z.string().min(1),
-
-    specificData: specificDataSchema.nullable()
+    globalFormData: globalFormDataSchema.nullable()
 })
 export type projectsToTemplate = z.infer<typeof projectsToTemplatesSchema> & {
     project?: project
     template?: template,
 }
-
 export type projectToTemplatePlusType = projectsToTemplate & {
-    confirmDelete: boolean,
-    saveState: "saved" | "saving" | null,
-    active: boolean,
-    connected: boolean
+    moreInfo: {
+        confirmDelete: boolean,
+        saveState: "saved" | "saving" | null,
+        active: boolean,
+        connected: boolean
+    }
 }
 
 
@@ -256,8 +244,4 @@ export type templatesToStyle = z.infer<typeof templatesToStylesSchema> & {
 
 
 
-
-
-
-
-
+export type updateProjectsToTemplateFunctionType = { id: string, option: "linked", data: globalFormDataType["linkedData"] } | { id: string, option: "specific", data: globalFormDataType["specificData"] } | { id: string, option: "globalFormData", data: globalFormDataType }

@@ -1,4 +1,4 @@
-import { sharedDataType, specificDataType } from "@/types";
+import { globalFormDataType } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -28,8 +28,6 @@ export const projects = pgTable("projects", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
     name: varchar("name", { length: 255 }).notNull(),
     userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
-
-    sharedData: json("sharedData").$type<sharedDataType | null>().default(null),
 },
     (table) => {
         return {
@@ -92,10 +90,9 @@ export const projectsToTemplates = pgTable('projectsToTemplates', {
     projectId: varchar("projectId", { length: 255 }).notNull().references(() => projects.id),
     templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
 
-    specificData: json("specificData").$type<specificDataType | null>().default(null),
+    globalFormData: json("globalFormData").$type<globalFormDataType | null>().default(null),
 }, (t) => ({
     projectIdIndex: index("projectIdIndex").on(t.projectId),
-
 }),
 );
 export const projectsToTemplatesRelations = relations(projectsToTemplates, ({ one }) => ({
