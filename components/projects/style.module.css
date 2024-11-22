@@ -12,14 +12,14 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: min(500px, 100%);
+    width: min(600px, 100%);
     height: 100%;
     background-color: green;
     z-index: 1;
     display: grid;
     gap: 1rem;
     align-content: flex-start;
-    background-color: beige;
+    background-color: rgb(var(--color2));
     position: absolute;
     left: 0;
     transition: opacity 400ms;
@@ -84,11 +84,47 @@
 
 
 .templateOptionCont {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
+    border: 1px solid rgb(var(--shade1));
+    display: grid;
+    grid-template-columns: auto 1fr;
 }
+
+.templateOptionsContLeft {
+    background-color: grey;
+    height: 100%;
+    aspect-ratio: 1/1;
+    cursor: pointer;
+}
+
+.templateOptionsContRight {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: .5rem 1rem;
+    position: relative;
+}
+
+.moreOptionsMenu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: rgb(var(--shade2));
+    width: min(200px, 100%);
+    align-content: flex-start;
+    max-height: 50vh;
+    overflow: auto;
+    z-index: 10;
+    border: 1px solid rgb(var(--shade1));
+}
+
+.moreOptionsMenu>li {
+    padding: 1rem;
+    display: grid;
+    align-content: flex-start;
+    border-top: 1px solid rgb(var(--shade1));
+}
+
 
 @media only screen and (max-width: 600px) {
     .leftBar {

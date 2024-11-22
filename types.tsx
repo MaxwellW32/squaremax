@@ -210,7 +210,8 @@ export type projectToTemplatePlusType = projectsToTemplate & {
         confirmDelete: boolean,
         saveState: "saved" | "saving" | null,
         active: boolean,
-        connected: boolean
+        connected: boolean,
+        showingMoreInfo: boolean
     }
 }
 

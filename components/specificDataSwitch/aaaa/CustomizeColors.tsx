@@ -8,13 +8,13 @@ export default function CustomizeColors({ specificData, seenProjectToTemplate, u
 
 
     return (
-        <div style={{ display: "grid", paddingLeft: "var(--paddingSmall)", gap: "var(--regularGap)" }}>
+        <div style={{ display: "grid", paddingLeft: ".5rem", gap: "1rem" }}>
             {Object.entries(specificData.colors).map(eachColorTypeEntry => {
                 const eachColorTypeKey = eachColorTypeEntry[0]
                 const eachColorTypeObj = eachColorTypeEntry[1]
 
                 return (
-                    <div key={eachColorTypeKey} style={{ display: "grid", gap: "var(--regularGap)" }}>
+                    <div key={eachColorTypeKey} style={{ display: "grid", gap: "1rem" }}>
                         <label>{eachColorTypeKey}</label>
 
                         {Object.entries(eachColorTypeObj).map(eachColorEntry => {
@@ -22,7 +22,7 @@ export default function CustomizeColors({ specificData, seenProjectToTemplate, u
                             const eachColorValue = eachColorEntry[1]
 
                             return (
-                                <div key={eachColorKey} style={{ paddingLeft: "var(--paddingSmall)", display: "flex", alignItems: "center", gap: "var(--smallGap)", flexWrap: "wrap" }}>
+                                <div key={eachColorKey} style={{ paddingLeft: ".5rem", display: "flex", alignItems: "center", gap: "var(--smallGap)", flexWrap: "wrap" }}>
                                     <label>{eachColorKey}</label>
 
                                     <input className={styles.colorInput} type="color" name={eachColorKey} value={eachColorValue} placeholder={"Enter a color"}

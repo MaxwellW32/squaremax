@@ -10,13 +10,14 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
 
     return (
         <form className={styles.form} action={() => { }}>
-            {/* form tab options */}
-            <div style={{ display: "flex", gap: ".5rem", overflowX: "auto", height: "5rem", alignItems: "flex-start" }}>
+            {/* switch form tabs */}
+            <div style={{ display: "flex", overflowX: "auto", height: "5rem", alignItems: "flex-start" }}>
                 {Object.entries(specificData).map(eachFormTabEntry => {
                     const eachFormTabKey = eachFormTabEntry[0] as keyof specificDataForAAAAType
+                    if (eachFormTabKey === "forTemplate") return null
 
                     return (
-                        <button key={eachFormTabKey} className={styles.secondaryButton} style={{ flex: "0 0 auto", color: eachFormTabKey === formTabSelection ? "var(--color1)" : "" }}
+                        <button className='mainButton' key={eachFormTabKey} style={{ flex: "0 0 auto", backgroundColor: eachFormTabKey === formTabSelection ? "rgb(var(--color1))" : "" }}
                             onClick={() => {
                                 formTabSelectionSet(eachFormTabKey)
                             }}
@@ -25,7 +26,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                 })}
             </div>
 
-            {/* different form fields */}
+            {/* edit different form fields */}
             <div>
                 {Object.entries(specificData).map(eachFormTabEntry => {
                     const eachFormTabKey = eachFormTabEntry[0] as keyof specificDataForAAAAType
@@ -33,18 +34,16 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                     return (
                         <div key={eachFormTabKey} style={{ display: eachFormTabKey === formTabSelection ? "grid" : "none" }}>
                             {eachFormTabKey === "colors" ? (
-                                <>
-                                    <CustomizeColors specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
-                                </>
+                                <CustomizeColors specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
                             ) : eachFormTabKey === "pages" ? (
                                 <>
                                     {/* form page selection */}
-                                    <div style={{ display: "flex", gap: ".5rem", alignItems: "center", overflowX: "auto" }}>
+                                    <div style={{ display: "flex", alignItems: "center", overflowX: "auto" }}>
                                         {Object.entries(specificData.pages).map(eachPageEntry => {
                                             const eachPageName = eachPageEntry[0]
 
                                             return (
-                                                <button key={eachPageName} className={styles.secondaryButton} style={{ color: eachPageName === currentPage ? "var(--color1)" : "" }}
+                                                <button className='secondaryButton' key={eachPageName} style={{ backgroundColor: eachPageName === currentPage ? "rgb(var(--color1))" : "" }}
                                                     onClick={() => {
                                                         currentPageSet(eachPageName)
                                                     }}
@@ -66,8 +65,8 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                     const eachSectionObj = eachSectionEntry[1]
 
                                                     return (
-                                                        <div key={eachSectionKey} style={{ display: currentPage === eachPageKey ? "grid" : "none", border: "1px solid #000", padding: "var(--paddingSmall)" }}>
-                                                            <button className={styles.secondaryButton}
+                                                        <div key={eachSectionKey} style={{ display: currentPage === eachPageKey ? "grid" : "none", border: "1px solid rgb(var(--shade1))", padding: "1rem" }}>
+                                                            <button className='mainButton'
                                                                 onClick={() => {
                                                                     if (specificData.pages[eachPageKey][eachSectionKey].using === undefined) {
                                                                         specificData.pages[eachPageKey][eachSectionKey].using = false
@@ -97,7 +96,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                     {eachSectionObj.component.map((eachContactObj, eachContactObjIndex) => {
                                                                         return (
                                                                             <div key={eachContactObjIndex} className={styles.component}>
-                                                                                <button
+                                                                                <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
                                                                                     onClick={() => {
                                                                                         const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
@@ -122,7 +121,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                                 })}
 
                                                                                 {/* texts */}
-                                                                                <div>
+                                                                                <>
                                                                                     {(eachContactObj.texts).map((eachTextObj, eachTextObjIndex) => {
 
                                                                                         return (
@@ -130,7 +129,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                                         )
                                                                                     })}
 
-                                                                                    <button className={styles.mainButton}
+                                                                                    <button className="mainButton" style={{ justifySelf: "center" }}
                                                                                         onClick={() => {
                                                                                             const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
@@ -146,12 +145,12 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                                             updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
                                                                                         }}
                                                                                     >Add text</button>
-                                                                                </div>
+                                                                                </>
                                                                             </div>
                                                                         )
                                                                     })}
 
-                                                                    <button className={styles.mainButton} style={{ justifySelf: "flex-start", alignSelf: "center" }}
+                                                                    <button className="mainButton" style={{ justifySelf: "flex-start", alignSelf: "center" }}
                                                                         onClick={() => {
                                                                             const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
@@ -206,9 +205,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                         )
                                     })}
                                 </>
-                            ) : (
-                                <p>{eachFormTabKey}</p>
-                            )}
+                            ) : null}
                         </div>
                     )
                 })}
@@ -222,7 +219,7 @@ function DisplayFormInfo({ inputObj, inputKey, eachPageKey, eachSectionKey, seen
 
     return (
         <div className={styles.formInputCont}>
-            {inputObj.label !== undefined && <label className={styles.label} htmlFor={inputKey}>{inputObj.label}</label>}
+            {inputObj.label !== undefined && <label htmlFor={inputKey}>{inputObj.label}</label>}
 
             {inputObj.fieldType === "input" ? (
                 <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={inputObj.placeHolder ?? "type your text here"}
