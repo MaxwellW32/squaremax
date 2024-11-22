@@ -10,12 +10,13 @@ import styles from "./style.module.css"
 import EditLinkedData from '../editLinkedData/EditLinkedData'
 import SpecificDataSwitch from '../specificDataSwitch/SpecificDataSwitch'
 
-//may need...
-//everything stored on template - specific and linked starter...
-//both template and main share the same schema for linked, then specific data depending on the template id...
-//sent up to main to edit...
-////template constanlty sends update signal - main website responds - connected...
-//template then listens for changes to display... 
+//figure out why projectToTemplate not deleting...
+//change null checks on aaaa...
+//refine objects and ui
+//complete aaaa template
+//find other template designs - figure out designs
+//check active selection working - refine ui for choices
+//figure out payments
 
 export default function ViewProject({ projectFromServer }: { projectFromServer: project }) {
     const [seenProject, seenProjectSet] = useState<project>({ ...projectFromServer })
@@ -29,8 +30,8 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
         if (activeProjectToTemplatePlus === undefined) return undefined
 
         const seenActiveProjectToTemplate = seenProject.projectsToTemplates.find(eachProjectsToTemplates => eachProjectsToTemplates.id === activeProjectToTemplatePlus.id)
-
         return seenActiveProjectToTemplate
+
     }, [seenProject.projectsToTemplates, projectsToTemplatesPlus])
 
     const [showSideBar, showSideBarSet] = useState(false)
@@ -81,6 +82,8 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
     //keep projects in sync with server
     useEffect(() => {
         seenProjectSet({ ...projectFromServer })
+
+        console.log(`$seenProject updated from server`, projectFromServer);
     }, [projectFromServer])
 
     //keep projectsToTemplatePlus synced with seenProject projectsToTemplates - plus make active if empty
@@ -119,6 +122,7 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
             return newProjectsToTemplatesPlus
         })
 
+        console.log(`$seenProject.projectsToTemplates updated `, seenProject.projectsToTemplates);
     }, [seenProject.projectsToTemplates])
 
     //get proper height of middleBarContent element
@@ -271,6 +275,8 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
             >
                 <h2>{seenProject.name}</h2>
 
+                <TemplateSelector setterFunc={handleTemplateSelection} />
+
                 {activeProjectToTemplate !== undefined && activeProjectToTemplate.globalFormData !== null && (
                     <>
                         {/* edit shared data */}
@@ -281,54 +287,56 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                     </>
                 )}
 
-                <TemplateSelector setterFunc={handleTemplateSelection} />
-
-                {/* active template selection */}
+                {/* select active template */}
                 {projectsToTemplatesPlus.length > 0 && (
                     <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-                        {projectsToTemplatesPlus.map(eachProjectToTemplatePlus => {
-
-                            if (eachProjectToTemplatePlus.template === undefined) return null
+                        {projectsToTemplatesPlus.map(eachProjectsToTemplatesPlus => {
+                            // ensure theres template data
+                            if (eachProjectsToTemplatesPlus.template === undefined) return null
 
                             return (
-                                <div key={eachProjectToTemplatePlus.id} className={styles.templateOptionCont}>
-                                    <div style={{ width: "1rem", aspectRatio: "1/1", backgroundColor: eachProjectToTemplatePlus.moreInfo.connected ? "green" : "#eee" }}>
+                                <div key={eachProjectsToTemplatesPlus.id} className={styles.templateOptionCont}>
+                                    {/* connection icon */}
+                                    <div style={{ width: "1rem", aspectRatio: "1/1", backgroundColor: eachProjectsToTemplatesPlus.moreInfo.connected ? "green" : "#eee" }}>
                                     </div>
 
-                                    <button style={{ backgroundColor: eachProjectToTemplatePlus.moreInfo.active ? "blue" : "" }}
+                                    {/* show connected template */}
+                                    <button style={{ backgroundColor: eachProjectsToTemplatesPlus.moreInfo.active ? "blue" : "" }}
                                         onClick={() => {
-                                            projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
-                                                const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
-                                                    eachSmallProjectToTemplatePlus.moreInfo.active = false
+                                            projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
+                                                const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachPrevProjectsToTemplatesPlus => {
+                                                    eachPrevProjectsToTemplatesPlus.moreInfo.active = false
 
-                                                    if (eachSmallProjectToTemplatePlus.id === eachProjectToTemplatePlus.id) {
-                                                        eachSmallProjectToTemplatePlus.moreInfo.active = true
+                                                    // if obj in array is the same as id clicked apply active
+                                                    if (eachPrevProjectsToTemplatesPlus.id === eachProjectsToTemplatesPlus.id) {
+                                                        eachPrevProjectsToTemplatesPlus.moreInfo.active = true
                                                     }
 
-                                                    return eachProjectToTemplatePlus
+                                                    return eachPrevProjectsToTemplatesPlus
                                                 })
 
-                                                return newProjectToTemplatePlus
+                                                return newProjectsToTemplatesPlus
                                             })
                                         }}
-                                    >{eachProjectToTemplatePlus.template.name}</button>
+                                    >{eachProjectsToTemplatesPlus.template.name}</button>
 
+                                    {/* delete button */}
                                     <button
                                         onClick={async () => {
-                                            if (!eachProjectToTemplatePlus.moreInfo.confirmDelete) {
+                                            if (!eachProjectsToTemplatesPlus.moreInfo.confirmDelete) {
                                                 // ensure user confirms deletion
-                                                projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
-                                                    const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
-                                                        eachSmallProjectToTemplatePlus.moreInfo.confirmDelete = false
+                                                projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
+                                                    const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachProjectsToTemplatesPlusMap => {
+                                                        eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = false
 
-                                                        if (eachSmallProjectToTemplatePlus.id === eachProjectToTemplatePlus.id) {
-                                                            eachSmallProjectToTemplatePlus.moreInfo.confirmDelete = true
+                                                        if (eachProjectsToTemplatesPlusMap.id === eachProjectsToTemplatesPlus.id) {
+                                                            eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = true
                                                         }
 
-                                                        return eachProjectToTemplatePlus
+                                                        return eachProjectsToTemplatesPlusMap
                                                     })
 
-                                                    return newProjectToTemplatePlus
+                                                    return newProjectsToTemplatesPlus
                                                 })
 
                                                 //stop here on first delete try
@@ -337,33 +345,25 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
                                             // clears template from projectsToTemplates
                                             await deleteTemplateFromProject({
-                                                id: seenProject.id
+                                                id: eachProjectsToTemplatesPlus.id
                                             })
 
+                                            console.log(`$unlinked projecttotemplate`);
                                             toast.success("template unlinked")
 
                                             refreshProjectPath({ id: seenProject.id })
-
-                                            projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
-                                                const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
-                                                    eachSmallProjectToTemplatePlus.moreInfo.confirmDelete = false
-
-                                                    return eachProjectToTemplatePlus
-                                                })
-
-                                                return newProjectToTemplatePlus
-                                            })
                                         }}
-                                    >{eachProjectToTemplatePlus.moreInfo.confirmDelete && "confirm "}remove {!eachProjectToTemplatePlus.moreInfo.confirmDelete && "template"}</button>
+                                    >{eachProjectsToTemplatesPlus.moreInfo.confirmDelete && "confirm "}remove {!eachProjectsToTemplatesPlus.moreInfo.confirmDelete && "template"}</button>
 
-                                    {eachProjectToTemplatePlus.moreInfo.confirmDelete && (
+                                    {/* cancel delete button */}
+                                    {eachProjectsToTemplatesPlus.moreInfo.confirmDelete && (
                                         <button
                                             onClick={() => {
                                                 projectsToTemplatesPlusSet(prevProjectToTemplatePlus => {
                                                     const newProjectToTemplatePlus = prevProjectToTemplatePlus.map(eachSmallProjectToTemplatePlus => {
                                                         eachSmallProjectToTemplatePlus.moreInfo.confirmDelete = false
 
-                                                        return eachProjectToTemplatePlus
+                                                        return eachProjectsToTemplatesPlus
                                                     })
 
                                                     return newProjectToTemplatePlus
@@ -372,26 +372,26 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                                         >cancel</button>
                                     )}
 
+                                    {/* download button */}
                                     <button
                                         onClick={async () => {
-                                            console.log(`$seeing click`);
                                             try {
-                                                //get latest template info here
-                                                if (eachProjectToTemplatePlus.moreInfo.saveState === "saving") {
+                                                if (eachProjectsToTemplatesPlus.moreInfo.saveState === "saving") {
                                                     toast.error("saving in progress")
                                                     return
                                                 }
-                                                if (eachProjectToTemplatePlus.template === undefined) {
+
+                                                if (eachProjectsToTemplatesPlus.template === undefined) {
                                                     toast.error("no template to download")
                                                     return
                                                 }
 
-                                                const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectToTemplatePlus.template.github}`, {
+                                                const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectsToTemplatesPlus.template.github}`, {
                                                     method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
                                                     },
-                                                    body: JSON.stringify(eachProjectToTemplatePlus.globalFormData),
+                                                    body: JSON.stringify(eachProjectsToTemplatesPlus.globalFormData),
                                                 })
                                                 const responseBlob = await response.blob()
 
@@ -399,7 +399,7 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
                                                 const a = document.createElement('a');
                                                 a.href = url;
-                                                a.download = `${eachProjectToTemplatePlus.template.name}.zip`;//change to packagejson name
+                                                a.download = `${eachProjectsToTemplatesPlus.template.name}.zip`;//change to packagejson name
                                                 document.body.appendChild(a);
                                                 a.click();
                                                 document.body.removeChild(a);
@@ -409,9 +409,11 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                                                 console.error('Error downloading zip:', error);
                                             }
                                         }}
-                                    >{eachProjectToTemplatePlus.moreInfo.saveState === "saving" ? (
+                                    >{eachProjectsToTemplatesPlus.moreInfo.saveState === "saving" ? (
+                                        // loading icon
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
                                     ) : (
+                                        // download icon
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
                                     )}
                                     </button>

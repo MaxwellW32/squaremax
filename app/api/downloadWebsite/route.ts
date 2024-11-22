@@ -132,11 +132,52 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
             }
 
             if (file === "globalFormData.tsx") {
-                // Replace globalFormData with client values
-                await fs.writeFile(sourceFilePath, `
-    import { globalFormDataType } from "@/types";
-    export const globalFormData: globalFormDataType = ${JSON.stringify(templateGlobalFormData, null, 2)}
-    `);
+                const fileContent = await fs.readFile(sourceFilePath, 'utf-8');
+
+                // Split the content by lines
+                const lines = fileContent.split('\n');
+
+                // Create the new object string to insert
+                const newGlobalFormData = `export const globalFormData: globalFormDataType = ${JSON.stringify(templateGlobalFormData, null, 2)};`;
+
+                let isInGlobalFormDataSection = false;
+                let updatedLines = [];
+
+                // Iterate over the lines and process them
+                for (let line of lines) {
+                    // Start capturing the section when encountering "<<globalFormDataStart>>"
+                    if (line.includes("<<globalFormDataStart>>")) {
+                        updatedLines.push(line); // Keep the start marker
+                        isInGlobalFormDataSection = true; // Enter the section to replace
+                        continue; // Skip to the next iteration
+                    }
+
+                    // End the replacement when encountering "<<globalFormDataEnd>>"
+                    if (line.includes("<<globalFormDataEnd>>")) {
+                        if (isInGlobalFormDataSection) {
+                            updatedLines.push(newGlobalFormData); // Insert the new globalFormData object
+                            isInGlobalFormDataSection = false; // Exit the section
+                        }
+
+                        updatedLines.push(line); // Keep the end marker
+
+                        continue;
+                    }
+
+                    // If inside the section, don't add the line
+                    if (isInGlobalFormDataSection) {
+                        continue; // Skip this line as it's within the replacement section
+                    }
+
+                    // Add all other lines that are outside the replacement section
+                    updatedLines.push(line);
+                }
+
+                // Join the updated lines back into a single string with new lines
+                const updatedContent = updatedLines.join('\n');
+
+                // Write the updated content back to the file
+                await fs.writeFile(sourceFilePath, updatedContent, 'utf-8');
 
             } else if (file === "package.json") {
                 // Remove invalid characters (allow only a-z, 0-9, hyphens, underscores)
