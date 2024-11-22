@@ -68,6 +68,7 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
     const middleBarContentRef = useRef<HTMLDivElement | null>(null)
     const [middleBarContentSize, middleBarContentSizeSet] = useState({ width: 0, height: 0 })
+    const canvasViewRef = useRef<HTMLDivElement | null>(null)
 
     const syncDebounce = useRef<NodeJS.Timeout>()
 
@@ -123,6 +124,16 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
         return () => { window.removeEventListener("resize", getMiddleBarContentSize) }
     }, [])
+
+    //center canvasView
+    useEffect(() => {
+        if (middleBarContentRef.current === null) return
+
+        //center scroll bars
+        middleBarContentRef.current.scrollLeft = middleBarContentRef.current.scrollWidth / 2 - (middleBarContentSize.width / 2)
+        middleBarContentRef.current.scrollTop = 0
+
+    }, [activeProjectToTemplate, middleBarContentSize, fitActive, sizeOptions])
 
     async function handleTemplateSelection(templateIdObj: Pick<template, "id">) {
         try {
@@ -258,116 +269,43 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
     return (
         <div className={styles.barCont}>
-            <div className={styles.leftBar} style={{ display: showSideBar ? "" : "none", opacity: dimSideBar ? 0.1 : "", }}
-                onMouseEnter={() => { dimSideBarSet(false) }}
-                onMouseLeave={() => { dimSideBarSet(true) }}
-            >
-                {/* close sidebar button */}
-                <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
-                    onClick={() => {
-                        dimSideBarSet(false)
-                        showSideBarSet(false)
-                    }}
-                >close</button>
+            <div className={styles.leftBar} style={{ display: showSideBar ? "" : "none", backgroundColor: dimSideBar ? "transparent" : "" }}>
+                <div className={styles.leftBarHeader}>
+                    {/* close sidebar button */}
+                    <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                        // onClick={() => { dimSideBarSet(prev => !prev) }}
+                        onMouseEnter={() => { dimSideBarSet(prev => !prev) }}
+                    >Dim</button>
 
-                <h2>{seenProject.name}</h2>
+                    <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                        onClick={() => {
+                            dimSideBarSet(false)
+                            showSideBarSet(false)
+                        }}
+                    >close</button>
+                </div>
 
-                {/* select active template */}
-                {projectsToTemplatesPlus.length > 0 && (
-                    <div style={{ display: "grid", gap: ".5rem" }}>
-                        {projectsToTemplatesPlus.map(eachProjectsToTemplatesPlus => {
-                            // ensure theres template data
-                            if (eachProjectsToTemplatesPlus.template === undefined) return null
+                <div className={styles.leftBarContent} style={{ opacity: dimSideBar ? 0.05 : "", }}>
+                    <h2>{seenProject.name}</h2>
 
-                            return (
-                                <div key={eachProjectsToTemplatesPlus.id} className={styles.templateOptionCont}>
-                                    <div className={`${styles.templateOptionsContLeft} toolTip`} data-tooltip="select template" style={{ backgroundColor: eachProjectsToTemplatesPlus.moreInfo.active ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
-                                        onClick={() => {
-                                            projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
-                                                const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachPrevProjectsToTemplatesPlus => {
-                                                    eachPrevProjectsToTemplatesPlus.moreInfo.active = false
+                    {/* select active template */}
+                    {projectsToTemplatesPlus.length > 0 && (
+                        <div style={{ display: "grid", gap: ".5rem" }}>
+                            {projectsToTemplatesPlus.map(eachProjectsToTemplatesPlus => {
+                                // ensure theres template data
+                                if (eachProjectsToTemplatesPlus.template === undefined) return null
 
-                                                    // if obj in array is the same as id clicked apply active
-                                                    if (eachPrevProjectsToTemplatesPlus.id === eachProjectsToTemplatesPlus.id) {
-                                                        eachPrevProjectsToTemplatesPlus.moreInfo.active = true
-                                                    }
-
-                                                    return eachPrevProjectsToTemplatesPlus
-                                                })
-
-                                                return newProjectsToTemplatesPlus
-                                            })
-                                        }}
-                                    >
-                                    </div>
-
-                                    <div className={styles.templateOptionsContRight}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
-                                            {/* show connected template */}
-                                            <p>{eachProjectsToTemplatesPlus.template.name}</p>
-
-                                            {/* connection icon */}
-                                            <div className='toolTip' data-tooltip={eachProjectsToTemplatesPlus.moreInfo.connected ? "connected" : "disconnected"}>
-                                                <svg style={{ fill: eachProjectsToTemplatesPlus.moreInfo.connected ? "green" : "#eee" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"> <path d="M257 8C120 8 9 119 9 256s111 248 248 248 248-111 248-248S394 8 257 8zm-49.5 374.8L81.8 257.1l125.7-125.7 35.2 35.4-24.2 24.2-11.1-11.1-77.2 77.2 77.2 77.2 26.6-26.6-53.1-52.9 24.4-24.4 77.2 77.2-75 75.2zm99-2.2l-35.2-35.2 24.1-24.4 11.1 11.1 77.2-77.2-77.2-77.2-26.5 26.5 53.1 52.9-24.4 24.4-77.2-77.2 75-75L432.2 255 306.5 380.6z" /></svg>
-                                            </div>
-
-                                            {/* download button */}
-                                            <button className='toolTip' data-tooltip="download website"
-                                                onClick={async () => {
-                                                    try {
-                                                        if (eachProjectsToTemplatesPlus.moreInfo.saveState === "saving") {
-                                                            toast.error("saving in progress")
-                                                            return
-                                                        }
-
-                                                        if (eachProjectsToTemplatesPlus.template === undefined) {
-                                                            toast.error("no template to download")
-                                                            return
-                                                        }
-
-                                                        const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectsToTemplatesPlus.template.github}`, {
-                                                            method: 'POST',
-                                                            headers: {
-                                                                'Content-Type': 'application/json',
-                                                            },
-                                                            body: JSON.stringify(eachProjectsToTemplatesPlus.globalFormData),
-                                                        })
-                                                        const responseBlob = await response.blob()
-
-                                                        const url = window.URL.createObjectURL(responseBlob);
-
-                                                        const a = document.createElement('a');
-                                                        a.href = url;
-                                                        a.download = `${eachProjectsToTemplatesPlus.template.name}.zip`;//change to packagejson name
-                                                        document.body.appendChild(a);
-                                                        a.click();
-                                                        document.body.removeChild(a);
-
-                                                    } catch (error) {
-                                                        toast.error("Error downloading zip")
-                                                        console.error('Error downloading zip:', error);
-                                                    }
-                                                }}
-                                            >{eachProjectsToTemplatesPlus.moreInfo.saveState === "saving" ? (
-                                                // loading icon
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
-                                            ) : (
-                                                // download icon
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
-                                            )}
-                                            </button>
-                                        </div>
-
-                                        {/* more options button */}
-                                        <button style={{ position: "relative", cursor: "pointer" }}
+                                return (
+                                    <div key={eachProjectsToTemplatesPlus.id} className={styles.templateOptionCont}>
+                                        <div className={`${styles.templateOptionsContLeft} toolTip`} data-tooltip="select template" style={{ backgroundColor: eachProjectsToTemplatesPlus.moreInfo.active ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
                                             onClick={() => {
                                                 projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
                                                     const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachPrevProjectsToTemplatesPlus => {
-                                                        eachPrevProjectsToTemplatesPlus.moreInfo.showingMoreInfo = false
+                                                        eachPrevProjectsToTemplatesPlus.moreInfo.active = false
 
-                                                        // if obj in array is the same as id clicked apply showingMoreInfo
+                                                        // if obj in array is the same as id clicked apply active
                                                         if (eachPrevProjectsToTemplatesPlus.id === eachProjectsToTemplatesPlus.id) {
-                                                            eachPrevProjectsToTemplatesPlus.moreInfo.showingMoreInfo = true
+                                                            eachPrevProjectsToTemplatesPlus.moreInfo.active = true
                                                         }
 
                                                         return eachPrevProjectsToTemplatesPlus
@@ -377,17 +315,76 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                                                 })
                                             }}
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z" /></svg>
-                                        </button>
+                                        </div>
 
-                                        {/* more options menu */}
-                                        <ul className={styles.moreOptionsMenu} style={{ display: eachProjectsToTemplatesPlus.moreInfo.showingMoreInfo ? "grid" : "none" }}>
-                                            {/* <li> */}
-                                            <button className='secondaryButton' style={{ justifySelf: "flex-end", margin: "1rem" }}
+                                        <div className={styles.templateOptionsContRight}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
+                                                {/* show connected template */}
+                                                <p>{eachProjectsToTemplatesPlus.template.name}</p>
+
+                                                {/* connection icon */}
+                                                <div className='toolTip' data-tooltip={eachProjectsToTemplatesPlus.moreInfo.connected ? "connected" : "disconnected"}>
+                                                    <svg style={{ fill: eachProjectsToTemplatesPlus.moreInfo.connected ? "green" : "#eee" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"> <path d="M257 8C120 8 9 119 9 256s111 248 248 248 248-111 248-248S394 8 257 8zm-49.5 374.8L81.8 257.1l125.7-125.7 35.2 35.4-24.2 24.2-11.1-11.1-77.2 77.2 77.2 77.2 26.6-26.6-53.1-52.9 24.4-24.4 77.2 77.2-75 75.2zm99-2.2l-35.2-35.2 24.1-24.4 11.1 11.1 77.2-77.2-77.2-77.2-26.5 26.5 53.1 52.9-24.4 24.4-77.2-77.2 75-75L432.2 255 306.5 380.6z" /></svg>
+                                                </div>
+
+                                                {/* download button */}
+                                                <button className='toolTip' data-tooltip="download website"
+                                                    onClick={async () => {
+                                                        try {
+                                                            if (eachProjectsToTemplatesPlus.moreInfo.saveState === "saving") {
+                                                                toast.error("saving in progress")
+                                                                return
+                                                            }
+
+                                                            if (eachProjectsToTemplatesPlus.template === undefined) {
+                                                                toast.error("no template to download")
+                                                                return
+                                                            }
+
+                                                            const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectsToTemplatesPlus.template.github}`, {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                },
+                                                                body: JSON.stringify(eachProjectsToTemplatesPlus.globalFormData),
+                                                            })
+                                                            const responseBlob = await response.blob()
+
+                                                            const url = window.URL.createObjectURL(responseBlob);
+
+                                                            const a = document.createElement('a');
+                                                            a.href = url;
+                                                            a.download = `${eachProjectsToTemplatesPlus.template.name}.zip`;//change to packagejson name
+                                                            document.body.appendChild(a);
+                                                            a.click();
+                                                            document.body.removeChild(a);
+
+                                                        } catch (error) {
+                                                            toast.error("Error downloading zip")
+                                                            console.error('Error downloading zip:', error);
+                                                        }
+                                                    }}
+                                                >{eachProjectsToTemplatesPlus.moreInfo.saveState === "saving" ? (
+                                                    // loading icon
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
+                                                ) : (
+                                                    // download icon
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
+                                                )}
+                                                </button>
+                                            </div>
+
+                                            {/* more options button */}
+                                            <button style={{ position: "relative", cursor: "pointer" }}
                                                 onClick={() => {
                                                     projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
                                                         const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachPrevProjectsToTemplatesPlus => {
                                                             eachPrevProjectsToTemplatesPlus.moreInfo.showingMoreInfo = false
+
+                                                            // if obj in array is the same as id clicked apply showingMoreInfo
+                                                            if (eachPrevProjectsToTemplatesPlus.id === eachProjectsToTemplatesPlus.id) {
+                                                                eachPrevProjectsToTemplatesPlus.moreInfo.showingMoreInfo = true
+                                                            }
 
                                                             return eachPrevProjectsToTemplatesPlus
                                                         })
@@ -395,83 +392,101 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                                                         return newProjectsToTemplatesPlus
                                                     })
                                                 }}
-                                            >close</button>
-                                            {/* </li> */}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z" /></svg>
+                                            </button>
 
-                                            <li>
-                                                <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", alignItems: "center", justifyContent: "center" }}>
-                                                    {/* delete button */}
-                                                    <button className='secondaryButton'
-                                                        onClick={async () => {
-                                                            if (!eachProjectsToTemplatesPlus.moreInfo.confirmDelete) {
-                                                                // ensure user confirms deletion
-                                                                projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
-                                                                    const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachProjectsToTemplatesPlusMap => {
-                                                                        eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = false
+                                            {/* more options menu */}
+                                            <ul className={styles.moreOptionsMenu} style={{ display: eachProjectsToTemplatesPlus.moreInfo.showingMoreInfo ? "grid" : "none" }}>
+                                                <button className='secondaryButton' style={{ justifySelf: "flex-end", margin: "1rem" }}
+                                                    onClick={() => {
+                                                        projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
+                                                            const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachPrevProjectsToTemplatesPlus => {
+                                                                eachPrevProjectsToTemplatesPlus.moreInfo.showingMoreInfo = false
 
-                                                                        if (eachProjectsToTemplatesPlusMap.id === eachProjectsToTemplatesPlus.id) {
-                                                                            eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = true
-                                                                        }
-
-                                                                        return eachProjectsToTemplatesPlusMap
-                                                                    })
-
-                                                                    return newProjectsToTemplatesPlus
-                                                                })
-
-                                                                //stop here on first delete try
-                                                                return
-                                                            }
-
-                                                            // clears template from projectsToTemplates
-                                                            await deleteTemplateFromProject({
-                                                                id: eachProjectsToTemplatesPlus.id
+                                                                return eachPrevProjectsToTemplatesPlus
                                                             })
 
-                                                            console.log(`$unlinked projecttotemplate`);
-                                                            toast.success("template unlinked")
+                                                            return newProjectsToTemplatesPlus
+                                                        })
+                                                    }}
+                                                >close</button>
 
-                                                            refreshProjectPath({ id: seenProject.id })
-                                                        }}
-                                                    >{eachProjectsToTemplatesPlus.moreInfo.confirmDelete && "confirm "}remove {!eachProjectsToTemplatesPlus.moreInfo.confirmDelete && "template"}</button>
-
-                                                    {/* cancel delete button */}
-                                                    {eachProjectsToTemplatesPlus.moreInfo.confirmDelete && (
+                                                <li>
+                                                    <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", alignItems: "center", justifyContent: "flex-end" }}>
+                                                        {/* delete button */}
                                                         <button className='secondaryButton'
-                                                            onClick={() => {
-                                                                projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
-                                                                    const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachProjectsToTemplatesPlusMap => {
-                                                                        eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = false
+                                                            onClick={async () => {
+                                                                if (!eachProjectsToTemplatesPlus.moreInfo.confirmDelete) {
+                                                                    // ensure user confirms deletion
+                                                                    projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
+                                                                        const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachProjectsToTemplatesPlusMap => {
+                                                                            eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = false
 
-                                                                        return eachProjectsToTemplatesPlusMap
+                                                                            if (eachProjectsToTemplatesPlusMap.id === eachProjectsToTemplatesPlus.id) {
+                                                                                eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = true
+                                                                            }
+
+                                                                            return eachProjectsToTemplatesPlusMap
+                                                                        })
+
+                                                                        return newProjectsToTemplatesPlus
                                                                     })
 
-                                                                    return newProjectsToTemplatesPlus
+                                                                    //stop here on first delete try
+                                                                    return
+                                                                }
+
+                                                                // clears template from projectsToTemplates
+                                                                await deleteTemplateFromProject({
+                                                                    id: eachProjectsToTemplatesPlus.id
                                                                 })
+
+                                                                console.log(`$unlinked projecttotemplate`);
+                                                                toast.success("template unlinked")
+
+                                                                refreshProjectPath({ id: seenProject.id })
                                                             }}
-                                                        >cancel</button>
-                                                    )}
-                                                </div>
-                                            </li>
-                                        </ul>
+                                                        >{eachProjectsToTemplatesPlus.moreInfo.confirmDelete && "confirm "}remove {!eachProjectsToTemplatesPlus.moreInfo.confirmDelete && "template"}</button>
+
+                                                        {/* cancel delete button */}
+                                                        {eachProjectsToTemplatesPlus.moreInfo.confirmDelete && (
+                                                            <button className='secondaryButton'
+                                                                onClick={() => {
+                                                                    projectsToTemplatesPlusSet(prevProjectsToTemplatesPlus => {
+                                                                        const newProjectsToTemplatesPlus = prevProjectsToTemplatesPlus.map(eachProjectsToTemplatesPlusMap => {
+                                                                            eachProjectsToTemplatesPlusMap.moreInfo.confirmDelete = false
+
+                                                                            return eachProjectsToTemplatesPlusMap
+                                                                        })
+
+                                                                        return newProjectsToTemplatesPlus
+                                                                    })
+                                                                }}
+                                                            >cancel</button>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                )}
+                                )
+                            })}
+                        </div>
+                    )}
 
-                <TemplateSelector setterFunc={handleTemplateSelection} />
+                    <TemplateSelector setterFunc={handleTemplateSelection} />
 
-                {activeProjectToTemplate !== undefined && activeProjectToTemplate.globalFormData !== null && (
-                    <>
-                        {/* edit shared data */}
-                        <EditLinkedData seenProjectToTemplate={activeProjectToTemplate} seenLinkedData={activeProjectToTemplate.globalFormData.linkedData} updateProjectsToTemplate={updateProjectsToTemplate} />
+                    {activeProjectToTemplate !== undefined && activeProjectToTemplate.globalFormData !== null && (
+                        <>
+                            {/* edit shared data */}
+                            <EditLinkedData seenProjectToTemplate={activeProjectToTemplate} seenLinkedData={activeProjectToTemplate.globalFormData.linkedData} updateProjectsToTemplate={updateProjectsToTemplate} />
 
-                        {/* edit specific data switch */}
-                        <SpecificDataSwitch seenProjectToTemplate={activeProjectToTemplate} seenSpecificData={activeProjectToTemplate.globalFormData.specificData} updateProjectsToTemplate={updateProjectsToTemplate} />
-                    </>
-                )}
+                            {/* edit specific data switch */}
+                            <SpecificDataSwitch seenProjectToTemplate={activeProjectToTemplate} seenSpecificData={activeProjectToTemplate.globalFormData.specificData} updateProjectsToTemplate={updateProjectsToTemplate} />
+                        </>
+                    )}
+                </div>
             </div>
 
             <div className={styles.middleBar}>
@@ -539,7 +554,7 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                     </button>
                 </div>
 
-                <div ref={middleBarContentRef} className={`${styles.middleBarContent} noScrollBar`} style={{ overflow: fitActive ? "hidden" : "" }}>
+                <div ref={middleBarContentRef} className={styles.middleBarContent} style={{ overflow: fitActive ? "" : "" }}>
                     {seenProject.projectsToTemplates !== undefined && seenProject.projectsToTemplates.length > 0 && (
                         <>
                             {seenProject.projectsToTemplates.map(eachProjectToTemplate => {
@@ -553,14 +568,15 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                                 }
 
                                 return (
-                                    <InteractwithTemplates
-                                        style={{ scale: fitActive ? contentScale : "", transformOrigin: "top left" }}
-                                        key={eachProjectToTemplate.id}
-                                        seenProjectToTemplate={eachProjectToTemplate}
-                                        updateProjectsToTemplatePlus={updateProjectsToTemplatePlus}
-                                        updateProjectsToTemplate={updateProjectsToTemplate}
-                                        width={activeSizeOption.width}
-                                        height={fitActive ? activeSizeOption.height : middleBarContentSize.height} />
+                                    <div ref={canvasViewRef} key={eachProjectToTemplate.id} className={styles.viewCanvas} style={{ height: middleBarContentSize.height, position: "relative" }}>
+                                        <InteractwithTemplates
+                                            style={{ scale: fitActive ? contentScale : "", transformOrigin: "top center", position: "absolute", top: 0, left: "50%", translate: "-50% 0" }}
+                                            seenProjectToTemplate={eachProjectToTemplate}
+                                            updateProjectsToTemplatePlus={updateProjectsToTemplatePlus}
+                                            updateProjectsToTemplate={updateProjectsToTemplate}
+                                            width={activeSizeOption.width}
+                                            height={fitActive ? activeSizeOption.height : middleBarContentSize.height} />
+                                    </div>
                                 )
                             })}
                         </>

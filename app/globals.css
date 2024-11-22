@@ -40,10 +40,12 @@ everything else should be stated
     --viewShade1: #171717;
     --viewShade2: #ffffff;
     --viewShade3: #fafafa;
+    --viewShade4: rgb(238, 238, 238);
 
     --shade1: 23, 23, 23;
     --shade2: 255, 255, 255;
     --shade3: 250, 250, 250;
+    --shade4: 238, 238, 238;
 
     --color1: 33, 112, 186;
     --color2: 245, 245, 220;

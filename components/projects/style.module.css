@@ -8,20 +8,33 @@
 }
 
 .leftBar {
-    padding: 1rem;
     position: absolute;
     top: 0;
     left: 0;
-    width: min(600px, 100%);
     height: 100%;
-    background-color: green;
+    display: grid;
+    align-content: flex-start;
+    grid-template-rows: auto 1fr;
+    width: min(600px, 100%);
     z-index: 1;
+    background-color: rgb(var(--color2));
+    transition: background-color 400ms;
+}
+
+.leftBarHeader {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 1rem;
+    justify-content: flex-end;
+    gap: .5rem;
+}
+
+.leftBarContent {
+    padding: 1rem;
     display: grid;
     gap: 1rem;
     align-content: flex-start;
-    background-color: rgb(var(--color2));
-    position: absolute;
-    left: 0;
     transition: opacity 400ms;
     overflow-y: auto;
 }
@@ -62,6 +75,10 @@
     justify-items: center;
 }
 
+.viewCanvas {
+    width: 300vw;
+    background-color: rgb(var(--shade4));
+}
 
 
 .form {
