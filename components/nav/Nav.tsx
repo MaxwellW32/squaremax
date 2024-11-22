@@ -24,7 +24,7 @@ export default async function Nav() {
 
             <ul className={styles.menu}>
                 {session === null ? (
-                    <li className={styles.menuItem}><Link href={"/login"}><button>Login</button></Link></li>
+                    <li className={styles.menuItem}><Link href={"/login"}><button className="mainButton">Login</button></Link></li>
                 ) : (
                     <>
                         <li className={styles.menuItem}>

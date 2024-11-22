@@ -13,7 +13,7 @@ export default function MoreNavOptions({ session }: { session: Session | null })
 
     return (
         <div className={styles.contDiv}>
-            <Image alt="logo" src={session.user.image ?? defaultImage2} width={20} height={20} style={{ objectFit: "cover" }}
+            <Image alt="logo" src={session.user.image ?? defaultImage2} width={30} height={30} style={{ objectFit: "cover" }}
                 onClick={() => { showingNavSet(prev => !prev) }}
             />
 
@@ -23,7 +23,9 @@ export default function MoreNavOptions({ session }: { session: Session | null })
                 >
                     <li className={styles.moreIntemsItem}>account</li>
                     <li className={styles.moreIntemsItem}>settings</li>
-                    <li className={styles.moreIntemsItem}><SignOutButton /></li>
+                    <li className={styles.moreIntemsItem}>
+                        <SignOutButton />
+                    </li>
                 </ul>
             )}
         </div>

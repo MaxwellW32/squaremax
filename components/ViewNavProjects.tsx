@@ -10,24 +10,26 @@ export default function ViewNavProjects({ seenUserProjects }: { seenUserProjects
 
     return (
         <div style={{ position: "relative", display: "grid" }}>
-            <button
+            <button className='mainButton'
                 onClick={() => { showingSet(prev => !prev) }}
             >{showing ? "hide" : "projects"}</button>
 
-            <div style={{ display: showing ? "grid" : "none", position: "absolute", right: 0, maxHeight: "60vh", overflowY: "auto", top: "100%", backgroundColor: "#fff", paddingBlock: "1rem", }}
+            <div style={{ display: showing ? "grid" : "none", position: "absolute", right: 0, maxHeight: "60vh", overflowY: "auto", top: "100%", backgroundColor: "rgb(var(--shade2))", padding: "1rem", border: "1px solid rgb(var(--shade1))" }}
                 onClick={() => {
                     showingSet(false)
                 }}
             >
                 <Link href={`/projects/new`} style={{ justifySelf: "center" }}>
-                    <button>Add Project</button>
+                    <button className='mainButton'>Add Project</button>
                 </Link>
 
                 {seenUserProjects.map(eachProject => {
                     const foundInUrl = pathname.includes(eachProject.id)
 
                     return (
-                        <Link key={eachProject.id} href={`/projects/${eachProject.id}`} style={{ border: foundInUrl ? "1px solid #000" : "", padding: "1rem" }}>{eachProject.name}</Link>
+                        <Link key={eachProject.id} href={`/projects/${eachProject.id}`} style={{ border: "1px solid rgb(var(--shade1))", padding: "1rem", color: foundInUrl ? "rgb(var(--color1))" : "" }}>
+                            <h3>{eachProject.name}</h3>
+                        </Link>
                     )
                 })}
             </div>

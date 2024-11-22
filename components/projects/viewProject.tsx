@@ -269,12 +269,22 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
     return (
         <div className={styles.barCont}>
-            <div className={styles.leftBar} style={{ display: showSideBar ? "" : "none", backgroundColor: dimSideBar ? "transparent" : "" }}>
+            <div className={styles.leftBar} style={{ display: showSideBar ? "" : "none", backgroundColor: dimSideBar ? "transparent" : "" }}
+                onMouseEnter={() => {
+                    //if on desktop have shortcut
+                    if (window.innerWidth < 1024) return
+                    dimSideBarSet(false)
+                }}
+                onMouseLeave={() => {
+                    //if on desktop have shortcut
+                    if (window.innerWidth < 1024) return
+                    dimSideBarSet(true)
+                }}
+            >
                 <div className={styles.leftBarHeader}>
                     {/* close sidebar button */}
                     <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
-                        // onClick={() => { dimSideBarSet(prev => !prev) }}
-                        onMouseEnter={() => { dimSideBarSet(prev => !prev) }}
+                        onClick={() => { dimSideBarSet(prev => !prev) }}
                     >Dim</button>
 
                     <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
@@ -554,7 +564,7 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                     </button>
                 </div>
 
-                <div ref={middleBarContentRef} className={styles.middleBarContent} style={{ overflow: fitActive ? "" : "" }}>
+                <div ref={middleBarContentRef} className={styles.middleBarContent}>
                     {seenProject.projectsToTemplates !== undefined && seenProject.projectsToTemplates.length > 0 && (
                         <>
                             {seenProject.projectsToTemplates.map(eachProjectToTemplate => {

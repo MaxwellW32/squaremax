@@ -3,24 +3,23 @@ import { signIn } from "next-auth/react"
 
 export default function Page() {
     return (
-        <div>
-            <button
+        <div style={{ display: "grid", alignItems: "center", justifyItems: "center", alignContent: "flex-start", gap: ".5rem" }}>
+            <h3>Sign in with</h3>
+            <button className="mainButton"
                 onClick={async () => {
                     await signIn("google", {
                         redirectTo: "/"
                     })
                 }}
-            >Signin with Google</button>
+            >Google</button>
 
-            <br />
-
-            <button
+            <button className="mainButton"
                 onClick={async () => {
                     await signIn("github", {
                         redirectTo: "/"
                     })
                 }}
-            >Signin with Github</button>
+            >Github</button>
         </div>
     )
 }

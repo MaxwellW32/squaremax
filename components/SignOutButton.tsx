@@ -4,7 +4,7 @@ import React from 'react'
 
 export default function SignOutButton() {
     return (
-        <button
+        <button className='mainButton'
             onClick={() => {
                 signOut({
                     redirectTo: "/"
