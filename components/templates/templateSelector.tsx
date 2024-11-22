@@ -73,7 +73,7 @@ export default function TemplateSelector({ setterFunc }: { setterFunc: (template
                         <h3>Select your template</h3>
 
                         <div style={{ backgroundColor: "white", overflow: "auto", display: "grid", gridAutoFlow: "column", gridAutoColumns: "80%" }}>
-                            {[...seenTemplates, ...seenTemplates, ...seenTemplates].map(eachTemplate => {
+                            {seenTemplates.map(eachTemplate => {
                                 return (
                                     <div key={eachTemplate.id} style={{ padding: "1rem", border: "1px solid rgb(var(--shade1))", display: "grid", justifyItems: "center", alignContent: "flex-start", gap: ".5rem" }}>
                                         <h3>{eachTemplate.name}</h3>
