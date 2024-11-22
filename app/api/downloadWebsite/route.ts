@@ -141,10 +141,10 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
                 const newGlobalFormData = `export const globalFormData: globalFormDataType = ${JSON.stringify(templateGlobalFormData, null, 2)};`;
 
                 let isInGlobalFormDataSection = false;
-                let updatedLines = [];
+                const updatedLines = [];
 
                 // Iterate over the lines and process them
-                for (let line of lines) {
+                for (const line of lines) {
                     // Start capturing the section when encountering "<<globalFormDataStart>>"
                     if (line.includes("<<globalFormDataStart>>")) {
                         updatedLines.push(line); // Keep the start marker

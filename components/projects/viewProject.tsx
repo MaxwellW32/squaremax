@@ -17,6 +17,7 @@ import SpecificDataSwitch from '../specificDataSwitch/SpecificDataSwitch'
 //find other template designs - figure out designs
 //check active selection working - refine ui for choices
 //figure out payments
+//improve error handling on client side
 
 export default function ViewProject({ projectFromServer }: { projectFromServer: project }) {
     const [seenProject, seenProjectSet] = useState<project>({ ...projectFromServer })
