@@ -6,7 +6,7 @@ export default function SpecificDataSwitch({ seenSpecificData, seenProjectToTemp
 
     return (
         <>
-            {seenSpecificData.forTemplate === "aaaa" && <EditSpecificDataForAAAA specificData={seenSpecificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />}
+            {seenSpecificData.templateId === "aaaa" && <EditSpecificDataForAAAA specificData={seenSpecificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />}
         </>
     )
 }

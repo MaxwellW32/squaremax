@@ -8,21 +8,24 @@ export default async function Home() {
 
   return (
     <main className={styles.main}>
-      <p>Get a Website today</p>
+      <h1>Get a Website today</h1>
 
       {/* <AddDefaultDataButton /> */}
 
-      <div className={styles.templateCont}>
+      <div className={styles.templatesCont}>
         {templates.map(eachTemplate => {
           return (
-            <div key={eachTemplate.id} style={{ width: "min(300px, 100%)", height: "400px", position: "relative", zIndex: 0 }}>
-              <iframe src={eachTemplate.url} style={{ width: "100%", height: "100%" }} />
+            <div key={eachTemplate.id} className={styles.templateCont}>
+              <iframe src={eachTemplate.url} width={"100%"} height={"100%"} />
 
-              <div style={{ zIndex: 1, position: "absolute", bottom: 0, left: 0, width: "100%" }}>
-                <p>{eachTemplate.name}</p>
+              <div style={{ padding: "1rem", backgroundColor: "rgb(var(--shade2))", display: "grid", alignContent: "flex-start" }}>
+                <button className="tag toolTip" data-tooltip="copy template id" style={{ justifySelf: "flex-end" }}>{eachTemplate.id}</button>
+
+                <h3>{eachTemplate.name}</h3>
 
                 {/* categories */}
                 {/* styles */}
+                {/* add to project button / start new project with template */}
               </div>
             </div>
           )

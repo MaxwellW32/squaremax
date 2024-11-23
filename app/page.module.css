@@ -2,24 +2,18 @@
     display: grid;
 }
 
-.templateCont {
+.templatesCont {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
     gap: var(--gapSmall);
 }
 
-.template {
-    z-index: 0;
+.templateCont {
+    border: 1px solid rgb(var(--shade1));
+    width: 100%;
+    aspect-ratio: 1/1;
     position: relative;
     display: grid;
-    align-items: flex-end;
-}
-
-.templateInfo {
-    position: relative;
-    padding: var(--paddingSmall);
-    z-index: 1;
-    background-color: var(--color1);
-    border-top-left-radius: var(--radiusSmall);
-    border-top-right-radius: var(--radiusSmall);
+    align-content: flex-start;
+    grid-template-rows: 1fr auto;
 }

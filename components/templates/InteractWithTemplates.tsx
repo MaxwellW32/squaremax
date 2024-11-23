@@ -1,5 +1,5 @@
 "use client"
-import { dataFromTemplateSchema, globalFormDataType, projectToTemplatePlusType, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
+import { globalFormDataSchema, globalFormDataType, projectToTemplatePlusType, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 
 export default function InteractwithTemplates({ seenProjectToTemplate, updateProjectsToTemplate, updateProjectsToTemplatePlus, width, height, ...elProps }: { seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void, updateProjectsToTemplatePlus: (id: string, data: Partial<projectToTemplatePlusType["moreInfo"]>) => void, width: number, height: number } & React.HtmlHTMLAttributes<HTMLDivElement>) {
@@ -23,10 +23,10 @@ export default function InteractwithTemplates({ seenProjectToTemplate, updatePro
 
                 //ensure data in correct format
                 const seenResponse = message.data
-                const dataFromTemplate = dataFromTemplateSchema.parse(seenResponse)
+                const globalFormDataFromTemplate = globalFormDataSchema.parse(seenResponse)
 
                 // ensure tempalte data valid and meant for this template
-                if (dataFromTemplate.fromTemplate !== seenProjectToTemplate.template.id) {
+                if (globalFormDataFromTemplate.specificData.templateId !== seenProjectToTemplate.template.id) {
                     console.log(`$missmatched template id`);
                     return
                 }
@@ -40,7 +40,7 @@ export default function InteractwithTemplates({ seenProjectToTemplate, updatePro
 
                 //update project projectsToTemplates data with one from template only if null
                 if (seenProjectToTemplate.globalFormData === null) {
-                    updateProjectsToTemplate({ option: "globalFormData", id: seenProjectToTemplate.id, data: dataFromTemplate.globalFormData })
+                    updateProjectsToTemplate({ option: "globalFormData", id: seenProjectToTemplate.id, data: globalFormDataFromTemplate })
                 }
 
             } catch (error) {

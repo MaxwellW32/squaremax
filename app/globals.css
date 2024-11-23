@@ -52,6 +52,7 @@ everything else should be stated
 
     --fontSizeS: .7rem;
     --fontSizeR: 1rem;
+    --fontSizeL: 2rem;
 }
 
 
@@ -81,6 +82,12 @@ input:focus,
 textarea:focus {
     background-color: rgb(var(--shade2));
     outline: none;
+}
+
+h1 {
+    font-weight: bold;
+    text-transform: capitalize;
+    font-size: var(--fontSizeL);
 }
 
 h3 {
@@ -118,6 +125,14 @@ svg:hover {
     padding: .2rem;
     font-size: var(--fontSizeS);
     text-transform: capitalize;
+    font-weight: bold;
+}
+
+.tag {
+    background-color: rgb(var(--color1));
+    color: rgb(var(--shade2));
+    padding: .5rem 1rem;
+    text-transform: uppercase;
     font-weight: bold;
 }
 

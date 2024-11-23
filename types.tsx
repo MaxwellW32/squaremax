@@ -3,7 +3,7 @@ import { specificDataForAAAASchema } from "./templateSpecificDataTypes/aaaaTypes
 import { specificDataForAAABSchema } from "./templateSpecificDataTypes/aaabTypes";
 
 //keep linked data same on all templates
-// start copy on templates //
+// start linked data copy on templates //
 export const testimonialSchema = z.array(z.object({
     name: z.string(),
     position: z.string(),
@@ -84,14 +84,14 @@ export const linkedDataSchema = z.object({
     })),
 })
 export type linkedDataType = z.infer<typeof linkedDataSchema>
-// end copy on templates //
+// end linked data copy on templates //
 
 
 
 
 
 //keep specific data for each template synced with respective template
-//go to specific type e.g linkedDataForAAAA to copy the exact schema to the template
+//go to specific type e.g specificDataForAAAA to copy the exact schema to the template
 
 //allow specific data to change based on template
 export const specificDataSwitchSchema = z.union([specificDataForAAAASchema, specificDataForAAABSchema])
@@ -103,17 +103,6 @@ export const globalFormDataSchema = z.object({
     linkedData: linkedDataSchema,
 })
 export type globalFormDataType = z.infer<typeof globalFormDataSchema>
-
-
-
-
-
-//info received from templates -- save data
-export const dataFromTemplateSchema = z.object({
-    globalFormData: globalFormDataSchema,
-    fromTemplate: z.string().min(1)
-})
-export type dataFromTemplateType = z.infer<typeof dataFromTemplateSchema>
 
 
 

@@ -133,7 +133,7 @@ export default function AddProject() {
                     )
                 })}
 
-                <button
+                <button className='mainButton' style={{ justifySelf: "center" }}
                     onClick={handleSubmit}
                 >Submit</button>
             </form>

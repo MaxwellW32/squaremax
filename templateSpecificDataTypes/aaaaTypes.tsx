@@ -144,7 +144,7 @@ export const specificDataForAAAASchema = z.object({
             z.string()
         )
     ),
-    forTemplate: z.literal("aaaa"),
+    templateId: z.literal("aaaa"),
 })
 //end copy specific data on template//
 
