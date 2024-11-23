@@ -9,6 +9,7 @@ import { addTemplateToProject, deleteTemplateFromProject, updateTemplateInProjec
 import styles from "./style.module.css"
 import EditLinkedData from '../editLinkedData/EditLinkedData'
 import SpecificDataSwitch from '../specificDataSwitch/SpecificDataSwitch'
+import HandleUserUploadedImages from './HandleUserUploadedImages'
 
 export default function ViewProject({ projectFromServer }: { projectFromServer: project }) {
     const [seenProject, seenProjectSet] = useState<project>({ ...projectFromServer })
@@ -506,6 +507,9 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                             <SpecificDataSwitch seenProjectToTemplate={activeProjectToTemplate} seenSpecificData={activeProjectToTemplate.globalFormData.specificData} updateProjectsToTemplate={updateProjectsToTemplate} />
                         </>
                     )}
+
+                    {/* project images */}
+                    <HandleUserUploadedImages project={seenProject} seenProjectSet={seenProjectSet} />
                 </div>
             </div>
 

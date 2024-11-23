@@ -2,7 +2,7 @@ import { z } from "zod";
 import { specificDataForAAAASchema } from "./templateSpecificDataTypes/aaaaTypes";
 import { specificDataForAAABSchema } from "./templateSpecificDataTypes/aaabTypes";
 
-//keep linked data same on all templates
+//keep linkeData same on all templates
 // start linked data copy on templates //
 export const testimonialSchema = z.array(z.object({
     name: z.string(),
@@ -90,14 +90,12 @@ export type linkedDataType = z.infer<typeof linkedDataSchema>
 
 
 
-//keep specific data for each template synced with respective template
-//go to specific type e.g specificDataForAAAA to copy the exact schema to the template
-
-//allow specific data to change based on template
+//keep specificData synced with respective template - go to specific type e.g specificDataForAAAA to copy the exact schema to the template
+//allows specific data to change based on template
 export const specificDataSwitchSchema = z.union([specificDataForAAAASchema, specificDataForAAABSchema])
 
 
-//govern both specific and shared data from template
+//globalFormDataSchema
 export const globalFormDataSchema = z.object({
     specificData: specificDataSwitchSchema,
     linkedData: linkedDataSchema,
@@ -108,6 +106,26 @@ export type globalFormDataType = z.infer<typeof globalFormDataSchema>
 
 
 
+// other types
+export type updateProjectsToTemplateFunctionType = { id: string, option: "linked", data: globalFormDataType["linkedData"] } | { id: string, option: "specific", data: globalFormDataType["specificData"] } | { id: string, option: "globalFormData", data: globalFormDataType }
+
+export const userUploadedImagesSchema = z.array(z.string())
+export type userUploadedImagesType = z.infer<typeof userUploadedImagesSchema>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//database types
 export const userSchema = z.object({
     id: z.string().min(1),
 
@@ -131,6 +149,8 @@ export const projectsSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     userId: z.string().min(1),
+
+    userUploadedImages: userUploadedImagesSchema.nullable()
 })
 export type project = z.infer<typeof projectsSchema> & {
     fromUser?: user,
@@ -229,9 +249,3 @@ export type templatesToStyle = z.infer<typeof templatesToStylesSchema> & {
     template?: template,
     style?: style
 }
-
-
-
-
-
-export type updateProjectsToTemplateFunctionType = { id: string, option: "linked", data: globalFormDataType["linkedData"] } | { id: string, option: "specific", data: globalFormDataType["specificData"] } | { id: string, option: "globalFormData", data: globalFormDataType }

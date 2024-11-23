@@ -77,7 +77,7 @@
 }
 
 .viewCanvas {
-    width: 300vw;
+    width: 4000px;
     background-color: rgb(var(--shade4));
 }
 
@@ -151,4 +151,19 @@
         top: auto;
         bottom: 0;
     }
+}
+
+
+
+
+/* handle user project upload */
+.imagesCont {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+    gap: 1rem;
+}
+
+.imageCont {
+    width: 100%;
+    aspect-ratio: 1/1;
 }

@@ -1,4 +1,4 @@
-import { globalFormDataType } from "@/types";
+import { globalFormDataType, userUploadedImagesType } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -28,6 +28,8 @@ export const projects = pgTable("projects", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
     name: varchar("name", { length: 255 }).notNull(),
     userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
+
+    userUploadedImages: json("userUploadedImages").$type<userUploadedImagesType | null>().default(null),
 },
     (table) => {
         return {
