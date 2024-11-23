@@ -14,7 +14,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
             <div style={{ display: "flex", overflowX: "auto", height: "5rem", alignItems: "flex-start" }}>
                 {Object.entries(specificData).map(eachFormTabEntry => {
                     const eachFormTabKey = eachFormTabEntry[0] as keyof specificDataForAAAAType
-                    if (eachFormTabKey === "forTemplate") return null
+                    if (eachFormTabKey === "templateId") return null
 
                     return (
                         <button className='mainButton' key={eachFormTabKey} style={{ flex: "0 0 auto", backgroundColor: eachFormTabKey === formTabSelection ? "rgb(var(--color1))" : "" }}
