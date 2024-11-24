@@ -15,7 +15,6 @@ export async function POST(request: Request) {
     await ensureDirectoryExists(imageDirectory)
 
     const addedImageNames = await Promise.all(bodyEntries.map(async eachEntry => {
-        // const eachEntryKey = eachEntry[0] //file0, file1, file2
         const eachEntryValueFile = eachEntry[1]
 
         const file = eachEntryValueFile as File;

@@ -44,7 +44,7 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                                 continue;
                             }
 
-                            formData.append(`file${index}`, uploadedFiles[index]);
+                            formData.append(`file${index}`, file);
                         }
 
                         uploadedImagesSet(formData)
@@ -55,10 +55,6 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                     <button className='mainButton'
                         onClick={async () => {
                             try {
-                                if (uploadedImages === null) {
-                                    throw new Error("need to upload an image")
-                                }
-
                                 const response = await fetch(`/api/userImages/add`, {
                                     method: 'POST',
                                     body: uploadedImages,
