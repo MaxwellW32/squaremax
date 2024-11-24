@@ -1,7 +1,6 @@
 import fs from "fs/promises";
 
 export async function ensureDirectoryExists(dirPath: string) {
-    // const dirPath = path.dirname(filePath)
 
     try {
         // Check if the directory exists by attempting to read it

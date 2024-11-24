@@ -14,8 +14,8 @@ export async function POST(request: Request) {
     }
 
     const id = uuidV4()
-    const seenType = file.type.split('/')[1]
-    const imageFileName = `${id}.${seenType}`
+    const imageType = file.type.split('/')[1]
+    const imageFileName = `${id}.${imageType}`
     const imageDirectory = path.join(process.cwd(), "userUploadedData", "images")
     const imagePath = path.join(imageDirectory, imageFileName)
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    fs.writeFile(imagePath, buffer);
+    await fs.writeFile(imagePath, buffer);
 
     return NextResponse.json({
         name: imageFileName,
