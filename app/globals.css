@@ -117,6 +117,12 @@ svg:hover {
     padding: .5rem 1rem;
     text-transform: capitalize;
     font-weight: bold;
+    justify-self: flex-start;
+    transition: scale 400ms;
+}
+
+.mainButton:hover {
+    scale: 1.01;
 }
 
 .secondaryButton {
@@ -126,6 +132,11 @@ svg:hover {
     font-size: var(--fontSizeS);
     text-transform: capitalize;
     font-weight: bold;
+    transition: scale 400ms;
+}
+
+.secondaryButton:hover {
+    scale: 1.01;
 }
 
 .tag {

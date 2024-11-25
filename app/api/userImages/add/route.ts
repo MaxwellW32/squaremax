@@ -3,6 +3,8 @@ import fs from "fs/promises";
 import { v4 as uuidV4 } from "uuid"
 import { NextResponse } from "next/server";
 import { ensureDirectoryExists } from "@/usefulFunctions/fileManagement";
+import { maxImageUploadSize } from "@/types/userUploadedTypes";
+import { convertBtyes } from "@/usefulFunctions/usefulFunctions";
 
 export async function POST(request: Request) {
     const formData = await request.formData();
@@ -23,16 +25,14 @@ export async function POST(request: Request) {
         const imageFileName = `${id}.${imageType}`
         const imagePath = path.join(imageDirectory, imageFileName)
 
-        const maxSizeInBytes = 5 * 1024 * 1024; // 5MB limit
-
         // Check if file is an image (this will be redundant because of the 'accept' attribute, but can be good for double-checking)
         if (!file.type.startsWith("image/")) {
             throw new Error(`File is not an image.`)
         }
 
         // Check the file size
-        if (file.size > maxSizeInBytes) {
-            throw new Error(`File is too large. Maximum size is 5MB.`)
+        if (file.size > maxImageUploadSize) {
+            throw new Error(`File is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB`)
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());

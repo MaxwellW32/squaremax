@@ -81,6 +81,7 @@ export default function TemplateSelector({ setterFunc }: { setterFunc: (template
                                         <button className='mainButton'
                                             onClick={() => {
                                                 setterFunc({ id: eachTemplate.id })
+                                                userInteractingSet(false)
                                             }}
                                         >select</button>
                                         {/* need to display images */}

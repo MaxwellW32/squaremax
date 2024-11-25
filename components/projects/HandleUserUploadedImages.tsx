@@ -6,17 +6,19 @@ import styles from "./style.module.css"
 import Image from 'next/image'
 import { toast } from 'react-hot-toast'
 import { getSpecificProject, updateProject } from '@/serverFunctions/handleProjects'
+import { maxImageUploadSize, maxBodyToServerSize } from '@/types/userUploadedTypes'
+import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
 
 export default function HandleUserUploadedImages({ project, seenProjectSet }: { project: project, seenProjectSet: React.Dispatch<React.SetStateAction<project>> }) {
     const [uploadedImages, uploadedImagesSet] = useState<FormData | null>(null)
     const imageStarterUrl = `https://squaremaxtech.com/api/userImages/view?imageName=`
 
     return (
-        <div>
+        <ShowMore label='Project Images' content={(
             <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
-                <button className='mainButton' style={{ justifySelf: "flex-start" }}>
+                <button className='mainButton'>
                     <label htmlFor='fileUpload' style={{ cursor: "pointer" }}>
-                        upload images
+                        upload
                     </label>
                 </button>
 
@@ -24,9 +26,8 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                     onChange={(e) => {
                         if (!e.target.files) return
 
-                        const maxSizeInBytes = 5 * 1024 * 1024; // 5MB limit
+                        let totalUploadSize = 0
                         const uploadedFiles = e.target.files
-
                         const formData = new FormData();
 
                         for (let index = 0; index < uploadedFiles.length; index++) {
@@ -39,12 +40,20 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                             }
 
                             // Check the file size
-                            if (file.size > maxSizeInBytes) {
-                                toast.error(`File ${file.name} is too large. Maximum size is 5MB.`);
+                            if (file.size > maxImageUploadSize) {
+                                toast.error(`File ${file.name} is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB`);
                                 continue;
                             }
 
+                            //add file size to totalUploadSize
+                            totalUploadSize += file.size
+
                             formData.append(`file${index}`, file);
+                        }
+
+                        if (totalUploadSize > maxBodyToServerSize) {
+                            toast.error(`Please upload less than ${convertBtyes(maxBodyToServerSize, "mb")} MB at a time`);
+                            return
                         }
 
                         uploadedImagesSet(formData)
@@ -103,29 +112,30 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                         }}
                     >Add</button>
                 )}
-            </div>
 
-            {project.userUploadedImages !== null && (
-                <ShowMore
-                    label='View Uploaded Images'
-                    content={(
-                        <div className={styles.imagesCont}>
-                            {project.userUploadedImages.map(eachImage => {
-                                return (
-                                    <div key={eachImage} className={styles.imageCont}
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(`${imageStarterUrl}${eachImage}`);
-                                            toast.success("id copied")
-                                        }}
-                                    >
-                                        <Image alt='gallery image' src={`${imageStarterUrl}${eachImage}`} width={300} height={300} style={{ objectFit: "contain", width: "100%", height: "100%" }} />
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                />
-            )}
-        </div>
+                {project.userUploadedImages !== null && (
+                    <ShowMore
+                        label='View Uploaded Images'
+                        content={(
+                            <div className={styles.imagesCont}>
+                                {project.userUploadedImages.map(eachImage => {
+                                    return (
+                                        <div key={eachImage} className={styles.imageCont}
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(`${imageStarterUrl}${eachImage}`);
+                                                toast.success("id copied")
+                                            }}
+                                        >
+                                            <Image alt='gallery image' src={`${imageStarterUrl}${eachImage}`} width={300} height={300} style={{ objectFit: "contain", width: "100%", height: "100%" }} />
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    />
+                )}
+            </div>
+        )}
+        />
     )
 }

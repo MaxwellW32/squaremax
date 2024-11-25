@@ -27,7 +27,7 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
     }, [seenProject.projectsToTemplates, projectsToTemplatesPlus])
 
-    const [showSideBar, showSideBarSet] = useState(false)
+    const [showSideBar, showSideBarSet] = useState(seenProject.projectsToTemplates === undefined || seenProject.projectsToTemplates.length === 0 ? true : false)
     const [dimSideBar, dimSideBarSet] = useState(false)
     const [fitActive, fitActiveSet] = useState(false)
     const [contentScale, contentScaleSet] = useState(1)
@@ -293,6 +293,8 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                 }}
             >
                 <div className={styles.leftBarHeader}>
+                    <h3>{seenProject.name}</h3>
+
                     {/* close sidebar button */}
                     <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
                         onClick={() => { dimSideBarSet(prev => !prev) }}
@@ -307,8 +309,6 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                 </div>
 
                 <div className={styles.leftBarContent} style={{ opacity: dimSideBar ? 0.05 : "", }}>
-                    <h2>{seenProject.name}</h2>
-
                     {/* select active template */}
                     {projectsToTemplatesPlus.length > 0 && (
                         <div style={{ display: "grid", gap: ".5rem" }}>

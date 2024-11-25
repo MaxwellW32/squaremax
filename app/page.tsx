@@ -1,7 +1,6 @@
 import { getTemplates } from "@/serverFunctions/handleTemplates"
 import styles from "./page.module.css"
 import CopyTemplateIdButton from "@/components/templates/CopyTemplateIdButton"
-// import Test from "@/components/Test"
 // import { template } from "@/types"
 // import AddDefaultDataButton from "@/components/AddDefaultDataButton"
 
@@ -19,8 +18,6 @@ export default async function Home() {
       <h1>Get a Website today</h1>
 
       {/* <AddDefaultDataButton /> */}
-
-      {/* <Test /> */}
 
       <div className={styles.templatesCont}>
         {templates.map(eachTemplate => {
