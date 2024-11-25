@@ -9,3 +9,11 @@
     align-content: flex-start;
     gap: .5rem;
 }
+
+.scrollCont {
+    display: grid;
+    grid-auto-columns: min(300px, 90%);
+    grid-auto-flow: column;
+    gap: 2rem;
+    overflow: auto;
+}

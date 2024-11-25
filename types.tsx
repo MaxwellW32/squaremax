@@ -2,7 +2,7 @@ import { z } from "zod";
 import { specificDataForAAAASchema } from "./types/templateSpecificDataTypes/aaaaTypes";
 import { specificDataForAAABSchema } from "./types/templateSpecificDataTypes/aaabTypes";
 
-//keep linkeData same on all templates
+//keep linkedData same on all templates
 // start linked data copy on templates //
 export const testimonialSchema = z.array(z.object({
     name: z.string(),

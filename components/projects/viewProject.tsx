@@ -138,13 +138,8 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
     //center canvasView
     useEffect(() => {
-        if (middleBarContentRef.current === null) return
-
-        //center scroll bars
-        middleBarContentRef.current.scrollLeft = middleBarContentRef.current.scrollWidth / 2 - (middleBarContentSize.width / 2)
-        middleBarContentRef.current.scrollTop = 0
-
-    }, [activeProjectToTemplate, middleBarContentSize, fitActive, sizeOptions])
+        centerCanvas()
+    }, [middleBarContentSize, fitActive, sizeOptions])
 
     async function handleTemplateSelection(templateIdObj: Pick<template, "id">) {
         try {
@@ -249,6 +244,8 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                     return
                 }
 
+                globalFormDataSchema.parse(seenUpdatedProjectsToTemplates.globalFormData)
+
                 // update projects to templates with new template data
                 await updateTemplateInProject({
                     id: choiceObj.id,
@@ -256,6 +253,7 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                 })
 
                 updateProjectsToTemplatePlus(choiceObj.id, { saveState: "saved" })
+
                 console.log(`$saved templateData`);
                 toast.success("saved")
             }, 5000);
@@ -276,6 +274,15 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
         const scaleX = contElementWidth / elementWidth
         const scaleY = contElementHeight / elementHeight
         return Math.min(scaleX, scaleY);
+    }
+
+    function centerCanvas() {
+        if (middleBarContentRef.current === null) return
+
+        //center scroll bars
+        middleBarContentRef.current.scrollLeft = middleBarContentRef.current.scrollWidth / 2 - (middleBarContentSize.width / 2)
+        middleBarContentRef.current.scrollTop = 0
+
     }
 
     return (
@@ -334,6 +341,8 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
 
                                                     return newProjectsToTemplatesPlus
                                                 })
+
+                                                centerCanvas()
                                             }}
                                         >
                                         </div>

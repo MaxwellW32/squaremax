@@ -1,74 +1,79 @@
 "use client"
 import { globalFormDataType, linkedDataSchema, linkedDataType, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import TextInput from '../textInput/TextInput'
 import styles from "./styles.module.css"
 import ShowMore from '../showMore/ShowMore'
 import TextArea from '../textArea/TextArea'
 
+//edit and send data up
+//if data not valid dont send up
+
+type linkedDataTypeKeys = keyof linkedDataType
+
+type formInputInputType = {
+    label?: string,
+    placeHolder?: string,
+    type?: "text" | "number",
+    required?: boolean,
+
+    inputType: "input"
+}
+
+type formInputTextareaType = {
+    label?: string,
+    placeHolder?: string,
+    required?: boolean,
+    inputType: "textarea"
+}
+
+type formInputImageType = {
+    label?: string,
+    placeHolder?: string,
+    required?: boolean,
+
+    inputType: "image"
+}
+
+type formInputType = formInputInputType | formInputTextareaType | formInputImageType
+
+type linkedDataSiteInfoKeys = keyof linkedDataType["siteInfo"]
+type linkedDataTestimonialsKeys = keyof linkedDataType["testimonials"][number]
+type linkedDataTeamKeys = keyof linkedDataType["team"][number]
+type linkedDataProductsKeys = keyof linkedDataType["products"][number]
+type linkedDataGalleryKeys = keyof linkedDataType["gallery"][number]
+type linkedDataServicesKeys = keyof linkedDataType["services"][number]
+type linkedDataSocialsKeys = keyof linkedDataType["socials"][number]
+
+// copy structure down to errors oject
+type moreFormInfoType = {
+    "siteInfo": {
+        [key in linkedDataSiteInfoKeys]: formInputType
+    },
+    "testimonials": {
+        [key in linkedDataTestimonialsKeys]: formInputType
+    },
+    "team": {
+        [key in linkedDataTeamKeys]: formInputType
+    },
+    "products": {
+        [key in linkedDataProductsKeys]: formInputType
+    },
+    "gallery": {
+        [key in linkedDataGalleryKeys]: formInputType
+    },
+    "services": {
+        [key in linkedDataServicesKeys]: formInputType
+    },
+    "socials": {
+        [key in linkedDataSocialsKeys]: formInputType
+    },
+}
+
+type formErrorsType = { [key in linkedDataTypeKeys]: { [key: string]: string } }
+
 export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, updateProjectsToTemplate }: { seenLinkedData: globalFormDataType["linkedData"], seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
-    const [linkedData, linkedDataSet] = useState<linkedDataType>({ ...seenLinkedData })
-
-    type linkedDataTypeKeys = keyof linkedDataType
-
-    type formInputInputType = {
-        label?: string,
-        placeHolder?: string,
-        type?: "text" | "number",
-        required?: boolean,
-
-        inputType: "input"
-    }
-
-    type formInputTextareaType = {
-        label?: string,
-        placeHolder?: string,
-        required?: boolean,
-        inputType: "textarea"
-    }
-
-    type formInputImageType = {
-        label?: string,
-        placeHolder?: string,
-        required?: boolean,
-
-        inputType: "image"
-    }
-
-    type formInputType = formInputInputType | formInputTextareaType | formInputImageType
-
-    type linkedDataSiteInfoKeys = keyof linkedDataType["siteInfo"]
-    type linkedDataTestimonialsKeys = keyof linkedDataType["testimonials"][number]
-    type linkedDataTeamKeys = keyof linkedDataType["team"][number]
-    type linkedDataProductsKeys = keyof linkedDataType["products"][number]
-    type linkedDataGalleryKeys = keyof linkedDataType["gallery"][number]
-    type linkedDataServicesKeys = keyof linkedDataType["services"][number]
-    type linkedDataSocialsKeys = keyof linkedDataType["socials"][number]
-
-    // copy structure down to errors oject
-    type moreFormInfoType = {
-        "siteInfo": {
-            [key in linkedDataSiteInfoKeys]: formInputType
-        },
-        "testimonials": {
-            [key in linkedDataTestimonialsKeys]: formInputType
-        },
-        "team": {
-            [key in linkedDataTeamKeys]: formInputType
-        },
-        "products": {
-            [key in linkedDataProductsKeys]: formInputType
-        },
-        "gallery": {
-            [key in linkedDataGalleryKeys]: formInputType
-        },
-        "services": {
-            [key in linkedDataServicesKeys]: formInputType
-        },
-        "socials": {
-            [key in linkedDataSocialsKeys]: formInputType
-        },
-    }
+    const [localLinkedData, localLinkedDataSet] = useState<linkedDataType>({ ...seenLinkedData })
 
     const [moreFormInfo,] = useState<moreFormInfoType>({
         "siteInfo": {
@@ -130,45 +135,46 @@ export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, 
         },
         "testimonials": {
             name: {
-                label: "",
-                placeHolder: "",
+                label: "Name",
+                placeHolder: "Enter the person's full name",
                 inputType: "input"
             },
             position: {
-                label: "",
-                placeHolder: "",
+                label: "Position",
+                placeHolder: "Enter the person's position or job title",
                 inputType: "input"
             },
             photo: {
-                label: "",
-                placeHolder: "",
+                label: "Photo",
+                placeHolder: "Upload a photo of the person (optional)",
                 inputType: "input"
             },
             text: {
-                label: "",
-                placeHolder: "",
+                label: "Testimonial",
+                placeHolder: "Enter the testimonial or review text",
                 inputType: "input"
             },
             rating: {
-                label: "",
-                placeHolder: "",
+                label: "Rating",
+                placeHolder: "Rate from 1 to 5",
+                type: "number",
                 inputType: "input"
             },
             date: {
-                label: "",
-                placeHolder: "",
+                label: "Date",
+                placeHolder: "Select the date of the testimonial",
                 inputType: "input"
             },
             links: {
-                label: "",
-                placeHolder: "",
+                label: "Links",
+                placeHolder: "Provide any relevant links (e.g., LinkedIn, Website)",
                 inputType: "input"
             },
             company: {
-                label: "",
-                placeHolder: "",
+                label: "Company",
+                placeHolder: "Enter the name of the company (if applicable)",
                 inputType: "input"
-            },
+            }
         },
         "team": {
             "name": {
@@ -392,7 +398,6 @@ export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, 
         }
     })
 
-    type formErrorsType = { [key in linkedDataTypeKeys]: { [key: string]: string } }
     const [formErrors, formErrorsSet] = useState<formErrorsType>({
         siteInfo: {},
         testimonials: {},
@@ -403,220 +408,371 @@ export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, 
         socials: {},
     })
 
-    function checkIfValid(seenMainKey: linkedDataTypeKeys, seenName: string, seenValue: unknown) {
-        //@ts-expect-error ts not seeing type
-        const testSchema = linkedDataSchema.shape[seenMainKey].pick({ [seenName]: true }).safeParse({ [seenName]: seenValue });
+    const formHasErrors = useMemo(() => {
+        let seeingErrors = false
 
-        if (testSchema.success) {//worked
-            formErrorsSet(prevObj => {
-                const newObj = { ...prevObj }
+        Object.entries(formErrors).forEach(eachFormErrorsEntry => {
+            const seenFormErrorsValue = eachFormErrorsEntry[1]
 
-                delete newObj[seenMainKey][seenName]
-
-                return newObj
-            })
-
-            return true
-
-        } else {
-            formErrorsSet(prevObj => {
-                const newObj = { ...prevObj }
-
-                let errorMessage = ""
-
-                JSON.parse(testSchema.error.message).forEach((eachErrorObj: Error) => {
-                    errorMessage += ` ${eachErrorObj.message}`
-                })
-
-                newObj[seenMainKey][seenName] = errorMessage
-
-                return newObj
-            })
-
-            return false
-        }
-    }
-
-    function formHasErrorCheck(seenErrorsObj: formErrorsType): boolean {
-        let errorsFound = false
-
-        Object.entries(seenErrorsObj).forEach(eachErrorsObjEntry => {
-            const errorsObjValue = eachErrorsObjEntry[1]
-
-            if (Object.entries(errorsObjValue).length > 0) {
-                errorsFound = true
+            if (Object.entries(seenFormErrorsValue).length > 0) {
+                seeingErrors = true
             }
         })
+        return seeingErrors
+    }, [formErrors])
 
-        return errorsFound;
-    }
+    //send up to main
+    useEffect(() => {
+        const linkedDataValidTest = linkedDataSchema.safeParse(localLinkedData)
 
-    function canSaveDataToMain() {
-        //make sure no issues in the form overall
-        if (formHasErrorCheck(formErrors)) {
-            console.log(`$form had errors`);
-            return
+        if (!linkedDataValidTest.success) return
+
+        updateProjectsToTemplate({ option: "linked", id: seenProjectToTemplate.id, data: linkedDataValidTest.data })
+    }, [localLinkedData])
+
+    function checkIfInputValid(seenObj: { seenMainKey: linkedDataTypeKeys, seenValue: unknown, seenName: string, for: "object" } | { seenMainKey: linkedDataTypeKeys, seenName: string, seenValue: unknown, for: "array" }): boolean {
+        if (seenObj.for === "array") {
+            //check array values
+            const testSchema = linkedDataSchema.shape[seenObj.seenMainKey].safeParse(seenObj.seenValue);
+
+            if (testSchema.success) {//worked
+                formErrorsSet(prevObj => {
+                    const newObj = { ...prevObj }
+
+                    delete newObj[seenObj.seenMainKey][seenObj.seenName]
+
+                    return newObj
+                })
+
+                return true
+
+            } else {
+                formErrorsSet(prevObj => {
+                    const newObj = { ...prevObj }
+
+                    let errorMessage = ""
+
+                    JSON.parse(testSchema.error.message).forEach((eachErrorObj: Error) => {
+                        errorMessage += ` ${eachErrorObj.message}`
+                    })
+
+                    newObj[seenObj.seenMainKey][seenObj.seenName] = errorMessage
+
+                    return newObj
+                })
+
+                return false
+            }
+        } else {
+            //check object values
+            // @ts-expect-error ts not 
+            const testSchema = linkedDataSchema.shape[seenObj.seenMainKey].pick({ [seenObj.seenName]: true }).safeParse({ [seenObj.seenName]: seenObj.seenValue });
+
+            if (testSchema.success) {//worked
+                formErrorsSet(prevObj => {
+                    const newObj = { ...prevObj }
+
+                    delete newObj[seenObj.seenMainKey][seenObj.seenName]
+
+                    return newObj
+                })
+
+                return true
+
+            } else {
+                formErrorsSet(prevObj => {
+                    const newObj = { ...prevObj }
+
+                    let errorMessage = ""
+
+                    JSON.parse(testSchema.error.message).forEach((eachErrorObj: Error) => {
+                        errorMessage += ` ${eachErrorObj.message}`
+                    })
+
+                    newObj[seenObj.seenMainKey][seenObj.seenName] = errorMessage
+
+                    return newObj
+                })
+
+                return false
+            }
         }
-
-        console.log(`$success, went to update global linkedData`);
-        updateProjectsToTemplate({ option: "linked", id: seenProjectToTemplate.id, data: linkedData })
     }
 
     return (
         <ShowMore label='Linked data' content={(
             <div style={{ display: "grid", alignContent: "flex-start" }}>
                 {/* notify */}
-                {formHasErrorCheck(formErrors) && (<h3>progress wont be saved until errors are resolved</h3>)}
+                {formHasErrors && (<h3>progress wont be saved until errors are resolved</h3>)}
 
                 {/* specific info */}
-                <div className={styles.formInputCont}>
-                    {Object.entries(linkedData["siteInfo"]).map(eachSiteInfoEntry => {
-                        const eachSiteInfoKey = eachSiteInfoEntry[0] as linkedDataSiteInfoKeys
-                        const eachSiteInfoValue = eachSiteInfoEntry[1]
+                <ShowMore label='website info' content={(
+                    <div className={styles.formInputCont}>
+                        {Object.entries(localLinkedData["siteInfo"]).map(eachSiteInfoEntry => {
+                            const eachSiteInfoKey = eachSiteInfoEntry[0] as linkedDataSiteInfoKeys
+                            const eachSiteInfoValue = eachSiteInfoEntry[1]
 
-                        const seenMoreFormInfo = moreFormInfo["siteInfo"][eachSiteInfoKey]
+                            const seenMoreFormInfo = moreFormInfo["siteInfo"][eachSiteInfoKey]
 
-                        // special display for work hours array
-                        if (eachSiteInfoKey === "workingHours") {
-                            const workingHoursArr = eachSiteInfoValue as linkedDataType["siteInfo"]["workingHours"]
+                            // special display for work hours array
+                            if (eachSiteInfoKey === "workingHours") {
+                                const workingHoursArr = eachSiteInfoValue as linkedDataType["siteInfo"]["workingHours"]
 
-                            return (
-                                <React.Fragment key={eachSiteInfoKey}>
-                                    <label>{eachSiteInfoKey}</label>
+                                return (
+                                    <React.Fragment key={eachSiteInfoKey}>
+                                        <label>{eachSiteInfoKey}</label>
 
-                                    {/* working hours map */}
-                                    <div className='snap' style={{ display: "grid", gridAutoColumns: "min(300px, 90%)", overflow: "auto", gridAutoFlow: "column", gap: "2rem" }}>
-                                        {workingHoursArr.map((eachWorkHour, eachWorkHourIndex) => {
+                                        {/* working hours map */}
+                                        <div className={`${styles.scrollCont} snap`}>
+                                            {workingHoursArr.map((eachWorkHour, eachWorkHourIndex) => {
 
-                                            return (
-                                                <div key={eachWorkHourIndex} className={styles.formInputCont}>
-                                                    <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
-                                                        onClick={() => {
-                                                            linkedDataSet(prevLinkedData => {
-                                                                const newLinkedData = JSON.parse(JSON.stringify(prevLinkedData)) as linkedDataType
+                                                return (
+                                                    <div key={eachWorkHourIndex} className={styles.formInputCont}>
+                                                        <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                                                            onClick={() => {
+                                                                localLinkedDataSet(prevLinkedData => {
+                                                                    const newLinkedData = JSON.parse(JSON.stringify(prevLinkedData)) as linkedDataType
 
-                                                                newLinkedData.siteInfo.workingHours = newLinkedData.siteInfo.workingHours.filter((eachWorkingHoursFilter, eachWorkingHoursFilterIndex) => eachWorkingHoursFilterIndex !== eachWorkHourIndex)
+                                                                    newLinkedData.siteInfo.workingHours = newLinkedData.siteInfo.workingHours.filter((eachWorkingHoursFilter, eachWorkingHoursFilterIndex) => eachWorkingHoursFilterIndex !== eachWorkHourIndex)
 
-                                                                return newLinkedData
-                                                            })
-                                                        }}
-                                                    >close</button>
+                                                                    return newLinkedData
+                                                                })
+                                                            }}
+                                                        >close</button>
 
-                                                    <TextInput
-                                                        name={`${eachSiteInfoKey}${eachWorkHourIndex}`}//
-                                                        value={`${eachWorkHour}`}
-                                                        label={`${eachWorkHourIndex}`}
-                                                        placeHolder={`${seenMoreFormInfo.placeHolder} ${eachWorkHourIndex}`}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                            //possible change to allow valid updates to template immediately
-                                                            linkedDataSet(prevLinkedData => {
-                                                                const newLinkedData = { ...prevLinkedData }
+                                                        <TextInput
+                                                            name={`${eachSiteInfoKey}${eachWorkHourIndex}`}//
+                                                            value={`${eachWorkHour}`}
+                                                            label={`${eachWorkHourIndex}`}
+                                                            placeHolder={`${seenMoreFormInfo.placeHolder} ${eachWorkHourIndex}`}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                //possible change to allow valid updates to template immediately
+                                                                localLinkedDataSet(prevLinkedData => {
+                                                                    const newLinkedData = { ...prevLinkedData }
 
-                                                                newLinkedData.siteInfo.workingHours[eachWorkHourIndex] = e.target.value
+                                                                    newLinkedData.siteInfo.workingHours[eachWorkHourIndex] = e.target.value
 
-                                                                return newLinkedData
-                                                            })
-                                                        }}
-                                                        onBlur={() => {
-                                                            const inputValid = checkIfValid("siteInfo", eachSiteInfoKey, workingHoursArr)
+                                                                    return newLinkedData
+                                                                })
+                                                            }}
+                                                            onBlur={() => {
+                                                                checkIfInputValid({ for: "object", seenMainKey: "siteInfo", seenName: eachSiteInfoKey, seenValue: workingHoursArr })
+                                                            }}
+                                                            errors={formErrors["siteInfo"][eachSiteInfoKey]}
+                                                        />
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
 
-                                                            if (inputValid) canSaveDataToMain()
-                                                        }}
-                                                        errors={formErrors["siteInfo"][eachSiteInfoKey]}
-                                                    />
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
+                                        {/* add to work hours button  */}
+                                        <button className='mainButton'
+                                            onClick={() => {
+                                                localLinkedDataSet(prevLinkedData => {
+                                                    const newLinkedData = JSON.parse(JSON.stringify(prevLinkedData))
 
-                                    {/* add to work hours button  */}
-                                    <button className='mainButton'
-                                        onClick={() => {
-                                            linkedDataSet(prevLinkedData => {
-                                                const newLinkedData = JSON.parse(JSON.stringify(prevLinkedData))
+                                                    const newWorkHour: linkedDataType["siteInfo"]["workingHours"][number] = ""
 
-                                                const newWorkHour: linkedDataType["siteInfo"]["workingHours"][number] = ""
-
-                                                newLinkedData.siteInfo.workingHours = [...newLinkedData.siteInfo.workingHours, newWorkHour]
-
-                                                return newLinkedData
-                                            })
-                                        }}
-                                    >add</button>
-                                </React.Fragment>
-                            )
-                        }
-
-                        return (
-                            <React.Fragment key={eachSiteInfoKey}>
-                                {seenMoreFormInfo.inputType === "input" ? (
-                                    <TextInput
-                                        name={eachSiteInfoKey}
-                                        value={`${eachSiteInfoValue}`}
-                                        type={seenMoreFormInfo.type}
-                                        label={seenMoreFormInfo.label}
-                                        placeHolder={seenMoreFormInfo.placeHolder}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                            linkedDataSet(prevLinkedData => {
-                                                const newLinkedData = { ...prevLinkedData }
-
-                                                const newSiteInfo = newLinkedData["siteInfo"]
-
-                                                if (seenMoreFormInfo.type === undefined || seenMoreFormInfo.type === "text") {
-                                                    newSiteInfo[eachSiteInfoKey] = e.target.value
-
-                                                } else if (seenMoreFormInfo.type === "number") {
-                                                    const parsedNum = parseFloat(e.target.value)
-
-                                                    //@ts-expect-error can make the field type a number in this case
-                                                    newSiteInfo[eachSiteInfoKey] = isNaN(parsedNum) ? 0 : parsedNum
-                                                }
-
-                                                return newLinkedData
-                                            })
-                                        }}
-                                        onBlur={() => {
-                                            const inputValid = checkIfValid("siteInfo", eachSiteInfoKey, eachSiteInfoValue)
-
-                                            if (inputValid) canSaveDataToMain()
-                                        }}
-                                        errors={formErrors["siteInfo"][eachSiteInfoKey]}
-                                    />
-                                ) :
-                                    seenMoreFormInfo.inputType === "textarea" ? (
-                                        <TextArea
-                                            name={eachSiteInfoKey}
-                                            value={`${eachSiteInfoValue}`}
-                                            label={seenMoreFormInfo.label}
-                                            placeHolder={seenMoreFormInfo.placeHolder}
-                                            onInput={e => {
-                                                linkedDataSet(prevLinkedData => {
-                                                    const newLinkedData = { ...prevLinkedData }
-                                                    //@ts-expect-error ts not seeing type
-                                                    const seenText = e.target.value
-
-                                                    const newSiteInfo = newLinkedData["siteInfo"]
-
-                                                    newSiteInfo[eachSiteInfoKey] = seenText
+                                                    newLinkedData.siteInfo.workingHours = [...newLinkedData.siteInfo.workingHours, newWorkHour]
 
                                                     return newLinkedData
                                                 })
                                             }}
-                                            onBlur={() => {
-                                                const inputValid = checkIfValid("siteInfo", eachSiteInfoKey, eachSiteInfoValue)
+                                        >add</button>
+                                    </React.Fragment>
+                                )
+                            }
 
-                                                if (inputValid) canSaveDataToMain()
+                            return (
+                                <React.Fragment key={eachSiteInfoKey}>
+                                    {seenMoreFormInfo.inputType === "input" ? (
+                                        <TextInput
+                                            name={eachSiteInfoKey}
+                                            value={`${eachSiteInfoValue}`}
+                                            type={seenMoreFormInfo.type}
+                                            label={seenMoreFormInfo.label}
+                                            placeHolder={seenMoreFormInfo.placeHolder}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                localLinkedDataSet(prevLinkedData => {
+                                                    const newLinkedData = { ...prevLinkedData }
+
+                                                    const newSiteInfo = newLinkedData["siteInfo"]
+
+                                                    if (seenMoreFormInfo.type === undefined || seenMoreFormInfo.type === "text") {
+                                                        newSiteInfo[eachSiteInfoKey] = e.target.value
+
+                                                    } else if (seenMoreFormInfo.type === "number") {
+                                                        const parsedNum = parseFloat(e.target.value)
+
+                                                        //@ts-expect-error can make the field type a number in this case
+                                                        newSiteInfo[eachSiteInfoKey] = isNaN(parsedNum) ? 0 : parsedNum
+                                                    }
+
+                                                    //ensure we always set the local to update with use input
+                                                    return newLinkedData
+                                                })
+                                            }}
+                                            onBlur={() => {
+                                                checkIfInputValid({ for: "object", seenMainKey: "siteInfo", seenName: eachSiteInfoKey, seenValue: eachSiteInfoValue })
                                             }}
                                             errors={formErrors["siteInfo"][eachSiteInfoKey]}
                                         />
                                     ) :
-                                        seenMoreFormInfo.inputType === "image" ? (
-                                            <></>
-                                        ) : null}
-                            </React.Fragment>
-                        )
-                    })}
-                </div>
+                                        seenMoreFormInfo.inputType === "textarea" ? (
+                                            <TextArea
+                                                name={eachSiteInfoKey}
+                                                value={`${eachSiteInfoValue}`}
+                                                label={seenMoreFormInfo.label}
+                                                placeHolder={seenMoreFormInfo.placeHolder}
+                                                onInput={e => {
+                                                    localLinkedDataSet(prevLinkedData => {
+                                                        const newLinkedData = { ...prevLinkedData }
+                                                        //@ts-expect-error ts not seeing type
+                                                        const seenText = e.target.value
+
+                                                        const newSiteInfo = newLinkedData["siteInfo"]
+
+                                                        newSiteInfo[eachSiteInfoKey] = seenText
+
+                                                        return newLinkedData
+                                                    })
+                                                }}
+                                                onBlur={() => {
+                                                    checkIfInputValid({ for: "object", seenMainKey: "siteInfo", seenName: eachSiteInfoKey, seenValue: eachSiteInfoValue })
+                                                }}
+                                                errors={formErrors["siteInfo"][eachSiteInfoKey]}
+                                            />
+                                        ) :
+                                            seenMoreFormInfo.inputType === "image" ? (
+                                                <></>
+                                            ) : null}
+                                </React.Fragment>
+                            )
+                        })}
+                    </div>
+                )} />
+
+                {/* testimonials map */}
+                <ShowMore label='testimonials' content={(
+                    <div style={{ display: "grid", alignContent: "flex-start" }}>
+                        <div className={`${styles.scrollCont} snap`}>
+                            {localLinkedData["testimonials"].map((eachTestimonial, eachTestimonialIndex) => {
+                                const wantedKeyName: linkedDataTypeKeys = "testimonials"
+
+                                return (
+                                    <div key={eachTestimonialIndex} className={styles.formInputCont}>
+                                        <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                                            onClick={() => {
+                                                localLinkedDataSet(prevLinkedData => {
+                                                    const newLinkedData = JSON.parse(JSON.stringify(prevLinkedData)) as linkedDataType
+
+                                                    newLinkedData.testimonials = newLinkedData.testimonials.filter((eachTestimonialFilter, eachTestimonialFilterIndex) => eachTestimonialFilterIndex !== eachTestimonialIndex)
+
+                                                    return newLinkedData
+                                                })
+                                            }}
+                                        >close</button>
+
+                                        {Object.entries(eachTestimonial).map(eachTestimonialEntry => {
+                                            const eachTestimonialObjKey = eachTestimonialEntry[0] as linkedDataTestimonialsKeys
+                                            const eachTestimonialObjValue = eachTestimonialEntry[1]
+
+                                            const seenMoreFormInfo = moreFormInfo["testimonials"][eachTestimonialObjKey]
+
+                                            if (eachTestimonialObjKey === "rating") return null
+                                            if (eachTestimonialObjKey === "links") return null
+
+                                            return (
+                                                <React.Fragment key={eachTestimonialObjKey}>
+                                                    {seenMoreFormInfo.inputType === "input" ? (
+                                                        <TextInput
+                                                            name={eachTestimonialObjKey}
+                                                            value={`${eachTestimonialObjValue}`}
+                                                            type={seenMoreFormInfo.type}
+                                                            label={seenMoreFormInfo.label}
+                                                            placeHolder={seenMoreFormInfo.placeHolder}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                localLinkedDataSet(prevLinkedData => {
+                                                                    const newLinkedData = { ...prevLinkedData }
+
+                                                                    if (seenMoreFormInfo.type === undefined || seenMoreFormInfo.type === "text") {
+                                                                        newLinkedData[wantedKeyName][eachTestimonialIndex][eachTestimonialObjKey] = e.target.value
+
+                                                                    } else if (seenMoreFormInfo.type === "number") {
+                                                                        const parsedNum = parseFloat(e.target.value)
+
+                                                                        //@ts-expect-error can make the field type a number in this case
+                                                                        newLinkedData[wantedKeyName][eachTestimonialIndex][eachTestimonialObjKey] = isNaN(parsedNum) ? 0 : parsedNum
+                                                                    }
+
+                                                                    //ensure we always set the local to update with use input
+                                                                    return newLinkedData
+                                                                })
+                                                            }}
+                                                            onBlur={() => {
+                                                                checkIfInputValid({ for: "array", seenMainKey: wantedKeyName, seenName: eachTestimonialObjKey, seenValue: localLinkedData["testimonials"] })
+                                                            }}
+                                                            errors={formErrors[wantedKeyName][eachTestimonialObjKey]}
+                                                        />
+                                                    ) :
+                                                        seenMoreFormInfo.inputType === "textarea" ? (
+                                                            <TextArea
+                                                                name={eachTestimonialObjKey}
+                                                                value={`${eachTestimonialObjValue}`}
+                                                                label={seenMoreFormInfo.label}
+                                                                placeHolder={seenMoreFormInfo.placeHolder}
+                                                                onInput={e => {
+                                                                    localLinkedDataSet(prevLinkedData => {
+                                                                        const newLinkedData = { ...prevLinkedData }
+                                                                        //@ts-expect-error ts not seeing type
+                                                                        const seenText = e.target.value
+
+                                                                        newLinkedData[wantedKeyName][eachTestimonialIndex][eachTestimonialObjKey] = seenText
+
+                                                                        return newLinkedData
+                                                                    })
+                                                                }}
+                                                                onBlur={() => {
+                                                                    checkIfInputValid({ for: "array", seenMainKey: wantedKeyName, seenName: eachTestimonialObjKey, seenValue: localLinkedData["testimonials"] })
+                                                                }}
+                                                                errors={formErrors[wantedKeyName][eachTestimonialObjKey]}
+                                                            />
+                                                        ) :
+                                                            seenMoreFormInfo.inputType === "image" ? (
+                                                                <></>
+                                                            ) : null}
+                                                </React.Fragment>
+                                            )
+                                        })}
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        {/* add button  */}
+                        <button className='mainButton'
+                            onClick={() => {
+                                localLinkedDataSet(prevLinkedData => {
+                                    const newLinkedData = JSON.parse(JSON.stringify(prevLinkedData))
+                                    const newTestimonial: linkedDataType["testimonials"][number] = {
+                                        name: "",
+                                        position: "",
+                                        photo: "",
+                                        text: "",
+                                        rating: 0,
+                                        date: "",
+                                        links: [],
+                                        company: "",
+                                    }
+
+                                    newLinkedData.testimonials = [...newLinkedData.testimonials, newTestimonial]
+
+                                    return newLinkedData
+                                })
+                            }}
+                        >add</button>
+                    </div>
+                )} />
             </div>
         )} />
     )
