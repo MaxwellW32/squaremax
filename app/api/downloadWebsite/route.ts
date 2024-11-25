@@ -4,6 +4,7 @@ import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import simpleGit from 'simple-git';
 import { globalFormDataSchema, globalFormDataType } from "@/types";
+import { ensureDirectoryExists } from "@/usefulFunctions/fileManagement";
 
 export async function POST(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -18,7 +19,10 @@ export async function POST(request: Request) {
 
     //clone github files to a temp folder
     const tempStagingId = uuidv4()
-    const tempPath = path.join(process.cwd(), "stagingArea", tempStagingId);
+
+    const tempPath = path.join(process.cwd(), "tempGithubStagingArea", tempStagingId);
+    await ensureDirectoryExists(tempPath)
+
     const git = simpleGit();
     await git.clone(githubUrl, tempPath);
 

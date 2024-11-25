@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { specificDataForAAAASchema } from "./templateSpecificDataTypes/aaaaTypes";
-import { specificDataForAAABSchema } from "./templateSpecificDataTypes/aaabTypes";
+import { specificDataForAAAASchema } from "./types/templateSpecificDataTypes/aaaaTypes";
+import { specificDataForAAABSchema } from "./types/templateSpecificDataTypes/aaabTypes";
 
 //keep linkeData same on all templates
 // start linked data copy on templates //

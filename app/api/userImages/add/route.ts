@@ -5,8 +5,11 @@ import { NextResponse } from "next/server";
 import { ensureDirectoryExists } from "@/usefulFunctions/fileManagement";
 import { maxImageUploadSize } from "@/types/userUploadedTypes";
 import { convertBtyes } from "@/usefulFunctions/usefulFunctions";
+import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
 
 export async function POST(request: Request) {
+    await sessionCheckWithError()
+
     const formData = await request.formData();
     const body = Object.fromEntries(formData);
 

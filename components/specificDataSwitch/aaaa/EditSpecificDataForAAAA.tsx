@@ -1,4 +1,4 @@
-import { contactComponentType, formInputType, specificDataForAAAAType } from '@/templateSpecificDataTypes/aaaaTypes'
+import { contactComponentType, formInputType, specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
 import { projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 import React, { useState } from 'react'
 import styles from "./style.module.css"

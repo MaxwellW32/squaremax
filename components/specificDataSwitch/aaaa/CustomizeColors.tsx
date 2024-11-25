@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import styles from "./style.module.css"
-import { specificDataForAAAAType } from '@/templateSpecificDataTypes/aaaaTypes'
+import { specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
 import { projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 
 export default function CustomizeColors({ specificData, seenProjectToTemplate, updateProjectsToTemplate }: { specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
