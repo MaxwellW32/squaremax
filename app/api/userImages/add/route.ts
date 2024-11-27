@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import { v4 as uuidV4 } from "uuid"
 import { NextResponse } from "next/server";
 import { ensureDirectoryExists } from "@/usefulFunctions/fileManagement";
-import { maxImageUploadSize } from "@/types/userUploadedTypes";
+import { maxImageUploadSize, userUploadedImagesDirectory } from "@/types/userUploadedTypes";
 import { convertBtyes } from "@/usefulFunctions/usefulFunctions";
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
 
@@ -14,10 +14,9 @@ export async function POST(request: Request) {
     const body = Object.fromEntries(formData);
 
     const bodyEntries = Object.entries(body)
-    const imageDirectory = path.join(process.cwd(), "userUploadedData", "images")
 
     //ensure it exists
-    await ensureDirectoryExists(imageDirectory)
+    await ensureDirectoryExists(userUploadedImagesDirectory)
 
     const addedImageNames = await Promise.all(bodyEntries.map(async eachEntry => {
         const eachEntryValueFile = eachEntry[1]
@@ -26,7 +25,7 @@ export async function POST(request: Request) {
         const id = uuidV4()
         const imageType = file.type.split('/')[1]
         const imageFileName = `${id}.${imageType}`
-        const imagePath = path.join(imageDirectory, imageFileName)
+        const imagePath = path.join(userUploadedImagesDirectory, imageFileName)
 
         // Check if file is an image (this will be redundant because of the 'accept' attribute, but can be good for double-checking)
         if (!file.type.startsWith("image/")) {

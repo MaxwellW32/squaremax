@@ -3,11 +3,16 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import simpleGit from 'simple-git';
-import { globalFormDataSchema, globalFormDataType } from "@/types";
+import { globalFormDataSchema, globalFormDataType, project } from "@/types";
 import { ensureDirectoryExists } from "@/usefulFunctions/fileManagement";
+import { getSpecificProject } from "@/serverFunctions/handleProjects";
+import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
+import { uploadedUserImagesStarterUrl, userUploadedImagesDirectory } from "@/types/userUploadedTypes";
 
 export async function POST(request: Request) {
     const { searchParams } = new URL(request.url);
+
+    const session = await sessionCheckWithError()
 
     //get websiteCustomizations
     const templateGlobalFormData: globalFormDataType = await request.json();
@@ -15,9 +20,18 @@ export async function POST(request: Request) {
 
     //get github download url
     const githubUrl = searchParams.get("githubUrl");
-    if (!githubUrl) throw new Error("GitHub URL is required");
+    const projectId = searchParams.get("projectId");
 
-    //clone github files to a temp folder
+    if (githubUrl === null || projectId === null) throw new Error("GitHub URL and Project Id is required");
+
+    //authenticate and get latest project
+    const seenProject = await getSpecificProject({ option: "id", data: { id: projectId }, })
+    if (seenProject === undefined) throw new Error("not seeing project")
+
+    //ensure user has rights to download - also add on authusers list in future
+    if (session.user.id !== seenProject.userId) throw new Error("not authorized to download website")
+
+    // clone github files to a temp folder
     const tempStagingId = uuidv4()
 
     const tempPath = path.join(process.cwd(), "tempGithubStagingArea", tempStagingId);
@@ -26,8 +40,7 @@ export async function POST(request: Request) {
     const git = simpleGit();
     await git.clone(githubUrl, tempPath);
 
-    //editing necessary files with customer data
-    await customizeProject(tempPath, templateGlobalFormData);
+    await customizeProject(tempPath, templateGlobalFormData, seenProject);
 
     //zip the folder
     const zip = new JSZip();
@@ -60,8 +73,13 @@ export async function POST(request: Request) {
     return new Response(archive);
 }
 
-async function customizeProject(sourcePath: string, templateGlobalFormData: globalFormDataType) {
+async function customizeProject(sourcePath: string, templateGlobalFormData: globalFormDataType, seenProject: project, topLevelPath?: string) {
     const files = await fs.readdir(sourcePath);
+
+    //assign topLevelPath once
+    if (topLevelPath === undefined) {
+        topLevelPath = sourcePath
+    }
 
     for (const file of files) {
         const sourceFilePath = path.join(sourcePath, file);
@@ -69,7 +87,7 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
 
         if (stats.isDirectory()) {
             // Recursively clone directories
-            await customizeProject(sourceFilePath, templateGlobalFormData);
+            await customizeProject(sourceFilePath, templateGlobalFormData, seenProject, topLevelPath);
 
         } else {
             //handling files
@@ -131,60 +149,94 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
             }
 
             if (file === "globalFormData.tsx") {
+                //part 1 - insert new globalFormData
                 const fileContent = await fs.readFile(sourceFilePath, 'utf-8');
 
-                // Split the content by lines
-                const lines = fileContent.split('\n');
-
-                // Create the new object string to insert
                 const newGlobalFormData = `export const globalFormData: globalFormDataType = ${JSON.stringify(templateGlobalFormData, null, 2)};`;
 
-                let isInGlobalFormDataSection = false;
-                const updatedLines = [];
+                const { formDataStartedIndex, formDataEndedIndex } = getFormDataIndexes(fileContent)
 
-                // Iterate over the lines and process them
-                for (const line of lines) {
-                    // Start capturing the section when encountering "<<globalFormDataStart>>"
-                    if (line.includes("<<globalFormDataStart>>")) {
-                        updatedLines.push(line); // Keep the start marker
-                        isInGlobalFormDataSection = true; // Enter the section to replace
-                        continue; // Skip to the next iteration
-                    }
+                const lines = fileContent.split('\n');
 
-                    // End the replacement when encountering "<<globalFormDataEnd>>"
-                    if (line.includes("<<globalFormDataEnd>>")) {
-                        if (isInGlobalFormDataSection) {
-                            updatedLines.push(newGlobalFormData); // Insert the new globalFormData object
-                            isInGlobalFormDataSection = false; // Exit the section
+                //insert newGlobalFormData in the correct place
+                lines.splice(formDataStartedIndex, formDataEndedIndex - formDataStartedIndex, newGlobalFormData)
+                const updatedContent = lines.join("\n") //use thos going forward
+
+
+
+
+
+                //part 2 - validate local images
+                if (topLevelPath === undefined) throw new Error("not seeing topLevelPath")
+                const localImageDir = path.join(topLevelPath, "public", "localImages")
+                const localImageFiles = await fs.readdir(localImageDir);
+
+                type imageFileInclusion = { [key: string]: boolean }
+                const imageFileInclusionObj: imageFileInclusion = {}
+
+                //set the imageInclusionObj 
+                localImageFiles.forEach(eachImageFile => {
+                    imageFileInclusionObj[eachImageFile] = false
+                })
+
+                //get latest formDataRange
+                const { formDataStartedIndex: updatedFormDataStartedIndex, formDataEndedIndex: updatedFormDataEndedIndex } = getFormDataIndexes(updatedContent)
+                const updatedContentLines = updatedContent.split("\n")
+
+                //within range ensure the files are used
+                for (let index = updatedFormDataStartedIndex; index < updatedFormDataEndedIndex; index++) {
+                    const eachLine = updatedContentLines[index];
+
+                    //update imageInclusionObj if in use 
+                    Object.keys(imageFileInclusionObj).forEach(eachImageFileKey => {
+                        if (eachLine.includes(`/localImages/${eachImageFileKey}`)) {
+                            imageFileInclusionObj[eachImageFileKey] = true
                         }
-
-                        updatedLines.push(line); // Keep the end marker
-
-                        continue;
-                    }
-
-                    // If inside the section, don't add the line
-                    if (isInGlobalFormDataSection) {
-                        continue; // Skip this line as it's within the replacement section
-                    }
-
-                    // Add all other lines that are outside the replacement section
-                    updatedLines.push(line);
+                    })
                 }
 
-                // Join the updated lines back into a single string with new lines
-                const updatedContent = updatedLines.join('\n');
+
+
+
+
+                //part 3 - download my server image
+                if (seenProject.userUploadedImages !== null) {
+                    //within range replace server image urls with local imports
+                    for (let index = updatedFormDataStartedIndex; index < updatedFormDataEndedIndex; index++) {
+                        //replace server image urls with local imports of the same name
+                        seenProject.userUploadedImages.forEach(eachUserUploadedImage => {
+                            updatedContentLines[index] = updatedContentLines[index].replace(`${uploadedUserImagesStarterUrl}${eachUserUploadedImage}`, `/localImages/${eachUserUploadedImage}`)
+                        })
+                    }
+
+                    //copy over all userUploadedImages files into the local directory
+                    seenProject.userUploadedImages.forEach(async eachUserUploadedImage => {
+                        const serverUserUploadedImagePath = path.join(userUploadedImagesDirectory, eachUserUploadedImage)
+                        const localImageFilepath = path.join(localImageDir, eachUserUploadedImage)
+
+                        //paste in localImageDir
+                        await fs.copyFile(serverUserUploadedImagePath, localImageFilepath);
+                    })
+                }
+
+                //hold the final version of the globalFormData.tsx file
+                const finalContent = updatedContentLines.join("\n")
 
                 // Write the updated content back to the file
-                await fs.writeFile(sourceFilePath, updatedContent, 'utf-8');
+                await fs.writeFile(sourceFilePath, finalContent, 'utf-8');
 
             } else if (file === "package.json") {
                 // Remove invalid characters (allow only a-z, 0-9, hyphens, underscores)
-                let sanitizedName = templateGlobalFormData.linkedData.siteInfo.websiteName.replace(/[^a-z0-9-_]/g, '');
-                // Convert to lowercase
-                sanitizedName = sanitizedName.toLowerCase();
-                // Ensure no leading or trailing hyphens/underscores
-                sanitizedName = sanitizedName.replace(/^[-_]+|[-_]+$/g, '');
+                const makeValidName = (name: string) => {
+                    //ensure no capitals or numbers
+                    const initialString = name.toLowerCase().replace(/[^a-z0-9-_]/g, '')
+
+                    //ensure no underscores/hypens
+                    const finalString = initialString.replace(/^[-_]+|[-_]+$/g, '')
+                    return finalString
+                }
+
+                const sanitizedName = makeValidName(templateGlobalFormData.linkedData.siteInfo.websiteName)
 
                 // Customize package.json
                 const packageJsonContent = await fs.readFile(sourceFilePath, "utf-8");
@@ -195,4 +247,80 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
             }
         }
     }
+}
+
+
+function countBrackets(line: string) {
+    let leftCount = 0;
+    let rightCount = 0;
+
+    let inQuotes1 = false;
+    let inQuotes2 = false;
+    let inQuotes3 = false;
+
+    // Iterate through each character in the line
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        // Toggle the inQuotes flag if encountering a quote (handles single/double quotes)
+        if (char === '"') {
+            inQuotes1 = !inQuotes1;
+        }
+        if (char === "'") {
+            inQuotes2 = !inQuotes2;
+        }
+        if (char === "`") {
+            inQuotes3 = !inQuotes3;
+        }
+
+        // Count opening brackets when not inside quotes
+        if (char === '{' && !inQuotes1 && !inQuotes2 && !inQuotes3) {
+            leftCount++;
+        }
+        if (char === '}' && !inQuotes1 && !inQuotes2 && !inQuotes3) {
+            rightCount++;
+        }
+    }
+
+    return { leftCount, rightCount };
+}
+
+function getFormDataIndexes(fileContent: string) {
+    const formDataIndexes: { started: number | null; ended: number | null; } = { started: null, ended: null }
+
+    // Split the content by lines
+    const lines = fileContent.split('\n');
+
+    let inFormDataZone = false
+    let openingBracketCount = 0
+    let closingBracketCount = 0
+
+    //go over each line
+    for (let index = 0; index < lines.length; index++) {
+        const eachLine = lines[index];
+
+        if (eachLine.includes("export const globalFormData: globalFormDataType = {")) {
+            inFormDataZone = true
+
+            //set start point
+            formDataIndexes.started = index
+        }
+
+        //update bracket counts
+        const { leftCount, rightCount } = countBrackets(eachLine)
+        openingBracketCount += leftCount
+        closingBracketCount += rightCount
+
+        //set inFormDataZone to false
+        if (openingBracketCount === closingBracketCount && inFormDataZone) {
+            inFormDataZone = false
+
+            //set end point - increments to include the last closing bracket
+            formDataIndexes.ended = index + 1
+        }
+    }
+
+    if (formDataIndexes.started === null || formDataIndexes.ended === null) throw new Error("not seeing formDataStart End indexes")
+
+    return { formDataStartedIndex: formDataIndexes.started, formDataEndedIndex: formDataIndexes.ended }
 }

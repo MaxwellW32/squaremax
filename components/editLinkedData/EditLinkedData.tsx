@@ -1,51 +1,11 @@
 "use client"
-import { globalFormDataType, linkedDataSchema, linkedDataType, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
+import { formErrorsType, formInputType, globalFormDataType, linkedDataSchema, linkedDataType, moreFormInfoType, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 import React, { useState, useEffect, useMemo } from 'react'
 import TextInput from '../textInput/TextInput'
 import styles from "./styles.module.css"
 import ShowMore from '../showMore/ShowMore'
 import TextArea from '../textArea/TextArea'
 import { ZodError } from "zod";
-
-type formInputInputType = {
-    label?: string,
-    placeHolder?: string,
-    type?: "text" | "number",
-    required?: boolean,
-
-    inputType: "input"
-}
-
-type formInputTextareaType = {
-    label?: string,
-    placeHolder?: string,
-    required?: boolean,
-    inputType: "textarea"
-}
-
-type formInputImageType = {
-    label?: string,
-    placeHolder?: string,
-    required?: boolean,
-
-    inputType: "image"
-}
-
-type formInputType = formInputInputType | formInputTextareaType | formInputImageType
-
-type makeLinkedDataTypeFormInputs<Type> = {
-    [key in keyof Type]: Type[key] extends (infer U)[] // Check if it's an array
-    ? U extends object // If array item is an object
-    ? [{ [SubKey in keyof U]: formInputType }] // Apply formInputType recursively for each object in the array
-    : formInputType[] // If array items are not objects, just apply formInputType[]
-    : Type[key] extends object // If it's an object
-    ? makeLinkedDataTypeFormInputs<Type[key]> // Recurse into the object
-    : formInputType; // Otherwise, just apply formInputType to the value
-};
-
-type moreFormInfoType = makeLinkedDataTypeFormInputs<linkedDataType>
-
-type formErrorsType = { [key: string]: string }
 
 export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, updateProjectsToTemplate }: { seenLinkedData: globalFormDataType["linkedData"], seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
     const [localLinkedData, localLinkedDataSet] = useState<linkedDataType>({ ...seenLinkedData })
@@ -65,7 +25,7 @@ export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, 
             websiteName: {
                 inputType: "input",
                 label: "Website Name",
-                placeHolder: "Enter the name of your website"
+                placeHolder: "This sets the file name of your website when downloading"
             },
             websiteTitle: {
                 inputType: "input",
@@ -509,7 +469,7 @@ export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, 
     )
 }
 
-function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, moreFormInfo, prevValueIsArray }: { passedObj: object, formSet: React.Dispatch<React.SetStateAction<object>>, formErrors: formErrorsType, formErrorsSet: React.Dispatch<React.SetStateAction<formErrorsType>>, keys: string, moreFormInfo: moreFormInfoType, prevValueIsArray?: boolean }) {
+function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, moreFormInfo, prevIterationArrayCustomKey }: { passedObj: object, formSet: React.Dispatch<React.SetStateAction<object>>, formErrors: formErrorsType, formErrorsSet: React.Dispatch<React.SetStateAction<formErrorsType>>, keys: string, moreFormInfo: moreFormInfoType, prevIterationArrayCustomKey?: string }) {
     function updateInput(seenKeys: string, newValue: unknown) {
         formSet(prevForm => {
             const newForm = { ...prevForm }
@@ -592,24 +552,200 @@ function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, mo
         // Recursively render nested object, pass down the updated key path
         if (typeof eachObjValue === "object") {
             const isArray = Array.isArray(eachObjValue)
+            const keyIsANumber = !isNaN(parseInt(eachObjKey))
+            const dynamicLabelTop = keyIsANumber ? `${prevIterationArrayCustomKey} ${parseInt(eachObjKey) + 1}` : eachObjKey
 
             return (
-                <ShowMore key={newKeys} label={eachObjKey} content={(
-                    <div className={styles.formInputCont}>
-                        <div className={`${isArray ? `${styles.scrollCont} snap` : styles.formInputCont}`}>
-                            <RecursiveView passedObj={eachObjValue} formSet={formSet} formErrors={formErrors} formErrorsSet={formErrorsSet} keys={newKeys} moreFormInfo={moreFormInfo} prevValueIsArray={isArray ? true : undefined} />
+                <ShowMore key={newKeys} label={dynamicLabelTop} content={(
+                    <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+                        <div className={`${isArray ? `${styles.scrollCont} snap` : ""}`} style={{ ...(isArray ? {} : { display: "grid", alignContent: "flex-start", gap: "1rem" }) }}>
+                            <RecursiveView passedObj={eachObjValue} formSet={formSet} formErrors={formErrors} formErrorsSet={formErrorsSet} keys={newKeys} moreFormInfo={moreFormInfo} prevIterationArrayCustomKey={isArray ? dynamicLabelTop : undefined} />
                         </div>
 
                         {/* add */}
                         {isArray && (
                             <button className='mainButton' style={{ alignSelf: "center" }}
                                 onClick={() => {
-                                    if (eachObjKey === "workingHours") {
+                                    const convertedKeys = newKeys.split("/").map(key => key.replace(/\d+/g, '0')).join("/")
+
+                                    if (convertedKeys === "siteInfo/workingHours") {
                                         const newWorkingHour: linkedDataType["siteInfo"]["workingHours"][number] = ""
-
-                                        console.log(`$passed this eachObjValue`, JSON.stringify(eachObjValue));
-
                                         updateInput(newKeys, [...eachObjValue, newWorkingHour])
+
+                                    } else if (convertedKeys === "testimonials") {
+                                        const newTestimonial: linkedDataType["testimonials"][number] = {
+                                            name: "",
+                                            position: "",
+                                            photo: "",
+                                            text: "",
+                                            rating: 5,
+                                            date: "",
+                                            links: [],
+                                            company: "",
+                                        }
+
+                                        updateInput(newKeys, [...eachObjValue, newTestimonial])
+
+                                    } else if (convertedKeys === "testimonials/0/links") {
+                                        const newTestimonialLink: linkedDataType["testimonials"][number]["links"][number] = ""
+
+                                        updateInput(newKeys, [...eachObjValue, newTestimonialLink])
+
+                                    } else if (convertedKeys === "team") {
+                                        const newTeam: linkedDataType["team"][number] = {
+                                            name: "",
+                                            position: "",
+                                            photo: "",
+                                            bio: "",
+                                            links: [],
+                                            email: "",
+                                            phone: "",
+                                            skills: [],
+                                            achievements: [],
+                                        }
+
+                                        updateInput(newKeys, [...eachObjValue, newTeam])
+
+                                    } else if (convertedKeys === "team/0/links") {
+                                        const newTeamLink: linkedDataType["team"][number]["links"][number] = ""
+
+                                        updateInput(newKeys, [...eachObjValue, newTeamLink])
+
+                                    } else if (convertedKeys === "team/0/skills") {
+                                        const newTeamSkill: linkedDataType["team"][number]["skills"][number] = ""
+
+                                        updateInput(newKeys, [...eachObjValue, newTeamSkill])
+
+                                    } else if (convertedKeys === "team/0/achievements") {
+                                        const newTeamAchievement: linkedDataType["team"][number]["achievements"][number] = ""
+
+                                        updateInput(newKeys, [...eachObjValue, newTeamAchievement])
+
+                                    } else if (convertedKeys === "products") {
+                                        const newProduct: linkedDataType["products"][number] = {
+                                            name: "",
+                                            description: "",
+                                            price: 0,
+                                            images: [],
+                                            sku: "",
+                                            categories: [],
+                                            tags: [],
+                                            available: true,
+                                            featured: false,
+                                            discounts: "",
+                                            ratings: 0,
+                                            productTestimonials: [],
+                                        }
+
+                                        updateInput(newKeys, [...eachObjValue, newProduct])
+
+                                    } else if (convertedKeys === "products/0/images") {
+                                        const newProductImage: linkedDataType["products"][number]["images"][number] = "";
+
+                                        updateInput(newKeys, [...eachObjValue, newProductImage]);
+
+                                    } else if (convertedKeys === "products/0/categories") {
+                                        const newProductCategory: linkedDataType["products"][number]["categories"][number] = "";
+
+                                        updateInput(newKeys, [...eachObjValue, newProductCategory]);
+
+                                    } else if (convertedKeys === "products/0/tags") {
+                                        const newProductTag: linkedDataType["products"][number]["tags"][number] = "";
+
+                                        updateInput(newKeys, [...eachObjValue, newProductTag]);
+
+                                    } else if (convertedKeys === "products/0/productTestimonials") {
+                                        const newProductTestimonial: linkedDataType["testimonials"][number] = {
+                                            name: "",
+                                            position: "",
+                                            photo: "",
+                                            text: "",
+                                            rating: 5,
+                                            date: "",
+                                            links: [],
+                                            company: "",
+                                        };
+
+                                        updateInput(newKeys, [...eachObjValue, newProductTestimonial]);
+
+                                    } else if (convertedKeys === "products/0/productTestimonials/0/links") {
+                                        const newProductTestimonialLinks: linkedDataType["testimonials"][number]["links"][number] = ""
+
+                                        updateInput(newKeys, [...eachObjValue, newProductTestimonialLinks]);
+
+                                    } else if (convertedKeys === "gallery") {
+                                        const newGalleryItem: linkedDataType["gallery"][number] = {
+                                            title: "",
+                                            description: "",
+                                            image: "",
+                                            categories: [],
+                                            tags: [],
+                                            featured: false,
+                                            date: "",
+                                            author: "",
+                                        };
+
+                                        updateInput(newKeys, [...eachObjValue, newGalleryItem]);
+
+                                    } else if (convertedKeys === "gallery/0/categories") {
+                                        const newGalleryCategory: linkedDataType["gallery"][number]["categories"][number] = "";
+
+                                        updateInput(newKeys, [...eachObjValue, newGalleryCategory]);
+
+                                    } else if (convertedKeys === "gallery/0/tags") {
+                                        const newGalleryTag: linkedDataType["gallery"][number]["tags"][number] = "";
+
+                                        updateInput(newKeys, [...eachObjValue, newGalleryTag]);
+
+                                    } else if (convertedKeys === "services") {
+                                        const newService: linkedDataType["services"][number] = {
+                                            title: "",
+                                            description: "",
+                                            price: 0,
+                                            icon: "",
+                                            duration: "",
+                                            tags: [],
+                                            callToAction: "",
+                                            availability: "",
+                                            serviceTestimonials: [],
+                                        };
+
+                                        updateInput(newKeys, [...eachObjValue, newService]);
+
+                                    } else if (convertedKeys === "services/0/tags") {
+                                        const newServiceTag: linkedDataType["services"][number]["tags"][number] = "";
+
+                                        updateInput(newKeys, [...eachObjValue, newServiceTag]);
+
+                                    } else if (convertedKeys === "services/0/serviceTestimonials") {
+                                        const newServiceTestimonial: linkedDataType["testimonials"][number] = {
+                                            name: "",
+                                            position: "",
+                                            photo: "",
+                                            text: "",
+                                            rating: 5,
+                                            date: "",
+                                            links: [],
+                                            company: "",
+                                        };
+
+                                        updateInput(newKeys, [...eachObjValue, newServiceTestimonial]);
+
+                                    } else if (convertedKeys === "services/0/serviceTestimonials/0/links") {
+                                        const newServiceTestimonialLink: linkedDataType["testimonials"][number]["links"][number] = "";
+
+                                        updateInput(newKeys, [...eachObjValue, newServiceTestimonialLink]);
+
+                                    } else if (convertedKeys === "socials") {
+                                        const newSocial: linkedDataType["socials"][number] = {
+                                            platform: "",
+                                            url: "",
+                                            icon: "",
+                                            description: "",
+                                        };
+
+                                        updateInput(newKeys, [...eachObjValue, newSocial]);
+
                                     }
                                 }}
                             >add</button>
@@ -620,11 +756,13 @@ function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, mo
         }
 
         const seenFormInfo = getMoreFormInfoData(newKeys)
+        // const dynamicLabel = prevIterationArrayCustomKey
+        const dynamicLabel = prevIterationArrayCustomKey !== undefined ? `${prevIterationArrayCustomKey} ${parseInt(eachObjKey) + 1}` : seenFormInfo.label
 
         return (
             <div className={styles.formInputCont} key={eachObjKey}>
                 {/* close */}
-                {prevValueIsArray === true && (
+                {prevIterationArrayCustomKey !== undefined && (
                     <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
                         onClick={() => {
                             deleteFromArray(newKeys)
@@ -637,7 +775,7 @@ function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, mo
                         name={eachObjKey}
                         value={`${eachObjValue}`}
                         type={seenFormInfo.type}
-                        label={seenFormInfo.label}
+                        label={dynamicLabel}
                         placeHolder={seenFormInfo.placeHolder}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             updateInput(newKeys, e.target.value)
@@ -649,7 +787,7 @@ function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, mo
                         <TextArea
                             name={eachObjKey}
                             value={`${eachObjValue}`}
-                            label={seenFormInfo.label}
+                            label={dynamicLabel}
                             placeHolder={seenFormInfo.placeHolder}
                             onInput={e => {
                                 //@ts-expect-error textarea not seeing e

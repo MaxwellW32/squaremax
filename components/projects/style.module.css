@@ -16,7 +16,7 @@
     display: grid;
     align-content: flex-start;
     grid-template-rows: auto 1fr;
-    width: min(600px, 100%);
+    width: min(550px, 100%);
     z-index: 1;
     background-color: rgb(var(--color2));
     transition: background-color 400ms;

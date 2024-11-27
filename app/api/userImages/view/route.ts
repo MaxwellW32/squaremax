@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs/promises";
+import { userUploadedImagesDirectory } from "@/types/userUploadedTypes";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
     const imageName = searchParams.get("imageName");
     if (!imageName) throw new Error("imageName not sent");
 
-    const imagePath = path.join(process.cwd(), "userUploadedData", "images", imageName)
+    const imagePath = path.join(userUploadedImagesDirectory, imageName)
 
     // Read the image file
     const imageBuffer = await fs.readFile(imagePath);

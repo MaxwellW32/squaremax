@@ -113,7 +113,41 @@ export const userUploadedImagesSchema = z.array(z.string())
 export type userUploadedImagesType = z.infer<typeof userUploadedImagesSchema>
 
 
+//form validation types
+export type formInputInputType = {
+    label?: string,
+    placeHolder?: string,
+    type?: "text" | "number",
+    required?: boolean,
 
+    inputType: "input"
+}
+export type formInputTextareaType = {
+    label?: string,
+    placeHolder?: string,
+    required?: boolean,
+    inputType: "textarea"
+}
+export type formInputImageType = {
+    label?: string,
+    placeHolder?: string,
+    required?: boolean,
+
+    inputType: "image"
+}
+export type formInputType = formInputInputType | formInputTextareaType | formInputImageType
+
+export type makeLinkedDataTypeFormInputs<Type> = {
+    [key in keyof Type]: Type[key] extends (infer U)[] // Check if it's an array
+    ? U extends object // If array item is an object
+    ? [{ [SubKey in keyof U]: formInputType }] // Apply formInputType recursively for each object in the array
+    : formInputType[] // If array items are not objects, just apply formInputType[]
+    : Type[key] extends object // If it's an object
+    ? makeLinkedDataTypeFormInputs<Type[key]> // Recurse into the object
+    : formInputType; // Otherwise, just apply formInputType to the value
+};
+export type moreFormInfoType = makeLinkedDataTypeFormInputs<linkedDataType>
+export type formErrorsType = { [key: string]: string }
 
 
 

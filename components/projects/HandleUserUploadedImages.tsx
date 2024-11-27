@@ -6,12 +6,11 @@ import styles from "./style.module.css"
 import Image from 'next/image'
 import { toast } from 'react-hot-toast'
 import { getSpecificProject, updateProject } from '@/serverFunctions/handleProjects'
-import { maxImageUploadSize, maxBodyToServerSize } from '@/types/userUploadedTypes'
+import { maxImageUploadSize, maxBodyToServerSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
 import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
 
 export default function HandleUserUploadedImages({ project, seenProjectSet }: { project: project, seenProjectSet: React.Dispatch<React.SetStateAction<project>> }) {
     const [uploadedImages, uploadedImagesSet] = useState<FormData | null>(null)
-    const imageStarterUrl = `https://squaremaxtech.com/api/userImages/view?imageName=`
 
     return (
         <ShowMore label='Project Images' content={(
@@ -114,25 +113,20 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                 )}
 
                 {project.userUploadedImages !== null && (
-                    <ShowMore
-                        label='View Uploaded Images'
-                        content={(
-                            <div className={styles.imagesCont}>
-                                {project.userUploadedImages.map(eachImage => {
-                                    return (
-                                        <div key={eachImage} className={styles.imageCont}
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(`${imageStarterUrl}${eachImage}`);
-                                                toast.success("id copied")
-                                            }}
-                                        >
-                                            <Image alt='gallery image' src={`${imageStarterUrl}${eachImage}`} width={300} height={300} style={{ objectFit: "contain", width: "100%", height: "100%" }} />
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
-                    />
+                    <div className={styles.imagesCont}>
+                        {project.userUploadedImages.map(eachImage => {
+                            return (
+                                <div key={eachImage} className={styles.imageCont}
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`${uploadedUserImagesStarterUrl}${eachImage}`);
+                                        toast.success("image url copied")
+                                    }}
+                                >
+                                    <Image alt='gallery image' src={`${uploadedUserImagesStarterUrl}${eachImage}`} width={300} height={300} style={{ objectFit: "contain", width: "100%", height: "100%" }} />
+                                </div>
+                            )
+                        })}
+                    </div>
                 )}
             </div>
         )}

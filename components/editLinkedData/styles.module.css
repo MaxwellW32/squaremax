@@ -12,7 +12,7 @@
 
 .scrollCont {
     display: grid;
-    grid-auto-columns: min(300px, 90%);
+    grid-auto-columns: 90%;
     grid-auto-flow: column;
     gap: 2rem;
     overflow: auto;
