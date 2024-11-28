@@ -9,18 +9,15 @@ import { getSpecificProject } from "@/serverFunctions/handleProjects";
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
 import { uploadedUserImagesStarterUrl, userUploadedImagesDirectory } from "@/types/userUploadedTypes";
 
-export async function POST(request: Request) {
-    const { searchParams } = new URL(request.url);
-
+export async function GET(request: Request) {
     const session = await sessionCheckWithError()
 
-    //get websiteCustomizations
-    const templateGlobalFormData: globalFormDataType = await request.json();
-    globalFormDataSchema.parse(templateGlobalFormData)
+    const { searchParams } = new URL(request.url);
 
     //get github download url
     const githubUrl = searchParams.get("githubUrl");
     const projectId = searchParams.get("projectId");
+    const projectsToTemplatesId = searchParams.get("projectsToTemplatesId");
 
     if (githubUrl === null || projectId === null) throw new Error("GitHub URL and Project Id is required");
 
@@ -30,6 +27,16 @@ export async function POST(request: Request) {
 
     //ensure user has rights to download - also add on authusers list in future
     if (session.user.id !== seenProject.userId) throw new Error("not authorized to download website")
+
+    //retrieve latest globalFormData
+    if (seenProject.projectsToTemplates === undefined || seenProject.projectsToTemplates.length === 0) throw new Error("no project templates seen")
+    const wantedProjectsToTemplate = seenProject.projectsToTemplates.find(eachpro => eachpro.id === projectsToTemplatesId)
+    if (wantedProjectsToTemplate === undefined) throw new Error("didn't see wanted template")
+    if (wantedProjectsToTemplate.globalFormData === null) throw new Error("no globalFormData to download")
+
+    //get websiteCustomizations
+    const templateGlobalFormData: globalFormDataType = wantedProjectsToTemplate.globalFormData
+    globalFormDataSchema.parse(templateGlobalFormData)
 
     // clone github files to a temp folder
     const tempStagingId = uuidv4()
@@ -183,7 +190,7 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
                 const { formDataStartedIndex: updatedFormDataStartedIndex, formDataEndedIndex: updatedFormDataEndedIndex } = getFormDataIndexes(updatedContent)
                 const updatedContentLines = updatedContent.split("\n")
 
-                //within range ensure the files are used
+                //within range ensure the default image files are used
                 for (let index = updatedFormDataStartedIndex; index < updatedFormDataEndedIndex; index++) {
                     const eachLine = updatedContentLines[index];
 
@@ -204,19 +211,26 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
                     //within range replace server image urls with local imports
                     for (let index = updatedFormDataStartedIndex; index < updatedFormDataEndedIndex; index++) {
                         //replace server image urls with local imports of the same name
-                        seenProject.userUploadedImages.forEach(eachUserUploadedImage => {
+                        for (let smallIndex = 0; smallIndex < seenProject.userUploadedImages.length; smallIndex++) {
+                            const eachUserUploadedImage = seenProject.userUploadedImages[smallIndex]
+
                             updatedContentLines[index] = updatedContentLines[index].replace(`${uploadedUserImagesStarterUrl}${eachUserUploadedImage}`, `/localImages/${eachUserUploadedImage}`)
-                        })
+                        }
                     }
 
                     //copy over all userUploadedImages files into the local directory
-                    seenProject.userUploadedImages.forEach(async eachUserUploadedImage => {
-                        const serverUserUploadedImagePath = path.join(userUploadedImagesDirectory, eachUserUploadedImage)
-                        const localImageFilepath = path.join(localImageDir, eachUserUploadedImage)
+                    await Promise.all(
+                        seenProject.userUploadedImages.map(async eachUserUploadedImage => {
+                            const serverUserUploadedImagePath = path.join(userUploadedImagesDirectory, eachUserUploadedImage)
+                            const localImageFilepath = path.join(localImageDir, eachUserUploadedImage)
 
-                        //paste in localImageDir
-                        await fs.copyFile(serverUserUploadedImagePath, localImageFilepath);
-                    })
+                            //paste in localImageDir
+                            await fs.copyFile(serverUserUploadedImagePath, localImageFilepath);
+
+                            //show they completed with this return
+                            return true
+                        })
+                    )
                 }
 
                 //hold the final version of the globalFormData.tsx file
@@ -227,7 +241,7 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
 
             } else if (file === "package.json") {
                 // Remove invalid characters (allow only a-z, 0-9, hyphens, underscores)
-                const makeValidName = (name: string) => {
+                const makeValidPackageJsonName = (name: string) => {
                     //ensure no capitals or numbers
                     const initialString = name.toLowerCase().replace(/[^a-z0-9-_]/g, '')
 
@@ -236,7 +250,7 @@ async function customizeProject(sourcePath: string, templateGlobalFormData: glob
                     return finalString
                 }
 
-                const sanitizedName = makeValidName(templateGlobalFormData.linkedData.siteInfo.websiteName)
+                const sanitizedName = makeValidPackageJsonName(templateGlobalFormData.linkedData.siteInfo.websiteName)
 
                 // Customize package.json
                 const packageJsonContent = await fs.readFile(sourceFilePath, "utf-8");
@@ -317,6 +331,7 @@ function getFormDataIndexes(fileContent: string) {
 
             //set end point - increments to include the last closing bracket
             formDataIndexes.ended = index + 1
+            break;
         }
     }
 

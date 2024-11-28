@@ -11,24 +11,6 @@ import EditLinkedData from '../editLinkedData/EditLinkedData'
 import SpecificDataSwitch from '../specificDataSwitch/SpecificDataSwitch'
 import HandleUserUploadedImages from './HandleUserUploadedImages'
 
-//option 2
-//images are stored locally on the child templates files
-//same implementation to download my images
-//pros can store as much as i want, cons - how do i know whats been used or not
-//possible solution - use an identifier for each downloaded image localImage_ this tells me what to search for in the object, compile all active image urls in object, if any files in public not there delete em. 
-
-//replace formDataobj with new one
-//check for local images not being used
-//if url good, if my server image download it
-
-//try
-////search in localImages folder for images...
-////store those image file names...
-////see if the import file name is there in globalFormData obj - in the index range...
-////if not used remove the file - new object will overwrite everything with url...
-//then can continue downloading my server images into public folder
-////locate the href of the image in the object, overwrite it with the local import name
-
 //sort out images and boolean, then write proper forminputs
 
 export default function ViewProject({ projectFromServer }: { projectFromServer: project }) {
@@ -391,18 +373,12 @@ export default function ViewProject({ projectFromServer }: { projectFromServer: 
                                                                 return
                                                             }
 
-                                                            const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectsToTemplatesPlus.template.github}&projectId=${seenProject.id}`, {
-                                                                method: 'POST',
-                                                                headers: {
-                                                                    'Content-Type': 'application/json',
-                                                                },
-                                                                body: JSON.stringify(eachProjectsToTemplatesPlus.globalFormData),
-                                                            })
-
+                                                            //get back file zip
+                                                            const response = await fetch(`/api/downloadWebsite?githubUrl=${eachProjectsToTemplatesPlus.template.github}&projectId=${seenProject.id}&projectsToTemplatesId=${eachProjectsToTemplatesPlus.id}`)
                                                             const responseBlob = await response.blob()
 
+                                                            //download 
                                                             const url = window.URL.createObjectURL(responseBlob);
-
                                                             const a = document.createElement('a');
                                                             a.href = url;
                                                             a.download = `${eachProjectsToTemplatesPlus.template.name}.zip`;//change to packagejson name
