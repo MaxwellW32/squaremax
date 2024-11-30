@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { specificDataForAAAASchema } from "./types/templateSpecificDataTypes/aaaaTypes";
 import { specificDataForAAABSchema } from "./types/templateSpecificDataTypes/aaabTypes";
+import { Endpoints } from "@octokit/types";
 
 //keep linkedData same on all templates
 // start linked data copy on templates //
@@ -112,6 +113,33 @@ export type updateProjectsToTemplateFunctionType = { id: string, option: "linked
 export const userUploadedImagesSchema = z.array(z.string())
 export type userUploadedImagesType = z.infer<typeof userUploadedImagesSchema>
 
+export type websiteDownloadOptionType = "file" | "github"
+
+export type githubRepo = Endpoints["GET /repos/{owner}/{repo}"]["response"]["data"]
+export type githubUser = Endpoints["GET /users/{username}"]["response"]["data"]
+export type githubContentData = {
+    type: "file" | "symlink" | "submodule" | "dir";
+    size: number;
+    name: string;
+    path: string;
+    content?: string | undefined;
+    sha: string;
+    url: string;
+    git_url: string | null;
+    html_url: string | null;
+    download_url: string | null;
+}
+
+export const newGithubRepoSchema = z.object({
+    name: z.string().min(1),
+    description: z.string(),
+    private: z.boolean(),
+})
+export type newGithubRepoType = z.infer<typeof newGithubRepoSchema> & {}
+
+
+
+
 
 //form validation types
 export type formInputInputType = {
@@ -162,6 +190,12 @@ export type formErrorsType = { [key: string]: string }
 //database types
 export const userSchema = z.object({
     id: z.string().min(1),
+    userGithubTokens: z.array(z.object({
+        id: z.string().min(1),
+        username: z.string().min(1),
+        token: z.string().min(1),
+        active: z.boolean(),
+    })),
 
     role: z.enum(["admin", "normal"]).nullable(), //keep synced with database enum
     name: z.string().nullable(),

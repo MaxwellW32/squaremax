@@ -9,6 +9,7 @@ import { ZodError } from "zod";
 
 export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, updateProjectsToTemplate }: { seenLinkedData: globalFormDataType["linkedData"], seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
     const [localLinkedData, localLinkedDataSet] = useState<linkedDataType>({ ...seenLinkedData })
+    const [userInteracted, userInteractedSet] = useState(false)
 
     const [moreFormInfo,] = useState<moreFormInfoType>({
         siteInfo: {
@@ -432,6 +433,8 @@ export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, 
 
     //send up to main / check for formErrors
     useEffect(() => {
+        if (!userInteracted) return
+
         const linkedDataValidTest = linkedDataSchema.safeParse(localLinkedData)
 
         if (!linkedDataValidTest.success) {
@@ -455,22 +458,25 @@ export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, 
         if (Object.entries(formErrors).length > 0) {
             formErrorsSet({})
         }
-    }, [localLinkedData])
+    }, [userInteracted, localLinkedData])
 
     return (
         <ShowMore label='Linked data' content={(
             <div className={styles.formInputCont}>
                 {/* notify */}
                 {formHasErrors && (<h3>progress wont be saved until errors are resolved</h3>)}
+
                 {/* @ts-expect-error until i get recursion */}
-                <RecursiveView passedObj={localLinkedData} formSet={localLinkedDataSet} formErrors={formErrors} formErrorsSet={formErrorsSet} keys="" moreFormInfo={moreFormInfo} />
+                <RecursiveView passedObj={localLinkedData} formSet={localLinkedDataSet} formErrors={formErrors} formErrorsSet={formErrorsSet} userInteractedSet={userInteractedSet} keys="" moreFormInfo={moreFormInfo} />
             </div>
         )} />
     )
 }
 
-function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, moreFormInfo, prevIterationArrayCustomKey }: { passedObj: object, formSet: React.Dispatch<React.SetStateAction<object>>, formErrors: formErrorsType, formErrorsSet: React.Dispatch<React.SetStateAction<formErrorsType>>, keys: string, moreFormInfo: moreFormInfoType, prevIterationArrayCustomKey?: string }) {
+function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, userInteractedSet, keys, moreFormInfo, prevIterationArrayCustomKey }: { passedObj: object, formSet: React.Dispatch<React.SetStateAction<object>>, formErrors: formErrorsType, formErrorsSet: React.Dispatch<React.SetStateAction<formErrorsType>>, userInteractedSet: React.Dispatch<React.SetStateAction<boolean>>, keys: string, moreFormInfo: moreFormInfoType, prevIterationArrayCustomKey?: string }) {
     function updateInput(seenKeys: string, newValue: unknown) {
+        userInteractedSet(true)
+
         formSet(prevForm => {
             const newForm = { ...prevForm }
             const keyArray = seenKeys.split("/");
@@ -493,6 +499,8 @@ function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, mo
     };
 
     function deleteFromArray(seenKeys: string) {
+        userInteractedSet(true)
+
         formSet(prevForm => {
             const newForm = JSON.parse(JSON.stringify(prevForm))
             const keyArray = seenKeys.split("/");
@@ -559,7 +567,7 @@ function RecursiveView({ passedObj, formSet, formErrors, formErrorsSet, keys, mo
                 <ShowMore key={newKeys} label={dynamicLabelTop} content={(
                     <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
                         <div className={`${isArray ? `${styles.scrollCont} snap` : ""}`} style={{ ...(isArray ? {} : { display: "grid", alignContent: "flex-start", gap: "1rem" }) }}>
-                            <RecursiveView passedObj={eachObjValue} formSet={formSet} formErrors={formErrors} formErrorsSet={formErrorsSet} keys={newKeys} moreFormInfo={moreFormInfo} prevIterationArrayCustomKey={isArray ? dynamicLabelTop : undefined} />
+                            <RecursiveView passedObj={eachObjValue} formSet={formSet} formErrors={formErrors} formErrorsSet={formErrorsSet} userInteractedSet={userInteractedSet} keys={newKeys} moreFormInfo={moreFormInfo} prevIterationArrayCustomKey={isArray ? dynamicLabelTop : undefined} />
                         </div>
 
                         {/* add */}

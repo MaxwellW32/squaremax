@@ -1,4 +1,4 @@
-import { globalFormDataType, userUploadedImagesType } from "@/types";
+import { globalFormDataType, user, userUploadedImagesType } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -9,6 +9,7 @@ export const roleEnum = pgEnum("role", ['admin', 'normal']);
 
 export const users = pgTable("users", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userGithubTokens: json("userGithubTokens").notNull().$type<user["userGithubTokens"]>().default([]),
 
     role: roleEnum(),
     name: text("name"),
