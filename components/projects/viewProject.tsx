@@ -14,7 +14,14 @@ import GithubOptions from '../githubOptions/GithubOptions'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 
 //sort out images and boolean, then write proper forminputs
+
 //encrypt auth token
+//complete aaaa
+//simplify git
+//add styles, categories
+//home page
+//payments
+//oauth github
 
 export default function ViewProject({ projectFromServer }: { projectFromServer: project }) {
     const [seenProject, seenProjectSet] = useState<project>({ ...projectFromServer })

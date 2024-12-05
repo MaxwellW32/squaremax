@@ -1,11 +1,11 @@
 "use client"
-import TextArea from '@/components/textArea/TextArea'
-import TextInput from '@/components/textInput/TextInput'
 import { addTemplate, deleteTemplate, updateTemplate } from '@/serverFunctions/handleTemplates'
 import { newTemplate, newTemplatesSchema, template } from '@/types'
 import React, { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
+import TextInput from '../templateWebsiteForms/textInput/TextInput'
+import TextArea from '../templateWebsiteForms/textArea/TextArea'
 
 export default function AddTemplate({ oldTemplate }: { oldTemplate?: template }) {
     const initialFormObj: template | newTemplate = oldTemplate ? { ...oldTemplate } : {

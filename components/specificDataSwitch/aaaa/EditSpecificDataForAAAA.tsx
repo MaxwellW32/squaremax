@@ -1,8 +1,13 @@
 import { contactComponentType, formInputType, specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
-import { projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
+import { project, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 import React, { useState } from 'react'
 import styles from "./style.module.css"
 import CustomizeColors from './CustomizeColors'
+import { toast } from 'react-hot-toast'
+import { maxBodyToServerSize, maxImageUploadSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
+import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
+import { getSpecificProject, refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
+import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 
 export default function EditSpecificDataForAAAA({ specificData, seenProjectToTemplate, updateProjectsToTemplate }: { specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
     const [currentPage, currentPageSet] = useState("home")
@@ -80,14 +85,14 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                             >{eachSectionObj.using === true ? `Using ${eachSectionObj.label} ` : `not Using ${eachSectionObj.label} `}
                                                             </button>
 
-                                                            {eachSectionObj.fieldType === undefined || eachSectionObj.fieldType === "section" ? (
+                                                            {eachSectionObj.fieldType === "section" ? (
                                                                 <>
                                                                     {Object.entries(eachSectionObj.inputs).map(eachInputEntry => {
                                                                         const inputKey = eachInputEntry[0] //each input id/name
                                                                         const inputObj = eachInputEntry[1]
 
                                                                         return (
-                                                                            <DisplayFormInfo key={inputKey} inputObj={inputObj} inputKey={inputKey} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
+                                                                            <DisplayFormInfo key={inputKey} inputKey={inputKey} inputObj={inputObj} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
                                                                         )
                                                                     })}
                                                                 </>
@@ -158,7 +163,8 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                                 const newComponent: contactComponentType["component"][number] = {
                                                                                     svg: {
                                                                                         fieldType: "svg",
-                                                                                        value: '<></>'
+                                                                                        value: '',
+                                                                                        color: "#000"
                                                                                     },
                                                                                     texts: [{
                                                                                         fieldType: "textarea",
@@ -215,7 +221,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
 }
 
 
-function DisplayFormInfo({ inputObj, inputKey, eachPageKey, eachSectionKey, seenIndex, seenIndex2, specificData, seenProjectToTemplate, updateProjectsToTemplate }: { inputObj: formInputType, inputKey: string, eachPageKey: string, eachSectionKey: string, seenIndex?: number, seenIndex2?: number, specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
+function DisplayFormInfo({ inputKey, inputObj, eachPageKey, eachSectionKey, seenIndex, seenIndex2, specificData, seenProjectToTemplate, updateProjectsToTemplate }: { inputKey: string, inputObj: formInputType, eachPageKey: string, eachSectionKey: string, seenIndex?: number, seenIndex2?: number, specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
 
     return (
         <div className={styles.formInputCont}>
@@ -226,7 +232,7 @@ function DisplayFormInfo({ inputObj, inputKey, eachPageKey, eachSectionKey, seen
                     onChange={(e) => {
                         const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                        if (seenSectionObj.fieldType === undefined || seenSectionObj.fieldType === "section") {
+                        if (seenSectionObj.fieldType === "section") {
                             seenSectionObj.inputs[inputKey].value = e.target.value
 
                         } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
@@ -253,7 +259,7 @@ function DisplayFormInfo({ inputObj, inputKey, eachPageKey, eachSectionKey, seen
 
                     const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                    if (seenSectionObj.fieldType === undefined || seenSectionObj.fieldType === "section") {
+                    if (seenSectionObj.fieldType === "section") {
                         seenSectionObj.inputs[inputKey].value = parsedNum
 
                     } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
@@ -281,7 +287,7 @@ function DisplayFormInfo({ inputObj, inputKey, eachPageKey, eachSectionKey, seen
                     //@ts-expect-error value exits on text area
                     const seenText = e.target.value
 
-                    if (seenSectionObj.fieldType === undefined || seenSectionObj.fieldType === "section") {
+                    if (seenSectionObj.fieldType === "section") {
                         seenSectionObj.inputs[inputKey].value = seenText
 
                     } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
@@ -302,7 +308,106 @@ function DisplayFormInfo({ inputObj, inputKey, eachPageKey, eachSectionKey, seen
                 }} ></textarea>
 
             ) : inputObj.fieldType === "image" ? (
-                <p>image</p>
+                <div style={{ display: "grid", alignContent: "flex-start" }}>
+                    {/* upload image */}
+                    <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={"type your image url here"}
+                        onChange={(e) => {
+                            const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+
+                            if (seenSectionObj.fieldType === "section") {
+                                seenSectionObj.inputs[inputKey].value = e.target.value
+                            }
+
+                            updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                        }}
+                    />
+
+                    <button className='mainButton'>
+                        <label htmlFor='fileUpload' style={{ cursor: "pointer" }}>
+                            upload
+                        </label>
+                    </button>
+
+                    <input id='fileUpload' type="file" placeholder='Upload images' accept="image/*" style={{ display: "none" }}
+                        onChange={async (e) => {
+                            try {
+                                if (!e.target.files) throw new Error("no files seen")
+
+                                let totalUploadSize = 0
+                                const uploadedFiles = e.target.files
+                                const formData = new FormData();
+
+                                for (let index = 0; index < uploadedFiles.length; index++) {
+                                    const file = uploadedFiles[index];
+
+                                    // Check if file is an image (this will be redundant because of the 'accept' attribute, but can be good for double-checking)
+                                    if (!file.type.startsWith("image/")) {
+                                        toast.error(`File ${file.name} is not an image.`);
+                                        continue;
+                                    }
+
+                                    // Check the file size
+                                    if (file.size > maxImageUploadSize) {
+                                        toast.error(`File ${file.name} is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB`);
+                                        continue;
+                                    }
+
+                                    //add file size to totalUploadSize
+                                    totalUploadSize += file.size
+
+                                    formData.append(`file${index}`, file);
+                                }
+
+                                if (totalUploadSize > maxBodyToServerSize) throw new Error(`Please upload less than ${convertBtyes(maxBodyToServerSize, "mb")} MB at a time`)
+
+                                const response = await fetch(`/api/userImages/add`, {
+                                    method: 'POST',
+                                    body: formData,
+                                })
+
+                                //array of image names
+                                const seenData = await response.json();
+                                console.log(`$seenData.imageNames`, seenData.imageNames);
+
+                                //get the latest project images and upload project
+                                const latestProject = await getSpecificProject({ option: "id", data: { id: seenProjectToTemplate.projectId } })
+                                if (latestProject === undefined) throw new Error("trouble updating, not seeing latest project")
+
+                                let latestImagesSeen: project["userUploadedImages"] = latestProject.userUploadedImages
+
+                                if (latestImagesSeen === null) {
+                                    latestImagesSeen = [...seenData.imageNames]
+                                } else {
+                                    latestImagesSeen = [...latestImagesSeen, ...seenData.imageNames]
+                                }
+
+                                //update the server
+                                await updateProject({
+                                    id: seenProjectToTemplate.projectId,
+                                    userUploadedImages: latestImagesSeen
+                                })
+
+                                toast.success("image uploaded")
+
+                                //update the local input
+                                const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+
+                                if (seenSectionObj.fieldType === "section") {
+                                    const newImageUrl = `${uploadedUserImagesStarterUrl}${seenData.imageNames[0]}`
+
+                                    seenSectionObj.inputs[inputKey].value = newImageUrl
+                                }
+
+                                updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+
+                                await refreshProjectPath({ id: seenProjectToTemplate.projectId })
+
+                            } catch (error) {
+                                consoleAndToastError(error)
+                            }
+                        }}
+                    />
+                </div>
 
             ) : inputObj.fieldType === "video" ? (
                 <p>video</p>

@@ -1,11 +1,11 @@
 "use client"
 import { formErrorsType, formInputType, globalFormDataType, linkedDataSchema, linkedDataType, moreFormInfoType, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 import React, { useState, useEffect, useMemo } from 'react'
-import TextInput from '../textInput/TextInput'
 import styles from "./styles.module.css"
 import ShowMore from '../showMore/ShowMore'
-import TextArea from '../textArea/TextArea'
 import { ZodError } from "zod";
+import TextArea from '@/components/templateWebsiteForms/textArea/TextArea'
+import TextInput from '@/components/templateWebsiteForms/textInput/TextInput'
 
 export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, updateProjectsToTemplate }: { seenLinkedData: globalFormDataType["linkedData"], seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
     const [localLinkedData, localLinkedDataSet] = useState<linkedDataType>({ ...seenLinkedData })

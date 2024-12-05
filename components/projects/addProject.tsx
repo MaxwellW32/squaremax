@@ -1,12 +1,12 @@
 "use client"
-import TextArea from '@/components/textArea/TextArea'
-import TextInput from '@/components/textInput/TextInput'
 import React, { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { newProject, newProjectsSchema } from '@/types'
 import { addProject } from '@/serverFunctions/handleProjects'
 import { useRouter } from 'next/navigation'
+import TextInput from '../templateWebsiteForms/textInput/TextInput'
+import TextArea from '../templateWebsiteForms/textArea/TextArea'
 
 export default function AddProject() {
     const router = useRouter()
