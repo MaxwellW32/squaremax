@@ -1,17 +1,20 @@
-import { contactComponentType, formInputType, specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
-import { project, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
+import { contactType, specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
+import { projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 import React, { useState } from 'react'
 import styles from "./style.module.css"
 import CustomizeColors from './CustomizeColors'
-import { toast } from 'react-hot-toast'
-import { maxBodyToServerSize, maxImageUploadSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
-import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
-import { getSpecificProject, refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+// import { toast } from 'react-hot-toast'
+// import { maxBodyToServerSize, maxImageUploadSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
+// import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
+// import { getSpecificProject, refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
+// import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 
 export default function EditSpecificDataForAAAA({ specificData, seenProjectToTemplate, updateProjectsToTemplate }: { specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
-    const [currentPage, currentPageSet] = useState("home")
-    const [formTabSelection, formTabSelectionSet] = useState<keyof specificDataForAAAAType>("pages")
+    const pageOptions = ["home"]
+    type pageOptionsType = typeof pageOptions[number]
+
+    const [currentPage, currentPageSet] = useState<pageOptionsType>("home")
+    const [formTabSelection, formTabSelectionSet] = useState<keyof specificDataForAAAAType>("components")
 
     return (
         <form className={styles.form} action={() => { }}>
@@ -40,162 +43,103 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                         <div key={eachFormTabKey} style={{ display: eachFormTabKey === formTabSelection ? "grid" : "none" }}>
                             {eachFormTabKey === "colors" ? (
                                 <CustomizeColors specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
-                            ) : eachFormTabKey === "pages" ? (
+                            ) : eachFormTabKey === "components" ? (
                                 <>
                                     {/* form page selection */}
                                     <div style={{ display: "flex", alignItems: "center", overflowX: "auto" }}>
-                                        {Object.entries(specificData.pages).map(eachPageEntry => {
-                                            const eachPageName = eachPageEntry[0]
+                                        {pageOptions.map(eachPage => {
 
                                             return (
-                                                <button className='secondaryButton' key={eachPageName} style={{ backgroundColor: eachPageName === currentPage ? "rgb(var(--color1))" : "" }}
+                                                <button className='secondaryButton' key={eachPage} style={{ backgroundColor: eachPage === currentPage ? "rgb(var(--color1))" : "" }}
                                                     onClick={() => {
-                                                        currentPageSet(eachPageName)
+                                                        currentPageSet(eachPage)
                                                     }}
-                                                >{eachPageName}</button>
+                                                >{eachPage}</button>
                                             )
                                         })}
                                     </div>
 
-                                    {/* form page inputs */}
-                                    {Object.entries(specificData.pages).map(eachPageEntry => {
-                                        const eachPageKey = eachPageEntry[0] //e.g Home
-                                        const eachPageSections = eachPageEntry[1]
+                                    <div style={{ display: currentPage !== "home" ? "none" : "grid" }}>
+                                        {/* intro */}
 
-                                        return (
-                                            // each section 
-                                            <div key={eachPageKey} className={styles.formSectionCont}>
-                                                {Object.entries(eachPageSections).map(eachSectionEntry => {
-                                                    const eachSectionKey = eachSectionEntry[0] //e.g section 1
-                                                    const eachSectionObj = eachSectionEntry[1]
+                                        {/* contacts */}
+                                        <div className={`${styles.componentCont} snap`}>
+                                            {specificData.components.contact.contacts.map((eachContactObj, eachContactObjIndex) => {
+                                                return (
+                                                    <div key={eachContactObjIndex} className={styles.component}>
+                                                        <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                                                            onClick={() => {
+                                                                specificData.components.contact.contacts = specificData.components.contact.contacts.filter((eachCompSeen, eachCompSeenIndex) => eachCompSeenIndex === eachContactObjIndex)
 
-                                                    return (
-                                                        <div key={eachSectionKey} style={{ display: currentPage === eachPageKey ? "grid" : "none", border: "1px solid rgb(var(--shade1))", padding: "1rem" }}>
-                                                            <button className='mainButton'
-                                                                onClick={() => {
-                                                                    if (specificData.pages[eachPageKey][eachSectionKey].using === undefined) {
-                                                                        specificData.pages[eachPageKey][eachSectionKey].using = false
+                                                                updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                            }}
+                                                        >Close</button>
 
-                                                                    } else {
-                                                                        specificData.pages[eachPageKey][eachSectionKey].using = !specificData.pages[eachPageKey][eachSectionKey].using
-                                                                    }
+                                                        {/* do title */}
+                                                        <input type={"text"} name={"title"} value={eachContactObj.title} placeholder={"type your text here"}
+                                                            onChange={(e) => {
+                                                                specificData.components.contact.contacts[eachContactObjIndex].title = e.target.value
 
-                                                                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                                                                }}
-                                                            >{eachSectionObj.using === true ? `Using ${eachSectionObj.label} ` : `not Using ${eachSectionObj.label} `}
-                                                            </button>
+                                                                updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                            }}
+                                                        />
 
-                                                            {eachSectionObj.fieldType === "section" ? (
-                                                                <>
-                                                                    {Object.entries(eachSectionObj.inputs).map(eachInputEntry => {
-                                                                        const inputKey = eachInputEntry[0] //each input id/name
-                                                                        const inputObj = eachInputEntry[1]
+                                                        <input type={"text"} name={"svg"} value={eachContactObj.svg} placeholder={"type your svg here"}
+                                                            onChange={(e) => {
+                                                                specificData.components.contact.contacts[eachContactObjIndex].svg = e.target.value
 
-                                                                        return (
-                                                                            <DisplayFormInfo key={inputKey} inputKey={inputKey} inputObj={inputObj} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
-                                                                        )
-                                                                    })}
-                                                                </>
-                                                            ) : eachSectionObj.fieldType === "contactComponent" ? (
-                                                                <div className={`${styles.componentCont} snap`}>
-                                                                    {eachSectionObj.component.map((eachContactObj, eachContactObjIndex) => {
-                                                                        return (
-                                                                            <div key={eachContactObjIndex} className={styles.component}>
-                                                                                <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
-                                                                                    onClick={() => {
-                                                                                        const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+                                                                updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                            }}
+                                                        />
 
-                                                                                        if (seenSectionObj.fieldType === "contactComponent") {
-                                                                                            seenSectionObj.component = seenSectionObj.component.filter((eachCompSeen, eachCompSeenIndex) => eachCompSeenIndex === eachContactObjIndex)
-                                                                                        }
+                                                        {/* do texts */}
+                                                        <>
+                                                            {(eachContactObj.texts).map((eachText, eachTextIndex) => {
 
-                                                                                        updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                                                                                    }}
-                                                                                >Close</button>
-
-                                                                                {Object.entries(eachContactObj).map(eachContactObjEntry => {
-                                                                                    const eachContactObjKey = eachContactObjEntry[0] as keyof contactComponentType["component"][number]
-                                                                                    const eachContactObjval = eachContactObjEntry[1]
-
-                                                                                    if (eachContactObjKey === "texts") return null
-
-                                                                                    return (
-                                                                                        // @ts-expect-error not seeing the input is correct type
-                                                                                        <DisplayFormInfo key={eachContactObjKey} inputObj={eachContactObjval} seenIndex={eachContactObjIndex} inputKey={eachContactObjKey} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
-                                                                                    )
-                                                                                })}
-
-                                                                                {/* texts */}
-                                                                                <>
-                                                                                    {(eachContactObj.texts).map((eachTextObj, eachTextObjIndex) => {
-
-                                                                                        return (
-                                                                                            <DisplayFormInfo key={eachTextObjIndex} inputObj={eachTextObj} inputKey={"texts"} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} seenIndex={eachContactObjIndex} seenIndex2={eachTextObjIndex} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
-                                                                                        )
-                                                                                    })}
-
-                                                                                    <button className="mainButton" style={{ justifySelf: "center" }}
-                                                                                        onClick={() => {
-                                                                                            const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
-
-                                                                                            const newTextObj: formInputType = {
-                                                                                                fieldType: "input",
-                                                                                                value: ""
-                                                                                            }
-
-                                                                                            if (seenSectionObj.fieldType === "contactComponent") {
-                                                                                                seenSectionObj.component[eachContactObjIndex].texts = [...seenSectionObj.component[eachContactObjIndex].texts, newTextObj]
-                                                                                            }
-
-                                                                                            updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                                                                                        }}
-                                                                                    >Add text</button>
-                                                                                </>
-                                                                            </div>
-                                                                        )
-                                                                    })}
-
-                                                                    <button className="mainButton" style={{ justifySelf: "flex-start", alignSelf: "center" }}
-                                                                        onClick={() => {
-                                                                            const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
-
-                                                                            if (seenSectionObj.fieldType === "contactComponent") {
-                                                                                const newComponent: contactComponentType["component"][number] = {
-                                                                                    svg: {
-                                                                                        fieldType: "svg",
-                                                                                        value: '',
-                                                                                        color: "#000"
-                                                                                    },
-                                                                                    texts: [{
-                                                                                        fieldType: "textarea",
-                                                                                        value: ""
-                                                                                    }],
-                                                                                    title: {
-                                                                                        fieldType: "input",
-                                                                                        value: ""
-                                                                                    },
-                                                                                }
-
-                                                                                seenSectionObj.component = [...seenSectionObj.component, newComponent]
-                                                                            }
+                                                                return (
+                                                                    <input key={eachTextIndex} type={"text"} name={"texts" + eachTextIndex} value={eachText} placeholder={"type your text here"}
+                                                                        onChange={(e) => {
+                                                                            specificData.components.contact.contacts[eachContactObjIndex].texts[eachTextIndex] = e.target.value
 
                                                                             updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
                                                                         }}
-                                                                    >Add Contact</button>
-                                                                </div>
-                                                            ) : null}
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                        )
-                                    })}
+                                                                    />
+                                                                )
+                                                            })}
+
+                                                            <button className="mainButton" style={{ justifySelf: "center" }}
+                                                                onClick={() => {
+                                                                    specificData.components.contact.contacts[eachContactObjIndex].texts = [...specificData.components.contact.contacts[eachContactObjIndex].texts, ""]
+
+                                                                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                                }}
+                                                            >Add text</button>
+                                                        </>
+                                                    </div>
+                                                )
+                                            })}
+
+                                            <button className="mainButton" style={{ justifySelf: "flex-start", alignSelf: "center" }}
+                                                onClick={() => {
+                                                    const newComponent: contactType["contacts"][number] = {
+                                                        svg: "",
+                                                        texts: [""],
+                                                        title: "",
+                                                    }
+
+                                                    specificData.components.contact.contacts = [...specificData.components.contact.contacts, newComponent]
+
+                                                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                }}
+                                            >Add Contact</button>
+                                        </div>
+                                    </div>
                                 </>
-                            ) : eachFormTabKey === "navLinks" ? (
+                            ) : eachFormTabKey === "nav" ? (
                                 <>
                                     {/* form nav links */}
-                                    {Object.entries(specificData.navLinks).map(eachNavOptionEntry => {
-                                        const eachNavOptionName = eachNavOptionEntry[0] as keyof specificDataForAAAAType["navLinks"]
+                                    {Object.entries(specificData.nav).map(eachNavOptionEntry => {
+                                        const eachNavOptionName = eachNavOptionEntry[0] as keyof specificDataForAAAAType["nav"]
                                         const eachNavOptionData = eachNavOptionEntry[1]
 
                                         return (
@@ -221,205 +165,202 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
 }
 
 
-function DisplayFormInfo({ inputKey, inputObj, eachPageKey, eachSectionKey, seenIndex, seenIndex2, specificData, seenProjectToTemplate, updateProjectsToTemplate }: { inputKey: string, inputObj: formInputType, eachPageKey: string, eachSectionKey: string, seenIndex?: number, seenIndex2?: number, specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
+// function DisplayFormInfo({ inputKey, inputObj, eachPageKey, eachSectionKey, seenIndex, seenIndex2, specificData, seenProjectToTemplate, updateProjectsToTemplate }: { inputKey: string, inputObj: formInputType, eachPageKey: string, eachSectionKey: string, seenIndex?: number, seenIndex2?: number, specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
 
-    return (
-        <div className={styles.formInputCont}>
-            {inputObj.label !== undefined && <label htmlFor={inputKey}>{inputObj.label}</label>}
+//     return (
+//         <div className={styles.formInputCont}>
+//             {inputObj.label !== undefined && <label htmlFor={inputKey}>{inputObj.label}</label>}
 
-            {inputObj.fieldType === "input" ? (
-                <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={inputObj.placeHolder ?? "type your text here"}
-                    onChange={(e) => {
-                        const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+//             {inputObj.fieldType === "input" ? (
+//                 <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={inputObj.placeHolder ?? "type your text here"}
+//                     onChange={(e) => {
+//                         const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                        if (seenSectionObj.fieldType === "section") {
-                            seenSectionObj.inputs[inputKey].value = e.target.value
+//                         if (seenSectionObj.fieldType === "section") {
+//                             seenSectionObj.inputs[inputKey].value = e.target.value
 
-                        } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
-                            const seenInputKey = inputKey as keyof contactComponentType["component"][number]
+//                         } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
+//                             const seenInputKey = inputKey as keyof contactComponentType["component"][number]
 
-                            // set all but text
-                            if (seenInputKey !== "texts") {
-                                seenSectionObj.component[seenIndex][seenInputKey].value = e.target.value
-                            }
+//                             // set all but text
+//                             if (seenInputKey !== "texts") {
+//                                 seenSectionObj.component[seenIndex][seenInputKey].value = e.target.value
+//                             }
 
-                            //set text
-                            if (seenIndex2 !== undefined) {
-                                seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = e.target.value
-                            }
-                        }
+//                             //set text
+//                             if (seenIndex2 !== undefined) {
+//                                 seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = e.target.value
+//                             }
+//                         }
 
-                        updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                    }}
-                />
-            ) : inputObj.fieldType === "number" ? (
-                <input id={inputKey} type={"text"} name={inputKey} value={`${inputObj.value}`} placeholder={inputObj.placeHolder ?? "type numbers here"} onChange={(e) => {
-                    let parsedNum = parseFloat(e.target.value)
-                    if (isNaN(parsedNum)) parsedNum = 0
+//                         updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+//                     }}
+//                 />
+//             ) : inputObj.fieldType === "number" ? (
+//                 <input id={inputKey} type={"text"} name={inputKey} value={`${inputObj.value}`} placeholder={inputObj.placeHolder ?? "type numbers here"} onChange={(e) => {
+//                     let parsedNum = parseFloat(e.target.value)
+//                     if (isNaN(parsedNum)) parsedNum = 0
 
-                    const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+//                     const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                    if (seenSectionObj.fieldType === "section") {
-                        seenSectionObj.inputs[inputKey].value = parsedNum
+//                     if (seenSectionObj.fieldType === "section") {
+//                         seenSectionObj.inputs[inputKey].value = parsedNum
 
-                    } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
-                        const seenInputKey = inputKey as keyof contactComponentType["component"][number]
+//                     } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
+//                         const seenInputKey = inputKey as keyof contactComponentType["component"][number]
 
-                        // set all but text
-                        if (seenInputKey !== "texts") {
-                            seenSectionObj.component[seenIndex][seenInputKey].value = parsedNum
-                        }
+//                         // set all but text
+//                         if (seenInputKey !== "texts") {
+//                             seenSectionObj.component[seenIndex][seenInputKey].value = parsedNum
+//                         }
 
-                        if (seenIndex2 !== undefined) {
-                            //set text
-                            seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = parsedNum
-                        }
-                    }
+//                         if (seenIndex2 !== undefined) {
+//                             //set text
+//                             seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = parsedNum
+//                         }
+//                     }
 
-                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+//                     updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
 
-                }} />
+//                 }} />
 
-            ) : inputObj.fieldType === "textarea" ? (
-                <textarea rows={5} id={inputKey} name={inputKey} value={inputObj.value} placeholder={inputObj.placeHolder ?? "type your text here"} onInput={(e) => {
-                    const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+//             ) : inputObj.fieldType === "textarea" ? (
+//                 <textarea rows={5} id={inputKey} name={inputKey} value={inputObj.value} placeholder={inputObj.placeHolder ?? "type your text here"} onInput={(e) => {
+//                     const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                    //@ts-expect-error value exits on text area
-                    const seenText = e.target.value
+//                     //@ts-expect-error value exits on text area
+//                     const seenText = e.target.value
 
-                    if (seenSectionObj.fieldType === "section") {
-                        seenSectionObj.inputs[inputKey].value = seenText
+//                     if (seenSectionObj.fieldType === "section") {
+//                         seenSectionObj.inputs[inputKey].value = seenText
 
-                    } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
-                        const seenInputKey = inputKey as keyof contactComponentType["component"][number]
+//                     } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
+//                         const seenInputKey = inputKey as keyof contactComponentType["component"][number]
 
-                        // set all but text
-                        if (seenInputKey !== "texts") {
-                            seenSectionObj.component[seenIndex][seenInputKey].value = seenText
-                        }
+//                         // set all but text
+//                         if (seenInputKey !== "texts") {
+//                             seenSectionObj.component[seenIndex][seenInputKey].value = seenText
+//                         }
 
-                        if (seenIndex2 !== undefined) {
-                            //set text
-                            seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = seenText
-                        }
-                    }
+//                         if (seenIndex2 !== undefined) {
+//                             //set text
+//                             seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = seenText
+//                         }
+//                     }
 
-                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                }} ></textarea>
+//                     updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+//                 }} ></textarea>
 
-            ) : inputObj.fieldType === "image" ? (
-                <div style={{ display: "grid", alignContent: "flex-start" }}>
-                    {/* upload image */}
-                    <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={"type your image url here"}
-                        onChange={(e) => {
-                            const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+//             ) : inputObj.fieldType === "image" ? (
+//                 <div style={{ display: "grid", alignContent: "flex-start" }}>
+//                     {/* upload image */}
+//                     <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={"type your image url here"}
+//                         onChange={(e) => {
+//                             const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                            if (seenSectionObj.fieldType === "section") {
-                                seenSectionObj.inputs[inputKey].value = e.target.value
-                            }
+//                             if (seenSectionObj.fieldType === "section") {
+//                                 seenSectionObj.inputs[inputKey].value = e.target.value
+//                             }
 
-                            updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                        }}
-                    />
+//                             updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+//                         }}
+//                     />
 
-                    <button className='mainButton'>
-                        <label htmlFor='fileUpload' style={{ cursor: "pointer" }}>
-                            upload
-                        </label>
-                    </button>
+//                     <button className='mainButton'>
+//                         <label htmlFor='fileUpload' style={{ cursor: "pointer" }}>
+//                             upload
+//                         </label>
+//                     </button>
 
-                    <input id='fileUpload' type="file" placeholder='Upload images' accept="image/*" style={{ display: "none" }}
-                        onChange={async (e) => {
-                            try {
-                                if (!e.target.files) throw new Error("no files seen")
+//                     <input id='fileUpload' type="file" placeholder='Upload images' accept="image/*" style={{ display: "none" }}
+//                         onChange={async (e) => {
+//                             try {
+//                                 if (!e.target.files) throw new Error("no files seen")
 
-                                let totalUploadSize = 0
-                                const uploadedFiles = e.target.files
-                                const formData = new FormData();
+//                                 let totalUploadSize = 0
+//                                 const uploadedFiles = e.target.files
+//                                 const formData = new FormData();
 
-                                for (let index = 0; index < uploadedFiles.length; index++) {
-                                    const file = uploadedFiles[index];
+//                                 for (let index = 0; index < uploadedFiles.length; index++) {
+//                                     const file = uploadedFiles[index];
 
-                                    // Check if file is an image (this will be redundant because of the 'accept' attribute, but can be good for double-checking)
-                                    if (!file.type.startsWith("image/")) {
-                                        toast.error(`File ${file.name} is not an image.`);
-                                        continue;
-                                    }
+//                                     // Check if file is an image (this will be redundant because of the 'accept' attribute, but can be good for double-checking)
+//                                     if (!file.type.startsWith("image/")) {
+//                                         toast.error(`File ${file.name} is not an image.`);
+//                                         continue;
+//                                     }
 
-                                    // Check the file size
-                                    if (file.size > maxImageUploadSize) {
-                                        toast.error(`File ${file.name} is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB`);
-                                        continue;
-                                    }
+//                                     // Check the file size
+//                                     if (file.size > maxImageUploadSize) {
+//                                         toast.error(`File ${file.name} is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB`);
+//                                         continue;
+//                                     }
 
-                                    //add file size to totalUploadSize
-                                    totalUploadSize += file.size
+//                                     //add file size to totalUploadSize
+//                                     totalUploadSize += file.size
 
-                                    formData.append(`file${index}`, file);
-                                }
+//                                     formData.append(`file${index}`, file);
+//                                 }
 
-                                if (totalUploadSize > maxBodyToServerSize) throw new Error(`Please upload less than ${convertBtyes(maxBodyToServerSize, "mb")} MB at a time`)
+//                                 if (totalUploadSize > maxBodyToServerSize) throw new Error(`Please upload less than ${convertBtyes(maxBodyToServerSize, "mb")} MB at a time`)
 
-                                const response = await fetch(`/api/userImages/add`, {
-                                    method: 'POST',
-                                    body: formData,
-                                })
+//                                 const response = await fetch(`/api/userImages/add`, {
+//                                     method: 'POST',
+//                                     body: formData,
+//                                 })
 
-                                //array of image names
-                                const seenData = await response.json();
-                                console.log(`$seenData.imageNames`, seenData.imageNames);
+//                                 //array of image names
+//                                 const seenData = await response.json();
+//                                 console.log(`$seenData.imageNames`, seenData.imageNames);
 
-                                //get the latest project images and upload project
-                                const latestProject = await getSpecificProject({ option: "id", data: { id: seenProjectToTemplate.projectId } })
-                                if (latestProject === undefined) throw new Error("trouble updating, not seeing latest project")
+//                                 //get the latest project images and upload project
+//                                 const latestProject = await getSpecificProject({ option: "id", data: { id: seenProjectToTemplate.projectId } })
+//                                 if (latestProject === undefined) throw new Error("trouble updating, not seeing latest project")
 
-                                let latestImagesSeen: project["userUploadedImages"] = latestProject.userUploadedImages
+//                                 let latestImagesSeen: project["userUploadedImages"] = latestProject.userUploadedImages
 
-                                if (latestImagesSeen === null) {
-                                    latestImagesSeen = [...seenData.imageNames]
-                                } else {
-                                    latestImagesSeen = [...latestImagesSeen, ...seenData.imageNames]
-                                }
+//                                 if (latestImagesSeen === null) {
+//                                     latestImagesSeen = [...seenData.imageNames]
+//                                 } else {
+//                                     latestImagesSeen = [...latestImagesSeen, ...seenData.imageNames]
+//                                 }
 
-                                //update the server
-                                await updateProject({
-                                    id: seenProjectToTemplate.projectId,
-                                    userUploadedImages: latestImagesSeen
-                                })
+//                                 //update the server
+//                                 await updateProject({
+//                                     id: seenProjectToTemplate.projectId,
+//                                     userUploadedImages: latestImagesSeen
+//                                 })
 
-                                toast.success("image uploaded")
+//                                 toast.success("image uploaded")
 
-                                //update the local input
-                                const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+//                                 //update the local input
+//                                 const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                                if (seenSectionObj.fieldType === "section") {
-                                    const newImageUrl = `${uploadedUserImagesStarterUrl}${seenData.imageNames[0]}`
+//                                 if (seenSectionObj.fieldType === "section") {
+//                                     const newImageUrl = `${uploadedUserImagesStarterUrl}${seenData.imageNames[0]}`
 
-                                    seenSectionObj.inputs[inputKey].value = newImageUrl
-                                }
+//                                     seenSectionObj.inputs[inputKey].value = newImageUrl
+//                                 }
 
-                                updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+//                                 updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
 
-                                await refreshProjectPath({ id: seenProjectToTemplate.projectId })
+//                                 await refreshProjectPath({ id: seenProjectToTemplate.projectId })
 
-                            } catch (error) {
-                                consoleAndToastError(error)
-                            }
-                        }}
-                    />
-                </div>
+//                             } catch (error) {
+//                                 consoleAndToastError(error)
+//                             }
+//                         }}
+//                     />
+//                 </div>
 
-            ) : inputObj.fieldType === "video" ? (
-                <p>video</p>
+//             ) : inputObj.fieldType === "video" ? (
+//                 <p>video</p>
 
-            ) : inputObj.fieldType === "link" ? (
-                <p>link</p>
-            ) : inputObj.fieldType === "svg" ? (
-                <p>svg</p>
-            ) : null}
-
-            {/* will implement soon */}
-            {/* {errors !== undefined && <p style={{ color: "red", fontSize: "var(--smallFontSize)" }}>{errors}</p>} */}
-        </div>
-    )
-}
+//             ) : inputObj.fieldType === "link" ? (
+//                 <p>link</p>
+//             ) : inputObj.fieldType === "svg" ? (
+//                 <p>svg</p>
+//             ) : null}
+//         </div>
+//     )
+// }

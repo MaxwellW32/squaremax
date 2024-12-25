@@ -1,128 +1,32 @@
 import { z } from "zod";
 
 //start copy specific data on template//
-// Input Type Schema
-const inputTypeSchema = z.object({
-    label: z.string().optional(),
-    placeHolder: z.string().optional(),
-    required: z.boolean().optional(),
-    fieldType: z.literal("input"),
-    value: z.string(),
-});
-export type inputType = z.infer<typeof inputTypeSchema>
 
-// Textarea Type Schema
-const textareaTypeSchema = z.object({
-    label: z.string().optional(),
-    placeHolder: z.string().optional(),
-    required: z.boolean().optional(),
-    fieldType: z.literal("textarea"),
-    value: z.string(),
-});
-export type textareaType = z.infer<typeof textareaTypeSchema>
-
-// Image Type Schema
-const imageTypeSchema = z.object({
-    label: z.string().optional(),
-    required: z.boolean().optional(),
-    fieldType: z.literal("image"),
-    alt: z.string(),
-    value: z.string(),
-});
-export type imageType = z.infer<typeof imageTypeSchema>
-
-// Video Type Schema
-const videoTypeSchema = z.object({
-    label: z.string().optional(),
-    required: z.boolean().optional(),
-    fieldType: z.literal("video"),
-
-    value: z.string(),
-});
-export type videoType = z.infer<typeof videoTypeSchema>
-
-// Link Type Schema
-const linkTypeSchema = z.object({
-    label: z.string().optional(),
-    required: z.boolean().optional(),
-    fieldType: z.literal("link"),
-
-    text: z.string(),
-    value: z.string(),
-});
-export type linkType = z.infer<typeof linkTypeSchema>
-
-// Number Type Schema
-const numberTypeSchema = z.object({
-    label: z.string().optional(),
-    placeHolder: z.string().optional(),
-    required: z.boolean().optional(),
-    fieldType: z.literal("number"),
-
-    value: z.number(),
-});
-export type numberType = z.infer<typeof numberTypeSchema>
-
-// Svg Type Schema
-const svgTypeSchema = z.object({
-    label: z.string().optional(),
-    required: z.boolean().optional(),
-    fieldType: z.literal("svg"),
-    color: z.string(),
-    value: z.string(),
-});
-export type svgType = z.infer<typeof svgTypeSchema>
-
-// Form Input Type (Discriminated Union)
-const formInputTypeSchema = z.union([
-    inputTypeSchema,
-    textareaTypeSchema,
-    imageTypeSchema,
-    videoTypeSchema,
-    linkTypeSchema,
-    numberTypeSchema,
-    svgTypeSchema
-]);
-export type formInputType = z.infer<typeof formInputTypeSchema>
-
-//section type 
-const sectionTypeSchema = z.object({
-    label: z.string(),
-
-    inputs: z.record(
-        z.string(), // key for each input
-        formInputTypeSchema
-    ),
-
-    using: z.boolean(),
-    fieldType: z.literal("section"),
+//components
+export const introSchema = z.object({
+    using: z.boolean()
 })
-export type sectionType = z.infer<typeof sectionTypeSchema>
+export type introType = z.infer<typeof introSchema>
 
-//only for contact component
-const contactComponentTypeSchema = z.object({ //section 
-    label: z.string(),
-
-    component: z.array(z.object({
-        svg: formInputTypeSchema,
-        title: formInputTypeSchema,
-        texts: z.array(formInputTypeSchema)
+export const contactSchema = z.object({
+    contacts: z.array(z.object({
+        svg: z.string(),
+        title: z.string(),
+        texts: z.array(z.string()),
     })),
-
-    using: z.boolean(),
-    fieldType: z.literal("contactComponent"),
+    using: z.boolean()
 })
-export type contactComponentType = z.infer<typeof contactComponentTypeSchema>
+export type contactType = z.infer<typeof contactSchema>
+//end components
 
-const pageSectionUnionSchema = z.union([sectionTypeSchema, contactComponentTypeSchema]);
 
 export const specificDataForAAAASchema = z.object({
-    pages: z.record(z.string(), // page key
-        z.record(z.string(), // section / component key
-            pageSectionUnionSchema
-        )
-    ),
-    navLinks: z.object({
+    templateId: z.literal("aaaa"),
+    components: z.object({
+        intro: introSchema,
+        contact: contactSchema,
+    }),
+    nav: z.object({
         header: z.array(
             z.object({
                 title: z.string(),
@@ -143,7 +47,6 @@ export const specificDataForAAAASchema = z.object({
             z.string()
         )
     ),
-    templateId: z.literal("aaaa"),
 })
 //end copy specific data on template//
 
