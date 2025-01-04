@@ -215,14 +215,15 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
 
 function DisplayFormInfo({ keyPath, inputObj, eachPageKey, eachSectionKey, specificData, seenProjectToTemplate, handleLocalSpecificData, }: { keyPath: string, inputObj: propsObjType, eachPageKey: string, eachSectionKey: string, specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, handleLocalSpecificData: (sentSpecificData: specificDataSwitchType) => Promise<boolean> }) {
     const keys = keyPath.split("/")
-    const uniqueInputKey = keys[keys.length - 1]
+    const inputKey = keys[keys.length - 1]
+    const uniqueId = `${eachPageKey}/${eachSectionKey}/${keyPath}`
 
     return (
         <div className={styles.formInputCont}>
             {inputObj.type === "html" ? (
                 <>
                     {inputObj.inputType === undefined ? (
-                        <input id={uniqueInputKey} type={"text"} name={uniqueInputKey} value={inputObj.value} placeholder={"type your text here"}
+                        <input id={uniqueId} type={"text"} name={inputKey} value={inputObj.value} placeholder={"type your text here"}
                             onChange={async (e) => {
                                 const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
@@ -244,7 +245,7 @@ function DisplayFormInfo({ keyPath, inputObj, eachPageKey, eachSectionKey, speci
                             }}
                         />
                     ) : inputObj.inputType === "textarea" ? (
-                        <textarea rows={5} id={uniqueInputKey} name={uniqueInputKey} value={inputObj.value} placeholder={"type your text here"}
+                        <textarea rows={5} id={uniqueId} name={inputKey} value={inputObj.value} placeholder={"type your text here"}
                             onChange={async (e) => {
                                 const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
@@ -270,7 +271,7 @@ function DisplayFormInfo({ keyPath, inputObj, eachPageKey, eachSectionKey, speci
             ) : inputObj.type === "img" ? (
                 <div style={{ display: "grid", alignContent: "flex-start" }}>
                     {/* upload image */}
-                    <input id={uniqueInputKey} type={"text"} name={uniqueInputKey} value={inputObj.props.src} placeholder={"type your image url here"}
+                    <input type={"text"} value={inputObj.props.src} placeholder={"type your image url here"}
                         onChange={async (e) => {
                             const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
@@ -296,12 +297,12 @@ function DisplayFormInfo({ keyPath, inputObj, eachPageKey, eachSectionKey, speci
                     />
 
                     <button className='mainButton'>
-                        <label htmlFor='fileUpload' style={{ cursor: "pointer" }}>
+                        <label htmlFor={uniqueId} style={{ cursor: "pointer" }}>
                             upload
                         </label>
                     </button>
 
-                    <input id='fileUpload' type="file" placeholder='Upload images' accept="image/*" style={{ display: "none" }}
+                    <input id={uniqueId} type="file" placeholder='Upload images' accept="image/*" style={{ display: "none" }}
                         onChange={async (e) => {
                             try {
                                 if (!e.target.files) throw new Error("no files seen")
@@ -348,12 +349,12 @@ function DisplayFormInfo({ keyPath, inputObj, eachPageKey, eachSectionKey, speci
                                 let latestImagesSeen: project["userUploadedImages"] = latestProject.userUploadedImages
 
                                 if (latestImagesSeen === null) {
-                                    latestImagesSeen = [...seenData.imageNames]
-                                } else {
-                                    latestImagesSeen = [...latestImagesSeen, ...seenData.imageNames]
+                                    latestImagesSeen = []
                                 }
 
-                                //update the server
+                                latestImagesSeen = [...latestImagesSeen, ...seenData.imageNames]
+
+                                //update the server with images
                                 await updateProject({
                                     id: seenProjectToTemplate.projectId,
                                     userUploadedImages: latestImagesSeen
@@ -363,21 +364,18 @@ function DisplayFormInfo({ keyPath, inputObj, eachPageKey, eachSectionKey, speci
 
                                 //update the local input
                                 const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
-
+                                const newImageUrl = `${uploadedUserImagesStarterUrl}${seenData.imageNames[0]}`
 
                                 let newTempSection = seenSectionObj
 
                                 keys.forEach((eachKey, index) => {
                                     if (index === keys.length - 1) {
-                                        const newImageUrl = `${uploadedUserImagesStarterUrl}${seenData.imageNames[0]}`
-
                                         //assign value
                                         //@ts-expect-error unkown check
                                         if (newTempSection[eachKey].type === "img") {
                                             //@ts-expect-error unkown check
                                             newTempSection[eachKey].props.src = newImageUrl
                                         }
-
 
                                     } else {
                                         //@ts-expect-error unkown check

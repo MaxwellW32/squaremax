@@ -9,11 +9,15 @@ export default function SpecificDataSwitch({ seenSpecificData, seenProjectToTemp
 
     //react to changes above
     useEffect(() => {
-        // localSpecificDataSet(seenSpecificData)
+        console.log(`$ran localSpecificDataSet from top`);
+        localSpecificDataSet(JSON.parse(JSON.stringify(seenSpecificData)))
     }, [seenSpecificData])
 
     async function handleLocalSpecificData(sentSpecificData: specificDataSwitchType) {
-        const specificSwitchTest = specificDataSwitchSchema.safeParse(sentSpecificData)
+        const newSentSpecificData = JSON.parse(JSON.stringify(sentSpecificData))
+        const specificSwitchTest = specificDataSwitchSchema.safeParse(newSentSpecificData)
+
+        console.log(`$seen here`, newSentSpecificData);
 
         //can send up to sync with server if successfull
         if (specificSwitchTest.success) {
@@ -23,7 +27,7 @@ export default function SpecificDataSwitch({ seenSpecificData, seenProjectToTemp
         }
 
         //update locally to view changes always
-        localSpecificDataSet({ ...sentSpecificData })
+        localSpecificDataSet(newSentSpecificData)
 
         return true
     }
