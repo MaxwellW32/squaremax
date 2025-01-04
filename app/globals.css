@@ -56,13 +56,20 @@ everything else should be stated
 
 
 body {
-    min-height: 100vh;
-    width: 100%;
+    height: 100vh;
     display: grid;
+    align-content: flex-start;
     grid-template-rows: auto 1fr;
+    overflow-y: clip;
+
     color: rgb(var(--shade1));
     background-color: rgb(var(--shade2));
     font-size: var(--fontSizeR);
+}
+
+.big {
+    height: 5000vh;
+    background-color: pink;
 }
 
 label {

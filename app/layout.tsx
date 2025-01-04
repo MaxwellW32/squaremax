@@ -40,6 +40,7 @@ export default async function RootLayout({
         <SessionProvider>
           <Toaster position="top-center" reverseOrder={false} />
           <Nav />
+
           {children}
         </SessionProvider>
       </body>

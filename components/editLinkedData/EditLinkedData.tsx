@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 import TextArea from '@/components/templateWebsiteForms/textArea/TextArea'
 import TextInput from '@/components/templateWebsiteForms/textInput/TextInput'
 
-export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, updateProjectsToTemplate }: { seenLinkedData: globalFormDataType["linkedData"], seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
+export default function EditLinkedData({ seenLinkedData, seenProjectToTemplate, updateProjectsToTemplate }: { seenLinkedData: globalFormDataType["linkedData"], seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => Promise<boolean> }) {
     const [localLinkedData, localLinkedDataSet] = useState<linkedDataType>({ ...seenLinkedData })
     const [userInteracted, userInteractedSet] = useState(false)
 

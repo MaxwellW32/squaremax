@@ -1,5 +1,5 @@
-import { contactComponentType, formInputType, specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
-import { project, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
+import { contactUsComponentType, propsObjType, specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
+import { project, projectsToTemplate, specificDataSwitchType } from '@/types'
 import React, { useState } from 'react'
 import styles from "./style.module.css"
 import CustomizeColors from './CustomizeColors'
@@ -9,7 +9,7 @@ import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
 import { getSpecificProject, refreshProjectPath, updateProject } from '@/serverFunctions/handleProjects'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 
-export default function EditSpecificDataForAAAA({ specificData, seenProjectToTemplate, updateProjectsToTemplate }: { specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
+export default function EditSpecificDataForAAAA({ specificData, seenProjectToTemplate, handleLocalSpecificData }: { specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, handleLocalSpecificData: (sentSpecificData: specificDataSwitchType) => Promise<boolean> }) {
     const [currentPage, currentPageSet] = useState("home")
     const [formTabSelection, formTabSelectionSet] = useState<keyof specificDataForAAAAType>("pages")
 
@@ -39,7 +39,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                     return (
                         <div key={eachFormTabKey} style={{ display: eachFormTabKey === formTabSelection ? "grid" : "none" }}>
                             {eachFormTabKey === "colors" ? (
-                                <CustomizeColors specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
+                                <CustomizeColors specificData={specificData} handleLocalSpecificData={handleLocalSpecificData} />
                             ) : eachFormTabKey === "pages" ? (
                                 <>
                                     {/* form page selection */}
@@ -73,16 +73,11 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                         <div key={eachSectionKey} style={{ display: currentPage === eachPageKey ? "grid" : "none", border: "1px solid rgb(var(--shade1))", padding: "1rem" }}>
                                                             <button className='mainButton'
                                                                 onClick={() => {
-                                                                    if (specificData.pages[eachPageKey][eachSectionKey].using === undefined) {
-                                                                        specificData.pages[eachPageKey][eachSectionKey].using = false
+                                                                    specificData.pages[eachPageKey][eachSectionKey].using = !specificData.pages[eachPageKey][eachSectionKey].using
 
-                                                                    } else {
-                                                                        specificData.pages[eachPageKey][eachSectionKey].using = !specificData.pages[eachPageKey][eachSectionKey].using
-                                                                    }
-
-                                                                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                                    handleLocalSpecificData(specificData)
                                                                 }}
-                                                            >{eachSectionObj.using === true ? `Using ${eachSectionObj.label} ` : `not Using ${eachSectionObj.label} `}
+                                                            >{eachSectionObj.using === true ? `Using section` : `not Using section`}
                                                             </button>
 
                                                             {eachSectionObj.fieldType === "section" ? (
@@ -92,7 +87,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                         const inputObj = eachInputEntry[1]
 
                                                                         return (
-                                                                            <DisplayFormInfo key={inputKey} inputKey={inputKey} inputObj={inputObj} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
+                                                                            <DisplayFormInfo key={inputKey} keyPath={`inputs/${inputKey}`} inputObj={inputObj} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} handleLocalSpecificData={handleLocalSpecificData} />
                                                                         )
                                                                     })}
                                                                 </>
@@ -109,19 +104,18 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                                             seenSectionObj.component = seenSectionObj.component.filter((eachCompSeen, eachCompSeenIndex) => eachCompSeenIndex === eachContactObjIndex)
                                                                                         }
 
-                                                                                        updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                                                        handleLocalSpecificData(specificData)
                                                                                     }}
                                                                                 >Close</button>
 
                                                                                 {Object.entries(eachContactObj).map(eachContactObjEntry => {
-                                                                                    const eachContactObjKey = eachContactObjEntry[0] as keyof contactComponentType["component"][number]
+                                                                                    const eachContactObjKey = eachContactObjEntry[0] as keyof contactUsComponentType["component"][number]
                                                                                     const eachContactObjval = eachContactObjEntry[1]
 
                                                                                     if (eachContactObjKey === "texts") return null
 
                                                                                     return (
-                                                                                        // @ts-expect-error not seeing the input is correct type
-                                                                                        <DisplayFormInfo key={eachContactObjKey} inputObj={eachContactObjval} seenIndex={eachContactObjIndex} inputKey={eachContactObjKey} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
+                                                                                        <DisplayFormInfo key={eachContactObjKey} keyPath={`component/${eachContactObjIndex}/${eachContactObjKey}`} inputObj={eachContactObjval as propsObjType} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} handleLocalSpecificData={handleLocalSpecificData} />
                                                                                     )
                                                                                 })}
 
@@ -130,7 +124,7 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                                     {(eachContactObj.texts).map((eachTextObj, eachTextObjIndex) => {
 
                                                                                         return (
-                                                                                            <DisplayFormInfo key={eachTextObjIndex} inputObj={eachTextObj} inputKey={"texts"} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} seenIndex={eachContactObjIndex} seenIndex2={eachTextObjIndex} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} updateProjectsToTemplate={updateProjectsToTemplate} />
+                                                                                            <DisplayFormInfo key={eachTextObjIndex} keyPath={`component/${eachContactObjIndex}/texts/${eachTextObjIndex}`} inputObj={eachTextObj} eachPageKey={eachPageKey} eachSectionKey={eachSectionKey} specificData={specificData} seenProjectToTemplate={seenProjectToTemplate} handleLocalSpecificData={handleLocalSpecificData} />
                                                                                         )
                                                                                     })}
 
@@ -138,16 +132,17 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                                         onClick={() => {
                                                                                             const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                                                                                            const newTextObj: formInputType = {
-                                                                                                fieldType: "input",
-                                                                                                value: ""
+                                                                                            const newTextObj: contactUsComponentType["component"][number]["texts"][number] = {
+                                                                                                type: "html",
+                                                                                                props: {},
+                                                                                                value: "",
                                                                                             }
 
                                                                                             if (seenSectionObj.fieldType === "contactComponent") {
                                                                                                 seenSectionObj.component[eachContactObjIndex].texts = [...seenSectionObj.component[eachContactObjIndex].texts, newTextObj]
                                                                                             }
 
-                                                                                            updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                                                            handleLocalSpecificData(specificData)
                                                                                         }}
                                                                                     >Add text</button>
                                                                                 </>
@@ -160,26 +155,24 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
                                                                             const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
                                                                             if (seenSectionObj.fieldType === "contactComponent") {
-                                                                                const newComponent: contactComponentType["component"][number] = {
+                                                                                const newComponent: contactUsComponentType["component"][number] = {
                                                                                     svg: {
-                                                                                        fieldType: "svg",
-                                                                                        value: '',
-                                                                                        color: "#000"
+                                                                                        type: "html",
+                                                                                        value: "",
+                                                                                        props: {}
                                                                                     },
-                                                                                    texts: [{
-                                                                                        fieldType: "textarea",
-                                                                                        value: ""
-                                                                                    }],
                                                                                     title: {
-                                                                                        fieldType: "input",
-                                                                                        value: ""
+                                                                                        type: "html",
+                                                                                        value: "",
+                                                                                        props: {}
                                                                                     },
+                                                                                    texts: [],
                                                                                 }
 
                                                                                 seenSectionObj.component = [...seenSectionObj.component, newComponent]
                                                                             }
 
-                                                                            updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                                                            handleLocalSpecificData(specificData)
                                                                         }}
                                                                     >Add Contact</button>
                                                                 </div>
@@ -220,105 +213,85 @@ export default function EditSpecificDataForAAAA({ specificData, seenProjectToTem
     )
 }
 
-
-function DisplayFormInfo({ inputKey, inputObj, eachPageKey, eachSectionKey, seenIndex, seenIndex2, specificData, seenProjectToTemplate, updateProjectsToTemplate }: { inputKey: string, inputObj: formInputType, eachPageKey: string, eachSectionKey: string, seenIndex?: number, seenIndex2?: number, specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
+function DisplayFormInfo({ keyPath, inputObj, eachPageKey, eachSectionKey, specificData, seenProjectToTemplate, handleLocalSpecificData, }: { keyPath: string, inputObj: propsObjType, eachPageKey: string, eachSectionKey: string, specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, handleLocalSpecificData: (sentSpecificData: specificDataSwitchType) => Promise<boolean> }) {
+    const keys = keyPath.split("/")
+    const uniqueInputKey = keys[keys.length - 1]
 
     return (
         <div className={styles.formInputCont}>
-            {inputObj.label !== undefined && <label htmlFor={inputKey}>{inputObj.label}</label>}
+            {inputObj.type === "html" ? (
+                <>
+                    {inputObj.inputType === undefined ? (
+                        <input id={uniqueInputKey} type={"text"} name={uniqueInputKey} value={inputObj.value} placeholder={"type your text here"}
+                            onChange={async (e) => {
+                                const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-            {inputObj.fieldType === "input" ? (
-                <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={inputObj.placeHolder ?? "type your text here"}
-                    onChange={(e) => {
-                        const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+                                let newTempSection = seenSectionObj
 
-                        if (seenSectionObj.fieldType === "section") {
-                            seenSectionObj.inputs[inputKey].value = e.target.value
+                                keys.forEach((eachKey, index) => {
+                                    if (index === keys.length - 1) {
+                                        //assign value
+                                        //@ts-expect-error unkown check
+                                        newTempSection[eachKey].value = e.target.value;
 
-                        } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
-                            const seenInputKey = inputKey as keyof contactComponentType["component"][number]
+                                    } else {
+                                        //@ts-expect-error unkown check
+                                        newTempSection = newTempSection[eachKey];
+                                    }
+                                });
 
-                            // set all but text
-                            if (seenInputKey !== "texts") {
-                                seenSectionObj.component[seenIndex][seenInputKey].value = e.target.value
-                            }
+                                handleLocalSpecificData(specificData)
+                            }}
+                        />
+                    ) : inputObj.inputType === "textarea" ? (
+                        <textarea rows={5} id={uniqueInputKey} name={uniqueInputKey} value={inputObj.value} placeholder={"type your text here"}
+                            onChange={async (e) => {
+                                const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                            //set text
-                            if (seenIndex2 !== undefined) {
-                                seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = e.target.value
-                            }
-                        }
+                                let newTempSection = seenSectionObj
 
-                        updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                    }}
-                />
-            ) : inputObj.fieldType === "number" ? (
-                <input id={inputKey} type={"text"} name={inputKey} value={`${inputObj.value}`} placeholder={inputObj.placeHolder ?? "type numbers here"} onChange={(e) => {
-                    let parsedNum = parseFloat(e.target.value)
-                    if (isNaN(parsedNum)) parsedNum = 0
+                                keys.forEach((eachKey, index) => {
+                                    if (index === keys.length - 1) {
+                                        //assign value
+                                        //@ts-expect-error unkown check
+                                        newTempSection[eachKey].value = e.target.value;
 
-                    const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
+                                    } else {
+                                        //@ts-expect-error unkown check
+                                        newTempSection = newTempSection[eachKey];
+                                    }
+                                });
 
-                    if (seenSectionObj.fieldType === "section") {
-                        seenSectionObj.inputs[inputKey].value = parsedNum
-
-                    } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
-                        const seenInputKey = inputKey as keyof contactComponentType["component"][number]
-
-                        // set all but text
-                        if (seenInputKey !== "texts") {
-                            seenSectionObj.component[seenIndex][seenInputKey].value = parsedNum
-                        }
-
-                        if (seenIndex2 !== undefined) {
-                            //set text
-                            seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = parsedNum
-                        }
-                    }
-
-                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-
-                }} />
-
-            ) : inputObj.fieldType === "textarea" ? (
-                <textarea rows={5} id={inputKey} name={inputKey} value={inputObj.value} placeholder={inputObj.placeHolder ?? "type your text here"} onInput={(e) => {
-                    const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
-
-                    //@ts-expect-error value exits on text area
-                    const seenText = e.target.value
-
-                    if (seenSectionObj.fieldType === "section") {
-                        seenSectionObj.inputs[inputKey].value = seenText
-
-                    } else if (seenSectionObj.fieldType === "contactComponent" && seenIndex !== undefined) {
-                        const seenInputKey = inputKey as keyof contactComponentType["component"][number]
-
-                        // set all but text
-                        if (seenInputKey !== "texts") {
-                            seenSectionObj.component[seenIndex][seenInputKey].value = seenText
-                        }
-
-                        if (seenIndex2 !== undefined) {
-                            //set text
-                            seenSectionObj.component[seenIndex]["texts"][seenIndex2].value = seenText
-                        }
-                    }
-
-                    updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
-                }} ></textarea>
-
-            ) : inputObj.fieldType === "image" ? (
+                                handleLocalSpecificData(specificData)
+                            }}
+                        ></textarea>
+                    ) : null}
+                </>
+            ) : inputObj.type === "img" ? (
                 <div style={{ display: "grid", alignContent: "flex-start" }}>
                     {/* upload image */}
-                    <input id={inputKey} type={"text"} name={inputKey} value={inputObj.value} placeholder={"type your image url here"}
-                        onChange={(e) => {
+                    <input id={uniqueInputKey} type={"text"} name={uniqueInputKey} value={inputObj.props.src} placeholder={"type your image url here"}
+                        onChange={async (e) => {
                             const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                            if (seenSectionObj.fieldType === "section") {
-                                seenSectionObj.inputs[inputKey].value = e.target.value
-                            }
+                            let newTempSection = seenSectionObj
 
-                            updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                            keys.forEach((eachKey, index) => {
+                                if (index === keys.length - 1) {
+                                    //assign value
+                                    //@ts-expect-error unkown check
+                                    if (newTempSection[eachKey].type === "img") {
+                                        //@ts-expect-error unkown check
+                                        newTempSection[eachKey].props.src = e.target.value
+                                    }
+
+                                } else {
+                                    //@ts-expect-error unkown check
+                                    newTempSection = newTempSection[eachKey];
+                                }
+                            });
+
+                            handleLocalSpecificData(specificData)
                         }}
                     />
 
@@ -367,7 +340,6 @@ function DisplayFormInfo({ inputKey, inputObj, eachPageKey, eachSectionKey, seen
 
                                 //array of image names
                                 const seenData = await response.json();
-                                console.log(`$seenData.imageNames`, seenData.imageNames);
 
                                 //get the latest project images and upload project
                                 const latestProject = await getSpecificProject({ option: "id", data: { id: seenProjectToTemplate.projectId } })
@@ -392,13 +364,28 @@ function DisplayFormInfo({ inputKey, inputObj, eachPageKey, eachSectionKey, seen
                                 //update the local input
                                 const seenSectionObj = specificData.pages[eachPageKey][eachSectionKey]
 
-                                if (seenSectionObj.fieldType === "section") {
-                                    const newImageUrl = `${uploadedUserImagesStarterUrl}${seenData.imageNames[0]}`
 
-                                    seenSectionObj.inputs[inputKey].value = newImageUrl
-                                }
+                                let newTempSection = seenSectionObj
 
-                                updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                keys.forEach((eachKey, index) => {
+                                    if (index === keys.length - 1) {
+                                        const newImageUrl = `${uploadedUserImagesStarterUrl}${seenData.imageNames[0]}`
+
+                                        //assign value
+                                        //@ts-expect-error unkown check
+                                        if (newTempSection[eachKey].type === "img") {
+                                            //@ts-expect-error unkown check
+                                            newTempSection[eachKey].props.src = newImageUrl
+                                        }
+
+
+                                    } else {
+                                        //@ts-expect-error unkown check
+                                        newTempSection = newTempSection[eachKey];
+                                    }
+                                });
+
+                                await handleLocalSpecificData(specificData)
 
                                 await refreshProjectPath({ id: seenProjectToTemplate.projectId })
 
@@ -408,18 +395,7 @@ function DisplayFormInfo({ inputKey, inputObj, eachPageKey, eachSectionKey, seen
                         }}
                     />
                 </div>
-
-            ) : inputObj.fieldType === "video" ? (
-                <p>video</p>
-
-            ) : inputObj.fieldType === "link" ? (
-                <p>link</p>
-            ) : inputObj.fieldType === "svg" ? (
-                <p>svg</p>
             ) : null}
-
-            {/* will implement soon */}
-            {/* {errors !== undefined && <p style={{ color: "red", fontSize: "var(--smallFontSize)" }}>{errors}</p>} */}
         </div>
     )
 }

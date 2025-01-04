@@ -2,9 +2,9 @@
 import React from 'react'
 import styles from "./style.module.css"
 import { specificDataForAAAAType } from '@/types/templateSpecificDataTypes/aaaaTypes'
-import { projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
+import { specificDataSwitchType } from '@/types'
 
-export default function CustomizeColors({ specificData, seenProjectToTemplate, updateProjectsToTemplate }: { specificData: specificDataForAAAAType, seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void }) {
+export default function CustomizeColors({ specificData, handleLocalSpecificData }: { specificData: specificDataForAAAAType, handleLocalSpecificData: (sentSpecificData: specificDataSwitchType) => Promise<boolean> }) {
 
 
     return (
@@ -32,7 +32,7 @@ export default function CustomizeColors({ specificData, seenProjectToTemplate, u
 
                                             specificData.colors[eachColorTypeKey][eachColorKey] = e.target.value
 
-                                            updateProjectsToTemplate({ option: "specific", id: seenProjectToTemplate.id, data: specificData })
+                                            handleLocalSpecificData(specificData)
                                         }}
                                     />
                                 </div>

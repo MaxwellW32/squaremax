@@ -94,6 +94,7 @@ export type linkedDataType = z.infer<typeof linkedDataSchema>
 //keep specificData synced with respective template - go to specific type e.g specificDataForAAAA to copy the exact schema to the template
 //allows specific data to change based on template
 export const specificDataSwitchSchema = z.union([specificDataForAAAASchema, specificDataForAAABSchema])
+export type specificDataSwitchType = z.infer<typeof specificDataSwitchSchema>
 
 
 //globalFormDataSchema

@@ -2,7 +2,7 @@
 import { globalFormDataSchema, globalFormDataType, projectToTemplatePlusType, projectsToTemplate, updateProjectsToTemplateFunctionType } from '@/types'
 import React, { useRef, useEffect, useState } from 'react'
 
-export default function InteractwithTemplates({ seenProjectToTemplate, updateProjectsToTemplate, updateProjectsToTemplatePlus, width, height, ...elProps }: { seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => void, updateProjectsToTemplatePlus: (id: string, data: Partial<projectToTemplatePlusType["moreInfo"]>) => void, width: number, height: number } & React.HtmlHTMLAttributes<HTMLDivElement>) {
+export default function InteractwithTemplates({ seenProjectToTemplate, updateProjectsToTemplate, updateProjectsToTemplatePlus, width, height, ...elProps }: { seenProjectToTemplate: projectsToTemplate, updateProjectsToTemplate: (choiceObj: updateProjectsToTemplateFunctionType) => Promise<boolean>, updateProjectsToTemplatePlus: (id: string, data: Partial<projectToTemplatePlusType["moreInfo"]>) => void, width: number, height: number } & React.HtmlHTMLAttributes<HTMLDivElement>) {
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
     const [heardBackFromTemplate, heardBackFromTemplateSet] = useState(false)
 
