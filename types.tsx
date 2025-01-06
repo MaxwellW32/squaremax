@@ -2,114 +2,126 @@ import { z } from "zod";
 import { specificDataForAAAASchema } from "./types/templateSpecificDataTypes/aaaaTypes";
 import { specificDataForAAABSchema } from "./types/templateSpecificDataTypes/aaabTypes";
 import { Endpoints } from "@octokit/types";
+import React from "react";
 
-//keep linkedData same on all templates
-// start linked data copy on templates //
-export const testimonialSchema = z.array(z.object({
-    name: z.string(),
-    position: z.string(),
-    photo: z.string(),
-    text: z.string(),
-    rating: z.number(),
-    date: z.string(),
-    links: z.array(z.string()),
-    company: z.string(),
-}))
+// import { LinkProps } from "next/link";
+// const inputTypeSchema = z.enum(["textarea", "number"])
+// export type inputTypeType = z.infer<typeof inputTypeSchema>
 
-export const linkedDataSchema = z.object({
-    siteInfo: z.object({
-        phone: z.string(),
-        address: z.string(),
-        websiteName: z.string().min(1),
-        websiteTitle: z.string(),
-        websiteDescription: z.string(),
-        logo: z.string(),
-        opengraphLogo: z.string(),
-        email: z.string(),
-        workingHours: z.array(z.string()),
-        favicon: z.string(),
-        copyrightInformation: z.string(),
-    }),
-    testimonials: testimonialSchema,
-    team: z.array(z.object({
-        name: z.string(),
-        position: z.string(),
-        photo: z.string(),
-        bio: z.string(),
-        links: z.array(z.string()),
-        email: z.string(),
-        phone: z.string(),
-        skills: z.array(z.string()),
-        achievements: z.array(z.string()),
-    })),
-    products: z.array(z.object({
-        name: z.string(),
-        description: z.string(),
-        price: z.number(),
-        images: z.array(z.string()),
-        sku: z.string(),
-        categories: z.array(z.string()),
-        tags: z.array(z.string()),
-        available: z.boolean(),
-        featured: z.boolean(),
-        discounts: z.string(),
-        ratings: z.number(),
-        productTestimonials: testimonialSchema,
-    })),
-    gallery: z.array(z.object({
-        title: z.string(),
-        description: z.string(),
-        image: z.string(),
-        categories: z.array(z.string()),
-        tags: z.array(z.string()),
-        featured: z.boolean(),
-        date: z.string(),
-        author: z.string(),
-    })),
-    services: z.array(z.object({
-        title: z.string(),
-        description: z.string(),
-        price: z.number(),
-        icon: z.string(),
-        duration: z.string(),
-        tags: z.array(z.string()),
-        callToAction: z.string(),
-        availability: z.string(),
-        serviceTestimonials: testimonialSchema,
-    })),
-    socials: z.array(z.object({
-        platform: z.string(),
-        url: z.string(),
-        icon: z.string(),
-        description: z.string(),
-    })),
+// const htmlAttributesSchema = z.object({
+//     style: z.record(z.string()).optional(),
+//     className: z.string().optional(),
+//     id: z.string().optional(),
+// });
+// export type htmlAttributesType = z.infer<typeof htmlAttributesSchema>
+
+// const imgHTMLAttributesSchema: z.ZodType<React.ImgHTMLAttributes<HTMLImageElement>> = htmlAttributesSchema.extend({
+//     src: z.string().min(1),
+//     alt: z.string(),
+//     priority: z.boolean().optional(),
+//     fill: z.boolean().optional(),
+//     sizes: z.string().optional(),
+//     width: z.union([z.number(), z.string()]).optional(),
+//     height: z.union([z.number(), z.string()]).optional(),
+// });
+
+// const linkHTMLAttributesSchema: z.ZodType<LinkProps> = htmlAttributesSchema.extend({
+//     href: z.string().min(1),
+//     target: z.string().optional(),
+// });
+
+// // Define the union schema for propsObj
+// const propsObjSchema = z.union([
+//     z.object({
+//         type: z.literal("html"),
+//         props: htmlAttributesSchema,
+//         value: z.string(),
+//         inputType: inputTypeSchema.optional()
+//     }),
+//     z.object({
+//         type: z.literal("img"),
+//         props: imgHTMLAttributesSchema,
+//         value: z.literal(""),
+//     }),
+//     z.object({
+//         type: z.literal("link"),
+//         props: linkHTMLAttributesSchema,
+//         value: z.string(),
+//     }),
+// ]);
+
+// export type propsObjSchemaType = z.infer<typeof propsObjSchema>
+
+const navSubMenuItem = z.object({
+    label: z.string(),
+    link: z.string(),
 })
-export type linkedDataType = z.infer<typeof linkedDataSchema>
-// end linked data copy on templates //
-
-
-
-
-
-//keep specificData synced with respective template - go to specific type e.g specificDataForAAAA to copy the exact schema to the template
-//allows specific data to change based on template
-export const specificDataSwitchSchema = z.union([specificDataForAAAASchema, specificDataForAAABSchema])
-export type specificDataSwitchType = z.infer<typeof specificDataSwitchSchema>
-
-
-//globalFormDataSchema
-export const globalFormDataSchema = z.object({
-    specificData: specificDataSwitchSchema,
-    linkedData: linkedDataSchema,
+const navMenuItem = z.object({
+    label: z.string(),
+    link: z.string(),
+    subMenu: z.array(navSubMenuItem).optional()
 })
-export type globalFormDataType = z.infer<typeof globalFormDataSchema>
+export const navBarsSchema = z.object({
+    category: z.literal("navbars"),
+    menu: z.array(navMenuItem),
+})
+export type navBarsType = z.infer<typeof navBarsSchema>
 
 
 
 
 
-// other types
-export type updateProjectsToTemplateFunctionType = { id: string, option: "linked", data: globalFormDataType["linkedData"] } | { id: string, option: "specific", data: globalFormDataType["specificData"] } | { id: string, option: "globalFormData", data: globalFormDataType }
+export const herosSchema = z.object({
+    category: z.literal("heros")
+})
+export type herosType = z.infer<typeof herosSchema>
+
+
+
+
+
+export const containersSchema = z.object({
+    category: z.literal("containers")
+})
+export type containersType = z.infer<typeof containersSchema>
+
+
+
+
+
+export const textElementsSchema = z.object({
+    category: z.literal("textElements")
+})
+export type textElementsType = z.infer<typeof textElementsSchema>
+
+
+
+
+
+export const componentDataSchema = z.union([navBarsSchema, herosSchema, containersSchema, textElementsSchema])
+export type componentDataType = z.infer<typeof componentDataSchema>
+
+
+
+
+// regular types
+export const reactComponentTypeSchema = z.custom<React.ComponentType<{ data: componentDataType }>>((value) => {
+    return (
+        typeof value === "function" || // Functional component or class component
+        (typeof value === "object" && value !== null && "$$typeof" in value)
+    );
+},
+    { message: "Value must be a React ComponentType" }
+);
+export const reactElementSchema = z.custom<React.JSX.Element>(e => (e as any)?.$$typeof === Symbol.for("react.element"), "value must be a React Element")
+
+export type sizeOptionType = {
+    name: string,
+    width: number,
+    height: number,
+    active: boolean,
+    icon: JSX.Element
+}
 
 export const userUploadedImagesSchema = z.array(z.string())
 export type userUploadedImagesType = z.infer<typeof userUploadedImagesSchema>
@@ -138,6 +150,8 @@ export const newGithubRepoSchema = z.object({
 })
 export type newGithubRepoType = z.infer<typeof newGithubRepoSchema> & {}
 
+export const fontsSchema = z.array(z.enum(["poppins", "arial"]))
+export type fontsType = z.infer<typeof fontsSchema>
 
 
 
@@ -166,29 +180,12 @@ export type formInputImageType = {
 }
 export type formInputType = formInputInputType | formInputTextareaType | formInputImageType
 
-export type makeLinkedDataTypeFormInputs<Type> = {
-    [key in keyof Type]: Type[key] extends (infer U)[] // Check if it's an array
-    ? U extends object // If array item is an object
-    ? [{ [SubKey in keyof U]: formInputType }] // Apply formInputType recursively for each object in the array
-    : formInputType[] // If array items are not objects, just apply formInputType[]
-    : Type[key] extends object // If it's an object
-    ? makeLinkedDataTypeFormInputs<Type[key]> // Recurse into the object
-    : formInputType; // Otherwise, just apply formInputType to the value
-};
-export type moreFormInfoType = makeLinkedDataTypeFormInputs<linkedDataType>
-export type formErrorsType = { [key: string]: string }
-
-
-
-
-
-
-
-
-
 
 
 //database types
+//keep synced with db schema
+export const userRoleSchema = z.enum(["admin"])
+
 export const userSchema = z.object({
     id: z.string().min(1),
     userGithubTokens: z.array(z.object({
@@ -197,15 +194,14 @@ export const userSchema = z.object({
         token: z.string().min(1),
         active: z.boolean(),
     })),
-
-    role: z.enum(["admin", "normal"]).nullable(), //keep synced with database enum
+    role: userRoleSchema.nullable(),
     name: z.string().nullable(),
     image: z.string().min(1).nullable(),
     email: z.string().min(1).nullable(),
     emailVerified: z.date().nullable(),
 })
 export type user = z.infer<typeof userSchema> & {
-    projects?: project[]
+    websites?: website[]
 }
 export type newUser = {
 }
@@ -214,48 +210,64 @@ export type newUser = {
 
 
 
-export const projectsSchema = z.object({
+export const websiteSchema = z.object({
     id: z.string().min(1),
-    name: z.string().min(1),
     userId: z.string().min(1),
+    name: z.string().min(1),
+    fonts: fontsSchema,
+    globalCss: z.string(),
 
-    userUploadedImages: userUploadedImagesSchema.nullable()
+    userUploadedImages: userUploadedImagesSchema,
 })
-export type project = z.infer<typeof projectsSchema> & {
+export type website = z.infer<typeof websiteSchema> & {
     fromUser?: user,
-    projectsToTemplates?: projectsToTemplate[]
+    pages?: page[]
 }
-export const newProjectsSchema = projectsSchema.pick({ name: true })
-export type newProject = z.infer<typeof newProjectsSchema>
+export const newWebsiteSchema = websiteSchema.pick({ name: true })
+export type newWebsite = z.infer<typeof newWebsiteSchema>
 
 
 
 
 
-export const templatesSchema = z.object({
+export const pageSchema = z.object({
+    id: z.string().min(1),
+    websiteId: z.string().min(1),
+    name: z.string().min(1),
+})
+export type page = z.infer<typeof pageSchema> & {
+    fromWebsite?: website,
+    pagesToComponents?: pagesToComponent[]
+}
+export const newPageSchema = pageSchema.pick({ name: true })
+export type newPage = z.infer<typeof newPageSchema>
+
+
+
+
+export const componentSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
-    github: z.string().min(1),
-    url: z.string().min(1),
+    categoryId: z.string().min(1),
 })
-export type template = z.infer<typeof templatesSchema> & {
-    templatesToCategories?: templatesToCategory[]
-    templatesToStyles?: templatesToStyle[],
-    projectsToTemplates?: projectsToTemplate[],
+export type component = z.infer<typeof componentSchema> & {
+    componentsToStyles?: componentsToStyle[],
+    pagesToComponents?: pagesToComponent[],
+    category?: category,
 }
-export const newTemplatesSchema = templatesSchema.omit({})
-export type newTemplate = z.infer<typeof newTemplatesSchema>
 
 
-// "selfCare", "portfolio", "ownService", "educational", "hospitality", "media" add later
-export const categoryNameSchema = z.enum(["food", "ecommerce"])
+
+
+//update in db schema
+export const categoryNameSchema = z.enum(["navbars", "heros"])
 export type categoryName = z.infer<typeof categoryNameSchema>
 
 export const categoriesSchema = z.object({
     name: categoryNameSchema,
 })
 export type category = z.infer<typeof categoriesSchema> & {
-    templatesToCategories?: templatesToCategory[]
+    components?: component[]
 }
 
 
@@ -266,55 +278,35 @@ export const stylesSchema = z.object({
     name: z.string().min(1),
 })
 export type style = z.infer<typeof stylesSchema> & {
-    templatesToStyles?: templatesToStyle[]
+    componentsToStyles?: componentsToStyle[]
 }
 
 
 
 
 
-export const projectsToTemplatesSchema = z.object({
+export const pagesToComponentsSchema = z.object({
     id: z.string().min(1),
-    projectId: z.string().min(1),
-    templateId: z.string().min(1),
-    globalFormData: globalFormDataSchema.nullable()
+    pageId: z.string().min(1),
+    componentId: z.string().min(1),
+    css: z.string(),
+
+    data: componentDataSchema.nullable()
 })
-export type projectsToTemplate = z.infer<typeof projectsToTemplatesSchema> & {
-    project?: project
-    template?: template,
-}
-export type projectToTemplatePlusType = projectsToTemplate & {
-    moreInfo: {
-        confirmDelete: boolean,
-        saveState: "saved" | "saving" | null,
-        active: boolean,
-        connected: boolean,
-        showingMoreInfo: boolean
-    }
+export type pagesToComponent = z.infer<typeof pagesToComponentsSchema> & {
+    page?: page,
+    component?: component,
 }
 
 
 
 
 
-export const templatesToCategoriesSchema = z.object({
-    templateId: z.string().min(1),
-    categoryName: z.string().min(1),
-})
-export type templatesToCategory = z.infer<typeof templatesToCategoriesSchema> & {
-    template?: template,
-    category?: category
-}
-
-
-
-
-
-export const templatesToStylesSchema = z.object({
-    templateId: z.string().min(1),
+export const componentsToStylesSchema = z.object({
+    componentId: z.string().min(1),
     styleName: z.string().min(1),
 })
-export type templatesToStyle = z.infer<typeof templatesToStylesSchema> & {
-    template?: template,
+export type componentsToStyle = z.infer<typeof componentsToStylesSchema> & {
+    component?: component,
     style?: style
 }

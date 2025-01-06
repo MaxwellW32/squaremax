@@ -14,17 +14,19 @@ export function consoleAndToastError(error: unknown, userErrorText?: string): vo
 
     if (seenAsZod) {
         // Handle ZodError
+        const seenErr = error as ZodError
         let combinedErrorStr = ""
-        let seenError = error as ZodError
 
-        seenError.issues.forEach((err) => {
+        seenErr.issues.forEach((err) => {
             combinedErrorStr += `${err.message}\n`
         });
 
+        console.log(`$Error"`, seenErr);
         toast.error(userErrorText === undefined ? combinedErrorStr : userErrorText)
     } else {
         // Handle standard JavaScript Error
         const seenErr = error as Error
+
         console.error("$Error", seenErr);
         toast.error(userErrorText === undefined ? seenErr.message : userErrorText)
     }

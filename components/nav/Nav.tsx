@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { auth } from "@/auth/auth"
-import { getProjectsFromUser } from "@/serverFunctions/handleProjects"
-import ViewNavProjects from "../ViewNavProjects"
-import { project } from "@/types"
+import { getWebsitesFromUser } from "@/serverFunctions/handleWebsites"
+import ViewNavWebsites from "../viewNavWebsites"
+import { website } from "@/types"
 import styles from "./styles.module.css"
 import Image from "next/image"
 import logo from "@/public/logo.svg"
@@ -11,9 +11,9 @@ import MoreNavOptions from "../moreNavOptions/MoreNavOptions"
 export default async function Nav() {
     const session = await auth()
 
-    let seenUserProjects: project[] = []
+    let seenUserProjects: website[] = []
     if (session !== null) {
-        seenUserProjects = await getProjectsFromUser()
+        seenUserProjects = await getWebsitesFromUser()
     }
 
     return (
@@ -28,7 +28,7 @@ export default async function Nav() {
                 ) : (
                     <>
                         <li className={styles.menuItem}>
-                            <ViewNavProjects seenUserProjects={seenUserProjects} />
+                            <ViewNavWebsites seenUserWebsites={seenUserProjects} />
                         </li>
 
                         <MoreNavOptions session={session} />
