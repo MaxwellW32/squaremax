@@ -82,8 +82,8 @@
 }
 
 
-.highlightBorder {
-    animation: highlightBorder 1s ease;
+.highlightComponent {
+    animation: highlightComponent 1s ease;
 }
 
 @media only screen and (max-width: 600px) {
@@ -95,13 +95,13 @@
     }
 }
 
-@keyframes highlightBorder {
+@keyframes highlightComponent {
     0% {
-        border: 1px solid orange;
+        filter: brightness(1.1);
     }
 
     100% {
-        border: 1px solid transparent;
+        filter: brightness(1);
     }
 }
 

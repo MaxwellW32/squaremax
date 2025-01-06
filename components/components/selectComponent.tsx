@@ -8,7 +8,7 @@ import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import React, { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function TemplateSelector({ pageIdObj, websiteIdObj }: { pageIdObj: Pick<page, "id">, websiteIdObj: Pick<website, "id"> }) {
+export default function TemplateSelector({ pageIdObj, websiteIdObj, currentIndex }: { pageIdObj: Pick<page, "id">, websiteIdObj: Pick<website, "id">, currentIndex: number }) {
     //receive input
     //search by category
     //save to pagestocomponents the selection
@@ -108,7 +108,9 @@ export default function TemplateSelector({ pageIdObj, websiteIdObj }: { pageIdOb
                                             onClick={async () => {
                                                 try {
                                                     //add to pagesToComponents
-                                                    await addComponentToPage({ id: pageIdObj.id }, { id: eachComponent.id })
+                                                    await addComponentToPage({ id: pageIdObj.id }, { id: eachComponent.id }, {
+                                                        indexOnPage: currentIndex + 1
+                                                    })
 
                                                     await refreshWebsitePath({ id: websiteIdObj.id })
 

@@ -13,11 +13,6 @@ import { updateWebsite } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
-    //dynamic selection...
-    //dynamic read css from folder...
-    //edit and build components elsewhere
-    //add components / update em via form
-
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState(false)
 
@@ -60,6 +55,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const [activePageIndex, activePageIndexSet] = useState<number>(0)
     const [addingPage, addingPageSet] = useState(false)
     const [editingGlobalStyle, editingGlobalStyleSet] = useState(false)
+    const [buildComponentCheck, buildComponentCheckSet] = useState(false)
 
     const [activePagesToComponentId, activePagesToComponentIdSet] = useState<pagesToComponent["id"]>("")
     const activePagesToComponent = useMemo<pagesToComponent | undefined>(() => {
@@ -75,7 +71,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     }, [websiteObj.pages?.[activePageIndex]?.pagesToComponents, activePagesToComponentId])
 
-    const [renderedComponentsObj, renderedComponentsObjSet] = useState<{
+    const renderedComponentsObj = useRef<{
         [key: string]: React.ComponentType<{
             data: componentDataType;
         }>
@@ -92,6 +88,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                 websiteObjSet(builtWebsite)
 
+                buildComponentCheckSet(true)
+
             } catch (error) {
                 console.log(`$error`, error);
             }
@@ -102,15 +100,19 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     //save website to server on pagesToComponents change
     useEffect(() => {
-        if (websiteObj.pages === undefined) return
-        if (websiteObj.pages[activePageIndex] === undefined) return
-        if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return
-
         console.log(`$changing pagesToComponents on server useeffect`);
 
-        websiteObj.pages[activePageIndex].pagesToComponents.forEach(eachPageToComponent => {
-            handleUpdateComponentInPage({ id: eachPageToComponent.id, css: eachPageToComponent.css, data: eachPageToComponent.data })
-        })
+        if (updatePagesToComponentDebounce.current) clearTimeout(updatePagesToComponentDebounce.current)
+
+        updatePagesToComponentDebounce.current = setTimeout(async () => {
+            if (websiteObj.pages === undefined) return
+            if (websiteObj.pages[activePageIndex] === undefined) return
+            if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return
+
+            websiteObj.pages[activePageIndex].pagesToComponents.forEach((eachPageToComponent, eachPageToComponentIndex) => {
+                handleUpdateComponentInPage({ ...eachPageToComponent, indexOnPage: eachPageToComponentIndex })
+            })
+        }, 3000)
 
     }, [websiteObj.pages?.[activePageIndex]?.pagesToComponents])
 
@@ -151,6 +153,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }
 
     async function buildComponentsOnPage(sentWebsite: website): Promise<website> {
+        buildComponentCheckSet(false)
+
         if (sentWebsite.pages === undefined) throw new Error("pages undefined")
 
         if (sentWebsite.pages[activePageIndex] === undefined) throw new Error("page not in index")
@@ -163,6 +167,12 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             }>
         } = {}
 
+        //sort by index
+        sentWebsite.pages[activePageIndex].pagesToComponents =
+            sentWebsite.pages[activePageIndex].pagesToComponents.sort(
+                (a, b) => a.indexOnPage - b.indexOnPage
+            );
+
         //on this active page wait to build all components
         sentWebsite.pages[activePageIndex].pagesToComponents = await Promise.all(
             sentWebsite.pages[activePageIndex].pagesToComponents.map(async eachPageToComponent => {
@@ -171,13 +181,16 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 //assign default props onto component in page if nothing there
                 if (eachPageToComponent.data === null) {
                     eachPageToComponent.data = getStarterComponentProps(eachPageToComponent.component.category.name)
+
+                    console.log(`$ran props`);
+                    console.log(`$ eachPageToComponent.data`, eachPageToComponent.data);
                 }
 
                 const seenResponse = await globalDynamicComponents(eachPageToComponent.component.id)
 
                 //assign builds to page
                 if (seenResponse !== undefined) {
-                    newRenderedComponentsObj[eachPageToComponent.id] = seenResponse()
+                    newRenderedComponentsObj[eachPageToComponent.component.id] = seenResponse()
 
                 } else {
                     console.log(`$woops element component id not found`, eachPageToComponent.component.id);
@@ -186,7 +199,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 return eachPageToComponent
             }))
 
-        renderedComponentsObjSet(newRenderedComponentsObj)
+        renderedComponentsObj.current = newRenderedComponentsObj
 
         return deepClone(sentWebsite)
     }
@@ -214,7 +227,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             },
             heros: {
                 category: "heros"
-            }
+            },
+            containers: {
+                category: "containers",
+                children: [
+                    <div key={0} style={{ backgroundColor: "green" }}>sup there this is children text up</div>
+                ]
+            },
         }
 
         if (defaultProps[categoryName] === undefined) throw new Error("no seeing props for category name")
@@ -222,22 +241,15 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         return defaultProps[categoryName]
     }
 
+    async function handleUpdateComponentInPage(updateObj: Partial<pagesToComponent>) {
+        try {
+            await updateComponentInPage({ ...updateObj })
 
-    async function handleUpdateComponentInPage(updateObj: Pick<pagesToComponent, "id" | "css" | "data">) {
-        if (updatePagesToComponentDebounce.current) clearTimeout(updatePagesToComponentDebounce.current)
+            console.log(`$saved pagesToComponent to db`);
 
-        updatePagesToComponentDebounce.current = setTimeout(async () => {
-            try {
-                pagesToComponentsSchema.partial().parse(updateObj)
-
-                await updateComponentInPage({ ...updateObj })
-
-                console.log(`$saved pagesToComponent to db`);
-
-            } catch (error) {
-                consoleAndToastError(error)
-            }
-        }, 3000);
+        } catch (error) {
+            consoleAndToastError(error)
+        }
     }
 
     async function handleWebsiteUpdate(updateObj: Partial<website>) {
@@ -275,6 +287,151 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
             return newWebsite
         })
+    }
+
+    // function RenderComponentTree({ componentOnPage }: { componentOnPage: pagesToComponent, }) {
+    //     // Get the React component from the `renderedComponentsObj` using the current component's ID.
+    //     const ComponentToRender = renderedComponentsObj.current[componentOnPage.componentId];
+
+    //     if (ComponentToRender === undefined) {
+    //         console.error(
+    //             `Component with ID ${componentOnPage.componentId} is not in renderedComponentsObj.`
+    //             , renderedComponentsObj.current);
+    //         return null;
+    //     }
+
+    //     if (componentOnPage.data === null) {
+    //         console.log(`$no data in component`, componentOnPage);
+    //         return null
+    //     }
+
+    //     const scopedClass = `canvas-${componentOnPage.id}`;
+    //     const scopedCss = addScopeToCSS(componentOnPage.css, scopedClass)
+
+    //     let newJSX: React.JSX.Element | null = null
+
+    //     const compPageData = componentOnPage.data
+
+    //     //handle recursion
+    //     if (componentOnPage.children.length > 0) {
+    //         componentOnPage.children.map((childComponentOnPage) => {
+    //             if (websiteObj.pages === undefined) return null
+
+    //             if (websiteObj.pages[activePageIndex] === undefined) return null
+
+    //             if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return null
+
+    //             const foundPagesToComponent = websiteObj.pages[activePageIndex].pagesToComponents.find(eachPageToComponentFind => eachPageToComponentFind.id === childComponentOnPage.pagesToComponentsId)
+    //             if (foundPagesToComponent === undefined) {
+    //                 console.log(`$woops didn't find the id`, childComponentOnPage.pagesToComponentsId);
+    //                 return null
+    //             }
+
+    //             newJSX = (
+    //                 <>
+    //                     {newJSX}
+
+    //                     <RenderComponentTree componentOnPage={foundPagesToComponent} />
+    //                 </>
+    //             )
+    //         })
+
+    //         if (newJSX !== null) {
+    //             if (compPageData.category === "containers") {
+    //                 compPageData.children = newJSX
+    //             }
+    //         }
+    //     }
+
+    //     return (
+    //         <div className={`${scopedClass}`}
+    //             onMouseEnter={(e) => {
+    //                 activePagesToComponentIdSet(componentOnPage.id)
+
+    //                 const seenEl = e.currentTarget as HTMLElement
+
+    //                 seenEl.classList.add(styles.highlightComponent)
+
+    //                 setTimeout(() => {
+    //                     seenEl.classList.remove(styles.highlightComponent)
+    //                 }, 1000);
+    //             }}
+    //         >
+    //             <style>{scopedCss}</style>
+
+    //             {/* Render the main component */}
+    //             <ComponentToRender data={componentOnPage.data} />
+    //         </div>
+    //     );
+
+    // }
+
+    function RenderComponentTree({ componentOnPage }: { componentOnPage: pagesToComponent }) {
+        const ComponentToRender = renderedComponentsObj.current[componentOnPage.componentId];
+
+        if (ComponentToRender === undefined) {
+            console.error(
+                `Component with ID ${componentOnPage.componentId} is not in renderedComponentsObj.`,
+                renderedComponentsObj.current
+            );
+            return null;
+        }
+
+        if (componentOnPage.data === null) {
+            console.log(`No data in component`, componentOnPage);
+            return null;
+        }
+
+        const scopedClass = `canvas-${componentOnPage.id}`;
+        const scopedCss = addScopeToCSS(componentOnPage.css, scopedClass);
+
+        // Recursively render child components
+        const childJSX = componentOnPage.children.map((childComponentOnPage) => {
+            if (!websiteObj.pages?.[activePageIndex]?.pagesToComponents) return null;
+
+            const foundPagesToComponent = websiteObj.pages[activePageIndex].pagesToComponents.find(
+                (eachPageToComponent) => eachPageToComponent.id === childComponentOnPage.pagesToComponentsId
+            );
+
+            if (!foundPagesToComponent) {
+                console.log(`Couldn't find component with ID`, childComponentOnPage.pagesToComponentsId);
+                return null;
+            }
+
+            return <RenderComponentTree key={foundPagesToComponent.id} componentOnPage={foundPagesToComponent} />;
+        }).filter(each => each !== null);
+
+        // If the component is a container, pass children as a prop
+        const componentProps = componentOnPage.data
+        console.log(`$componentOnPage.data`, componentOnPage.data);
+
+        if (childJSX.length > 0) {
+            if (componentProps.category === "containers") {
+                componentProps.children = childJSX
+            }
+
+        }
+
+        return (
+            <div
+                className={`${scopedClass}`}
+                onMouseEnter={(e) => {
+                    activePagesToComponentIdSet(componentOnPage.id);
+
+                    const seenEl = e.currentTarget as HTMLElement;
+                    seenEl.classList.add(styles.highlightComponent);
+
+                    setTimeout(() => {
+                        seenEl.classList.remove(styles.highlightComponent);
+                    }, 1000);
+                }}
+            >
+                <style>{scopedCss}</style>
+
+                {/* Render the main component with injected props */}
+                <ComponentToRender data={componentProps} />
+            </div>
+        );
     }
 
     return (
@@ -325,52 +482,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 <div ref={middleBarContentContRef} className={styles.middleBarContentCont}>
                     {activeSizeOption !== undefined && (
                         <div ref={canvasRef} className={styles.canvas} style={{ width: fit ? middleBarContentContRef.current?.clientWidth : activeSizeOption.width, height: fit ? middleBarContentContRef.current?.clientHeight : activeSizeOption.height, scale: fit ? 1 : canvasScale }}>
-                            {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && (
+                            {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && buildComponentCheck && (
                                 <>
                                     <style>{addScopeToCSS(websiteObj.globalCss, styles.canvas)}</style>
 
-                                    {websiteObj.pages[activePageIndex].pagesToComponents !== undefined && websiteObj.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
-                                        //all components on the page
-
-                                        if (eachPageToComponent.component == undefined) {
-                                            console.log(`$no component detected`);
-                                            return null
-                                        }
-
-                                        if (eachPageToComponent.data === null) {
-                                            console.log(`$not seeing data`);
-                                            return null
-                                        }
-
-                                        const scopedClass = `canvas-${eachPageToComponent.id}`;
-                                        const scopedCss = addScopeToCSS(eachPageToComponent.css, scopedClass)
-
-                                        if (renderedComponentsObj[eachPageToComponent.id] === undefined) {
-                                            console.log(`$rendered obj undefined`);
-                                            return null
-                                        }
-
-                                        const RenderedComponent = renderedComponentsObj[eachPageToComponent.id]
-
-                                        //put event listeners here for each component container
+                                    {websiteObj.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
                                         return (
-                                            <div key={eachPageToComponent.id} className={`${scopedClass}`}
-                                                onMouseEnter={(e) => {
-                                                    activePagesToComponentIdSet(eachPageToComponent.id)
-
-                                                    const seenEl = e.currentTarget as HTMLElement
-
-                                                    seenEl.classList.add(styles.highlightBorder)
-
-                                                    setTimeout(() => {
-                                                        seenEl.classList.remove(styles.highlightBorder)
-                                                    }, 1000);
-                                                }}
-                                            >
-                                                <style>{scopedCss}</style>
-
-                                                <RenderedComponent data={eachPageToComponent.data} />
-                                            </div>
+                                            <RenderComponentTree key={eachPageToComponent.id} componentOnPage={eachPageToComponent} />
                                         )
                                     })}
                                 </>
@@ -422,8 +540,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         <AddPage websiteIdObj={{ id: websiteObj.id }} />
                     </div>
 
-                    {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && (
-                        <SelectComponent pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} />
+                    {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
+                        <SelectComponent pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
                     )}
                 </div>
 

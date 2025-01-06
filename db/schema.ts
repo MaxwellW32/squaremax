@@ -1,6 +1,6 @@
-import { componentDataType, fontsType, user, userUploadedImagesType } from "@/types";
+import { childComponentType, componentDataType, fontsType, user, userUploadedImagesType } from "@/types";
 import { relations } from "drizzle-orm";
-import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
+import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 // typeof users.$inferSelect;
 // typeof users.$inferInsert 
@@ -91,11 +91,10 @@ export const componentsRelations = relations(components, ({ one, many }) => ({
 
 
 
-// take from types array
-export const categoryEnum = pgEnum("name", ["navbars", "heros"]);
+
 
 export const categories = pgTable("categories", {
-    name: categoryEnum().notNull().unique(),
+    name: varchar("name", { length: 255 }).notNull().unique(),
 })
 export const categoriesRelations = relations(categories, ({ many }) => ({
     components: many(components),
@@ -121,6 +120,9 @@ export const pagesToComponents = pgTable('pagesToComponents', {
     pageId: varchar("pageId", { length: 255 }).notNull().references(() => pages.id),
     componentId: varchar("componentId", { length: 255 }).notNull().references(() => components.id),
     css: text("css").default("").notNull(),
+
+    indexOnPage: integer("indexOnPage").notNull(),
+    children: json("children").$type<childComponentType[]>().default([]).notNull(),
 
     data: json("data").$type<componentDataType | null>().default(null),
 }, (t) => ({

@@ -49,6 +49,27 @@ import React from "react";
 // ]);
 
 // export type propsObjSchemaType = z.infer<typeof propsObjSchema>
+export const reactComponentTypeSchema = z.custom<React.ComponentType<{ data: componentDataType }>>((value) => {
+    return (
+        typeof value === "function" || // Functional component or class component
+        (typeof value === "object" && value !== null && "$$typeof" in value)
+    );
+},
+    { message: "Value must be a React ComponentType" }
+);
+export const reactElementSchema = z.custom<React.JSX.Element>(e => (e as any)?.$$typeof === Symbol.for("react.element"), "value must be a React Element")
+
+export type sizeOptionType = {
+    name: string,
+    width: number,
+    height: number,
+    active: boolean,
+    icon: JSX.Element
+}
+
+
+
+
 
 const navSubMenuItem = z.object({
     label: z.string(),
@@ -79,7 +100,8 @@ export type herosType = z.infer<typeof herosSchema>
 
 
 export const containersSchema = z.object({
-    category: z.literal("containers")
+    category: z.literal("containers"),
+    children: z.array(reactElementSchema),
 })
 export type containersType = z.infer<typeof containersSchema>
 
@@ -103,24 +125,6 @@ export type componentDataType = z.infer<typeof componentDataSchema>
 
 
 // regular types
-export const reactComponentTypeSchema = z.custom<React.ComponentType<{ data: componentDataType }>>((value) => {
-    return (
-        typeof value === "function" || // Functional component or class component
-        (typeof value === "object" && value !== null && "$$typeof" in value)
-    );
-},
-    { message: "Value must be a React ComponentType" }
-);
-export const reactElementSchema = z.custom<React.JSX.Element>(e => (e as any)?.$$typeof === Symbol.for("react.element"), "value must be a React Element")
-
-export type sizeOptionType = {
-    name: string,
-    width: number,
-    height: number,
-    active: boolean,
-    icon: JSX.Element
-}
-
 export const userUploadedImagesSchema = z.array(z.string())
 export type userUploadedImagesType = z.infer<typeof userUploadedImagesSchema>
 
@@ -257,8 +261,7 @@ export type component = z.infer<typeof componentSchema> & {
 
 
 
-//update in db schema
-export const categoryNameSchema = z.enum(["navbars", "heros"])
+export const categoryNameSchema = z.enum(["navbars", "heros", "containers"])
 export type categoryName = z.infer<typeof categoryNameSchema>
 
 export const categoriesSchema = z.object({
@@ -283,11 +286,20 @@ export type style = z.infer<typeof stylesSchema> & {
 
 
 
+export const childComponentSchema = z.object({ pagesToComponentsId: z.string() })
+export type childComponentType = z.infer<typeof childComponentSchema>
+
+
+
+
+
 export const pagesToComponentsSchema = z.object({
     id: z.string().min(1),
     pageId: z.string().min(1),
     componentId: z.string().min(1),
     css: z.string(),
+    indexOnPage: z.number(),
+    children: z.array(childComponentSchema),
 
     data: componentDataSchema.nullable()
 })
@@ -308,3 +320,9 @@ export type componentsToStyle = z.infer<typeof componentsToStylesSchema> & {
     component?: component,
     style?: style
 }
+
+
+
+
+
+
