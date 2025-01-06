@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { specificDataForAAAASchema } from "./types/templateSpecificDataTypes/aaaaTypes";
-import { specificDataForAAABSchema } from "./types/templateSpecificDataTypes/aaabTypes";
 import { Endpoints } from "@octokit/types";
 import React from "react";
 

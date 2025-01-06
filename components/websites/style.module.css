@@ -64,6 +64,7 @@
 .sideBar {
     display: grid;
     align-content: flex-start;
+    grid-template-rows: auto 1fr;
     width: min(350px, 100vw);
     background-color: aliceblue;
     overflow-y: auto;
@@ -81,6 +82,9 @@
 }
 
 
+.highlightBorder {
+    animation: highlightBorder 1s ease;
+}
 
 @media only screen and (max-width: 600px) {
     .sideBar {
@@ -89,6 +93,24 @@
         bottom: 0;
         right: 0;
     }
+}
+
+@keyframes highlightBorder {
+    0% {
+        border: 1px solid orange;
+    }
+
+    100% {
+        border: 1px solid transparent;
+    }
+}
+
+
+
+.styleEditor {
+    background-color: antiquewhite;
+    color: rgb(var(--shade1));
+    min-height: 150px;
 }
 
 

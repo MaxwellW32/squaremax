@@ -2,15 +2,21 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
 import { addScopeToCSS } from '@/utility/css'
-import { categoryName, componentDataType, sizeOptionType, website } from '@/types'
+import { categoryName, componentDataType, pagesToComponent, pagesToComponentsSchema, sizeOptionType, website, websiteSchema } from '@/types'
 import { deepClone } from '@/utility/utility'
 import AddPage from '../pages/addPage'
 import SelectComponent from '../components/selectComponent'
 import globalDynamicComponents from '@/utility/globalComponents'
+import { updateComponentInPage } from '@/serverFunctions/handlePagesToComponents'
+import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { updateWebsite } from '@/serverFunctions/handleWebsites'
+import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
-    //dynamic read css from folder
+    //dynamic selection...
+    //dynamic read css from folder...
     //edit and build components elsewhere
+    //add components / update em via form
 
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState(false)
@@ -53,14 +59,30 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     const [activePageIndex, activePageIndexSet] = useState<number>(0)
     const [addingPage, addingPageSet] = useState(false)
+    const [editingGlobalStyle, editingGlobalStyleSet] = useState(false)
 
-    // const [activePagesToComponentId, activePagesToComponentSetId] = useState<pagesToComponent["id"] | null>(null)
+    const [activePagesToComponentId, activePagesToComponentIdSet] = useState<pagesToComponent["id"]>("")
+    const activePagesToComponent = useMemo<pagesToComponent | undefined>(() => {
+        if (websiteObj.pages === undefined) return undefined
+
+        if (websiteObj.pages[activePageIndex] === undefined) return undefined
+
+        if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return undefined
+
+        const foundPagesToComponent = websiteObj.pages[activePageIndex].pagesToComponents.find(eachPageToComponent => eachPageToComponent.id === activePagesToComponentId)
+
+        return foundPagesToComponent
+
+    }, [websiteObj.pages?.[activePageIndex]?.pagesToComponents, activePagesToComponentId])
 
     const [renderedComponentsObj, renderedComponentsObjSet] = useState<{
         [key: string]: React.ComponentType<{
             data: componentDataType;
         }>
     }>({})
+
+    const updatePagesToComponentDebounce = useRef<NodeJS.Timeout>()
+    const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
 
     // respond to server changes 
     useEffect(() => {
@@ -76,7 +98,29 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
 
         runAction()
-    }, [websiteFromServer, activePageIndex])
+    }, [websiteFromServer])
+
+    //save website to server on pagesToComponents change
+    useEffect(() => {
+        if (websiteObj.pages === undefined) return
+        if (websiteObj.pages[activePageIndex] === undefined) return
+        if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return
+
+        console.log(`$changing pagesToComponents on server useeffect`);
+
+        websiteObj.pages[activePageIndex].pagesToComponents.forEach(eachPageToComponent => {
+            handleUpdateComponentInPage({ id: eachPageToComponent.id, css: eachPageToComponent.css, data: eachPageToComponent.data })
+        })
+
+    }, [websiteObj.pages?.[activePageIndex]?.pagesToComponents])
+
+    //save website to server on change
+    useEffect(() => {
+        handleWebsiteUpdate({ ...websiteObj })
+
+        console.log(`$changing websiteobj on server useeffect`);
+
+    }, [websiteObj])
 
     //calculate fit on device size change
     useEffect(() => {
@@ -178,6 +222,61 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         return defaultProps[categoryName]
     }
 
+
+    async function handleUpdateComponentInPage(updateObj: Pick<pagesToComponent, "id" | "css" | "data">) {
+        if (updatePagesToComponentDebounce.current) clearTimeout(updatePagesToComponentDebounce.current)
+
+        updatePagesToComponentDebounce.current = setTimeout(async () => {
+            try {
+                pagesToComponentsSchema.partial().parse(updateObj)
+
+                await updateComponentInPage({ ...updateObj })
+
+                console.log(`$saved pagesToComponent to db`);
+
+            } catch (error) {
+                consoleAndToastError(error)
+            }
+        }, 3000);
+    }
+
+    async function handleWebsiteUpdate(updateObj: Partial<website>) {
+        if (updateWebsiteDebounce.current) clearTimeout(updateWebsiteDebounce.current)
+
+        updateWebsiteDebounce.current = setTimeout(async () => {
+            try {
+                websiteSchema.partial().parse(updateObj)
+
+                await updateWebsite({ ...updateObj })
+
+                console.log(`$saved website to db`);
+
+            } catch (error) {
+                consoleAndToastError(error)
+            }
+        }, 3000);
+    }
+
+    function handlePropsChange(newPropsObj: componentDataType, seenComponentInPage: pagesToComponent) {
+
+        websiteObjSet(prevWebsite => {
+            const newWebsite = { ...prevWebsite }
+            if (newWebsite.pages === undefined) return prevWebsite
+            if (newWebsite.pages[activePageIndex] === undefined) return prevWebsite
+            if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return prevWebsite
+
+            newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
+                if (eachPageToComponent.id === seenComponentInPage.id && seenComponentInPage.data !== null && seenComponentInPage.data.category === newPropsObj.category) {//ensure data is for correct component category
+                    eachPageToComponent.data = newPropsObj
+                }
+
+                return eachPageToComponent
+            })
+
+            return newWebsite
+        })
+    }
+
     return (
         <main className={styles.main}>
             <div className={styles.middleBar}>
@@ -253,9 +352,21 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                                         const RenderedComponent = renderedComponentsObj[eachPageToComponent.id]
 
-                                        //put event listeners here for each component
+                                        //put event listeners here for each component container
                                         return (
-                                            <div key={eachPageToComponent.id} className={`${scopedClass}`}>
+                                            <div key={eachPageToComponent.id} className={`${scopedClass}`}
+                                                onMouseEnter={(e) => {
+                                                    activePagesToComponentIdSet(eachPageToComponent.id)
+
+                                                    const seenEl = e.currentTarget as HTMLElement
+
+                                                    seenEl.classList.add(styles.highlightBorder)
+
+                                                    setTimeout(() => {
+                                                        seenEl.classList.remove(styles.highlightBorder)
+                                                    }, 1000);
+                                                }}
+                                            >
                                                 <style>{scopedCss}</style>
 
                                                 <RenderedComponent data={eachPageToComponent.data} />
@@ -272,47 +383,102 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             </div>
 
             <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}>
-                <div style={{ display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
-                    <button className='secondaryButton'
-                        onClick={() => {
-                            showingSideBarSet(false)
-                        }}
-                    >close</button>
+                <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
+                    <div style={{ display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
+                        <button className='secondaryButton'
+                            onClick={() => {
+                                showingSideBarSet(false)
+                            }}
+                        >close</button>
 
-                    <button className='secondaryButton'
+                        <button className='secondaryButton'
+                            onClick={() => {
+                                dimSideBarSet(prev => !prev)
+                            }}
+                        >{dimSideBar ? "full" : "dim"}</button>
+                    </div>
+
+                    {websiteObj.pages !== undefined && (
+                        <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
+                            {websiteObj.pages.map((eachPage, eachPageIndex) => {
+                                return (
+                                    <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPageIndex === activePageIndex ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
+                                        onClick={() => {
+                                            activePageIndexSet(eachPageIndex)
+                                        }}
+                                    >{eachPage.name}</button>
+                                )
+                            })}
+                        </ul>
+                    )}
+
+                    <button className='mainButton'
                         onClick={() => {
-                            dimSideBarSet(prev => !prev)
+                            addingPageSet(prev => !prev)
                         }}
-                    >{dimSideBar ? "full" : "dim"}</button>
+                    >{addingPage ? "close" : "add page"}</button>
+
+                    <div style={{ display: addingPage ? "" : "none" }}>
+                        <AddPage websiteIdObj={{ id: websiteObj.id }} />
+                    </div>
+
+                    {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && (
+                        <SelectComponent pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} />
+                    )}
                 </div>
 
-                {websiteObj.pages !== undefined && (
-                    <ul style={{ display: "flex", overflowX: "auto" }}>
-                        {websiteObj.pages.map((eachPage, eachPageIndex) => {
-                            return (
-                                <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPageIndex === activePageIndex ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
-                                    onClick={() => {
-                                        activePageIndexSet(eachPageIndex)
-                                    }}
-                                >{eachPage.name}</button>
-                            )
-                        })}
-                    </ul>
-                )}
+                <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
+                    <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                        onClick={() => { editingGlobalStyleSet(prev => !prev) }}
+                    >{editingGlobalStyle ? "close" : "open"} global styles</button>
 
-                <button className='mainButton'
-                    onClick={() => {
-                        addingPageSet(prev => !prev)
-                    }}
-                >{addingPage ? "close" : "add page"}</button>
+                    {editingGlobalStyle && (
+                        <>
+                            <p>global styles</p>
 
-                <div style={{ display: addingPage ? "" : "none" }}>
-                    <AddPage websiteIdObj={{ id: websiteObj.id }} />
+                            <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
+                                onChange={(e) => {
+                                    websiteObjSet(prevWebsite => {
+                                        const newWebsite = { ...prevWebsite }
+
+                                        newWebsite.globalCss = e.target.value
+
+                                        return newWebsite
+                                    })
+                                }}
+                            />
+                        </>
+                    )}
+
+                    {activePagesToComponent !== undefined && (
+                        <>
+                            <p>styling</p>
+                            <textarea rows={5} value={activePagesToComponent.css} className={styles.styleEditor}
+                                onChange={(e) => {
+                                    websiteObjSet(prevWebsite => {
+                                        const newWebsite = { ...prevWebsite }
+                                        if (newWebsite.pages === undefined) return prevWebsite
+                                        if (newWebsite.pages[activePageIndex] === undefined) return prevWebsite
+                                        if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return prevWebsite
+
+                                        newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
+                                            if (eachPageToComponent.id === activePagesToComponent.id) {
+                                                eachPageToComponent.css = e.target.value
+                                            }
+
+                                            return eachPageToComponent
+                                        })
+
+                                        return newWebsite
+                                    })
+                                }}
+                            />
+
+                            <p>props</p>
+                            <ComponentDataSwitch activePagesToComponent={activePagesToComponent} handlePropsChange={handlePropsChange} />
+                        </>
+                    )}
                 </div>
-
-                {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && (
-                    <SelectComponent pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} />
-                )}
             </div>
         </main>
     )

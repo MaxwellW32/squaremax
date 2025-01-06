@@ -76,7 +76,7 @@ export const pageRelations = relations(pages, ({ one, many }) => ({
 
 
 export const components = pgTable("components", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//where you find it
     name: varchar("name", { length: 255 }).notNull().unique(),
     categoryId: varchar("categoryId", { length: 255 }).notNull().references(() => categories.name),
 })
