@@ -79,6 +79,7 @@ export const components = pgTable("components", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//where you find it
     name: varchar("name", { length: 255 }).notNull().unique(),
     categoryId: varchar("categoryId", { length: 255 }).notNull().references(() => categories.name),
+    defaultCss: text("defaultCss").default("").notNull(),
 })
 export const componentsRelations = relations(components, ({ one, many }) => ({
     componentsToStyles: many(componentsToStyles),
@@ -123,6 +124,7 @@ export const pagesToComponents = pgTable('pagesToComponents', {
 
     indexOnPage: integer("indexOnPage").notNull(),
     children: json("children").$type<childComponentType[]>().default([]).notNull(),
+    isBase: boolean("isBase").default(true).notNull(),
 
     data: json("data").$type<componentDataType | null>().default(null),
 }, (t) => ({

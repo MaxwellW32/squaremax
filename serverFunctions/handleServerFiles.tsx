@@ -19,3 +19,13 @@ export async function checkIfFileExists(filePath: string) {
         }
     }
 }
+
+// export async function getStarterComponentCss(componentId: component["id"]): Promise<string> {
+//     const filePath = path.join("userWebsiteComponents", componentId, "page.css")
+
+//     const fileExists = await checkIfFileExists(filePath)
+//     if (!fileExists) return ""
+
+//     const fileContents = await fs.readFile(filePath, { encoding: "utf-8" })
+//     return fileContents
+// }

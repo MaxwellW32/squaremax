@@ -5,18 +5,20 @@ import { pagesToComponent, pagesToComponentsSchema, component, componentSchema, 
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
 
-export async function addComponentToPage(pageObj: Pick<page, "id">, componentObj: Pick<component, "id">, pagesToComponentObj: Pick<pagesToComponent, "indexOnPage">) {
+export async function addComponentToPage(pageObj: Pick<page, "id">, componentObj: Pick<component, "id">, pagesToComponentObj: Pick<pagesToComponent, "indexOnPage">): Promise<pagesToComponent> {
     await sessionCheckWithError()
 
     pageSchema.pick({ id: true }).parse(pageObj)
     componentSchema.pick({ id: true }).parse(componentObj)
     pagesToComponentsSchema.pick({ indexOnPage: true }).parse(pagesToComponentObj)
 
-    await db.insert(pagesToComponents).values({
+    const result = await db.insert(pagesToComponents).values({
         pageId: pageObj.id,
         componentId: componentObj.id,
         ...pagesToComponentObj
-    })
+    }).returning()
+
+    return result[0]
 }
 
 export async function updateComponentInPage(pagesToComponentObj: Partial<pagesToComponent>) {
@@ -25,7 +27,7 @@ export async function updateComponentInPage(pagesToComponentObj: Partial<pagesTo
     //add security validation
 
     //things clients can actually update
-    const validatedData = pagesToComponentsSchema.pick({ id: true, css: true, data: true, indexOnPage: true }).parse(pagesToComponentObj)
+    const validatedData = pagesToComponentsSchema.pick({ id: true, css: true, data: true, indexOnPage: true, children: true }).parse(pagesToComponentObj)
 
     await db.update(pagesToComponents)
         .set({

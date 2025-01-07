@@ -1,14 +1,15 @@
 "use client"
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getComponents } from '@/serverFunctions/handleComponents'
-import { addComponentToPage } from '@/serverFunctions/handlePagesToComponents'
+import { addComponentToPage, updateComponentInPage } from '@/serverFunctions/handlePagesToComponents'
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { category, categoryName, component, page, website } from '@/types'
+import { category, categoryName, childComponentType, component, page, pagesToComponent, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { sanitizeDataInPageComponent } from '@/utility/utility'
 import React, { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function TemplateSelector({ pageIdObj, websiteIdObj, currentIndex }: { pageIdObj: Pick<page, "id">, websiteIdObj: Pick<website, "id">, currentIndex: number }) {
+export default function ComponentSelector({ pageIdObj, websiteIdObj, currentIndex, parentComponent }: { pageIdObj: Pick<page, "id">, websiteIdObj: Pick<website, "id">, currentIndex: number, parentComponent?: pagesToComponent }) {
     //receive input
     //search by category
     //save to pagestocomponents the selection
@@ -48,10 +49,15 @@ export default function TemplateSelector({ pageIdObj, websiteIdObj, currentIndex
         }
     }
 
+    //make custom function that sends the data upwards
+
     return (
         <div>
             <button className='mainButton'
-                onClick={() => { userInteractingSet(prev => !prev) }}
+                onClick={() => {
+                    userInteractingSet(prev => !prev)
+
+                }}
             >{userInteracting ? "close" : "Add a template"}</button>
 
             <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid rgb(var(--shade1))" }}>
@@ -108,9 +114,23 @@ export default function TemplateSelector({ pageIdObj, websiteIdObj, currentIndex
                                             onClick={async () => {
                                                 try {
                                                     //add to pagesToComponents
-                                                    await addComponentToPage({ id: pageIdObj.id }, { id: eachComponent.id }, {
+                                                    const newComponentToPage = await addComponentToPage({ id: pageIdObj.id }, { id: eachComponent.id }, {
                                                         indexOnPage: currentIndex + 1
                                                     })
+
+                                                    if (parentComponent) {
+                                                        const newCompChild: childComponentType = {
+                                                            pagesToComponentsId: newComponentToPage.id
+                                                        }
+
+                                                        const seenUpdatedChildren = [...parentComponent.children, newCompChild]
+
+                                                        parentComponent.children = seenUpdatedChildren
+
+                                                        const sanitizedUpdateObj = sanitizeDataInPageComponent(parentComponent)
+
+                                                        await updateComponentInPage(sanitizedUpdateObj)
+                                                    }
 
                                                     await refreshWebsitePath({ id: websiteIdObj.id })
 

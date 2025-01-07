@@ -49,15 +49,19 @@ import React from "react";
 // ]);
 
 // export type propsObjSchemaType = z.infer<typeof propsObjSchema>
-export const reactComponentTypeSchema = z.custom<React.ComponentType<{ data: componentDataType }>>((value) => {
-    return (
-        typeof value === "function" || // Functional component or class component
-        (typeof value === "object" && value !== null && "$$typeof" in value)
-    );
-},
-    { message: "Value must be a React ComponentType" }
+// export const reactComponentTypeSchema = z.custom<React.ComponentType<{ data: componentDataType }>>((value) => {
+//     return (
+//         typeof value === "function" || // Functional component or class component
+//         (typeof value === "object" && value !== null && "$$typeof" in value)
+//     );
+// },
+//     { message: "Value must be a React ComponentType" }
+// );
+
+export const reactElementSchema = z.custom<React.ReactElement>(
+    e => (e as any)?.$$typeof === Symbol.for("react.element"),
+    "value must be a React Element"
 );
-export const reactElementSchema = z.custom<React.JSX.Element>(e => (e as any)?.$$typeof === Symbol.for("react.element"), "value must be a React Element")
 
 export type sizeOptionType = {
     name: string,
@@ -101,7 +105,7 @@ export type herosType = z.infer<typeof herosSchema>
 
 export const containersSchema = z.object({
     category: z.literal("containers"),
-    children: z.array(reactElementSchema),
+    children: z.array(z.any()),
 })
 export type containersType = z.infer<typeof containersSchema>
 
@@ -251,6 +255,7 @@ export const componentSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     categoryId: z.string().min(1),
+    defaultCss: z.string()
 })
 export type component = z.infer<typeof componentSchema> & {
     componentsToStyles?: componentsToStyle[],
@@ -300,6 +305,7 @@ export const pagesToComponentsSchema = z.object({
     css: z.string(),
     indexOnPage: z.number(),
     children: z.array(childComponentSchema),
+    isBase: z.boolean(),
 
     data: componentDataSchema.nullable()
 })

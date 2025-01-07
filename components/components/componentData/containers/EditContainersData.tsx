@@ -1,16 +1,23 @@
 "use client"
-import { componentDataType, containersType, pagesToComponent } from '@/types'
+import { componentDataType, containersType, pagesToComponent, website } from '@/types'
 import React from 'react'
+import ComponentSelector from '../../ComponentSelector'
 
-export default function EditContainersData({ data, activePagesToComponent, handlePropsChange }: { data: containersType, activePagesToComponent: pagesToComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pagesToComponent) => void }) {
-
+export default function EditContainersData({ activePagesToComponent, websiteObj }: { data: containersType, activePagesToComponent: pagesToComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pagesToComponent) => void, websiteObj: website }) {
     return (
-        <form>
-            <p>Seeing container to edit</p>
+        <form action={() => { }}>
+            <h3>Edit container</h3>
 
-            <p>category {data.category}</p>
+            <div style={{ padding: "1rem" }}>
+                {activePagesToComponent.children.map(eachComponentLogicalChild => {
+                    return (
+                        <div key={eachComponentLogicalChild.pagesToComponentsId}>{eachComponentLogicalChild.pagesToComponentsId}</div>
+                    )
+                })}
+            </div>
 
-            <div>{JSON.stringify(data.children)}</div>
+            <h3>Add template to component</h3>
+            <ComponentSelector currentIndex={-1} pageIdObj={{ id: activePagesToComponent.pageId }} websiteIdObj={{ id: websiteObj.id }} parentComponent={activePagesToComponent} />
         </form>
     )
 }

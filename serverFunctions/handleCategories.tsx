@@ -4,5 +4,5 @@ import { category } from "@/types"
 
 export async function getAllCategories(): Promise<category[]> {
     const results = await db.query.categories.findMany()
-    return results
+    return results as category[]
 }

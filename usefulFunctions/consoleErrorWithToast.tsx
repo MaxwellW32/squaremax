@@ -21,13 +21,13 @@ export function consoleAndToastError(error: unknown, userErrorText?: string): vo
             combinedErrorStr += `${err.message}\n`
         });
 
-        console.log(`$Error"`, seenErr);
+        console.log(`$Error"`, error);
         toast.error(userErrorText === undefined ? combinedErrorStr : userErrorText)
     } else {
         // Handle standard JavaScript Error
         const seenErr = error as Error
 
-        console.error("$Error", seenErr);
+        console.error("$Error", error);
         toast.error(userErrorText === undefined ? seenErr.message : userErrorText)
     }
 }

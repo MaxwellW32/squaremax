@@ -1,4 +1,4 @@
-import { checkIfFileExists } from '@/serverFunctions/handleServer';
+import { checkIfFileExists } from '@/serverFunctions/handleServerFiles';
 import { componentDataType } from '@/types';
 import dynamic from 'next/dynamic';
 import path from 'path';

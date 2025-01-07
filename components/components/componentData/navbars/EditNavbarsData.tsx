@@ -5,7 +5,7 @@ import React from 'react'
 export default function EditNavbarsData({ data, activePagesToComponent, handlePropsChange }: { data: navBarsType, activePagesToComponent: pagesToComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pagesToComponent) => void }) {
 
     return (
-        <form>
+        <form action={() => { }}>
             <ul>
                 {data.menu.map((eachMenuItem, eachMenuItemIndex) => {
                     return (
