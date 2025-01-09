@@ -11,6 +11,7 @@ import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import { updateWebsite } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 import ComponentSelector from '../components/ComponentSelector'
+import { ensureIdDoesNotStartWithNumber } from '@/usefulFunctions/usefulFunctions'
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     //make functions to update website, pagetocomponents, page - call them on action
@@ -494,7 +495,8 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
         return null;
     }
 
-    const scopedCss = addScopeToCSS(componentOnPage.css, componentOnPage.id);
+    const cssSafeId = ensureIdDoesNotStartWithNumber(componentOnPage.id)
+    const scopedCss = addScopeToCSS(componentOnPage.css, cssSafeId);
 
     // Recursively render child components
     const childJSX = componentOnPage.children.map((childComponentOnPage) => {
@@ -516,7 +518,7 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
     const componentProps = componentOnPage.data
 
     //apply scoped styling starter value
-    componentProps.styleId = `${componentOnPage.id}____`
+    componentProps.styleId = `${cssSafeId}____`
 
     if (childJSX.length > 0) {
         if (componentProps.category === "containers") {

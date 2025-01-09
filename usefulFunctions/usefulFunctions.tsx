@@ -25,3 +25,10 @@ export function getPathBaseName(filePath: string) {
 export function normalizeFilePathToForwardSlashes(filePath: string) {
     return filePath.replace(/\\/g, '/');
 }
+
+export function ensureIdDoesNotStartWithNumber(id: string) {
+    if (/^\d/.test(id)) {
+        return "SAFE" + id;
+    }
+    return id;
+}

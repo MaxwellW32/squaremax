@@ -1,4 +1,3 @@
-/* Main container styles */
 .container {
     border: 2px solid #ddd;
     border-radius: 10px;
@@ -8,7 +7,6 @@
     font-family: Arial, sans-serif;
 }
 
-/* Header styles */
 .container-header {
     color: #333;
     font-size: 1.5rem;
@@ -16,7 +14,6 @@
     margin-bottom: 1rem;
 }
 
-/* Grid styles */
 .container-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -24,7 +21,6 @@
     margin-bottom: 1rem;
 }
 
-/* Grid item styles */
 .container-grid-item {
     background-color: #ffffff;
     padding: 10px;
@@ -32,12 +28,10 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Children wrapper styles */
 .container-children {
     margin-bottom: 1rem;
 }
 
-/* Footer text styles */
 .container-footer {
     text-align: center;
     font-size: 1rem;
