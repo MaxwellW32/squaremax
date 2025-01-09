@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import path from "path"
 import styles from "./addWebsiteComponent.module.css"
 import { toast } from 'react-hot-toast'
-import { category, collection, component, componentDataSchema, componentDataType, componentSchema, newComponent, newComponentSchema } from '@/types'
+import { category, collection, component, componentDataSchema, componentSchema, newComponent, newComponentSchema } from '@/types'
 import { deepClone } from '@/utility/utility'
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { addComponent, deleteComponent, removeEntryFromGlobalComponentsFile, updateComponent } from '@/serverFunctions/handleComponents'
