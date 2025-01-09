@@ -1,78 +1,15 @@
 import { z } from "zod";
 import { Endpoints } from "@octokit/types";
-import React from "react";
-
-// import { LinkProps } from "next/link";
-// const inputTypeSchema = z.enum(["textarea", "number"])
-// export type inputTypeType = z.infer<typeof inputTypeSchema>
-
-// const htmlAttributesSchema = z.object({
-//     style: z.record(z.string()).optional(),
-//     className: z.string().optional(),
-//     id: z.string().optional(),
-// });
-// export type htmlAttributesType = z.infer<typeof htmlAttributesSchema>
-
-// const imgHTMLAttributesSchema: z.ZodType<React.ImgHTMLAttributes<HTMLImageElement>> = htmlAttributesSchema.extend({
-//     src: z.string().min(1),
-//     alt: z.string(),
-//     priority: z.boolean().optional(),
-//     fill: z.boolean().optional(),
-//     sizes: z.string().optional(),
-//     width: z.union([z.number(), z.string()]).optional(),
-//     height: z.union([z.number(), z.string()]).optional(),
-// });
-
-// const linkHTMLAttributesSchema: z.ZodType<LinkProps> = htmlAttributesSchema.extend({
-//     href: z.string().min(1),
-//     target: z.string().optional(),
-// });
-
-// // Define the union schema for propsObj
-// const propsObjSchema = z.union([
-//     z.object({
-//         type: z.literal("html"),
-//         props: htmlAttributesSchema,
-//         value: z.string(),
-//         inputType: inputTypeSchema.optional()
-//     }),
-//     z.object({
-//         type: z.literal("img"),
-//         props: imgHTMLAttributesSchema,
-//         value: z.literal(""),
-//     }),
-//     z.object({
-//         type: z.literal("link"),
-//         props: linkHTMLAttributesSchema,
-//         value: z.string(),
-//     }),
-// ]);
-
-// export type propsObjSchemaType = z.infer<typeof propsObjSchema>
-// export const reactComponentTypeSchema = z.custom<React.ComponentType<{ data: componentDataType }>>((value) => {
-//     return (
-//         typeof value === "function" || // Functional component or class component
-//         (typeof value === "object" && value !== null && "$$typeof" in value)
-//     );
-// },
-//     { message: "Value must be a React ComponentType" }
-// );
-
-export const reactElementSchema = z.custom<React.ReactElement>(
-    e => (e as any)?.$$typeof === Symbol.for("react.element"),
-    "value must be a React Element"
-);
-
-export type sizeOptionType = {
-    name: string,
-    width: number,
-    height: number,
-    active: boolean,
-    icon: JSX.Element
-}
 
 
 
+//category data type start copy here
+const htmlAttributesSchema = z.object({
+    style: z.record(z.string()).optional(),
+    className: z.string().optional(),
+    id: z.string().optional(),
+});
+export type htmlAttributesType = z.infer<typeof htmlAttributesSchema>
 
 
 const navSubMenuItem = z.object({
@@ -86,6 +23,9 @@ const navMenuItem = z.object({
 })
 export const navBarsSchema = z.object({
     category: z.literal("navbars"),
+    mainElProps: htmlAttributesSchema,
+    styleId: z.string(),
+
     menu: z.array(navMenuItem),
 })
 export type navBarsType = z.infer<typeof navBarsSchema>
@@ -95,7 +35,10 @@ export type navBarsType = z.infer<typeof navBarsSchema>
 
 
 export const herosSchema = z.object({
-    category: z.literal("heros")
+    category: z.literal("heros"),
+    mainElProps: htmlAttributesSchema,
+    styleId: z.string(),
+
 })
 export type herosType = z.infer<typeof herosSchema>
 
@@ -105,6 +48,9 @@ export type herosType = z.infer<typeof herosSchema>
 
 export const containersSchema = z.object({
     category: z.literal("containers"),
+    mainElProps: htmlAttributesSchema,
+    styleId: z.string(),
+
     children: z.array(z.any()),
 })
 export type containersType = z.infer<typeof containersSchema>
@@ -114,7 +60,10 @@ export type containersType = z.infer<typeof containersSchema>
 
 
 export const textElementsSchema = z.object({
-    category: z.literal("textElements")
+    mainElProps: htmlAttributesSchema,
+    styleId: z.string(),
+
+    category: z.literal("textElements"),
 })
 export type textElementsType = z.infer<typeof textElementsSchema>
 
@@ -124,6 +73,8 @@ export type textElementsType = z.infer<typeof textElementsSchema>
 
 export const componentDataSchema = z.union([navBarsSchema, herosSchema, containersSchema, textElementsSchema])
 export type componentDataType = z.infer<typeof componentDataSchema>
+//category data type end copy here
+
 
 
 
@@ -158,6 +109,20 @@ export type newGithubRepoType = z.infer<typeof newGithubRepoSchema> & {}
 
 export const fontsSchema = z.array(z.enum(["poppins", "arial"]))
 export type fontsType = z.infer<typeof fontsSchema>
+
+export type sizeOptionType = {
+    name: string,
+    width: number,
+    height: number,
+    active: boolean,
+    icon: JSX.Element
+}
+
+const collectionSchema = z.object({
+    relativePath: z.string().min(1),
+    content: z.string().min(1),
+})
+export type collection = z.infer<typeof collectionSchema>
 
 
 
@@ -255,13 +220,17 @@ export const componentSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     categoryId: z.string().min(1),
-    defaultCss: z.string()
+    defaultCss: z.string(),
+    defaultData: componentDataSchema,
 })
 export type component = z.infer<typeof componentSchema> & {
     componentsToStyles?: componentsToStyle[],
     pagesToComponents?: pagesToComponent[],
     category?: category,
 }
+export const newComponentSchema = componentSchema.pick({ name: true, categoryId: true, defaultCss: true, defaultData: true, })
+export type newComponent = z.infer<typeof newComponentSchema>
+
 
 
 

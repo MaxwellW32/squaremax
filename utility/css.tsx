@@ -1,9 +1,9 @@
-export function addScopeToCSS(cssString: string, scopedClass: string) {
+export function addScopeToCSS(cssString: string, idPrefix: string) {
     // Regex to match class (.classname) and ID (#id) selectors
     const classAndIdRegex = /(?<=^|[^a-zA-Z0-9-_.#])([.#][a-zA-Z0-9_-]+)/g;
 
-    // Replace matches with scoped versions
+    // Replace matches with the ID-prefixed versions
     return cssString.replace(classAndIdRegex, (match) => {
-        return `.${scopedClass} ${match}`;
+        return match[0] + idPrefix + "____" + match.slice(1);
     });
 }

@@ -129,7 +129,7 @@ export default function ComponentSelector({ pageIdObj, websiteIdObj, currentInde
 
                                                         const sanitizedUpdateObj = sanitizeDataInPageComponent(parentComponent)
 
-                                                        await updateComponentInPage(sanitizedUpdateObj)
+                                                        await updateComponentInPage([sanitizedUpdateObj])
                                                     }
 
                                                     await refreshWebsitePath({ id: websiteIdObj.id })

@@ -5,18 +5,19 @@ import './page.css';
 
 export default function Nav({ data }: { data: navBarsType }) {
     return (
-        <nav className="nav">
-            <ul className="nav-menu">
+        <nav {...data.mainElProps} className={`${`nav`} ${data.mainElProps?.className}`}>
+            <ul className={`navMenu`}>
                 {data.menu.map((menuItem, menuItemIndex) => (
-                    <li key={menuItemIndex} className="nav-item">
-                        <Link href={menuItem.link} className="nav-link">
+                    <li key={menuItemIndex} className={`navItem`}>
+                        <Link href={menuItem.link} className={`navLink`}>
                             {menuItem.label}
                         </Link>
+
                         {menuItem.subMenu && menuItem.subMenu.length > 0 && (
-                            <ul className="nav-submenu">
+                            <ul className={`navSubmenu`}>
                                 {menuItem.subMenu.map((subMenuItem, subMenuItemIndex) => (
-                                    <li key={subMenuItemIndex} className="submenu-item">
-                                        <Link href={subMenuItem.link} className="submenu-link">
+                                    <li key={subMenuItemIndex} className={`submenuItem`}>
+                                        <Link href={subMenuItem.link} className={`submenuLink`}>
                                             {subMenuItem.label}
                                         </Link>
                                     </li>

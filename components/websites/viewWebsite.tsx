@@ -15,6 +15,11 @@ import ComponentSelector from '../components/ComponentSelector'
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     //make functions to update website, pagetocomponents, page - call them on action
 
+    //allow files to be uploaded
+    //add / edit same place
+    //updte db same time
+    //each component has its own data element with custom styles so push that as well
+
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState(false)
 
@@ -112,9 +117,11 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             if (websiteObj.pages[activePageIndex] === undefined) return
             if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return
 
-            websiteObj.pages[activePageIndex].pagesToComponents.forEach((eachPageToComponent, eachPageToComponentIndex) => {
-                handleUpdateComponentInPage({ ...eachPageToComponent, indexOnPage: eachPageToComponentIndex })
-            })
+            //track index properly of base components
+            //write that to the db
+
+            // const indexed
+            handlePageComponentUpdate(websiteObj.pages[activePageIndex].pagesToComponents)
         }, 3000)
 
     }, [websiteObj.pages?.[activePageIndex]?.pagesToComponents])
@@ -123,7 +130,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     useEffect(() => {
         handleWebsiteUpdate({ ...websiteObj })
 
-        console.log(`$changing websiteobj on server useeffect`);
+        console.log(`$changing websiteobj in useeffect`);
 
     }, [websiteObj])
 
@@ -239,6 +246,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         const defaultProps: { [key in categoryName]: componentDataType } = {
             navbars: {
                 category: "navbars",
+                mainElProps: {},
+                styleId: "",
+
                 menu: [
                     {
                         label: "menu item 1",
@@ -257,10 +267,16 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 ]
             },
             heros: {
-                category: "heros"
+                category: "heros",
+                mainElProps: {},
+                styleId: "",
+
             },
             containers: {
                 category: "containers",
+                mainElProps: {},
+                styleId: "",
+
                 children: [
                     <div key={0} style={{ backgroundColor: "green" }}>sup there this is children text up</div>
                 ]
@@ -292,11 +308,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }, 3000);
     }
 
-    async function handleUpdateComponentInPage(updateObj: Partial<pagesToComponent>) {
+    async function handlePageComponentUpdate(updateObjArr: Partial<pagesToComponent>[]) {
         try {
-            const sanitizedUpdateObj = sanitizeDataInPageComponent(updateObj)
+            const sanitizedUpdateObjArr = updateObjArr.map(eachUpdateObj => {
+                return sanitizeDataInPageComponent(eachUpdateObj)
+            })
 
-            await updateComponentInPage({ ...sanitizedUpdateObj })
+            await updateComponentInPage(sanitizedUpdateObjArr)
 
             console.log(`$saved pagesToComponent to db`);
 
@@ -522,8 +540,7 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
         return null;
     }
 
-    const scopedClass = `canvas-${componentOnPage.id}`;
-    const scopedCss = addScopeToCSS(componentOnPage.css, scopedClass);
+    const scopedCss = addScopeToCSS(componentOnPage.css, componentOnPage.id);
 
     // Recursively render child components
     const childJSX = componentOnPage.children.map((childComponentOnPage) => {
@@ -544,32 +561,36 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
     // If the component is a container, pass children as a prop
     const componentProps = componentOnPage.data
 
+    //apply scoped styling starter value
+    componentProps.styleId = `${componentOnPage.id}____`
+
     if (childJSX.length > 0) {
         if (componentProps.category === "containers") {
             componentProps.children = childJSX
         }
     }
 
+    //add mouse over listener for interaction
+    //@ts-expect-error mouseOver
+    componentProps.mainElProps.onMouseOver = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        e.stopPropagation()
+
+        tempActivePagesToComponentId.current = componentOnPage.id;
+
+        const seenEl = e.currentTarget as HTMLElement;
+        seenEl.classList.add(styles.highlightComponent);
+
+        setTimeout(() => {
+            seenEl.classList.remove(styles.highlightComponent);
+        }, 1000);
+    }
+
     return (
-        <div key={componentOnPage.id}
-            className={`${scopedClass}`}
-            onMouseOver={(e) => {
-                e.stopPropagation()
-
-                tempActivePagesToComponentId.current = componentOnPage.id;
-
-                const seenEl = e.currentTarget as HTMLElement;
-                seenEl.classList.add(styles.highlightComponent);
-
-                setTimeout(() => {
-                    seenEl.classList.remove(styles.highlightComponent);
-                }, 1000);
-            }}
-        >
+        <React.Fragment key={componentOnPage.id}>
             <style>{scopedCss}</style>
 
             {/* Render the main component with injected props */}
             <ComponentToRender data={componentProps} />
-        </div>
+        </React.Fragment>
     );
 }

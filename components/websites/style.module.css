@@ -97,7 +97,7 @@
 
 @keyframes highlightComponent {
     0% {
-        filter: brightness(1.2);
+        filter: brightness(1.05);
     }
 
     100% {

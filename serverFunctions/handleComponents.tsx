@@ -1,7 +1,8 @@
 "use server"
 import { db } from "@/db"
 import { components } from "@/db/schema"
-import { component, componentSchema } from "@/types"
+import { collection, component, componentSchema, newComponent, newComponentSchema } from "@/types"
+import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq, like } from "drizzle-orm"
 
 export async function getSpecificComponent(componentIdObj: Pick<component, "id">): Promise<component | undefined> {
@@ -36,4 +37,29 @@ export async function getComponents(selectionObj: { option: "name", data: Pick<c
     } else {
         throw new Error("not seeing selectionObj")
     }
+}
+
+//server function to manage files
+export async function addComponent(seenNewComponent: newComponent, collectionsArr: collection[]): Promise<component> {
+    const session = await sessionCheckWithError()
+    if (session.user.role !== "admin") throw new Error("need to be admin to add website components")
+
+    newComponentSchema.parse(seenNewComponent)
+
+    const addedComponent = await db.insert(components).values(seenNewComponent).returning()
+
+    return addedComponent[0]
+}
+
+export async function updateComponent(componentObj: Partial<component>, collectionsArr: collection[]) {
+    const session = await sessionCheckWithError()
+    if (session.user.role !== "admin") throw new Error("need to be admin to add website components")
+
+    if (componentObj.id === undefined) throw new Error("need to provide id")
+
+    componentSchema.partial().parse(componentObj)
+
+    await db.update(components)
+        .set(componentObj)
+        .where(eq(components.id, componentObj.id));
 }

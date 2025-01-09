@@ -29,3 +29,9 @@ export async function checkIfFileExists(filePath: string) {
 //     const fileContents = await fs.readFile(filePath, { encoding: "utf-8" })
 //     return fileContents
 // }
+
+export async function deleteDirectory(filePath: string) {
+    console.log(`$called to delete`, filePath);
+    const fullPath = path.join(process.cwd(), filePath)
+    await fs.rm(fullPath, { force: true, recursive: true })
+}
