@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
 import { addScopeToCSS } from '@/utility/css'
-import { categoryName, componentDataType, pagesToComponent, sizeOptionType, website, websiteSchema } from '@/types'
+import { componentDataType, pagesToComponent, sizeOptionType, website, websiteSchema } from '@/types'
 import { deepClone, sanitizeDataInPageComponent } from '@/utility/utility'
 import AddPage from '../pages/addPage'
 import globalDynamicComponents from '@/utility/globalComponents'
@@ -14,13 +14,6 @@ import ComponentSelector from '../components/ComponentSelector'
 import { ensureIdDoesNotStartWithNumber } from '@/usefulFunctions/usefulFunctions'
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
-    //make functions to update website, pagetocomponents, page - call them on action
-
-    //allow files to be uploaded
-    //add / edit same place
-    //updte db same time
-    //each component has its own data element with custom styles so push that as well
-
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState(false)
 
@@ -59,6 +52,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const middleBarContentContRef = useRef<HTMLDivElement | null>(null)
 
     const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
+    const [isOnMobile, isOnMobileSet] = useState<boolean | null>(null)
+    const mouseLeaveDebounce = useRef<NodeJS.Timeout>()
 
     const [activePageIndex, activePageIndexSet] = useState<number>(0)
     const [addingPage, addingPageSet] = useState(false)
@@ -161,6 +156,11 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             window.removeEventListener("keydown", handleKeyDown)
         }
     }, [tempActivePagesToComponentId])
+
+    //handle mobileCheck
+    useEffect(() => {
+        isOnMobileSet(window.innerWidth < 800)
+    }, [])
 
     function centerCanvas() {
         if (middleBarContentContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
@@ -299,58 +299,74 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-        const hitKeys = ["x", "control", "alt"]
+        const activationKeys = ["alt"]
 
         const seenKey = e.key.toLowerCase()
 
-        if (hitKeys.includes(seenKey)) {
+        if (activationKeys.includes(seenKey)) {
+            activePagesToComponentIdSet(tempActivePagesToComponentId.current)
+        }
+    }
+
+    function handleSelectPageComponent() {
+        if (tempActivePagesToComponentId.current !== "") {
             activePagesToComponentIdSet(tempActivePagesToComponentId.current)
         }
     }
 
     return (
-        <main className={styles.main}>
+        <main className={styles.main}
+            onClick={handleSelectPageComponent}
+        >
             <div className={styles.middleBar}>
                 <div className={styles.middleBarSettingsCont}>
-                    <div className={styles.sizeOptions}>
-                        {sizeOptions.map(eachSizeOption => {
-                            return (
-                                <button key={eachSizeOption.name}
-                                    onClick={() => {
-                                        sizeOptionsSet(prevSizeOptions => {
-                                            const newSizeOptions = prevSizeOptions.map(eachSmallSizeOption => {
-                                                if (eachSmallSizeOption.name === eachSizeOption.name) {
-                                                    eachSmallSizeOption.active = true
-                                                } else {
-                                                    eachSmallSizeOption.active = false
-                                                }
+                    {sizeOptions.map(eachSizeOption => {
+                        return (
+                            <button key={eachSizeOption.name}
+                                onClick={() => {
+                                    sizeOptionsSet(prevSizeOptions => {
+                                        const newSizeOptions = prevSizeOptions.map(eachSmallSizeOption => {
+                                            if (eachSmallSizeOption.name === eachSizeOption.name) {
+                                                eachSmallSizeOption.active = true
+                                            } else {
+                                                eachSmallSizeOption.active = false
+                                            }
 
-                                                return eachSmallSizeOption
-                                            })
-
-                                            return newSizeOptions
+                                            return eachSmallSizeOption
                                         })
 
-                                        fitSet(false)
-                                    }}
-                                >
-                                    {eachSizeOption.icon}
-                                </button>
-                            )
-                        })}
+                                        return newSizeOptions
+                                    })
 
-                        <button
+                                    fitSet(false)
+                                }}
+                            >
+                                {eachSizeOption.icon}
+                            </button>
+                        )
+                    })}
+
+                    <button
+                        onClick={() => {
+                            fitSet(prev => !prev)
+                        }}
+                    >
+                        {fit ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z" /></svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z" /></svg>
+                        )}
+                    </button>
+
+                    {isOnMobile === false && (
+                        <button className='secondaryButton'
                             onClick={() => {
-                                fitSet(prev => !prev)
+                                showingSideBarSet(prev => !prev)
                             }}
                         >
-                            {fit ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z" /></svg>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z" /></svg>
-                            )}
+                            {showingSideBar ? "close" : "open"}
                         </button>
-                    </div>
+                    )}
                 </div>
 
                 <div ref={middleBarContentContRef} className={styles.middleBarContentCont}>
@@ -374,102 +390,122 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 </div>
             </div>
 
-            <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}>
-                <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
-                    <div style={{ display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
+            <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}
+                onMouseEnter={() => {
+                    if (!isOnMobile === false) return
+
+                    dimSideBarSet(false)
+                }}
+                onMouseLeave={() => {
+                    if (!isOnMobile === false) return
+
+                    if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
+                    mouseLeaveDebounce.current = setTimeout(() => {
+                        dimSideBarSet(true)
+                    }, 3000);
+                }}
+            >
+                <div style={{ display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
+                    {isOnMobile && (
                         <button className='secondaryButton'
                             onClick={() => {
                                 showingSideBarSet(false)
                             }}
-                        >close</button>
-
-                        <button className='secondaryButton'
-                            onClick={() => {
-                                dimSideBarSet(prev => !prev)
-                            }}
-                        >{dimSideBar ? "full" : "dim"}</button>
-                    </div>
-
-                    {websiteObj.pages !== undefined && (
-                        <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
-                            {websiteObj.pages.map((eachPage, eachPageIndex) => {
-                                return (
-                                    <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPageIndex === activePageIndex ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
-                                        onClick={() => {
-                                            activePageIndexSet(eachPageIndex)
-                                        }}
-                                    >{eachPage.name}</button>
-                                )
-                            })}
-                        </ul>
+                        >
+                            close
+                        </button>
                     )}
 
-                    <button className='mainButton'
+                    <button className='secondaryButton'
                         onClick={() => {
-                            addingPageSet(prev => !prev)
+                            dimSideBarSet(prev => !prev)
                         }}
-                    >{addingPage ? "close" : "add page"}</button>
-
-                    <div style={{ display: addingPage ? "" : "none" }}>
-                        <AddPage websiteIdObj={{ id: websiteObj.id }} />
-                    </div>
-
-                    {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
-                        <ComponentSelector pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
-                    )}
+                    >{dimSideBar ? "full" : "dim"}</button>
                 </div>
 
-                <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
-                    <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
-                        onClick={() => { editingGlobalStyleSet(prev => !prev) }}
-                    >{editingGlobalStyle ? "close" : "open"} global styles</button>
+                <div className={styles.sideBarContent} style={{ opacity: dimSideBar ? 0.05 : "" }}>
+                    <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
+                        {websiteObj.pages !== undefined && (
+                            <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
+                                {websiteObj.pages.map((eachPage, eachPageIndex) => {
+                                    return (
+                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPageIndex === activePageIndex ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
+                                            onClick={() => {
+                                                activePageIndexSet(eachPageIndex)
+                                            }}
+                                        >{eachPage.name}</button>
+                                    )
+                                })}
+                            </ul>
+                        )}
 
-                    {editingGlobalStyle && (
-                        <>
-                            <p>global styles</p>
+                        <button className='mainButton'
+                            onClick={() => {
+                                addingPageSet(prev => !prev)
+                            }}
+                        >{addingPage ? "close" : "add page"}</button>
 
-                            <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
-                                onChange={(e) => {
-                                    websiteObjSet(prevWebsite => {
-                                        const newWebsite = { ...prevWebsite }
+                        <div style={{ display: addingPage ? "" : "none" }}>
+                            <AddPage websiteIdObj={{ id: websiteObj.id }} />
+                        </div>
 
-                                        newWebsite.globalCss = e.target.value
+                        {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
+                            <ComponentSelector pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
+                        )}
+                    </div>
 
-                                        return newWebsite
-                                    })
-                                }}
-                            />
-                        </>
-                    )}
+                    <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
+                        <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                            onClick={() => { editingGlobalStyleSet(prev => !prev) }}
+                        >{editingGlobalStyle ? "close" : "open"} global styles</button>
 
-                    {activePagesToComponent !== undefined && (
-                        <>
-                            <p>styling</p>
-                            <textarea rows={5} value={activePagesToComponent.css} className={styles.styleEditor}
-                                onChange={(e) => {
-                                    websiteObjSet(prevWebsite => {
-                                        const newWebsite = { ...prevWebsite }
-                                        if (newWebsite.pages === undefined) return prevWebsite
-                                        if (newWebsite.pages[activePageIndex] === undefined) return prevWebsite
-                                        if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return prevWebsite
+                        {editingGlobalStyle && (
+                            <>
+                                <p>global styles</p>
 
-                                        newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
-                                            if (eachPageToComponent.id === activePagesToComponent.id) {
-                                                eachPageToComponent.css = e.target.value
-                                            }
+                                <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
+                                    onChange={(e) => {
+                                        websiteObjSet(prevWebsite => {
+                                            const newWebsite = { ...prevWebsite }
 
-                                            return eachPageToComponent
+                                            newWebsite.globalCss = e.target.value
+
+                                            return newWebsite
                                         })
+                                    }}
+                                />
+                            </>
+                        )}
 
-                                        return newWebsite
-                                    })
-                                }}
-                            />
+                        {activePagesToComponent !== undefined && (
+                            <>
+                                <p>styling</p>
+                                <textarea rows={5} value={activePagesToComponent.css} className={styles.styleEditor}
+                                    onChange={(e) => {
+                                        websiteObjSet(prevWebsite => {
+                                            const newWebsite = { ...prevWebsite }
+                                            if (newWebsite.pages === undefined) return prevWebsite
+                                            if (newWebsite.pages[activePageIndex] === undefined) return prevWebsite
+                                            if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return prevWebsite
 
-                            <p>props</p>
-                            <ComponentDataSwitch activePagesToComponent={activePagesToComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
-                        </>
-                    )}
+                                            newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
+                                                if (eachPageToComponent.id === activePagesToComponent.id) {
+                                                    eachPageToComponent.css = e.target.value
+                                                }
+
+                                                return eachPageToComponent
+                                            })
+
+                                            return newWebsite
+                                        })
+                                    }}
+                                />
+
+                                <p>props</p>
+                                <ComponentDataSwitch activePagesToComponent={activePagesToComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </main>
