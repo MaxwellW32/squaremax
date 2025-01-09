@@ -1,4 +1,4 @@
-import { childComponentType, componentDataType, fontsType, user, userUploadedImagesType } from "@/types";
+import { categoryName, childComponentType, componentDataType, fontsType, user, userUploadedImagesType } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -96,7 +96,7 @@ export const componentsRelations = relations(components, ({ one, many }) => ({
 
 
 export const categories = pgTable("categories", {
-    name: varchar("name", { length: 255 }).notNull().unique(),
+    name: varchar("name", { length: 255 }).$type<categoryName>().notNull().unique(),
 })
 export const categoriesRelations = relations(categories, ({ many }) => ({
     components: many(components),

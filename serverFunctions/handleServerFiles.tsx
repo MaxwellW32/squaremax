@@ -35,3 +35,4 @@ export async function deleteDirectory(filePath: string) {
     const fullPath = path.join(process.cwd(), filePath)
     await fs.rm(fullPath, { force: true, recursive: true })
 }
+

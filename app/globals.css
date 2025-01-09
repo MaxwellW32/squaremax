@@ -112,6 +112,11 @@ svg:hover {
 }
 
 
+section {
+    display: grid;
+    align-content: flex-start;
+}
+
 /* custom classes */
 .noScrollBar::-webkit-scrollbar {
     display: none;

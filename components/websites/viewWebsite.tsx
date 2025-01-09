@@ -189,7 +189,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                 //get started props if none there
                 if (eachPageToComponent.data === null) {
-                    eachPageToComponent.data = getStarterComponentProps(eachPageToComponent.component.category.name)
+                    eachPageToComponent.data = eachPageToComponent.component.defaultData
                 }
 
                 //get started props if none there
@@ -240,52 +240,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         sentWebsite.pages[activePageIndex].pagesToComponents = deepClone(sortedBasePagesToComponents)
 
         return deepClone(sentWebsite)
-    }
-
-    function getStarterComponentProps(categoryName: categoryName): componentDataType {
-        const defaultProps: { [key in categoryName]: componentDataType } = {
-            navbars: {
-                category: "navbars",
-                mainElProps: {},
-                styleId: "",
-
-                menu: [
-                    {
-                        label: "menu item 1",
-                        link: "/",
-                        subMenu: [
-                            {
-                                label: "sub menu item 1",
-                                link: "/",
-                            }
-                        ]
-                    },
-                    {
-                        label: "menu item 2",
-                        link: "/",
-                    },
-                ]
-            },
-            heros: {
-                category: "heros",
-                mainElProps: {},
-                styleId: "",
-
-            },
-            containers: {
-                category: "containers",
-                mainElProps: {},
-                styleId: "",
-
-                children: [
-                    <div key={0} style={{ backgroundColor: "green" }}>sup there this is children text up</div>
-                ]
-            },
-        }
-
-        if (defaultProps[categoryName] === undefined) throw new Error("no seeing props for category name")
-
-        return defaultProps[categoryName]
     }
 
     async function handleWebsiteUpdate(updateObj: Partial<website>) {

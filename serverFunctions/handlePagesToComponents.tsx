@@ -55,7 +55,7 @@ export async function removePageComponentsFromComponent(pagesToComponentArr: Pic
         pagesToComponentArr.map(async eachPageToComponentObj => {
             pagesToComponentsSchema.pick({ id: true }).parse(eachPageToComponentObj)
 
-            await db.delete(pagesToComponents).where(eq(pagesToComponents.id, componentId));
+            await db.delete(pagesToComponents).where(eq(pagesToComponents.componentId, componentId));
         })
     )
 }
