@@ -393,6 +393,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}
                 onMouseEnter={() => {
                     if (!isOnMobile === false) return
+                    if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
 
                     dimSideBarSet(false)
                 }}
@@ -423,7 +424,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     >{dimSideBar ? "full" : "dim"}</button>
                 </div>
 
-                <div className={styles.sideBarContent} style={{ opacity: dimSideBar ? 0.05 : "" }}>
+                <div className={styles.sideBarContent} style={{ opacity: dimSideBar ? 0.01 : "" }}>
                     <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
                         {websiteObj.pages !== undefined && (
                             <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
