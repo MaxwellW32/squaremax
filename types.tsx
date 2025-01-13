@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { Endpoints } from "@octokit/types";
-
+//rules
+//server component updates take anything partial
+//client updates take specific things
 
 
 //category data type start copy here
@@ -174,8 +176,9 @@ export const userSchema = z.object({
 export type user = z.infer<typeof userSchema> & {
     websites?: website[]
 }
-export type newUser = {
-}
+
+export const updateUserSchema = userSchema.omit({ role: true, email: true, emailVerified: true })
+export type updateUser = z.infer<typeof updateUserSchema>
 
 
 
@@ -196,6 +199,10 @@ export type website = z.infer<typeof websiteSchema> & {
 }
 export const newWebsiteSchema = websiteSchema.pick({ name: true })
 export type newWebsite = z.infer<typeof newWebsiteSchema>
+
+export const updateWebsiteSchema = websiteSchema.omit({ userId: true })
+export type updateWebsite = z.infer<typeof updateWebsiteSchema>
+
 
 
 
@@ -228,7 +235,7 @@ export type component = z.infer<typeof componentSchema> & {
     pagesToComponents?: pagesToComponent[],
     category?: category,
 }
-export const newComponentSchema = componentSchema.pick({ name: true, categoryId: true, defaultCss: true, defaultData: true, })
+export const newComponentSchema = componentSchema.omit({ id: true })
 export type newComponent = z.infer<typeof newComponentSchema>
 
 
@@ -282,6 +289,8 @@ export type pagesToComponent = z.infer<typeof pagesToComponentsSchema> & {
     page?: page,
     component?: component,
 }
+export const updatePagesToComponentsSchema = pagesToComponentsSchema.pick({ id: true, css: true, data: true, indexOnPage: true, children: true })
+export type updatePagesToComponentsType = z.infer<typeof updatePagesToComponentsSchema>
 
 
 

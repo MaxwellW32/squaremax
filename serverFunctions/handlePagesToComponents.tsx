@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { pagesToComponents } from "@/db/schema"
-import { pagesToComponent, pagesToComponentsSchema, component, componentSchema, page, pageSchema } from "@/types"
+import { pagesToComponent, pagesToComponentsSchema, component, componentSchema, page, pageSchema, updatePagesToComponentsSchema } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
 
@@ -21,23 +21,19 @@ export async function addComponentToPage(pageObj: Pick<page, "id">, componentObj
     return result[0]
 }
 
-export async function updateComponentInPage(pagesToComponentArr: Partial<pagesToComponent>[]) {
+export async function updateComponentInPage(seenPageToComponent: Partial<pagesToComponent>) {
     await sessionCheckWithError()
 
-    //add security validation
+    //add security validation - make sure specific user only can update
 
-    await Promise.all(
-        pagesToComponentArr.map(async eachPageToCompObj => {
-            //things clients can actually update
-            const validatedData = pagesToComponentsSchema.pick({ id: true, css: true, data: true, indexOnPage: true, children: true }).parse(eachPageToCompObj)
+    //things clients can actually update
+    const validatedData = updatePagesToComponentsSchema.parse(seenPageToComponent)
 
-            await db.update(pagesToComponents)
-                .set({
-                    ...validatedData
-                })
-                .where(eq(pagesToComponents.id, validatedData.id));
+    await db.update(pagesToComponents)
+        .set({
+            ...validatedData
         })
-    )
+        .where(eq(pagesToComponents.id, validatedData.id));
 }
 
 export async function deleteComponentFromPage(pagesToComponentObj: Pick<pagesToComponent, "id">) {

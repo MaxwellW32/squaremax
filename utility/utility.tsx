@@ -4,7 +4,24 @@ export function deepClone(object: unknown) {
     return JSON.parse(JSON.stringify(object))
 }
 
-export function sanitizeDataInPageComponent(pageComponent: Partial<pagesToComponent>): Partial<pagesToComponent> {
+export function addScopeToCSS(cssString: string, idPrefix: string) {
+    return cssString.replace(
+        // Match valid class (.classname) or ID (#id) selectors
+        /(?<=^|\s|,)([.#][a-zA-Z_-][a-zA-Z0-9_-]*)/g,
+        (match) => {
+            // Only prepend if it's a class or ID, not a hex code
+            if (match.startsWith("#") && /^#[a-fA-F0-9]{3,6}$/.test(match)) {
+                // Leave hex codes untouched
+                return match;
+            }
+
+            // Prepend the prefix to valid selectors
+            return `${match}____${idPrefix}`;
+        }
+    );
+}
+
+export function sanitizeDataInPageComponent(pageComponent: pagesToComponent): pagesToComponent {
     const seenObjData = pageComponent.data
 
     //ensure not to pass react data to server
@@ -19,3 +36,4 @@ export function sanitizeDataInPageComponent(pageComponent: Partial<pagesToCompon
 
     return deepClone(pageComponent)
 }
+

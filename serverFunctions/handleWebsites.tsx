@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { websites } from "@/db/schema"
-import { newWebsite, newWebsiteSchema, website, websiteSchema } from "@/types"
+import { newWebsite, newWebsiteSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
@@ -19,18 +19,17 @@ export async function addWebsite(seenNewWebsite: newWebsite): Promise<website> {
     return addedWebsite[0]
 }
 
-export async function updateWebsite(websiteObj: Partial<website>) {
+export async function updateTheWebsite(websiteObj: Partial<updateWebsite>) {
     await sessionCheckWithError()
 
-    if (websiteObj.id === undefined) throw new Error("need to provide id")
-
-    websiteSchema.partial().parse(websiteObj)
+    const validatedNewWebsite = updateWebsiteSchema.partial().parse(websiteObj)
+    if (validatedNewWebsite.id === undefined) throw new Error("need id")
 
     await db.update(websites)
         .set({
-            ...websiteObj
+            ...validatedNewWebsite
         })
-        .where(eq(websites.id, websiteObj.id));
+        .where(eq(websites.id, validatedNewWebsite.id));
 }
 
 export async function refreshWebsitePath(websiteIdObj: Pick<website, "id">) {

@@ -2,24 +2,23 @@
 
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { newUser, user, userSchema } from "@/types";
+import { updateUser, updateUserSchema, user, userSchema } from "@/types";
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
 import { error } from "console";
 import { eq } from "drizzle-orm";
 import { getUserFromToken } from "./handleGithub";
 
-export async function updateUser(userObj: Partial<user>) {
+export async function updateTheUser(userObj: Partial<updateUser>) {
     await sessionCheckWithError()
 
-    if (userObj.id === undefined) throw new Error("need to provide id")
-
-    userSchema.partial().parse(userObj)
+    const validatedObj = updateUserSchema.partial().parse(userObj)
+    if (validatedObj.id === undefined) throw new Error("need to provide id")
 
     await db.update(users)
         .set({
             ...userObj
         })
-        .where(eq(users.id, userObj.id));
+        .where(eq(users.id, validatedObj.id));
 }
 
 export async function getUser(userIdObj: Pick<user, "id">): Promise<user | undefined> {
@@ -100,7 +99,7 @@ export async function addUserGithubTokens(userObj: Pick<user, "id" | "userGithub
     }
 
     //update user on server
-    await updateUser({
+    await updateTheUser({
         id: userObj.id,
         userGithubTokens: updatedUserGithubTokens
     })
@@ -134,7 +133,7 @@ export async function updateUserGithubTokens(userObj: Pick<user, "id" | "userGit
     }
 
     //update user on server
-    await updateUser({
+    await updateTheUser({
         id: userObj.id,
         userGithubTokens: updatedUserGithubTokens
     })
@@ -161,7 +160,7 @@ export async function deleteUserGithubTokens(userObj: Pick<user, "id" | "userGit
     });
 
     // Update user on server with the remaining tokens
-    await updateUser({
+    await updateTheUser({
         id: userObj.id,
         userGithubTokens: latestUserGithubTokens
     });

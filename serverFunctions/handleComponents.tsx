@@ -51,9 +51,9 @@ export async function addComponent(seenNewComponent: newComponent, collectionsAr
     const session = await sessionCheckWithError()
     if (session.user.role !== "admin") throw new Error("need to be admin to add website components")
 
-    newComponentSchema.parse(seenNewComponent)
+    const validatedNewComponent = newComponentSchema.parse(seenNewComponent)
 
-    const [addedComponent] = await db.insert(components).values(seenNewComponent).returning()
+    const [addedComponent] = await db.insert(components).values(validatedNewComponent).returning()
 
     collectionsArr = collectionsArr.map(eachCollection => {
         eachCollection.relativePath = replaceBaseFolderNameInPath(addedComponent.id, eachCollection.relativePath)

@@ -5,19 +5,19 @@ import './page.css';
 
 export default function Nav({ data }: { data: navBarsType }) {
     return (
-        <nav {...data.mainElProps} className={`${data.styleId}nav ${data.mainElProps?.className}`}>
-            <ul className={`${data.styleId}navMenu`}>
+        <nav {...data.mainElProps} className={`nav${data.styleId} ${data.mainElProps?.className}`}>
+            <ul className={`navMenu${data.styleId}`}>
                 {data.menu.map((menuItem, menuItemIndex) => (
-                    <li key={menuItemIndex} className={`${data.styleId}navItem`}>
-                        <Link href={menuItem.link} className={`${data.styleId}navLink`}>
+                    <li key={menuItemIndex} className={`navItem${data.styleId}`}>
+                        <Link href={menuItem.link} className={`navLink${data.styleId}`}>
                             {menuItem.label}
                         </Link>
 
                         {menuItem.subMenu && menuItem.subMenu.length > 0 && (
-                            <ul className={`${data.styleId}navSubmenu`}>
+                            <ul className={`navSubmenu${data.styleId}`}>
                                 {menuItem.subMenu.map((subMenuItem, subMenuItemIndex) => (
-                                    <li key={subMenuItemIndex} className={`${data.styleId}submenuItem`}>
-                                        <Link href={subMenuItem.link} className={`${data.styleId}submenuLink`}>
+                                    <li key={subMenuItemIndex} className={`submenuItem${data.styleId}`}>
+                                        <Link href={subMenuItem.link} className={`submenuLink${data.styleId}`}>
                                             {subMenuItem.label}
                                         </Link>
                                     </li>

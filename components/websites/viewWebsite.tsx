@@ -1,17 +1,31 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
-import { addScopeToCSS } from '@/utility/css'
-import { componentDataType, pagesToComponent, sizeOptionType, website, websiteSchema } from '@/types'
-import { deepClone, sanitizeDataInPageComponent } from '@/utility/utility'
+import { componentDataType, pagesToComponent, sizeOptionType, updateWebsiteSchema, website, } from '@/types'
+import { addScopeToCSS, deepClone, sanitizeDataInPageComponent } from '@/utility/utility'
 import AddPage from '../pages/addPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { updateComponentInPage } from '@/serverFunctions/handlePagesToComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import { updateWebsite } from '@/serverFunctions/handleWebsites'
+import { updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 import ComponentSelector from '../components/ComponentSelector'
-import { ensureIdDoesNotStartWithNumber } from '@/usefulFunctions/usefulFunctions'
+
+//optimize this code...
+//viewer node allows switching between different components, if same category prompt to paste data
+//view node also keeps a history of past viewed nodes in the array
+//...think about building the finished site code
+
+
+//viewer node
+//all client side
+//takes in an index
+//take in page component data
+//float in middle of page
+//swap through different components
+//build and fetch the next 5 for client side speed
+//can sort by category or anything
+//
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
@@ -58,11 +72,11 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const [activePageIndex, activePageIndexSet] = useState<number>(0)
     const [addingPage, addingPageSet] = useState(false)
     const [editingGlobalStyle, editingGlobalStyleSet] = useState(false)
-    const [buildComponentCheck, buildComponentCheckSet] = useState(false)
+    const [componentsBuilt, componentBuiltSet] = useState(false)
 
     const tempActivePagesToComponentId = useRef<pagesToComponent["id"]>("")
     const [activePagesToComponentId, activePagesToComponentIdSet] = useState<pagesToComponent["id"]>("")
-    const activePagesToComponent = useMemo<pagesToComponent | undefined>(() => {
+    const activePageComponent = useMemo<pagesToComponent | undefined>(() => {
         if (websiteObj.pages === undefined) return undefined
 
         if (websiteObj.pages[activePageIndex] === undefined) return undefined
@@ -84,51 +98,29 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const updatePagesToComponentDebounce = useRef<NodeJS.Timeout>()
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
 
-    // respond to server changes 
+    // respond to changes from server 
     useEffect(() => {
         const runAction = async () => {
             try {
-                const builtWebsite = await buildComponentsOnPage(websiteFromServer)
+                const newWebsite = { ...websiteFromServer }
+                let builtPageComponents: pagesToComponent[] | undefined = undefined
 
-                websiteObjSet(builtWebsite)
+                if (newWebsite.pages !== undefined && newWebsite.pages[activePageIndex] !== undefined && newWebsite.pages[activePageIndex].pagesToComponents !== undefined) {
+                    builtPageComponents = await buildPageComponents(newWebsite.pages[activePageIndex].pagesToComponents)
 
-                buildComponentCheckSet(true)
+                    newWebsite.pages[activePageIndex].pagesToComponents = builtPageComponents
+                }
+
+                //update obj locally with changes
+                websiteObjSet(newWebsite)
 
             } catch (error) {
-                console.log(`$error`, error);
+                consoleAndToastError(error)
             }
         }
 
         runAction()
     }, [websiteFromServer])
-
-    //save website to server on pagesToComponents change
-    useEffect(() => {
-        console.log(`$changing pagesToComponents on server useeffect`);
-
-        if (updatePagesToComponentDebounce.current) clearTimeout(updatePagesToComponentDebounce.current)
-
-        updatePagesToComponentDebounce.current = setTimeout(async () => {
-            if (websiteObj.pages === undefined) return
-            if (websiteObj.pages[activePageIndex] === undefined) return
-            if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return
-
-            //track index properly of base components
-            //write that to the db
-
-            // const indexed
-            handlePageComponentUpdate(websiteObj.pages[activePageIndex].pagesToComponents)
-        }, 3000)
-
-    }, [websiteObj.pages?.[activePageIndex]?.pagesToComponents])
-
-    //save website to server on change
-    useEffect(() => {
-        handleWebsiteUpdate({ ...websiteObj })
-
-        console.log(`$changing websiteobj in useeffect`);
-
-    }, [websiteObj])
 
     //calculate fit on device size change
     useEffect(() => {
@@ -172,20 +164,12 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? middleBarContentContRef.current.clientWidth : activeSizeOption.width) / 2}px`
     }
 
-    async function buildComponentsOnPage(sentWebsite: website): Promise<website> {
-        buildComponentCheckSet(false)
-
-        if (sentWebsite.pages === undefined) throw new Error("pages undefined")
-
-        if (sentWebsite.pages[activePageIndex] === undefined) throw new Error("page not in index")
-
-        if (sentWebsite.pages[activePageIndex].pagesToComponents === undefined) throw new Error("pagesToComponents undefined")
-
-        const seenPagesToComponents = sentWebsite.pages[activePageIndex].pagesToComponents
+    async function buildPageComponents(sentPageComponents: pagesToComponent[]): Promise<pagesToComponent[]> {
+        componentBuiltSet(false)
 
         //build all components
         const builtPageToComponents = await Promise.all(
-            seenPagesToComponents.map(async eachPageToComponent => {
+            sentPageComponents.map(async eachPageToComponent => {
                 if (eachPageToComponent.component === undefined || eachPageToComponent.component.category === undefined) throw new Error("need component and category")
 
                 //get started props if none there
@@ -238,64 +222,78 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 (a, b) => a.indexOnPage - b.indexOnPage
             );
 
-        sentWebsite.pages[activePageIndex].pagesToComponents = deepClone(sortedBasePagesToComponents)
+        componentBuiltSet(true)
 
-        return deepClone(sentWebsite)
+        return deepClone(sortedBasePagesToComponents)
     }
 
-    async function handleWebsiteUpdate(updateObj: Partial<website>) {
-        if (updateWebsiteDebounce.current) clearTimeout(updateWebsiteDebounce.current)
+    async function handleWebsiteUpdate(newWebsite: website) {
+        try {
+            //when something updates website handle it on user interaction
+            //update locally
+            websiteObjSet(newWebsite)
 
-        updateWebsiteDebounce.current = setTimeout(async () => {
-            try {
-                websiteSchema.partial().parse(updateObj)
+            //update on server after delay
+            if (updateWebsiteDebounce.current) clearTimeout(updateWebsiteDebounce.current)
 
-                //strip of anything relating to pages
-                updateObj.pages = []
+            //make new website schema
+            updateWebsiteDebounce.current = setTimeout(async () => {
+                const validatedNewWebsite = updateWebsiteSchema.parse(newWebsite)
 
-                await updateWebsite({ ...updateObj })
+                await updateTheWebsite(validatedNewWebsite)
 
                 console.log(`$saved website to db`);
-
-            } catch (error) {
-                consoleAndToastError(error)
-            }
-        }, 3000);
-    }
-
-    async function handlePageComponentUpdate(updateObjArr: Partial<pagesToComponent>[]) {
-        try {
-            const sanitizedUpdateObjArr = updateObjArr.map(eachUpdateObj => {
-                return sanitizeDataInPageComponent(eachUpdateObj)
-            })
-
-            await updateComponentInPage(sanitizedUpdateObjArr)
-
-            console.log(`$saved pagesToComponent to db`);
+            }, 3000);
 
         } catch (error) {
             consoleAndToastError(error)
         }
     }
 
-    function handlePropsChange(newPropsObj: componentDataType, seenComponentInPage: pagesToComponent) {
+    async function handlePageComponentUpdate(newPageComponent: pagesToComponent) {
+        try {
+            //update locally
+            websiteObjSet(pevWebsite => {
+                const newWebsite = { ...pevWebsite }
+                if (newWebsite.pages === undefined) return pevWebsite
+                if (newWebsite.pages[activePageIndex] === undefined) return pevWebsite
+                if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return pevWebsite
 
-        websiteObjSet(prevWebsite => {
-            const newWebsite = { ...prevWebsite }
-            if (newWebsite.pages === undefined) return prevWebsite
-            if (newWebsite.pages[activePageIndex] === undefined) return prevWebsite
-            if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return prevWebsite
+                newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
+                    //ensure data is for correct component category, and update 
+                    if (eachPageToComponent.id === newPageComponent.id) {
+                        eachPageToComponent = newPageComponent
+                    }
 
-            newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
-                if (eachPageToComponent.id === seenComponentInPage.id && seenComponentInPage.data !== null && seenComponentInPage.data.category === newPropsObj.category) {//ensure data is for correct component category
-                    eachPageToComponent.data = newPropsObj
-                }
+                    return eachPageToComponent
+                })
 
-                return eachPageToComponent
+                return newWebsite
             })
 
-            return newWebsite
-        })
+            //update server after delay
+            if (updatePagesToComponentDebounce.current) clearTimeout(updatePagesToComponentDebounce.current)
+
+            updatePagesToComponentDebounce.current = setTimeout(async () => {
+                const sanitizedPagesToComponent = sanitizeDataInPageComponent(newPageComponent)
+
+                //server update here
+                await updateComponentInPage(sanitizedPagesToComponent)
+
+                console.log(`$saved page component to db`);
+            }, 3000)
+
+        } catch (error) {
+            consoleAndToastError(error)
+        }
+    }
+
+    function handlePropsChange(newPropsObj: componentDataType, sentComponentInPage: pagesToComponent) {
+        //update the data
+        sentComponentInPage.data = newPropsObj
+
+        //send to update function
+        handlePageComponentUpdate(sentComponentInPage)
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -358,21 +356,19 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         )}
                     </button>
 
-                    {isOnMobile === false && (
-                        <button className='secondaryButton'
-                            onClick={() => {
-                                showingSideBarSet(prev => !prev)
-                            }}
-                        >
-                            {showingSideBar ? "close" : "open"}
-                        </button>
-                    )}
+                    <button className='secondaryButton'
+                        onClick={() => {
+                            showingSideBarSet(prev => !prev)
+                        }}
+                    >
+                        {showingSideBar ? "close" : "open"}
+                    </button>
                 </div>
 
                 <div ref={middleBarContentContRef} className={styles.middleBarContentCont}>
                     {activeSizeOption !== undefined && (
                         <div ref={canvasRef} className={styles.canvas} style={{ width: fit ? middleBarContentContRef.current?.clientWidth : activeSizeOption.width, height: fit ? middleBarContentContRef.current?.clientHeight : activeSizeOption.height, scale: fit ? 1 : canvasScale }}>
-                            {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && buildComponentCheck && (
+                            {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && componentsBuilt && (
                                 <>
                                     <style>{addScopeToCSS(websiteObj.globalCss, styles.canvas)}</style>
 
@@ -406,7 +402,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     }, 3000);
                 }}
             >
-                <div style={{ display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", gap: ".5rem", justifyContent: "flex-end", backgroundColor: "aliceblue" }}>
                     {isOnMobile && (
                         <button className='secondaryButton'
                             onClick={() => {
@@ -421,10 +417,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         onClick={() => {
                             dimSideBarSet(prev => !prev)
                         }}
-                    >{dimSideBar ? "full" : "dim"}</button>
+                    >{dimSideBar ? "un-dim" : "dim"}</button>
                 </div>
 
-                <div className={styles.sideBarContent} style={{ opacity: dimSideBar ? 0.01 : "" }}>
+                <div className={styles.sideBarContent} style={{ opacity: dimSideBar ? 0 : "" }}
+                    onClick={() => {
+                        dimSideBarSet(false)
+                    }}
+                >
                     <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
                         {websiteObj.pages !== undefined && (
                             <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
@@ -466,44 +466,29 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                                 <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
                                     onChange={(e) => {
-                                        websiteObjSet(prevWebsite => {
-                                            const newWebsite = { ...prevWebsite }
+                                        const newWebsite = { ...websiteObj }
+                                        newWebsite.globalCss = e.target.value
 
-                                            newWebsite.globalCss = e.target.value
-
-                                            return newWebsite
-                                        })
+                                        handleWebsiteUpdate(newWebsite)
                                     }}
                                 />
                             </>
                         )}
 
-                        {activePagesToComponent !== undefined && (
+                        {activePageComponent !== undefined && (
                             <>
                                 <p>styling</p>
-                                <textarea rows={5} value={activePagesToComponent.css} className={styles.styleEditor}
+                                <textarea rows={5} value={activePageComponent.css} className={styles.styleEditor}
                                     onChange={(e) => {
-                                        websiteObjSet(prevWebsite => {
-                                            const newWebsite = { ...prevWebsite }
-                                            if (newWebsite.pages === undefined) return prevWebsite
-                                            if (newWebsite.pages[activePageIndex] === undefined) return prevWebsite
-                                            if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return prevWebsite
+                                        const newActiveComp: pagesToComponent = { ...activePageComponent }
+                                        newActiveComp.css = e.target.value
 
-                                            newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
-                                                if (eachPageToComponent.id === activePagesToComponent.id) {
-                                                    eachPageToComponent.css = e.target.value
-                                                }
-
-                                                return eachPageToComponent
-                                            })
-
-                                            return newWebsite
-                                        })
+                                        handlePageComponentUpdate(newActiveComp)
                                     }}
                                 />
 
                                 <p>props</p>
-                                <ComponentDataSwitch activePagesToComponent={activePagesToComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
+                                <ComponentDataSwitch activePagesToComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
                             </>
                         )}
                     </div>
@@ -531,9 +516,7 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
         console.log(`No data in component`, componentOnPage);
         return null;
     }
-
-    const cssSafeId = ensureIdDoesNotStartWithNumber(componentOnPage.id)
-    const scopedCss = addScopeToCSS(componentOnPage.css, cssSafeId);
+    const scopedCss = addScopeToCSS(componentOnPage.css, componentOnPage.id);
 
     // Recursively render child components
     const childJSX = componentOnPage.children.map((childComponentOnPage) => {
@@ -555,7 +538,7 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
     const componentProps = componentOnPage.data
 
     //apply scoped styling starter value
-    componentProps.styleId = `${cssSafeId}____`
+    componentProps.styleId = `____${componentOnPage.id}`
 
     if (childJSX.length > 0) {
         if (componentProps.category === "containers") {

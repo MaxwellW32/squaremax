@@ -5,7 +5,7 @@ import ShowMore from '@/components/showMore/ShowMore'
 import styles from "./style.module.css"
 import Image from 'next/image'
 import { toast } from 'react-hot-toast'
-import { getSpecificWebsite, updateWebsite } from '@/serverFunctions/handleWebsites'
+import { getSpecificWebsite, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { maxImageUploadSize, maxBodyToServerSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
 import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
 
@@ -86,7 +86,7 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                                 }
 
                                 //update the server
-                                await updateWebsite({
+                                await updateTheWebsite({
                                     id: project.id,
                                     userUploadedImages: latestImagesSeen
                                 })
