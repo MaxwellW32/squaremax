@@ -11,21 +11,24 @@ import { updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 import ComponentSelector from '../components/ComponentSelector'
 
-//optimize this code...
 //viewer node allows switching between different components, if same category prompt to paste data
 //view node also keeps a history of past viewed nodes in the array
 //...think about building the finished site code
 
-
 //viewer node
-//all client side
-//takes in an index
-//take in page component data
+//client side
+//index starts at 0 default
 //float in middle of page
 //swap through different components
-//build and fetch the next 5 for client side speed
+//can copy component data
+//if component category same can paste
+//build and fetch the next 5 iterations for client side speed
 //can sort by category or anything
-//
+
+//to do
+//add more designs
+//viewer node
+//finish code generation 
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
@@ -63,7 +66,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     const spacerRef = useRef<HTMLDivElement | null>(null)
     const canvasRef = useRef<HTMLDivElement | null>(null)
-    const middleBarContentContRef = useRef<HTMLDivElement | null>(null)
+    const canvasContRef = useRef<HTMLDivElement | null>(null)
 
     const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
     const [isOnMobile, isOnMobileSet] = useState<boolean | null>(null)
@@ -98,6 +101,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const updatePagesToComponentDebounce = useRef<NodeJS.Timeout>()
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
 
+    const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
+
     // respond to changes from server 
     useEffect(() => {
         const runAction = async () => {
@@ -124,16 +129,16 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     //calculate fit on device size change
     useEffect(() => {
-        if (middleBarContentContRef.current === null || activeSizeOption === undefined) return
+        if (canvasContRef.current === null || activeSizeOption === undefined) return
 
-        const widthDiff = middleBarContentContRef.current.clientWidth / activeSizeOption.width
-        const heightDiff = middleBarContentContRef.current.clientHeight / activeSizeOption.height
+        const widthDiff = canvasContRef.current.clientWidth / activeSizeOption.width
+        const heightDiff = canvasContRef.current.clientHeight / activeSizeOption.height
 
         const newScale = widthDiff < heightDiff ? widthDiff : heightDiff
 
         canvasScaleSet(newScale)
 
-    }, [activeSizeOption, middleBarContentContRef])
+    }, [activeSizeOption, canvasContRef])
 
     //center canvasView
     useEffect(() => {
@@ -155,13 +160,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }, [])
 
     function centerCanvas() {
-        if (middleBarContentContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
+        if (canvasContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
 
         //center scroll bars
-        middleBarContentContRef.current.scrollLeft = (middleBarContentContRef.current.scrollWidth / 2) - (middleBarContentContRef.current.clientWidth / 2)
-        middleBarContentContRef.current.scrollTop = 0
+        canvasContRef.current.scrollLeft = (canvasContRef.current.scrollWidth / 2) - (canvasContRef.current.clientWidth / 2)
+        canvasContRef.current.scrollTop = 0
 
-        canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? middleBarContentContRef.current.clientWidth : activeSizeOption.width) / 2}px`
+        canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? canvasContRef.current.clientWidth : activeSizeOption.width) / 2}px`
     }
 
     async function buildPageComponents(sentPageComponents: pagesToComponent[]): Promise<pagesToComponent[]> {
@@ -240,9 +245,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             updateWebsiteDebounce.current = setTimeout(async () => {
                 const validatedNewWebsite = updateWebsiteSchema.parse(newWebsite)
 
+                saveStateSet("saving")
+
                 await updateTheWebsite(validatedNewWebsite)
 
                 console.log(`$saved website to db`);
+                saveStateSet("saved")
+
             }, 3000);
 
         } catch (error) {
@@ -274,13 +283,19 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             //update server after delay
             if (updatePagesToComponentDebounce.current) clearTimeout(updatePagesToComponentDebounce.current)
 
+
             updatePagesToComponentDebounce.current = setTimeout(async () => {
                 const sanitizedPagesToComponent = sanitizeDataInPageComponent(newPageComponent)
+
+                //notify saving
+                saveStateSet("saving")
 
                 //server update here
                 await updateComponentInPage(sanitizedPagesToComponent)
 
                 console.log(`$saved page component to db`);
+
+                saveStateSet("saved")
             }, 3000)
 
         } catch (error) {
@@ -307,17 +322,24 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }
 
     function handleSelectPageComponent() {
-        if (tempActivePagesToComponentId.current !== "") {
-            activePagesToComponentIdSet(tempActivePagesToComponentId.current)
-        }
+        if (tempActivePagesToComponentId.current === "") return
+
+        activePagesToComponentIdSet(tempActivePagesToComponentId.current)
     }
 
     return (
-        <main className={styles.main}
-            onClick={handleSelectPageComponent}
-        >
-            <div className={styles.middleBar}>
-                <div className={styles.middleBarSettingsCont}>
+        <main className={styles.main}>
+            <div className={styles.mainSettingsCont}>
+                <div>
+                    {saveState === "saving" ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z" /></svg>
+                    )}
+
+                </div>
+
+                <div className={styles.mainSettingsContMiddle}>
                     {sizeOptions.map(eachSizeOption => {
                         return (
                             <button key={eachSizeOption.name}
@@ -355,19 +377,17 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z" /></svg>
                         )}
                     </button>
-
-                    <button className='secondaryButton'
-                        onClick={() => {
-                            showingSideBarSet(prev => !prev)
-                        }}
-                    >
-                        {showingSideBar ? "close" : "open"}
-                    </button>
                 </div>
 
-                <div ref={middleBarContentContRef} className={styles.middleBarContentCont}>
+                <div></div>
+            </div>
+
+            <div className={styles.mainContent}>
+                <div ref={canvasContRef} className={styles.canvasCont}>
                     {activeSizeOption !== undefined && (
-                        <div ref={canvasRef} className={styles.canvas} style={{ width: fit ? middleBarContentContRef.current?.clientWidth : activeSizeOption.width, height: fit ? middleBarContentContRef.current?.clientHeight : activeSizeOption.height, scale: fit ? 1 : canvasScale }}>
+                        <div ref={canvasRef} className={styles.canvas} style={{ width: fit ? canvasContRef.current?.clientWidth : activeSizeOption.width, height: fit ? canvasContRef.current?.clientHeight : activeSizeOption.height, scale: fit ? 1 : canvasScale }}
+                            onClick={handleSelectPageComponent}
+                        >
                             {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && componentsBuilt && (
                                 <>
                                     <style>{addScopeToCSS(websiteObj.globalCss, styles.canvas)}</style>
@@ -384,115 +404,122 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                     <div ref={spacerRef} className={styles.spacer}></div>
                 </div>
-            </div>
 
-            <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}
-                onMouseEnter={() => {
-                    if (!isOnMobile === false) return
-                    if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
+                <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}
+                    onMouseEnter={() => {
+                        if (!isOnMobile === false) return
+                        if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
 
-                    dimSideBarSet(false)
-                }}
-                onMouseLeave={() => {
-                    if (!isOnMobile === false) return
+                        dimSideBarSet(false)
+                    }}
+                    onMouseLeave={() => {
+                        if (!isOnMobile === false) return
 
-                    if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
-                    mouseLeaveDebounce.current = setTimeout(() => {
-                        dimSideBarSet(true)
-                    }, 3000);
-                }}
-            >
-                <div style={{ display: "flex", gap: ".5rem", justifyContent: "flex-end", backgroundColor: "aliceblue" }}>
-                    {isOnMobile && (
+                        if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
+                        mouseLeaveDebounce.current = setTimeout(() => {
+                            dimSideBarSet(true)
+                        }, 3000);
+                    }}
+                >
+                    <div className={styles.sideBarSettings} style={{ backgroundColor: dimSideBar ? "" : "aliceblue" }}>
                         <button className='secondaryButton'
                             onClick={() => {
                                 showingSideBarSet(false)
                             }}
-                        >
-                            close
-                        </button>
-                    )}
+                        >close</button>
 
-                    <button className='secondaryButton'
-                        onClick={() => {
-                            dimSideBarSet(prev => !prev)
-                        }}
-                    >{dimSideBar ? "un-dim" : "dim"}</button>
-                </div>
-
-                <div className={styles.sideBarContent} style={{ opacity: dimSideBar ? 0 : "" }}
-                    onClick={() => {
-                        dimSideBarSet(false)
-                    }}
-                >
-                    <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
-                        {websiteObj.pages !== undefined && (
-                            <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
-                                {websiteObj.pages.map((eachPage, eachPageIndex) => {
-                                    return (
-                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPageIndex === activePageIndex ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
-                                            onClick={() => {
-                                                activePageIndexSet(eachPageIndex)
-                                            }}
-                                        >{eachPage.name}</button>
-                                    )
-                                })}
-                            </ul>
-                        )}
-
-                        <button className='mainButton'
+                        <button className='secondaryButton'
                             onClick={() => {
-                                addingPageSet(prev => !prev)
+                                dimSideBarSet(prev => !prev)
                             }}
-                        >{addingPage ? "close" : "add page"}</button>
+                        >{dimSideBar ? "full" : "dim"}</button>
+                    </div>
 
-                        <div style={{ display: addingPage ? "" : "none" }}>
-                            <AddPage websiteIdObj={{ id: websiteObj.id }} />
+                    <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}
+                        onClick={() => {
+                            dimSideBarSet(false)
+                        }}
+                    >
+                        <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
+                            {websiteObj.pages !== undefined && (
+                                <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
+                                    {websiteObj.pages.map((eachPage, eachPageIndex) => {
+                                        return (
+                                            <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPageIndex === activePageIndex ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
+                                                onClick={() => {
+                                                    activePageIndexSet(eachPageIndex)
+                                                }}
+                                            >{eachPage.name}</button>
+                                        )
+                                    })}
+                                </ul>
+                            )}
+
+                            <button className='mainButton'
+                                onClick={() => {
+                                    addingPageSet(prev => !prev)
+                                }}
+                            >{addingPage ? "close" : "add page"}</button>
+
+                            <div style={{ display: addingPage ? "" : "none" }}>
+                                <AddPage websiteIdObj={{ id: websiteObj.id }} />
+                            </div>
+
+                            {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
+                                <ComponentSelector pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
+                            )}
                         </div>
 
-                        {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
-                            <ComponentSelector pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
-                        )}
+                        <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
+                            <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
+                                onClick={() => {
+                                    editingGlobalStyleSet(prev => !prev)
+                                }}
+                            >{editingGlobalStyle ? "close" : "open"} global styles</button>
+
+                            {editingGlobalStyle && (
+                                <>
+                                    <p>global styles</p>
+
+                                    <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
+                                        onChange={(e) => {
+                                            const newWebsite = { ...websiteObj }
+                                            newWebsite.globalCss = e.target.value
+
+                                            handleWebsiteUpdate(newWebsite)
+                                        }}
+                                    />
+                                </>
+                            )}
+
+                            {activePageComponent !== undefined && (
+                                <>
+                                    <p>styling</p>
+                                    <textarea rows={5} value={activePageComponent.css} className={styles.styleEditor}
+                                        onChange={(e) => {
+                                            const newActiveComp: pagesToComponent = { ...activePageComponent }
+                                            newActiveComp.css = e.target.value
+
+                                            handlePageComponentUpdate(newActiveComp)
+                                        }}
+                                    />
+
+                                    <p>props</p>
+                                    <ComponentDataSwitch activePagesToComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
+                                </>
+                            )}
+                        </div>
                     </div>
 
-                    <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
-                        <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
-                            onClick={() => { editingGlobalStyleSet(prev => !prev) }}
-                        >{editingGlobalStyle ? "close" : "open"} global styles</button>
-
-                        {editingGlobalStyle && (
-                            <>
-                                <p>global styles</p>
-
-                                <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
-                                    onChange={(e) => {
-                                        const newWebsite = { ...websiteObj }
-                                        newWebsite.globalCss = e.target.value
-
-                                        handleWebsiteUpdate(newWebsite)
-                                    }}
-                                />
-                            </>
-                        )}
-
-                        {activePageComponent !== undefined && (
-                            <>
-                                <p>styling</p>
-                                <textarea rows={5} value={activePageComponent.css} className={styles.styleEditor}
-                                    onChange={(e) => {
-                                        const newActiveComp: pagesToComponent = { ...activePageComponent }
-                                        newActiveComp.css = e.target.value
-
-                                        handlePageComponentUpdate(newActiveComp)
-                                    }}
-                                />
-
-                                <p>props</p>
-                                <ComponentDataSwitch activePagesToComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
-                            </>
-                        )}
-                    </div>
                 </div>
+
+                {!showingSideBar && (
+                    <button className='secondaryButton' style={{ position: "absolute", bottom: 0, right: 0 }}
+                        onClick={() => {
+                            showingSideBarSet(true)
+                        }}
+                    >open</button>
+                )}
             </div>
         </main>
     )

@@ -2,28 +2,34 @@
     display: grid;
     align-content: flex-start;
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
-    overflow-y: auto;
-    overflow-x: clip;
-
-    position: relative;
+    grid-template-rows: auto 1fr;
+    overflow: auto;
     z-index: 0;
 }
 
-.middleBar {
+.mainSettingsCont {
     display: grid;
     align-content: flex-start;
-    grid-template-rows: auto 1fr;
-    overflow: auto;
+    grid-template-columns: 1fr auto 1fr;
+    padding: .1rem;
 }
 
-.middleBarSettingsCont {
+.mainSettingsContMiddle {
     display: flex;
     justify-content: center;
     gap: .5rem;
 }
 
-.middleBarContentCont {
+.mainContent {
+    display: grid;
+    align-content: flex-start;
+    position: relative;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    overflow: auto;
+}
+
+.canvasCont {
     display: grid;
     align-content: flex-start;
     background-color: brown;
@@ -54,6 +60,7 @@
     box-sizing: border-box;
 }
 
+
 .sideBar {
     display: grid;
     align-content: flex-start;
@@ -62,10 +69,15 @@
     position: absolute;
     bottom: 0;
     right: 0;
-
     height: 100%;
     width: min(350px, 100%);
     overflow-y: auto;
+}
+
+.sideBarSettings {
+    display: flex;
+    gap: .5rem;
+    justify-content: flex-end;
 }
 
 .sideBarContent {
@@ -121,8 +133,6 @@
     color: rgb(var(--shade1));
     min-height: 150px;
 }
-
-
 
 
 

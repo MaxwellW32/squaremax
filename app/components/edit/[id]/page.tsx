@@ -1,5 +1,5 @@
 import { auth } from "@/auth/auth"
-import AddEditWebsiteComponent from "@/components/forWebsiteComponents/AddEditWebsiteComponent"
+import AddEditWebsiteComponent from "@/components/editWebsiteComponents/AddEditWebsiteComponent"
 import { getSpecificComponent } from "@/serverFunctions/handleComponents"
 
 export default async function Page({ params }: { params: { id: string } }) {

@@ -235,7 +235,7 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
                 <ul style={{ display: "flex", gap: ".5rem" }}>
                     {categories.map(eachCategory => {
                         return (
-                            <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: selectedCategory !== null && eachCategory.name === selectedCategory.name ? "rgb(var(--color1))" : "" }}
+                            <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: eachCategory.name === selectedCategory?.name ? "rgb(var(--color1))" : "" }}
                                 onClick={() => {
                                     selectedCategorySet(eachCategory)
 
@@ -265,7 +265,7 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
 
                 <h3>Upload data</h3>
 
-                <textarea rows={5} value={JSON.stringify(formObj.defaultData, null, 2)} style={{ whiteSpace: "pre" }}
+                <textarea rows={5} value={formObj.defaultData !== undefined ? JSON.stringify(formObj.defaultData, null, 2) : ""} style={{ whiteSpace: "pre" }}
                     onChange={(e) => {
                         const input = e.target.value;
                         formObjSet((prevFormObj) => {
