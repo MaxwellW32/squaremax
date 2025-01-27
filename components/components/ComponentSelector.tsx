@@ -3,106 +3,84 @@ import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getComponents } from '@/serverFunctions/handleComponents'
 import { addComponentToPage, updateComponentInPage } from '@/serverFunctions/handlePagesToComponents'
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { category, categoryName, childComponentType, component, page, pagesToComponent, website } from '@/types'
+import { category, childComponentType, component, page, pagesToComponent, viewerComponentType, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import globalDynamicComponents from '@/utility/globalComponents'
 import { sanitizeDataInPageComponent } from '@/utility/utility'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function ComponentSelector({ pageIdObj, websiteIdObj, currentIndex, parentComponent }: { pageIdObj: Pick<page, "id">, websiteIdObj: Pick<website, "id">, currentIndex: number, parentComponent?: pagesToComponent }) {
-    //receive input
-    //search by category
-    //save to pagestocomponents the selection
+export default function ComponentSelector({
+    pageId, websiteId, currentIndex, parentComponent, viewerComponentSet
+}: {
+    pageId: page["id"], websiteId: website["id"], currentIndex: number, parentComponent?: pagesToComponent, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
+}) {
+    //view results by category
+    //or search by id
+    //can rank results 
+
+    //send the chosen component to page
+    //send its list of components upwards - for use in the viewer node
 
     const [userInteracting, userInteractingSet] = useState(false)
 
-    const [latestCategories, latestCategoriesSet] = useState<category[]>([])
-    const [categorySelection, categorySelectionSet] = useState<categoryName | null>(null)
-
-    const [canSearch, canSearchSet] = useState(true)
-    const categorysearchDebounce = useRef<NodeJS.Timeout>()
-
-    const [canSearchComponents, canSearchComponentsSet] = useState(true)
-    const componentSearchDebounce = useRef<NodeJS.Timeout>()
+    const [allCategories, allCategoriesSet] = useState<category[]>([])
+    const [activeCategory, activeCategorySet] = useState<category | null>(null)
 
     const [seenComponents, seenComponentsSet] = useState<component[]>([])
 
-    //get categories
+    //get categories on launch
     useEffect(() => {
-        handleCategorySearch()
-    }, [])
+        const search = async () => {
+            try {
+                allCategoriesSet(await getAllCategories())
 
-    async function handleCategorySearch() {
-        try {
-            if (!canSearch) return
-            canSearchSet(false)
-
-            latestCategoriesSet(await getAllCategories())
-
-            if (categorysearchDebounce.current) clearTimeout(categorysearchDebounce.current)
-            categorysearchDebounce.current = setTimeout(() => {
-                canSearchSet(true)
-            }, 30_000);
-
-        } catch (error) {
-            consoleAndToastError(error)
+            } catch (error) {
+                consoleAndToastError(error)
+            }
         }
-    }
 
-    //make custom function that sends the data upwards
+        search()
+    }, [])
 
     return (
         <div>
             <button className='mainButton'
                 onClick={() => {
                     userInteractingSet(prev => !prev)
-
                 }}
             >{userInteracting ? "close" : "Add a template"}</button>
 
             <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid rgb(var(--shade1))" }}>
-                <div>
-                    <button disabled={!canSearch} className='mainButton'
-                        onClick={handleCategorySearch}
-                    >get categories</button>
+                {allCategories.length > 0 && (
+                    <ul style={{ display: "flex" }}>
+                        {allCategories.map(eachCategory => {
+                            return (
+                                <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: eachCategory.name === activeCategory?.name ? "rgb(var(--color1))" : "" }}
+                                    onClick={async () => {
+                                        try {
+                                            //update active selection
+                                            activeCategorySet(eachCategory)
 
-                    {latestCategories.length > 0 && (
-                        <ul style={{ display: "flex", gap: "1rem" }}>
-                            {latestCategories.map(eachCategory => {
-                                return (
-                                    <button key={eachCategory.name} className='tag' style={{ backgroundColor: eachCategory.name === categorySelection ? "rgb(var(--color1))" : "" }}
-                                        onClick={async () => {
-                                            try {
-                                                if (!canSearchComponents) return
-                                                canSearchComponentsSet(false)
+                                            //search for component
+                                            const searchedComponents = await getComponents({ option: "categoryId", data: { categoryId: eachCategory.name } })
+                                            seenComponentsSet(searchedComponents)
 
-                                                //update category selection
-                                                categorySelectionSet(eachCategory.name)
+                                            toast.success(`searched ${eachCategory.name} components`)
 
-                                                //search for component
-                                                const searchedComponents = await getComponents({ option: "categoryId", data: { categoryId: eachCategory.name } })
-                                                seenComponentsSet(searchedComponents)
-                                                toast.success("searched components in category")
-
-                                                if (componentSearchDebounce.current) clearTimeout(componentSearchDebounce.current)
-                                                componentSearchDebounce.current = setTimeout(async () => {
-                                                    canSearchComponentsSet(true)
-                                                }, 5_000);
-
-                                            } catch (error) {
-                                                consoleAndToastError(error)
-                                            }
-                                        }}
-                                    >{eachCategory.name}</button>
-                                )
-                            })}
-                        </ul>
-                    )}
-                </div>
+                                        } catch (error) {
+                                            consoleAndToastError(error)
+                                        }
+                                    }}
+                                >{eachCategory.name}</button>
+                            )
+                        })}
+                    </ul>
+                )}
 
                 {seenComponents.length > 0 && (
                     <>
-                        <h3>Select your component</h3>
+                        <h3>{viewerComponentSet === undefined ? "Select" : "Swap"} your component</h3>
 
                         <div style={{ backgroundColor: "white", overflow: "auto", display: "grid", gridAutoFlow: "column", gridAutoColumns: "80%" }}>
                             {seenComponents.map(eachComponent => {
@@ -113,28 +91,50 @@ export default function ComponentSelector({ pageIdObj, websiteIdObj, currentInde
                                         <button className='mainButton'
                                             onClick={async () => {
                                                 try {
-                                                    //add to pagesToComponents
-                                                    const newComponentToPage = await addComponentToPage({ id: pageIdObj.id }, { id: eachComponent.id }, {
-                                                        indexOnPage: currentIndex + 1
-                                                    })
+                                                    if (viewerComponentSet === undefined) {
+                                                        //add to pagesToComponents
+                                                        const newComponentToPage = await addComponentToPage({ id: pageId }, { id: eachComponent.id }, {
+                                                            indexOnPage: currentIndex + 1
+                                                        })
 
-                                                    if (parentComponent) {
-                                                        const newCompChild: childComponentType = {
-                                                            pagesToComponentsId: newComponentToPage.id
+                                                        if (parentComponent) {
+                                                            const newCompChild: childComponentType = {
+                                                                pagesToComponentsId: newComponentToPage.id
+                                                            }
+
+                                                            const seenUpdatedChildren = [...parentComponent.children, newCompChild]
+
+                                                            parentComponent.children = seenUpdatedChildren
+
+                                                            //update component with new child id
+                                                            const sanitizedPageComponent = sanitizeDataInPageComponent(parentComponent)
+                                                            await updateComponentInPage(sanitizedPageComponent)
                                                         }
 
-                                                        const seenUpdatedChildren = [...parentComponent.children, newCompChild]
+                                                        await refreshWebsitePath({ id: websiteId })
 
-                                                        parentComponent.children = seenUpdatedChildren
+                                                        userInteractingSet(false)
 
-                                                        const sanitizedUpdateObj = sanitizeDataInPageComponent(parentComponent)
+                                                    } else {
+                                                        //build component
+                                                        const seenResponse = await globalDynamicComponents(eachComponent.id)
 
-                                                        await updateComponentInPage(sanitizedUpdateObj)
+                                                        //assign builds to renderObj
+                                                        if (seenResponse === undefined) return
+
+                                                        //locally build and show new component
+                                                        viewerComponentSet(prevViewerComponent => {
+                                                            if (prevViewerComponent === null) return prevViewerComponent
+
+                                                            const newViewerComponent = { ...prevViewerComponent }
+
+                                                            newViewerComponent.component = eachComponent
+                                                            newViewerComponent.builtComponent = seenResponse()
+
+                                                            return newViewerComponent
+                                                        })
+
                                                     }
-
-                                                    await refreshWebsitePath({ id: websiteIdObj.id })
-
-                                                    userInteractingSet(false)
 
                                                 } catch (error) {
                                                     consoleAndToastError(error)

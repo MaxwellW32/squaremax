@@ -17,7 +17,7 @@ export default function EditContainersData({ activePagesToComponent, websiteObj 
             </div>
 
             <h3>Add template to component</h3>
-            <ComponentSelector currentIndex={-1} pageIdObj={{ id: activePagesToComponent.pageId }} websiteIdObj={{ id: websiteObj.id }} parentComponent={activePagesToComponent} />
+            <ComponentSelector currentIndex={-1} pageId={activePagesToComponent.pageId} websiteId={websiteObj.id} parentComponent={activePagesToComponent} />
         </form>
     )
 }

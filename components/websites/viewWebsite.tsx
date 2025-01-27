@@ -1,38 +1,23 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
-import { componentDataType, pagesToComponent, sizeOptionType, updateWebsiteSchema, website, } from '@/types'
+import { componentDataType, pagesToComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, } from '@/types'
 import { addScopeToCSS, deepClone, sanitizeDataInPageComponent } from '@/utility/utility'
 import AddPage from '../pages/addPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { updateComponentInPage } from '@/serverFunctions/handlePagesToComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import { updateTheWebsite } from '@/serverFunctions/handleWebsites'
+import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 import ComponentSelector from '../components/ComponentSelector'
+import toast from 'react-hot-toast'
 
-//viewer node allows switching between different components, if same category prompt to paste data
-//view node also keeps a history of past viewed nodes in the array
-//...think about building the finished site code
-
-//viewer node
-//client side
-//index starts at 0 default
-//float in middle of page
-//swap through different components
-//can copy component data
-//if component category same can paste
-//build and fetch the next 5 iterations for client side speed
-//can sort by category or anything
-
-//to do
-//add more designs
-//viewer node
-//finish code generation 
+//switch them
+//copy data
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
-    const [showingSideBar, showingSideBarSet] = useState(true)
-    const [dimSideBar, dimSideBarSet] = useState(false)
+    const [showingSideBar, showingSideBarSet] = useState(false)
+    const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
 
     const [sizeOptions, sizeOptionsSet] = useState<sizeOptionType[]>([
         {
@@ -69,8 +54,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const canvasContRef = useRef<HTMLDivElement | null>(null)
 
     const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
-    const [isOnMobile, isOnMobileSet] = useState<boolean | null>(null)
-    const mouseLeaveDebounce = useRef<NodeJS.Timeout>()
 
     const [activePageIndex, activePageIndexSet] = useState<number>(0)
     const [addingPage, addingPageSet] = useState(false)
@@ -102,6 +85,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
 
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
+
+    const [viewerComponent, viewerComponentSet] = useState<viewerComponentType | null>(null)
 
     // respond to changes from server 
     useEffect(() => {
@@ -153,11 +138,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             window.removeEventListener("keydown", handleKeyDown)
         }
     }, [tempActivePagesToComponentId])
-
-    //handle mobileCheck
-    useEffect(() => {
-        isOnMobileSet(window.innerWidth < 800)
-    }, [])
 
     function centerCanvas() {
         if (canvasContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
@@ -394,7 +374,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                                     {websiteObj.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
                                         return (
-                                            <RenderComponentTree key={eachPageToComponent.id} componentOnPage={eachPageToComponent} websiteObj={websiteObj} activePageIndex={activePageIndex} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} />
+                                            <RenderComponentTree key={eachPageToComponent.id} componentOnPage={eachPageToComponent} websiteObj={websiteObj} activePageIndex={activePageIndex} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} viewerComponent={viewerComponent} />
                                         )
                                     })}
                                 </>
@@ -405,22 +385,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     <div ref={spacerRef} className={styles.spacer}></div>
                 </div>
 
-                <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}
-                    onMouseEnter={() => {
-                        if (!isOnMobile === false) return
-                        if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
-
-                        dimSideBarSet(false)
-                    }}
-                    onMouseLeave={() => {
-                        if (!isOnMobile === false) return
-
-                        if (mouseLeaveDebounce.current) clearTimeout(mouseLeaveDebounce.current)
-                        mouseLeaveDebounce.current = setTimeout(() => {
-                            dimSideBarSet(true)
-                        }, 3000);
-                    }}
-                >
+                <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}                >
                     <div className={styles.sideBarSettings} style={{ backgroundColor: dimSideBar ? "" : "aliceblue" }}>
                         <button className='secondaryButton'
                             onClick={() => {
@@ -428,11 +393,11 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                             }}
                         >close</button>
 
-                        <button className='secondaryButton'
+                        <button className='secondaryButton' style={{ filter: dimSideBar ? "brightness(.4)" : "" }}
                             onClick={() => {
                                 dimSideBarSet(prev => !prev)
                             }}
-                        >{dimSideBar ? "full" : "dim"}</button>
+                        >dim</button>
                     </div>
 
                     <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}
@@ -452,21 +417,19 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                             >{eachPage.name}</button>
                                         )
                                     })}
+
+                                    <button className='mainButton'
+                                        onClick={() => {
+                                            addingPageSet(prev => !prev)
+                                        }}
+                                    >{addingPage ? "close" : "add page"}</button>
                                 </ul>
                             )}
 
-                            <button className='mainButton'
-                                onClick={() => {
-                                    addingPageSet(prev => !prev)
-                                }}
-                            >{addingPage ? "close" : "add page"}</button>
+                            <AddPage style={{ display: addingPage ? "" : "none" }} websiteIdObj={{ id: websiteObj.id }} />
 
-                            <div style={{ display: addingPage ? "" : "none" }}>
-                                <AddPage websiteIdObj={{ id: websiteObj.id }} />
-                            </div>
-
-                            {activePageIndex !== null && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
-                                <ComponentSelector pageIdObj={{ id: websiteObj.pages[activePageIndex].id }} websiteIdObj={{ id: websiteObj.id }} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
+                            {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
+                                <ComponentSelector pageId={websiteObj.pages[activePageIndex].id} websiteId={websiteObj.id} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
                             )}
                         </div>
 
@@ -478,18 +441,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                             >{editingGlobalStyle ? "close" : "open"} global styles</button>
 
                             {editingGlobalStyle && (
-                                <>
-                                    <p>global styles</p>
+                                <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
+                                    onChange={(e) => {
+                                        const newWebsite = { ...websiteObj }
+                                        newWebsite.globalCss = e.target.value
 
-                                    <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
-                                        onChange={(e) => {
-                                            const newWebsite = { ...websiteObj }
-                                            newWebsite.globalCss = e.target.value
-
-                                            handleWebsiteUpdate(newWebsite)
-                                        }}
-                                    />
-                                </>
+                                        handleWebsiteUpdate(newWebsite)
+                                    }}
+                                />
                             )}
 
                             {activePageComponent !== undefined && (
@@ -506,15 +465,63 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                                     <p>props</p>
                                     <ComponentDataSwitch activePagesToComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
+
+                                    <p>switch</p>
+                                    <button className='mainButton'
+                                        onClick={() => {
+                                            viewerComponentSet({ componentIdToSwap: activePageComponent.id, component: null, builtComponent: null })
+                                        }}
+                                    >enable viewer node</button>
+
+                                    {viewerComponent !== null && (
+                                        <button className='mainButton'
+                                            onClick={() => {
+                                                viewerComponentSet(null)
+                                            }}
+                                        >cancel</button>
+                                    )}
+
+                                    {/* show options for active */}
+                                    {viewerComponent !== null && viewerComponent.componentIdToSwap === activePageComponent.id && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
+                                        <>
+                                            <ComponentSelector pageId={websiteObj.pages[activePageIndex].id} websiteId={websiteObj.id} currentIndex={activePageComponent.indexOnPage} viewerComponentSet={viewerComponentSet} />
+
+                                            {viewerComponent.component !== null && (
+                                                <button className='mainButton'
+                                                    onClick={async () => {
+                                                        try {
+                                                            //replace the page to component with this selection
+                                                            //repalce everything except id, pageid, compid, children
+                                                            if (viewerComponent.component === null) return
+
+                                                            const newReplacedPageComponent = { ...activePageComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: viewerComponent.component.defaultData, }
+
+                                                            const sanitizedPageComponent = sanitizeDataInPageComponent(newReplacedPageComponent)
+
+                                                            await updateComponentInPage(sanitizedPageComponent)
+
+                                                            await refreshWebsitePath({ id: websiteObj.id })
+
+                                                            viewerComponentSet(null)
+
+                                                            toast.success("swapped component")
+
+                                                        } catch (error) {
+                                                            consoleAndToastError(error)
+                                                        }
+                                                    }}
+                                                >repalce with this component</button>
+                                            )}
+                                        </>
+                                    )}
                                 </>
                             )}
                         </div>
                     </div>
-
                 </div>
 
                 {!showingSideBar && (
-                    <button className='secondaryButton' style={{ position: "absolute", bottom: 0, right: 0 }}
+                    <button className='secondaryButton' style={{ position: "absolute", top: 0, right: 0 }}
                         onClick={() => {
                             showingSideBarSet(true)
                         }}
@@ -525,12 +532,29 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     )
 }
 
-function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, renderedComponentsObj, tempActivePagesToComponentId, topLevel = true }: { componentOnPage: pagesToComponent, websiteObj: website, activePageIndex: number, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActivePagesToComponentId: React.MutableRefObject<string>, topLevel?: boolean }) {
+function RenderComponentTree({
+    componentOnPage, websiteObj, activePageIndex, renderedComponentsObj, tempActivePagesToComponentId, viewerComponent, topLevel = true
+}: {
+    componentOnPage: pagesToComponent, websiteObj: website, activePageIndex: number, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActivePagesToComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null, topLevel?: boolean
+}) {
     //ensure only render top level components initially
     if (topLevel && !componentOnPage.isBase) return null
 
-    const ComponentToRender = renderedComponentsObj.current[componentOnPage.componentId];
+    let usingViewerComponent = false
 
+    let SeenViewerComp: React.ComponentType<{
+        data: componentDataType;
+    }> | null = null
+    let seenViewerCompData: componentDataType | null = null
+
+    //assign new chosen component if using the viewer node
+    if (viewerComponent !== null && viewerComponent.componentIdToSwap === componentOnPage.id && viewerComponent.component !== null && viewerComponent.builtComponent !== null) {
+        usingViewerComponent = true
+        SeenViewerComp = viewerComponent.builtComponent
+        seenViewerCompData = viewerComponent.component.defaultData
+    }
+
+    const ComponentToRender = renderedComponentsObj.current[componentOnPage.componentId];
     if (ComponentToRender === undefined) {
         console.error(
             `Component with ID ${componentOnPage.componentId} is not in renderedComponentsObj.`,
@@ -539,6 +563,7 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
         return null;
     }
 
+    //make sure component data is fetched
     if (componentOnPage.data === null) {
         console.log(`No data in component`, componentOnPage);
         return null;
@@ -558,7 +583,7 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
             return null;
         }
 
-        return <RenderComponentTree key={foundPagesToComponent.id} componentOnPage={foundPagesToComponent} websiteObj={websiteObj} activePageIndex={activePageIndex} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} topLevel={false} />;
+        return <RenderComponentTree key={foundPagesToComponent.id} componentOnPage={foundPagesToComponent} websiteObj={websiteObj} activePageIndex={activePageIndex} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} viewerComponent={viewerComponent} topLevel={false} />;
     }).filter(each => each !== null);
 
     // If the component is a container, pass children as a prop
@@ -567,6 +592,7 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
     //apply scoped styling starter value
     componentProps.styleId = `____${componentOnPage.id}`
 
+    //handle chuldren for different categories
     if (childJSX.length > 0) {
         if (componentProps.category === "containers") {
             componentProps.children = childJSX
@@ -588,12 +614,28 @@ function RenderComponentTree({ componentOnPage, websiteObj, activePageIndex, ren
         }, 1000);
     }
 
+    //if seeing a children array fiels pass it to the viewer component
+    if (seenViewerCompData !== null && componentOnPage.data.category === "containers" && seenViewerCompData.category === "containers") {
+        //check for the children attribute
+        seenViewerCompData.children = childJSX
+    }
+
     return (
         <React.Fragment key={componentOnPage.id}>
-            <style>{scopedCss}</style>
+            {usingViewerComponent ? (
+                <>
+                    {SeenViewerComp !== null && seenViewerCompData !== null && (
+                        <SeenViewerComp data={seenViewerCompData} />
+                    )}
+                </>
+            ) : (
+                <>
+                    <style>{scopedCss}</style>
 
-            {/* Render the main component with injected props */}
-            <ComponentToRender data={componentProps} />
+                    {/* Render the main component with injected props */}
+                    <ComponentToRender data={componentProps} />
+                </>
+            )}
         </React.Fragment>
     );
 }

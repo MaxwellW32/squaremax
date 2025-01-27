@@ -40,7 +40,6 @@ export const herosSchema = z.object({
     category: z.literal("heros"),
     mainElProps: htmlAttributesSchema,
     styleId: z.string(),
-
 })
 export type herosType = z.infer<typeof herosSchema>
 
@@ -126,7 +125,13 @@ const collectionSchema = z.object({
 })
 export type collection = z.infer<typeof collectionSchema>
 
-
+export type viewerComponentType = {
+    componentIdToSwap: pagesToComponent["id"],
+    component: component | null,
+    builtComponent: React.ComponentType<{
+        data: componentDataType;
+    }> | null
+}
 
 
 //form validation types
@@ -289,7 +294,7 @@ export type pagesToComponent = z.infer<typeof pagesToComponentsSchema> & {
     page?: page,
     component?: component,
 }
-export const updatePagesToComponentsSchema = pagesToComponentsSchema.pick({ id: true, css: true, data: true, indexOnPage: true, children: true })
+export const updatePagesToComponentsSchema = pagesToComponentsSchema.pick({ id: true, componentId: true, css: true, data: true, indexOnPage: true, children: true })
 export type updatePagesToComponentsType = z.infer<typeof updatePagesToComponentsSchema>
 
 

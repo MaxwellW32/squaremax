@@ -56,7 +56,6 @@ export async function removePageComponentsFromComponent(pagesToComponentArr: Pic
     )
 }
 
-
 export async function getPageComponentsFromComponentId(componentId: component["id"]): Promise<pagesToComponent[]> {
     await sessionCheckWithError()
 

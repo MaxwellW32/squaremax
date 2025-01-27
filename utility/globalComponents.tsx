@@ -16,6 +16,7 @@ export default async function globalDynamicComponents(id: string) {
         "4c5202e3-bf64-4d34-af6e-9ab16bb790ae": () => dynamic(() => import(`@/userWebsiteComponents/${id}/page.tsx`), { ssr: false }),
         "a60d39e9-f95b-4d95-912b-d5aafbce32b1": () => dynamic(() => import(`@/userWebsiteComponents/${id}/page.tsx`), { ssr: false }),
         "4eba14ab-7cea-4fdf-93da-6b0b554b248b": () => dynamic(() => import(`@/userWebsiteComponents/${id}/page.tsx`), { ssr: false }),
+"84e25301-9ab5-45e8-8f4a-3d6cb26a4485": () => dynamic(() => import(`@/userWebsiteComponents/${id}/page.tsx`), { ssr: false }),
     }//<marker>
 
     const SeenComponent = dynamicComponents[id];

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { HTMLAttributes, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { newPage, newPageSchema, website, websiteSchema } from '@/types'
@@ -10,7 +10,7 @@ import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import { addPage } from '@/serverFunctions/handlePages'
 
-export default function AddPage({ websiteIdObj }: { websiteIdObj: Pick<website, "id"> }) {
+export default function AddPage({ websiteIdObj, ...elProps }: { websiteIdObj: Pick<website, "id"> } & HTMLAttributes<HTMLFormElement>) {
     const initialFormObj: newPage = {
         name: "",
     }
@@ -93,7 +93,7 @@ export default function AddPage({ websiteIdObj }: { websiteIdObj: Pick<website, 
     }
 
     return (
-        <form className={styles.form} action={() => { }}>
+        <form {...elProps} className={`${elProps.className ?? ""} ${styles.form}`} action={() => { }}>
             {Object.entries(formObj).map(eachEntry => {
                 const eachKey = eachEntry[0] as pageKeys
 
