@@ -1,10 +1,11 @@
 "use server"
 import { db } from "@/db"
 import { websites } from "@/db/schema"
-import { newWebsite, newWebsiteSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema } from "@/types"
+import { newPage, newPageSchema, newWebsite, newWebsiteSchema, page, pageSchema, updatePageSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
+import { v4 as uuidV4 } from "uuid"
 
 export async function addWebsite(seenNewWebsite: newWebsite): Promise<website> {
     const session = await sessionCheckWithError()
@@ -19,17 +20,17 @@ export async function addWebsite(seenNewWebsite: newWebsite): Promise<website> {
     return addedWebsite[0]
 }
 
-export async function updateTheWebsite(websiteObj: Partial<updateWebsite>) {
+export async function updateTheWebsite(websiteId: website["id"], websiteObj: Partial<updateWebsite>) {
     await sessionCheckWithError()
 
     const validatedNewWebsite = updateWebsiteSchema.partial().parse(websiteObj)
-    if (validatedNewWebsite.id === undefined) throw new Error("need id")
+    if (websiteId === undefined) throw new Error("need id")
 
     await db.update(websites)
         .set({
             ...validatedNewWebsite
         })
-        .where(eq(websites.id, validatedNewWebsite.id));
+        .where(eq(websites.id, websiteId));
 }
 
 export async function refreshWebsitePath(websiteIdObj: Pick<website, "id">) {
@@ -58,22 +59,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
         websiteSchema.pick({ id: true }).parse(websiteObj.data)
 
         const result = await db.query.websites.findFirst({
-            where: eq(websites.id, websiteObj.data.id),
-            with: {
-                pages: {
-                    with: {
-                        pagesToComponents: {
-                            with: {
-                                component: {
-                                    with: {
-                                        category: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            where: eq(websites.id, websiteObj.data.id)
         });
 
         return result
@@ -82,22 +68,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
         websiteSchema.pick({ name: true }).parse(websiteObj.data)
 
         const result = await db.query.websites.findFirst({
-            where: eq(websites.name, websiteObj.data.name),
-            with: {
-                pages: {
-                    with: {
-                        pagesToComponents: {
-                            with: {
-                                component: {
-                                    with: {
-                                        category: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            where: eq(websites.name, websiteObj.data.name)
         });
 
         return result
@@ -113,3 +84,112 @@ export async function getWebsitesFromUser(): Promise<website[]> {
 
     return results
 }
+
+
+
+//website pages
+//create
+export async function addWebsitePage(websiteId: website["id"], newPageObj: newPage) {
+    await sessionCheckWithError()
+    if (websiteId === undefined) throw new Error("need id")
+
+    const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } })
+    if (seenWebsite === undefined) throw new Error("not seeing website")
+
+    const validatedNewPage = newPageSchema.parse(newPageObj)
+
+    const fullNewPage: page = {
+        ...validatedNewPage,
+        pageComponents: [],
+    }
+
+    pageSchema.parse(fullNewPage)
+
+    //add new page at unique id
+    seenWebsite.pages[uuidV4()] = fullNewPage
+
+    await db.update(websites)
+        .set({
+            pages: seenWebsite.pages
+        })
+        .where(eq(websites.id, websiteId));
+}
+
+//update
+export async function updateWebsitePage(websiteId: website["id"], pageId: string, pageObj: Partial<page>) {
+    await sessionCheckWithError()
+
+    //get website
+    const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } })
+    if (seenWebsite === undefined) throw new Error("not seeing website")
+
+    //limits what can be updated by a client
+    const validatedPageObj = updatePageSchema.partial().parse(pageObj)
+
+    //update specific page
+    seenWebsite.pages = Object.fromEntries(Object.entries(seenWebsite.pages).map(eachPageEntry => {
+        const eachPageKey = eachPageEntry[0]
+        let eachPageValue = eachPageEntry[1]
+
+        if (eachPageKey === pageId) {
+            eachPageValue = { ...eachPageValue, ...validatedPageObj }
+        }
+
+        return [eachPageKey, eachPageValue]
+    }))
+
+    await db.update(websites)
+        .set({
+            pages: seenWebsite.pages
+        })
+        .where(eq(websites.id, websiteId));
+}
+
+//delete
+export async function deleteWebsitePage(websiteId: website["id"], pageId: string) {
+    await sessionCheckWithError()
+
+    //get website
+    const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } })
+    if (seenWebsite === undefined) throw new Error("not seeing website")
+
+    //update specific page
+    delete seenWebsite.pages[pageId]
+
+    await db.update(websites)
+        .set({
+            pages: seenWebsite.pages
+        })
+        .where(eq(websites.id, websiteId));
+}
+
+//website page components
+//create
+export async function addWebsitePageComponent(websiteId: website["id"], newPageObj: newPage) {
+    await sessionCheckWithError()
+    if (websiteId === undefined) throw new Error("need id")
+
+    const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } })
+    if (seenWebsite === undefined) throw new Error("not seeing website")
+
+    const validatedNewPage = newPageSchema.parse(newPageObj)
+
+    const fullNewPage: page = {
+        ...validatedNewPage,
+        pageComponents: [],
+    }
+
+    pageSchema.parse(fullNewPage)
+
+    //add new page at unique id
+    seenWebsite.pages[uuidV4()] = fullNewPage
+
+    await db.update(websites)
+        .set({
+            pages: seenWebsite.pages
+        })
+        .where(eq(websites.id, websiteId));
+}
+
+//update
+//delete

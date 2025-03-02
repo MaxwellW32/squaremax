@@ -1,4 +1,4 @@
-import { pagesToComponent } from "@/types"
+import { pageComponent } from "@/types"
 
 export function deepClone(object: unknown) {
     return JSON.parse(JSON.stringify(object))
@@ -21,7 +21,7 @@ export function addScopeToCSS(cssString: string, idPrefix: string) {
     );
 }
 
-export function sanitizeDataInPageComponent(pageComponent: pagesToComponent): pagesToComponent {
+export function sanitizeDataInPageComponent(pageComponent: pageComponent): pageComponent {
     const seenObjData = pageComponent.data
 
     //ensure not to pass react data to server

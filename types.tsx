@@ -126,7 +126,7 @@ const collectionSchema = z.object({
 export type collection = z.infer<typeof collectionSchema>
 
 export type viewerComponentType = {
-    componentIdToSwap: pagesToComponent["id"],
+    componentIdToSwap: pageComponent["id"],
     component: component | null,
     builtComponent: React.ComponentType<{
         data: componentDataType;
@@ -189,41 +189,66 @@ export type updateUser = z.infer<typeof updateUserSchema>
 
 
 
-export const websiteSchema = z.object({
-    id: z.string().min(1),
-    userId: z.string().min(1),
-    name: z.string().min(1),
-    fonts: fontsSchema,
-    globalCss: z.string(),
+export type pageComponent = {
+    id: string;
+    componentId: string;
+    css: string;
+    children: pageComponent[]; // Recursive reference
+    data: componentDataType | null;
+    component?: component
+};
 
-    userUploadedImages: userUploadedImagesSchema,
-})
-export type website = z.infer<typeof websiteSchema> & {
-    fromUser?: user,
-    pages?: page[]
-}
-export const newWebsiteSchema = websiteSchema.pick({ name: true })
-export type newWebsite = z.infer<typeof newWebsiteSchema>
 
-export const updateWebsiteSchema = websiteSchema.omit({ userId: true })
-export type updateWebsite = z.infer<typeof updateWebsiteSchema>
-
+export const pageComponentSchema: z.ZodType<pageComponent> = z.lazy(() =>
+    z.object({
+        id: z.string().min(1),
+        componentId: z.string().min(1),
+        css: z.string(),
+        children: z.array(pageComponentSchema),
+        data: componentDataSchema.nullable(),
+        component: componentSchema.optional(),
+    })
+);
 
 
 
 
 
 export const pageSchema = z.object({
-    id: z.string().min(1),
-    websiteId: z.string().min(1),
     name: z.string().min(1),
+    pageComponents: z.array(pageComponentSchema)
 })
-export type page = z.infer<typeof pageSchema> & {
-    fromWebsite?: website,
-    pagesToComponents?: pagesToComponent[]
-}
-export const newPageSchema = pageSchema.pick({ name: true })
+export type page = z.infer<typeof pageSchema>
+
+export const newPageSchema = pageSchema.omit({ pageComponents: true })
 export type newPage = z.infer<typeof newPageSchema>
+
+export const updatePageSchema = pageSchema.omit({ pageComponents: true })
+export type updatePage = z.infer<typeof updatePageSchema>
+
+
+
+
+
+
+export const websiteSchema = z.object({
+    id: z.string().min(1),
+    userId: z.string().min(1),
+    name: z.string().min(1),
+    fonts: fontsSchema,
+    globalCss: z.string(),
+    pages: z.record(z.string(), pageSchema),
+    userUploadedImages: userUploadedImagesSchema,
+})
+export type website = z.infer<typeof websiteSchema> & {
+    fromUser?: user,
+}
+export const newWebsiteSchema = websiteSchema.pick({ name: true })
+export type newWebsite = z.infer<typeof newWebsiteSchema>
+
+export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, pages: true })
+export type updateWebsite = z.infer<typeof updateWebsiteSchema>
+
 
 
 
@@ -237,7 +262,6 @@ export const componentSchema = z.object({
 })
 export type component = z.infer<typeof componentSchema> & {
     componentsToStyles?: componentsToStyle[],
-    pagesToComponents?: pagesToComponent[],
     category?: category,
 }
 export const newComponentSchema = componentSchema.omit({ id: true })
@@ -272,30 +296,11 @@ export type style = z.infer<typeof stylesSchema> & {
 
 
 
-export const childComponentSchema = z.object({ pagesToComponentsId: z.string() })
-export type childComponentType = z.infer<typeof childComponentSchema>
 
 
 
 
 
-export const pagesToComponentsSchema = z.object({
-    id: z.string().min(1),
-    pageId: z.string().min(1),
-    componentId: z.string().min(1),
-    css: z.string(),
-    indexOnPage: z.number(),
-    children: z.array(childComponentSchema),
-    isBase: z.boolean(),
-
-    data: componentDataSchema.nullable()
-})
-export type pagesToComponent = z.infer<typeof pagesToComponentsSchema> & {
-    page?: page,
-    component?: component,
-}
-export const updatePagesToComponentsSchema = pagesToComponentsSchema.pick({ id: true, componentId: true, css: true, data: true, indexOnPage: true, children: true })
-export type updatePagesToComponentsType = z.infer<typeof updatePagesToComponentsSchema>
 
 
 

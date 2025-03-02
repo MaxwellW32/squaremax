@@ -1,4 +1,4 @@
-import { categoryName, childComponentType, componentDataType, fontsType, user, userUploadedImagesType } from "@/types";
+import { categoryName, componentDataType, fontsType, page, user, userUploadedImagesType } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -32,6 +32,7 @@ export const websites = pgTable("websites", {
     name: varchar("name", { length: 255 }).notNull(),
     fonts: json("fonts").$type<fontsType>().default([]).notNull(),
     globalCss: text("globalCss").default("").notNull(),
+    pages: json("pages").$type<{ [key: string]: page }>().default({}).notNull(),
     userUploadedImages: json("userUploadedImages").$type<userUploadedImagesType>().default([]).notNull(),
 },
     (table) => {
@@ -44,30 +45,6 @@ export const projectsRelations = relations(websites, ({ one, many }) => ({
         fields: [websites.userId],
         references: [users.id]
     }),
-    pages: many(pages),
-}));
-
-
-
-
-
-export const pages = pgTable("pages", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    name: varchar("name", { length: 255 }).notNull(),
-    websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
-    //add index
-},
-    (t) => {
-        return {
-            websiteIdIndex: index("websiteIdIndex").on(t.websiteId),
-        };
-    })
-export const pageRelations = relations(pages, ({ one, many }) => ({
-    fromWebsite: one(websites, {
-        fields: [pages.websiteId],
-        references: [websites.id],
-    }),
-    pagesToComponents: many(pagesToComponents),
 }));
 
 
@@ -84,7 +61,6 @@ export const components = pgTable("components", {
 })
 export const componentsRelations = relations(components, ({ one, many }) => ({
     componentsToStyles: many(componentsToStyles),
-    pagesToComponents: many(pagesToComponents),
     category: one(categories, {
         fields: [components.categoryId],
         references: [categories.name],
@@ -111,37 +87,6 @@ export const styles = pgTable("styles", {
 })
 export const stylesRelations = relations(styles, ({ many }) => ({
     componentsToStyles: many(componentsToStyles),
-}));
-
-
-
-
-
-export const pagesToComponents = pgTable('pagesToComponents', {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//unqieu id for component on page
-    pageId: varchar("pageId", { length: 255 }).notNull().references(() => pages.id),
-    componentId: varchar("componentId", { length: 255 }).notNull().references(() => components.id),
-    css: text("css").default("").notNull(),
-
-    indexOnPage: integer("indexOnPage").notNull(),
-    children: json("children").$type<childComponentType[]>().default([]).notNull(),
-    isBase: boolean("isBase").default(true).notNull(),
-
-    data: json("data").$type<componentDataType | null>().default(null),
-}, (t) => ({
-    pageIdIndex: index("pageIdIndex").on(t.pageId),
-    componentIdIndex: index("componentIdIndex").on(t.componentId),
-}),
-);
-export const pagesToComponentsRelations = relations(pagesToComponents, ({ one }) => ({
-    page: one(pages, {
-        fields: [pagesToComponents.pageId],
-        references: [pages.id],
-    }),
-    component: one(components, {
-        fields: [pagesToComponents.componentId],
-        references: [components.id],
-    }),
 }));
 
 

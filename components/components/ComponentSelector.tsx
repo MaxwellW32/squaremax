@@ -1,27 +1,20 @@
 "use client"
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getComponents } from '@/serverFunctions/handleComponents'
-import { addComponentToPage, updateComponentInPage } from '@/serverFunctions/handlePagesToComponents'
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { category, childComponentType, component, page, pagesToComponent, viewerComponentType, website } from '@/types'
+import { category, component, page, pageComponent, viewerComponentType, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicComponents from '@/utility/globalComponents'
-import { sanitizeDataInPageComponent } from '@/utility/utility'
+import { deepClone } from '@/utility/utility'
+import { v4 as uuidV4 } from "uuid"
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 export default function ComponentSelector({
-    pageId, websiteId, currentIndex, parentComponent, viewerComponentSet
+    seenWebsite, handleWebsiteUpdate, activePageId, currentIndex, parentComponent, viewerComponentSet
 }: {
-    pageId: page["id"], websiteId: website["id"], currentIndex: number, parentComponent?: pagesToComponent, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
+    seenWebsite: website, handleWebsiteUpdate(newWebsite: website, instant?: boolean): Promise<void>, activePageId: string, currentIndex: number, parentComponent?: pageComponent, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
 }) {
-    //view results by category
-    //or search by id
-    //can rank results 
-
-    //send the chosen component to page
-    //send its list of components upwards - for use in the viewer node
-
     const [userInteracting, userInteractingSet] = useState(false)
 
     const [allCategories, allCategoriesSet] = useState<category[]>([])
@@ -49,7 +42,7 @@ export default function ComponentSelector({
                 onClick={() => {
                     userInteractingSet(prev => !prev)
                 }}
-            >{userInteracting ? "close" : "Add a template"}</button>
+            >{userInteracting ? "close" : "Add a component"}</button>
 
             <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid rgb(var(--shade1))" }}>
                 {allCategories.length > 0 && (
@@ -91,31 +84,18 @@ export default function ComponentSelector({
                                         <button className='mainButton'
                                             onClick={async () => {
                                                 try {
+                                                    //add component to page normally 
                                                     if (viewerComponentSet === undefined) {
-                                                        //add to pagesToComponents
-                                                        const newComponentToPage = await addComponentToPage({ id: pageId }, { id: eachComponent.id }, {
-                                                            indexOnPage: currentIndex + 1
-                                                        })
 
-                                                        if (parentComponent) {
-                                                            const newCompChild: childComponentType = {
-                                                                pagesToComponentsId: newComponentToPage.id
-                                                            }
+                                                        await handleWebsiteUpdate(newWebsite, true)
 
-                                                            const seenUpdatedChildren = [...parentComponent.children, newCompChild]
-
-                                                            parentComponent.children = seenUpdatedChildren
-
-                                                            //update component with new child id
-                                                            const sanitizedPageComponent = sanitizeDataInPageComponent(parentComponent)
-                                                            await updateComponentInPage(sanitizedPageComponent)
-                                                        }
-
-                                                        await refreshWebsitePath({ id: websiteId })
+                                                        await refreshWebsitePath({ id: seenWebsite.id })
 
                                                         userInteractingSet(false)
 
                                                     } else {
+                                                        //only preview the component
+
                                                         //build component
                                                         const seenResponse = await globalDynamicComponents(eachComponent.id)
 

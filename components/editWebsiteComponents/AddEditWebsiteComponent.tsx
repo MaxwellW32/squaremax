@@ -8,7 +8,6 @@ import { deepClone } from '@/utility/utility'
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { addComponent, deleteComponent, removeEntryFromGlobalComponentsFile, updateComponent } from '@/serverFunctions/handleComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import { getPageComponentsFromComponentId, removePageComponentsFromComponent } from '@/serverFunctions/handlePagesToComponents'
 import { deleteDirectory } from '@/serverFunctions/handleServerFiles'
 import { userWebsiteComponentsDir } from '@/lib/userWebsiteComponents'
 import TextInput from '../textInput/TextInput'
@@ -177,10 +176,6 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
             //delete any tables with relations to the component
             const validatedFullComponent = componentSchema.parse(formObj)
 
-            //remove linked pagesToComponents
-            const linkedPagesToComponents = await getPageComponentsFromComponentId(validatedFullComponent.id)
-            await removePageComponentsFromComponent(linkedPagesToComponents, validatedFullComponent.id)
-            console.log(`$linkedPagesToComponents`, linkedPagesToComponents);
             //remove component
             await deleteComponent({ id: validatedFullComponent.id })
 

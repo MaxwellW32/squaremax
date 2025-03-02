@@ -1,18 +1,19 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
-import { componentDataType, pagesToComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, } from '@/types'
+import { componentDataType, pageComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, } from '@/types'
 import { addScopeToCSS, deepClone, sanitizeDataInPageComponent } from '@/utility/utility'
 import AddPage from '../pages/addPage'
 import globalDynamicComponents from '@/utility/globalComponents'
-import { updateComponentInPage } from '@/serverFunctions/handlePagesToComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 import ComponentSelector from '../components/ComponentSelector'
 import toast from 'react-hot-toast'
+import { getSpecificComponent } from '@/serverFunctions/handleComponents'
 
-//want to understand how to order these website components
+//for website, page, page components - unique update points on the server
+//build components locally - no need for server refresh
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -54,25 +55,22 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
 
-    const [activePageIndex, activePageIndexSet] = useState<number>(0)
+    const [activePageId, activePageIdSet] = useState<string>("")
+
     const [addingPage, addingPageSet] = useState(false)
     const [editingGlobalStyle, editingGlobalStyleSet] = useState(false)
     const [componentsBuilt, componentBuiltSet] = useState(false)
 
-    const tempActivePagesToComponentId = useRef<pagesToComponent["id"]>("")
-    const [activePagesToComponentId, activePagesToComponentIdSet] = useState<pagesToComponent["id"]>("")
-    const activePageComponent = useMemo<pagesToComponent | undefined>(() => {
-        if (websiteObj.pages === undefined) return undefined
+    const tempActivePagesToComponentId = useRef<pageComponent["id"]>("")
+    const [activePageComponentId, activePageComponentIdSet] = useState<pageComponent["id"]>("")
+    const activePageComponent = useMemo<pageComponent | undefined>(() => {
+        if (websiteObj.pages[activePageId] === undefined) return undefined
 
-        if (websiteObj.pages[activePageIndex] === undefined) return undefined
+        const foundPageComponent = websiteObj.pages[activePageId].pageComponents.find(eachPageToComponent => eachPageToComponent.id === activePageComponentId)
 
-        if (websiteObj.pages[activePageIndex].pagesToComponents === undefined) return undefined
+        return foundPageComponent
 
-        const foundPagesToComponent = websiteObj.pages[activePageIndex].pagesToComponents.find(eachPageToComponent => eachPageToComponent.id === activePagesToComponentId)
-
-        return foundPagesToComponent
-
-    }, [websiteObj.pages?.[activePageIndex]?.pagesToComponents, activePagesToComponentId])
+    }, [websiteObj.pages[activePageId]?.pageComponents, activePageComponentId])
 
     const renderedComponentsObj = useRef<{
         [key: string]: React.ComponentType<{
@@ -80,24 +78,45 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }>
     }>({})
 
-    const updatePagesToComponentDebounce = useRef<NodeJS.Timeout>()
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
-
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
-
     const [viewerComponent, viewerComponentSet] = useState<viewerComponentType | null>(null)
 
     // respond to changes from server 
     useEffect(() => {
-        const runAction = async () => {
+        const fetchComponentsAndBuild = async () => {
             try {
                 const newWebsite = { ...websiteFromServer }
-                let builtPageComponents: pagesToComponent[] | undefined = undefined
+                let builtPageComponents: pageComponent[] | undefined = undefined
 
-                if (newWebsite.pages !== undefined && newWebsite.pages[activePageIndex] !== undefined && newWebsite.pages[activePageIndex].pagesToComponents !== undefined) {
-                    builtPageComponents = await buildPageComponents(newWebsite.pages[activePageIndex].pagesToComponents)
+                if (newWebsite.pages[activePageId] !== undefined) {
+                    //add component from db onto object
+                    async function addTheComponentInfo(pageComponents: pageComponent[]) {
+                        return Promise.all(
+                            pageComponents.map(async eachPageComponent => {
+                                const seenComponent = await getSpecificComponent({ id: eachPageComponent.componentId })
+                                if (seenComponent === undefined) {
+                                    console.log(`$not seeing component for `, eachPageComponent.componentId);
+                                }
 
-                    newWebsite.pages[activePageIndex].pagesToComponents = builtPageComponents
+                                //add component onto object
+                                eachPageComponent.component = seenComponent
+
+                                //handle child components
+                                eachPageComponent.children = await addTheComponentInfo(eachPageComponent.children)
+
+                                return eachPageComponent
+                            })
+                        )
+                    }
+
+                    //page components now have component info added
+                    newWebsite.pages[activePageId].pageComponents = await addTheComponentInfo(newWebsite.pages[activePageId].pageComponents)
+
+                    //build components recursively
+                    builtPageComponents = await buildPageComponents(newWebsite.pages[activePageId].pageComponents)
+
+                    newWebsite.pages[activePageId].pageComponents = builtPageComponents
                 }
 
                 //update obj locally with changes
@@ -108,8 +127,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             }
         }
 
-        runAction()
-    }, [websiteFromServer])
+        fetchComponentsAndBuild()
+    }, [websiteFromServer, activePageId])
 
     //calculate fit on device size change
     useEffect(() => {
@@ -148,145 +167,120 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? canvasContRef.current.clientWidth : activeSizeOption.width) / 2}px`
     }
 
-    async function buildPageComponents(sentPageComponents: pagesToComponent[]): Promise<pagesToComponent[]> {
-        componentBuiltSet(false)
+    async function buildPageComponents(sentPageComponents: pageComponent[], atTop = true): Promise<pageComponent[]> {
+        if (atTop) componentBuiltSet(false)
 
         //build all components
         const builtPageToComponents = await Promise.all(
-            sentPageComponents.map(async eachPageToComponent => {
-                if (eachPageToComponent.component === undefined || eachPageToComponent.component.category === undefined) throw new Error("need component and category")
+            sentPageComponents.map(async eachPageComponent => {
+                if (eachPageComponent.component === undefined || eachPageComponent.component.category === undefined) throw new Error("need component and category")
 
                 //get started props if none there
-                if (eachPageToComponent.data === null) {
-                    eachPageToComponent.data = eachPageToComponent.component.defaultData
+                if (eachPageComponent.data === null) {
+                    eachPageComponent.data = eachPageComponent.component.defaultData
                 }
 
                 //get started props if none there
-                if (eachPageToComponent.css === "") {
-                    eachPageToComponent.css = eachPageToComponent.component.defaultCss
+                if (eachPageComponent.css === "") {
+                    eachPageComponent.css = eachPageComponent.component.defaultCss
                 }
 
                 //if doesnt exist in renderObj then render it
-                if (renderedComponentsObj.current[eachPageToComponent.component.id] === undefined) {
-                    const seenResponse = await globalDynamicComponents(eachPageToComponent.component.id)
+                if (renderedComponentsObj.current[eachPageComponent.component.id] === undefined) {
+                    const seenResponse = await globalDynamicComponents(eachPageComponent.component.id)
 
                     //assign builds to renderObj
                     if (seenResponse !== undefined) {
-                        renderedComponentsObj.current[eachPageToComponent.component.id] = seenResponse()
+                        renderedComponentsObj.current[eachPageComponent.component.id] = seenResponse()
 
                         //log component id not found
                     } else {
-                        console.log(`$woops element component id not found`, eachPageToComponent.component.id);
+                        console.log(`$woops element component id not found`, eachPageComponent.component.id);
                     }
                 }
 
-                return eachPageToComponent
+                //handle children
+                eachPageComponent.children = await buildPageComponents(eachPageComponent.children, false)
+
+                return eachPageComponent
             }))
 
-        //Ensure component is not a child
-        const childPagesToComponentsIds: pagesToComponent["id"][] = []
-        builtPageToComponents.forEach(eachBuiltPageToComponent => {
-            if (eachBuiltPageToComponent.children.length > 0) {
-                eachBuiltPageToComponent.children.forEach(eachPageToComponentForEach => {
-                    childPagesToComponentsIds.push(eachPageToComponentForEach.pagesToComponentsId)
-                })
-            }
-        })
+        if (atTop) componentBuiltSet(true)
 
-        const basePagesToComponentsMarked = builtPageToComponents.map(eachPageToComponentMap => {
-            //if not a child is a base component
-            eachPageToComponentMap.isBase = !childPagesToComponentsIds.includes(eachPageToComponentMap.id)
-
-            return eachPageToComponentMap
-        })
-
-        //sort base components
-        const sortedBasePagesToComponents =
-            basePagesToComponentsMarked.sort(
-                (a, b) => a.indexOnPage - b.indexOnPage
-            );
-
-        componentBuiltSet(true)
-
-        return deepClone(sortedBasePagesToComponents)
+        return deepClone(builtPageToComponents)
     }
 
-    async function handleWebsiteUpdate(newWebsite: website) {
+    async function handleWebsiteUpdate(newWebsite: website, instant = false): Promise<void> {
         try {
             //when something updates website handle it on user interaction
             //update locally
             websiteObjSet(newWebsite)
 
-            //update on server after delay
-            if (updateWebsiteDebounce.current) clearTimeout(updateWebsiteDebounce.current)
+            return new Promise(resolve => {
+                //update on server after delay
+                if (updateWebsiteDebounce.current) clearTimeout(updateWebsiteDebounce.current)
 
-            //make new website schema
-            updateWebsiteDebounce.current = setTimeout(async () => {
-                const validatedNewWebsite = updateWebsiteSchema.parse(newWebsite)
+                //make new website schema
+                updateWebsiteDebounce.current = setTimeout(async () => {
+                    //ensure only certail fields can be updated
+                    const validatedNewWebsite = updateWebsiteSchema.parse(newWebsite)
 
-                saveStateSet("saving")
+                    //have the latest components with only expected data
+                    validatedNewWebsite.pages = Object.fromEntries(Object.entries(validatedNewWebsite.pages).map(eachPageEntry => {
+                        const eachPageKey = eachPageEntry[0]
+                        const eachPageValue = eachPageEntry[1]
 
-                await updateTheWebsite(validatedNewWebsite)
+                        eachPageValue.pageComponents = eachPageValue.pageComponents.map(eachPageComponent => {
+                            const sanitizedPageComponent = sanitizeDataInPageComponent(eachPageComponent)
 
-                console.log(`$saved website to db`);
-                saveStateSet("saved")
+                            return sanitizedPageComponent
+                        })
 
-            }, 3000);
+                        return [eachPageKey, eachPageValue]
+                    }))
 
-        } catch (error) {
-            consoleAndToastError(error)
-        }
-    }
+                    saveStateSet("saving")
 
-    async function handlePageComponentUpdate(newPageComponent: pagesToComponent) {
-        try {
-            //update locally
-            websiteObjSet(pevWebsite => {
-                const newWebsite = { ...pevWebsite }
-                if (newWebsite.pages === undefined) return pevWebsite
-                if (newWebsite.pages[activePageIndex] === undefined) return pevWebsite
-                if (newWebsite.pages[activePageIndex].pagesToComponents === undefined) return pevWebsite
+                    await updateTheWebsite(newWebsite.id, validatedNewWebsite)
 
-                newWebsite.pages[activePageIndex].pagesToComponents = newWebsite.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
-                    //ensure data is for correct component category, and update 
-                    if (eachPageToComponent.id === newPageComponent.id) {
-                        eachPageToComponent = newPageComponent
-                    }
-
-                    return eachPageToComponent
-                })
-
-                return newWebsite
+                    console.log(`$saved website to db`);
+                    saveStateSet("saved")
+                    resolve()
+                }, instant ? 0 : 3000);
             })
 
-            //update server after delay
-            if (updatePagesToComponentDebounce.current) clearTimeout(updatePagesToComponentDebounce.current)
-
-
-            updatePagesToComponentDebounce.current = setTimeout(async () => {
-                const sanitizedPagesToComponent = sanitizeDataInPageComponent(newPageComponent)
-
-                //notify saving
-                saveStateSet("saving")
-
-                //server update here
-                await updateComponentInPage(sanitizedPagesToComponent)
-
-                console.log(`$saved page component to db`);
-
-                saveStateSet("saved")
-            }, 3000)
-
         } catch (error) {
             consoleAndToastError(error)
         }
     }
 
-    function handlePropsChange(newPropsObj: componentDataType, sentComponentInPage: pagesToComponent) {
+    async function handlePageComponentUpdate(newPageComponent: pageComponent, instant = false) {
+        const newWebste: website = deepClone(websiteObj)
+
+        newWebste.pages = Object.fromEntries(Object.entries(newWebste.pages).map(eachPageEntry => {
+            const eachPageKey = eachPageEntry[0]
+            const eachPageValue = eachPageEntry[1]
+
+            if (eachPageKey === activePageId) {
+                eachPageValue.pageComponents = eachPageValue.pageComponents.map(eachPageComponent => {
+                    if (eachPageComponent.id === newPageComponent.id) {
+                        return newPageComponent
+                    }
+
+                    return eachPageComponent
+                })
+            }
+
+            return [eachPageKey, eachPageValue]
+        }))
+
+        await handleWebsiteUpdate(newWebste, instant)
+    }
+
+    function handlePropsChange(newPropsObj: componentDataType, sentComponentInPage: pageComponent) {
         //update the data
         sentComponentInPage.data = newPropsObj
 
-        //send to update function
         handlePageComponentUpdate(sentComponentInPage)
     }
 
@@ -296,14 +290,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         const seenKey = e.key.toLowerCase()
 
         if (activationKeys.includes(seenKey)) {
-            activePagesToComponentIdSet(tempActivePagesToComponentId.current)
+            activePageComponentIdSet(tempActivePagesToComponentId.current)
         }
     }
 
     function handleSelectPageComponent() {
         if (tempActivePagesToComponentId.current === "") return
 
-        activePagesToComponentIdSet(tempActivePagesToComponentId.current)
+        activePageComponentIdSet(tempActivePagesToComponentId.current)
     }
 
     return (
@@ -367,13 +361,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         <div ref={canvasRef} className={styles.canvas} style={{ width: fit ? canvasContRef.current?.clientWidth : activeSizeOption.width, height: fit ? canvasContRef.current?.clientHeight : activeSizeOption.height, scale: fit ? 1 : canvasScale }}
                             onClick={handleSelectPageComponent}
                         >
-                            {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && componentsBuilt && (
+                            {websiteObj.pages[activePageId] !== undefined && componentsBuilt && (
                                 <>
                                     <style>{addScopeToCSS(websiteObj.globalCss, styles.canvas)}</style>
 
-                                    {websiteObj.pages[activePageIndex].pagesToComponents.map(eachPageToComponent => {
+                                    {websiteObj.pages[activePageId].pageComponents.map(eachPageToComponent => {
                                         return (
-                                            <RenderComponentTree key={eachPageToComponent.id} componentOnPage={eachPageToComponent} websiteObj={websiteObj} activePageIndex={activePageIndex} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} viewerComponent={viewerComponent} />
+                                            <RenderComponentTree key={eachPageToComponent.id} componentOnPage={eachPageToComponent} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} viewerComponent={viewerComponent} />
                                         )
                                     })}
                                 </>
@@ -399,36 +393,34 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         >dim</button>
                     </div>
 
-                    <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}
-                        onClick={() => {
-                            dimSideBarSet(false)
-                        }}
-                    >
+                    <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}>
                         <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
-                            {websiteObj.pages !== undefined && (
-                                <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
-                                    {websiteObj.pages.map((eachPage, eachPageIndex) => {
-                                        return (
-                                            <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPageIndex === activePageIndex ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
-                                                onClick={() => {
-                                                    activePageIndexSet(eachPageIndex)
-                                                }}
-                                            >{eachPage.name}</button>
-                                        )
-                                    })}
+                            <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
+                                {Object.entries(websiteObj.pages).map(eachPageEntry => {
+                                    //show each page name
+                                    const eachPageKey = eachPageEntry[0]
+                                    const eachPageValue = eachPageEntry[1]
 
-                                    <button className='mainButton'
-                                        onClick={() => {
-                                            addingPageSet(prev => !prev)
-                                        }}
-                                    >{addingPage ? "close" : "add page"}</button>
-                                </ul>
-                            )}
+                                    return (
+                                        <button key={eachPageKey} className='mainButton' style={{ backgroundColor: eachPageKey === activePageId ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
+                                            onClick={() => {
+                                                activePageIdSet(eachPageKey)
+                                            }}
+                                        >{eachPageValue.name}</button>
+                                    )
+                                })}
 
-                            <AddPage style={{ display: addingPage ? "" : "none" }} websiteIdObj={{ id: websiteObj.id }} />
+                                <button className='mainButton'
+                                    onClick={() => {
+                                        addingPageSet(prev => !prev)
+                                    }}
+                                >{addingPage ? "close" : "add page"}</button>
+                            </ul>
 
-                            {websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
-                                <ComponentSelector pageId={websiteObj.pages[activePageIndex].id} websiteId={websiteObj.id} currentIndex={websiteObj.pages[activePageIndex].pagesToComponents.length} />
+                            <AddPage style={{ display: addingPage ? "" : "none" }} seenWebsite={websiteObj} handleWebsiteUpdate={handleWebsiteUpdate} />
+
+                            {websiteObj.pages[activePageId] !== undefined && (
+                                <ComponentSelector seenWebsite={websiteObj} handleWebsiteUpdate={handleWebsiteUpdate} activePageId={activePageId} currentIndex={websiteObj.pages[activePageId].pageComponents.length} />
                             )}
                         </div>
 
@@ -455,7 +447,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     <p>styling</p>
                                     <textarea rows={5} value={activePageComponent.css} className={styles.styleEditor}
                                         onChange={(e) => {
-                                            const newActiveComp: pagesToComponent = { ...activePageComponent }
+                                            const newActiveComp: pageComponent = { ...activePageComponent }
                                             newActiveComp.css = e.target.value
 
                                             handlePageComponentUpdate(newActiveComp)
@@ -481,9 +473,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     )}
 
                                     {/* show options for active */}
-                                    {viewerComponent !== null && viewerComponent.componentIdToSwap === activePageComponent.id && websiteObj.pages !== undefined && websiteObj.pages[activePageIndex] !== undefined && websiteObj.pages[activePageIndex].pagesToComponents !== undefined && (
+                                    {viewerComponent !== null && viewerComponent.componentIdToSwap === activePageComponent.id && websiteObj.pages[activePageId] !== undefined && (
                                         <>
-                                            <ComponentSelector pageId={websiteObj.pages[activePageIndex].id} websiteId={websiteObj.id} currentIndex={activePageComponent.indexOnPage} viewerComponentSet={viewerComponentSet} />
+                                            <ComponentSelector seenWebsite={websiteObj} handleWebsiteUpdate={handleWebsiteUpdate} activePageId={activePageId} currentIndex={0} viewerComponentSet={viewerComponentSet} />
 
                                             {viewerComponent.component !== null && (
                                                 <button className='mainButton'
@@ -497,7 +489,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                                                             const sanitizedPageComponent = sanitizeDataInPageComponent(newReplacedPageComponent)
 
-                                                            await updateComponentInPage(sanitizedPageComponent)
+                                                            await handlePageComponentUpdate(sanitizedPageComponent, true)
 
                                                             await refreshWebsitePath({ id: websiteObj.id })
 
@@ -523,6 +515,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     <button className='secondaryButton' style={{ position: "absolute", top: 0, right: 0 }}
                         onClick={() => {
                             showingSideBarSet(true)
+                            dimSideBarSet(false)
                         }}
                     >open</button>
                 )}
@@ -532,13 +525,10 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 }
 
 function RenderComponentTree({
-    componentOnPage, websiteObj, activePageIndex, renderedComponentsObj, tempActivePagesToComponentId, viewerComponent, topLevel = true
+    componentOnPage, websiteObj, activePageId, renderedComponentsObj, tempActivePagesToComponentId, viewerComponent
 }: {
-    componentOnPage: pagesToComponent, websiteObj: website, activePageIndex: number, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActivePagesToComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null, topLevel?: boolean
+    componentOnPage: pageComponent, websiteObj: website, activePageId: string, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActivePagesToComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null
 }) {
-    //ensure only render top level components initially
-    if (topLevel && !componentOnPage.isBase) return null
-
     let usingViewerComponent = false
 
     let SeenViewerComp: React.ComponentType<{
@@ -571,19 +561,8 @@ function RenderComponentTree({
 
     // Recursively render child components
     const childJSX = componentOnPage.children.map((childComponentOnPage) => {
-        if (!websiteObj.pages?.[activePageIndex]?.pagesToComponents) return null;
-
-        const foundPagesToComponent = websiteObj.pages[activePageIndex].pagesToComponents.find(
-            (eachPageToComponent) => eachPageToComponent.id === childComponentOnPage.pagesToComponentsId
-        );
-
-        if (foundPagesToComponent === undefined) {
-            console.log(`Couldn't find component with ID`, childComponentOnPage.pagesToComponentsId);
-            return null;
-        }
-
-        return <RenderComponentTree key={foundPagesToComponent.id} componentOnPage={foundPagesToComponent} websiteObj={websiteObj} activePageIndex={activePageIndex} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} viewerComponent={viewerComponent} topLevel={false} />;
-    }).filter(each => each !== null);
+        return <RenderComponentTree key={childComponentOnPage.id} componentOnPage={childComponentOnPage} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePagesToComponentId={tempActivePagesToComponentId} viewerComponent={viewerComponent} />;
+    })
 
     // If the component is a container, pass children as a prop
     const componentProps = componentOnPage.data

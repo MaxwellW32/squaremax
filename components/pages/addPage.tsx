@@ -2,15 +2,14 @@
 import React, { HTMLAttributes, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
-import { newPage, newPageSchema, website, websiteSchema } from '@/types'
-import { refreshWebsitePath } from '@/serverFunctions/handleWebsites'
+import { newPage, newPageSchema, website } from '@/types'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import { addPage } from '@/serverFunctions/handlePages'
+import { addWebsitePage, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
 
-export default function AddPage({ websiteIdObj, ...elProps }: { websiteIdObj: Pick<website, "id"> } & HTMLAttributes<HTMLFormElement>) {
+export default function AddPage({ seenWebsite, handleWebsiteUpdate, ...elProps }: { seenWebsite: website, handleWebsiteUpdate(newWebsite: website): Promise<void> } & HTMLAttributes<HTMLFormElement>) {
     const initialFormObj: newPage = {
         name: "",
     }
@@ -32,7 +31,7 @@ export default function AddPage({ websiteIdObj, ...elProps }: { websiteIdObj: Pi
             label: "name",
             inputType: "input",
             placeHolder: "Enter page name",
-        },
+        }
     });
 
     const [formErrors, formErrorsSet] = useState<Partial<{
@@ -68,32 +67,22 @@ export default function AddPage({ websiteIdObj, ...elProps }: { websiteIdObj: Pi
     }
 
     async function handleSubmit() {
-        let successfullyAddedPage = false
-
         try {
             if (!newPageSchema.safeParse(formObj).success) return toast.error("Form not valid")
 
-            websiteSchema.pick({ id: true }).parse(websiteIdObj)
+            await addWebsitePage(seenWebsite.id, formObj)
 
-            await addPage(formObj, { id: websiteIdObj.id })
-
-            toast.success(`Created New Page ${formObj.name}!`)
+            await refreshWebsitePath({ id: seenWebsite.id })
 
             formObjSet(deepClone(initialFormObj))
-
-            successfullyAddedPage = true
 
         } catch (error) {
             consoleAndToastError(error)
         }
-
-        if (successfullyAddedPage) {
-            refreshWebsitePath({ id: websiteIdObj.id })
-        }
     }
 
     return (
-        <form {...elProps} className={`${elProps.className ?? ""} ${styles.form}`} action={() => { }}>
+        <form {...elProps} className={styles.form} action={() => { }}>
             {Object.entries(formObj).map(eachEntry => {
                 const eachKey = eachEntry[0] as pageKeys
 
