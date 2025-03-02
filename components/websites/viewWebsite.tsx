@@ -12,8 +12,7 @@ import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch
 import ComponentSelector from '../components/ComponentSelector'
 import toast from 'react-hot-toast'
 
-//switch them
-//copy data
+//want to understand how to order these website components
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
