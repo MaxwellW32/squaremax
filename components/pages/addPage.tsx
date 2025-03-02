@@ -9,7 +9,7 @@ import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import { addWebsitePage, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
 
-export default function AddPage({ seenWebsite, handleWebsiteUpdate, ...elProps }: { seenWebsite: website, handleWebsiteUpdate(newWebsite: website): Promise<void> } & HTMLAttributes<HTMLFormElement>) {
+export default function AddPage({ seenWebsite, ...elProps }: { seenWebsite: website } & HTMLAttributes<HTMLFormElement>) {
     const initialFormObj: newPage = {
         name: "",
     }

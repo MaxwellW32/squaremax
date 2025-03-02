@@ -198,7 +198,6 @@ export type pageComponent = {
     component?: component
 };
 
-
 export const pageComponentSchema: z.ZodType<pageComponent> = z.lazy(() =>
     z.object({
         id: z.string().min(1),

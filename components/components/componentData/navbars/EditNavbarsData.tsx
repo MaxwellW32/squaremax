@@ -1,8 +1,8 @@
 "use client"
-import { componentDataType, navBarsType, pagesToComponent } from '@/types'
+import { componentDataType, navBarsType, pageComponent } from '@/types'
 import React from 'react'
 
-export default function EditNavbarsData({ data, activePagesToComponent, handlePropsChange }: { data: navBarsType, activePagesToComponent: pagesToComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pagesToComponent) => void }) {
+export default function EditNavbarsData({ data, activePagesToComponent, handlePropsChange }: { data: navBarsType, activePagesToComponent: pageComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pageComponent) => void }) {
 
     return (
         <form action={() => { }}>

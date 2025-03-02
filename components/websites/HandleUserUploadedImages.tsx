@@ -9,7 +9,7 @@ import { getSpecificWebsite, updateTheWebsite } from '@/serverFunctions/handleWe
 import { maxImageUploadSize, maxBodyToServerSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
 import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
 
-export default function HandleUserUploadedImages({ project, seenProjectSet }: { project: website, seenProjectSet: React.Dispatch<React.SetStateAction<website>> }) {
+export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }: { seenWebsite: website, seenProjectSet: React.Dispatch<React.SetStateAction<website>> }) {
     const [uploadedImages, uploadedImagesSet] = useState<FormData | null>(null)
 
     return (
@@ -72,7 +72,7 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                                 const seenData = await response.json();
 
                                 //get the latest project images and upload project
-                                const latestProject = await getSpecificWebsite({ option: "id", data: { id: project.id } })
+                                const latestProject = await getSpecificWebsite({ option: "id", data: { id: seenWebsite.id } })
                                 if (latestProject === undefined) {
                                     throw new Error("trouble updating, not seeing latest project")
                                 }
@@ -86,8 +86,7 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                                 }
 
                                 //update the server
-                                await updateTheWebsite({
-                                    id: project.id,
+                                await updateTheWebsite(seenWebsite.id, {
                                     userUploadedImages: latestImagesSeen
                                 })
 
@@ -112,9 +111,9 @@ export default function HandleUserUploadedImages({ project, seenProjectSet }: { 
                     >Add</button>
                 )}
 
-                {project.userUploadedImages !== null && (
+                {seenWebsite.userUploadedImages !== null && (
                     <div className={styles.imagesCont}>
-                        {project.userUploadedImages.map(eachImage => {
+                        {seenWebsite.userUploadedImages.map(eachImage => {
                             return (
                                 <div key={eachImage} className={styles.imageCont}
                                     onClick={() => {
