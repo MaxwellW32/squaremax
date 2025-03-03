@@ -209,7 +209,7 @@ export async function updateWebsitePageComponent(websiteId: website["id"], pageI
 
     if (pageComponentObj.id === undefined) throw new Error("need page component id")
 
-    //remove component from db
+    //remove component info for db
     if (pageComponentObj.component !== undefined) {
         delete pageComponentObj["component"]
     }

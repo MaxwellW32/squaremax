@@ -3,17 +3,17 @@ import React from 'react'
 import EditNavbarsData from './navbars/EditNavbarsData'
 import EditContainersData from './containers/EditContainersData'
 
-export default function ComponentDataSwitch({ activePagesToComponent, handlePropsChange, websiteObj, activePageId }: { activePagesToComponent: pageComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pageComponent) => void, websiteObj: website, activePageId: string }) {
-    if (activePagesToComponent.data === null) return null
+export default function ComponentDataSwitch({ activePageComponent, handlePropsChange, websiteObj, activePageId }: { activePageComponent: pageComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pageComponent) => void, websiteObj: website, activePageId: string }) {
+    if (activePageComponent.data === null) return null
 
     return (
         <>
-            {activePagesToComponent.data.category === "navbars" && (
-                <EditNavbarsData data={activePagesToComponent.data} activePagesToComponent={activePagesToComponent} handlePropsChange={handlePropsChange} />
+            {activePageComponent.data.category === "navbars" && (
+                <EditNavbarsData data={activePageComponent.data} activePageComponent={activePageComponent} handlePropsChange={handlePropsChange} />
             )}
 
-            {activePagesToComponent.data.category === "containers" && (
-                <EditContainersData data={activePagesToComponent.data} seenPageComponent={activePagesToComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} activePageId={activePageId} />
+            {activePageComponent.data.category === "containers" && (
+                <EditContainersData data={activePageComponent.data} seenPageComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} activePageId={activePageId} />
             )}
         </>
     )

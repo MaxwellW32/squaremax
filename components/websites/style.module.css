@@ -76,7 +76,6 @@
 
 .sideBarSettings {
     display: flex;
-    gap: .5rem;
     justify-content: flex-end;
     position: absolute;
     top: 0;

@@ -21,17 +21,17 @@ export function addScopeToCSS(cssString: string, idPrefix: string) {
     );
 }
 
-export function sanitizeDataInPageComponent(pageComponent: pageComponent): pageComponent {
-    const seenObjData = pageComponent.data
+export function sanitizePageComponentData(pageComponent: pageComponent): pageComponent {
+    const seenPropData = pageComponent.data
 
     //ensure not to pass react data to server
-    if (seenObjData !== undefined && seenObjData !== null) {
-        if (Object.hasOwn(seenObjData, "children")) {
+    if (seenPropData !== undefined && seenPropData !== null) {
+        if (Object.hasOwn(seenPropData, "children")) {
             // @ts-expect-error types
-            seenObjData["children"] = []
+            seenPropData["children"] = []
         }
 
-        pageComponent.data = seenObjData
+        pageComponent.data = seenPropData
     }
 
     return deepClone(pageComponent)

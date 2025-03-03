@@ -5,7 +5,7 @@ import { addWebsitePageComponent, refreshWebsitePath } from '@/serverFunctions/h
 import { category, component, pageComponent, viewerComponentType, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicComponents from '@/utility/globalComponents'
-import { sanitizeDataInPageComponent } from '@/utility/utility'
+import { sanitizePageComponentData } from '@/utility/utility'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
@@ -41,7 +41,7 @@ export default function ComponentSelector({
                 onClick={() => {
                     userInteractingSet(prev => !prev)
                 }}
-            >{userInteracting ? "close" : "Add a component"}</button>
+            >{userInteracting ? "close" : viewerComponentSet ? "Choose a component" : "Add a component"}</button>
 
             <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid rgb(var(--shade1))" }}>
                 {allCategories.length > 0 && (
@@ -85,7 +85,7 @@ export default function ComponentSelector({
                                                 try {
                                                     //add component to page normally 
                                                     if (viewerComponentSet === undefined) {
-                                                        const sanitizedParentComponent = parentComponent !== undefined ? sanitizeDataInPageComponent(parentComponent) : undefined
+                                                        const sanitizedParentComponent = parentComponent !== undefined ? sanitizePageComponentData(parentComponent) : undefined
 
                                                         await addWebsitePageComponent(seenWebsite.id, activePageId, eachComponent, currentIndex, sanitizedParentComponent)
 

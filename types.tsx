@@ -126,7 +126,7 @@ const collectionSchema = z.object({
 export type collection = z.infer<typeof collectionSchema>
 
 export type viewerComponentType = {
-    componentIdToSwap: pageComponent["id"],
+    pageComponentIdToSwap: pageComponent["id"],
     component: component | null,
     builtComponent: React.ComponentType<{
         data: componentDataType;
