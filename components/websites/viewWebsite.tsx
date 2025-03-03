@@ -158,6 +158,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
 
         start()
+        console.log(`$handlePageUpdate`, handlePageUpdate);
     }, [websiteFromServer, activePageId])
 
     //calculate fit on device size change
