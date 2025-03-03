@@ -1,19 +1,22 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
-import { componentDataType, page, pageComponent, sizeOptionType, updatePageSchema, updateWebsiteSchema, viewerComponentType, website, } from '@/types'
+import { componentDataType, pageComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, } from '@/types'
 import { addScopeToCSS, deepClone, sanitizePageComponentData } from '@/utility/utility'
 import AddPage from '../pages/addPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import { refreshWebsitePath, updateTheWebsite, updateWebsitePage, updateWebsitePageComponent } from '@/serverFunctions/handleWebsites'
+import { deleteWebsitePage, deleteWebsitePageComponent, refreshWebsitePath, updateTheWebsite, updateWebsitePageComponent } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 import ComponentSelector from '../components/ComponentSelector'
 import toast from 'react-hot-toast'
 import { getSpecificComponent } from '@/serverFunctions/handleComponents'
+import ConfirmationBox from '../confirmationBox/ConfirmationBox'
+import ComponentOrderSelector from '../components/componentOrderSelector/ComponentOrderSelector'
 
-//for website, page, page components - unique update points on the server...
-//sort out schema validation of pagecomponent 
+//flesh out the data needed for all website categories
+//think up all the possible website categories
+//global page
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -108,7 +111,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }>({})
 
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
-    const updatePageDebounce = useRef<NodeJS.Timeout>()
+    // const updatePageDebounce = useRef<NodeJS.Timeout>()
     const updatePageComponentDebounce = useRef<NodeJS.Timeout>()
 
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
@@ -158,7 +161,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
 
         start()
-        console.log(`$handlePageUpdate`, handlePageUpdate);
     }, [websiteFromServer, activePageId])
 
     //calculate fit on device size change
@@ -267,36 +269,36 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
     }
 
-    async function handlePageUpdate(newPage: page) {
-        try {
-            //update locally
-            websiteObjSet(prevWebsite => {
-                const newWebsite = { ...prevWebsite }
+    // async function handlePageUpdate(newPage: page) {
+    //     try {
+    //         //update locally
+    //         websiteObjSet(prevWebsite => {
+    //             const newWebsite = { ...prevWebsite }
 
-                newWebsite.pages[activePageId] = newPage
+    //             newWebsite.pages[activePageId] = newPage
 
-                return newWebsite
-            })
+    //             return newWebsite
+    //         })
 
-            //update on server after delay
-            if (updatePageDebounce.current) clearTimeout(updatePageDebounce.current)
+    //         //update on server after delay
+    //         if (updatePageDebounce.current) clearTimeout(updatePageDebounce.current)
 
-            //make new website schema
-            updatePageDebounce.current = setTimeout(async () => {
-                //ensure only certail fields can be updated
-                const validatedNewPage = updatePageSchema.parse(newPage)
+    //         //make new website schema
+    //         updatePageDebounce.current = setTimeout(async () => {
+    //             //ensure only certail fields can be updated
+    //             const validatedNewPage = updatePageSchema.parse(newPage)
 
-                saveStateSet("saving")
-                await updateWebsitePage(websiteObj.id, activePageId, validatedNewPage)
+    //             saveStateSet("saving")
+    //             await updateWebsitePage(websiteObj.id, activePageId, validatedNewPage)
 
-                console.log(`$saved page to db`);
-                saveStateSet("saved")
-            }, 3000);
+    //             console.log(`$saved page to db`);
+    //             saveStateSet("saved")
+    //         }, 3000);
 
-        } catch (error) {
-            consoleAndToastError(error)
-        }
-    }
+    //     } catch (error) {
+    //         consoleAndToastError(error)
+    //     }
+    // }
 
     async function handlePageComponentUpdate(newPageComponent: pageComponent) {
         //update locally
@@ -468,6 +470,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                         addingPageSet(prev => !prev)
                                     }}
                                 >{addingPage ? "close" : "add page"}</button>
+
+                                {activePageId !== "" && (
+                                    <ConfirmationBox text='delete page' confirmationText='are you sure you want to delete' successMessage='page deleted!' float={true} runAction={async () => {
+                                        await deleteWebsitePage(websiteObj.id, activePageId)
+
+                                        await refreshWebsitePath({ id: websiteObj.id })
+                                    }} />
+                                )}
                             </ul>
 
                             <AddPage style={{ display: addingPage ? "" : "none" }} seenWebsite={websiteObj} />
@@ -537,13 +547,16 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                             //replace the page component with this selection
 
                                                             //ensure the component info is there
-                                                            if (viewerComponent.component === null) return
+                                                            if (viewerComponent.component === null || activePageComponent.data === null) return
+
+                                                            //if pageComponents are the same type can reuse data
+                                                            const reusingPageComponentData = activePageComponent.data.category === viewerComponent.component.categoryId
 
                                                             //replace everything except id, pageid, compid, children
-                                                            const newReplacedPageComponent = { ...activePageComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: viewerComponent.component.defaultData, }
+                                                            const newReplacedPageComponent = { ...activePageComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingPageComponentData ? activePageComponent.data : viewerComponent.component.defaultData, }
 
+                                                            //ensure pageComponent is safe to send to server
                                                             const sanitizedPageComponent = sanitizePageComponentData(newReplacedPageComponent)
-                                                            console.log(`$newReplacedPageComponent`, newReplacedPageComponent);
 
                                                             //send to server to replace
                                                             await updateWebsitePageComponent(websiteObj.id, activePageId, sanitizedPageComponent)
@@ -561,6 +574,16 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                             )}
                                         </>
                                     )}
+
+                                    <label>change order</label>
+                                    <ComponentOrderSelector websiteId={websiteObj.id} pageId={activePageId} pageComponentId={activePageComponent.id} seenPageComponents={websiteObj.pages[activePageId].pageComponents} />
+
+                                    <label>delete component</label>
+                                    <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
+                                        await deleteWebsitePageComponent(websiteObj.id, activePageId, activePageComponent.id)
+
+                                        await refreshWebsitePath({ id: websiteObj.id })
+                                    }} />
                                 </>
                             )}
                         </div>

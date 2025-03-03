@@ -22,18 +22,31 @@ export function addScopeToCSS(cssString: string, idPrefix: string) {
 }
 
 export function sanitizePageComponentData(pageComponent: pageComponent): pageComponent {
-    const seenPropData = pageComponent.data
+    // Recursive function to update the component
+    function sanitizeComponent(seenPageComponents: pageComponent[]): pageComponent[] {
+        return seenPageComponents.map(eachPageComponent => {
+            const seenPropData = eachPageComponent.data
 
-    //ensure not to pass react data to server
-    if (seenPropData !== undefined && seenPropData !== null) {
-        if (Object.hasOwn(seenPropData, "children")) {
-            // @ts-expect-error types
-            seenPropData["children"] = []
-        }
+            //ensure not to pass react data to server
+            if (seenPropData !== null) {
+                if (Object.hasOwn(seenPropData, "children")) {
+                    // @ts-expect-error types
+                    seenPropData["children"] = []
+                }
 
-        pageComponent.data = seenPropData
+                eachPageComponent.data = seenPropData
+            }
+
+            return {
+                ...eachPageComponent,
+                children: sanitizeComponent(eachPageComponent.children)
+            };
+        });
     }
 
-    return deepClone(pageComponent)
+    // Update the page components recursively
+    const sanitizedPageComponent = sanitizeComponent([pageComponent]);
+
+    return deepClone(sanitizedPageComponent[0])
 }
 
