@@ -219,12 +219,11 @@ export const pageSchema = z.object({
 })
 export type page = z.infer<typeof pageSchema>
 
-export const newPageSchema = pageSchema.omit({ pageComponents: true })
+export const newPageSchema = pageSchema.pick({ name: true })
 export type newPage = z.infer<typeof newPageSchema>
 
 export const updatePageSchema = pageSchema.omit({ pageComponents: true })
 export type updatePage = z.infer<typeof updatePageSchema>
-
 
 
 

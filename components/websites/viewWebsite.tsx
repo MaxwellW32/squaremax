@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
 import { componentDataType, pageComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, } from '@/types'
 import { addScopeToCSS, deepClone, sanitizePageComponentData } from '@/utility/utility'
-import AddPage from '../pages/addPage'
+import AddEditPage from '../pages/AddEditPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import { deleteWebsitePage, deleteWebsitePageComponent, refreshWebsitePath, updateTheWebsite, updateWebsitePageComponent } from '@/serverFunctions/handleWebsites'
@@ -13,14 +13,21 @@ import toast from 'react-hot-toast'
 import { getSpecificComponent } from '@/serverFunctions/handleComponents'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
 import ComponentOrderSelector from '../components/componentOrderSelector/ComponentOrderSelector'
+import ShowMore from '../showMore/ShowMore'
+import AddEditWebsite from './AddEditWebsite'
 
 //flesh out the data needed for all website categories
 //think up all the possible website categories
 //global page
 
+//get add / edit working website
+//get add / edit working page
+//add confirmations for everything - buttons
+
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
+    const [editOptions, editOptionsSet] = useState(false)
 
     const [sizeOptions, sizeOptionsSet] = useState<sizeOptionType[]>([
         {
@@ -68,7 +75,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     })
 
     const [addingPage, addingPageSet] = useState(false)
-    const [editingGlobalStyle, editingGlobalStyleSet] = useState(false)
     const [componentsBuilt, componentBuiltSet] = useState(false)
 
     const tempActivePageComponentId = useRef<pageComponent["id"]>("")
@@ -434,7 +440,31 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 </div>
 
                 <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}                >
-                    <div className={styles.sideBarSettings} style={{ backgroundColor: dimSideBar ? "" : "aliceblue" }}>
+                    <div className={styles.sideBarSettings} style={{ backgroundColor: dimSideBar ? "" : "rgb(var(--color3))" }}>
+                        <div style={{ display: "grid", alignContent: "flex-start", }}>
+                            <button className='secondaryButton'
+                                onClick={() => {
+                                    editOptionsSet(prev => !prev)
+                                }}
+                            >{editOptions ? "stop editing" : "edit"}</button>
+
+                            <div style={{ display: editOptions ? "grid" : "none", position: "absolute", top: "100%", right: 0, backgroundColor: "rgb(var(--color3))", padding: "1rem", width: "min(500px, 90vw)" }}>
+                                <ShowMore
+                                    label='Edit Website'
+                                    content={
+                                        <AddEditWebsite sentWebsite={websiteObj} />
+                                    }
+                                />
+
+                                <ShowMore
+                                    label='Edit Page'
+                                    content={
+                                        <AddEditPage key={activePageId} seenWebsite={websiteObj} sentPage={websiteObj.pages[activePageId]} sentPageId={activePageId} />
+                                    }
+                                />
+                            </div>
+                        </div>
+
                         <button className='secondaryButton'
                             onClick={() => {
                                 showingSideBarSet(false)
@@ -472,118 +502,143 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 >{addingPage ? "close" : "add page"}</button>
 
                                 {activePageId !== "" && (
-                                    <ConfirmationBox text='delete page' confirmationText='are you sure you want to delete' successMessage='page deleted!' float={true} runAction={async () => {
-                                        await deleteWebsitePage(websiteObj.id, activePageId)
-
-                                        await refreshWebsitePath({ id: websiteObj.id })
-                                    }} />
+                                    <ConfirmationBox text='' confirmationText='are you sure you want to delete the page?' successMessage='page deleted!' float={true}
+                                        icon={
+                                            <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
+                                        }
+                                        runAction={async () => {
+                                            await deleteWebsitePage(websiteObj.id, activePageId)
+                                            await refreshWebsitePath({ id: websiteObj.id })
+                                        }}
+                                    />
                                 )}
                             </ul>
 
-                            <AddPage style={{ display: addingPage ? "" : "none" }} seenWebsite={websiteObj} />
+                            <AddEditPage style={{ display: addingPage ? "" : "none" }} seenWebsite={websiteObj} />
 
                             {websiteObj.pages[activePageId] !== undefined && (
                                 <ComponentSelector seenWebsite={websiteObj} activePageId={activePageId} currentIndex={websiteObj.pages[activePageId].pageComponents.length} />
                             )}
                         </div>
 
-                        <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
-                            <button className='secondaryButton' style={{ justifySelf: "flex-end" }}
-                                onClick={() => {
-                                    editingGlobalStyleSet(prev => !prev)
-                                }}
-                            >{editingGlobalStyle ? "close" : "open"} global styles</button>
+                        <div style={{ display: "grid", gap: "1rem", alignContent: "flex-start", overflow: "auto" }}>
+                            <ShowMore
+                                label='Edit global styles'
+                                content={
+                                    <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
+                                        onChange={(e) => {
+                                            const newWebsite = { ...websiteObj }
+                                            newWebsite.globalCss = e.target.value
 
-                            {editingGlobalStyle && (
-                                <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
-                                    onChange={(e) => {
-                                        const newWebsite = { ...websiteObj }
-                                        newWebsite.globalCss = e.target.value
-
-                                        handleWebsiteUpdate(newWebsite)
-                                    }}
-                                />
-                            )}
+                                            handleWebsiteUpdate(newWebsite)
+                                        }}
+                                    />
+                                }
+                            />
 
                             {activePageComponent !== undefined && (
                                 <>
-                                    <label>styling</label>
-                                    <textarea rows={5} value={activePageComponent.css} className={styles.styleEditor}
-                                        onChange={(e) => {
-                                            const newActiveComp: pageComponent = { ...activePageComponent }
-                                            newActiveComp.css = e.target.value
+                                    <label>Edit page component</label>
 
-                                            handlePageComponentUpdate(newActiveComp)
-                                        }}
+                                    <ShowMore
+                                        label='Styling'
+                                        content={
+                                            <textarea rows={5} value={activePageComponent.css} className={styles.styleEditor}
+                                                onChange={(e) => {
+                                                    const newActiveComp: pageComponent = { ...activePageComponent }
+                                                    newActiveComp.css = e.target.value
+
+                                                    handlePageComponentUpdate(newActiveComp)
+                                                }}
+                                            />
+                                        }
                                     />
 
-                                    <label>props</label>
-                                    <ComponentDataSwitch activePageComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} activePageId={activePageId} />
+                                    <ShowMore
+                                        label='Props'
+                                        content={
+                                            <ComponentDataSwitch activePageComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} activePageId={activePageId} />
+                                        }
+                                    />
 
-                                    <label>preview components</label>
-                                    {viewerComponent === null ? (
-                                        <button className='mainButton'
-                                            onClick={() => {
-                                                viewerComponentSet({ pageComponentIdToSwap: activePageComponent.id, component: null, builtComponent: null })
-                                            }}
-                                        >enable viewer node</button>
-                                    ) : (
-                                        <button className='mainButton'
-                                            onClick={() => {
-                                                viewerComponentSet(null)
-                                            }}
-                                        >cancel viewer node</button>
-                                    )}
-
-                                    {/* show options for active */}
-                                    {viewerComponent !== null && viewerComponent.pageComponentIdToSwap === activePageComponent.id && websiteObj.pages[activePageId] !== undefined && (
-                                        <>
-                                            <ComponentSelector seenWebsite={websiteObj} activePageId={activePageId} currentIndex={0} viewerComponentSet={viewerComponentSet} />
-
-                                            {viewerComponent.component !== null && (
-                                                <button className='mainButton'
-                                                    onClick={async () => {
-                                                        try {
-                                                            //replace the page component with this selection
-
-                                                            //ensure the component info is there
-                                                            if (viewerComponent.component === null || activePageComponent.data === null) return
-
-                                                            //if pageComponents are the same type can reuse data
-                                                            const reusingPageComponentData = activePageComponent.data.category === viewerComponent.component.categoryId
-
-                                                            //replace everything except id, pageid, compid, children
-                                                            const newReplacedPageComponent = { ...activePageComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingPageComponentData ? activePageComponent.data : viewerComponent.component.defaultData, }
-
-                                                            //ensure pageComponent is safe to send to server
-                                                            const sanitizedPageComponent = sanitizePageComponentData(newReplacedPageComponent)
-
-                                                            //send to server to replace
-                                                            await updateWebsitePageComponent(websiteObj.id, activePageId, sanitizedPageComponent)
-                                                            await refreshWebsitePath({ id: websiteObj.id })
-
+                                    <ShowMore
+                                        label='preview other components'
+                                        content={
+                                            <>
+                                                {viewerComponent === null ? (
+                                                    <button className='mainButton'
+                                                        onClick={() => {
+                                                            viewerComponentSet({ pageComponentIdToSwap: activePageComponent.id, component: null, builtComponent: null })
+                                                        }}
+                                                    >enable viewer node</button>
+                                                ) : (
+                                                    <button className='mainButton'
+                                                        onClick={() => {
                                                             viewerComponentSet(null)
+                                                        }}
+                                                    >cancel viewer node</button>
+                                                )}
 
-                                                            toast.success("swapped component")
+                                                {/* show options for active */}
+                                                {viewerComponent !== null && viewerComponent.pageComponentIdToSwap === activePageComponent.id && websiteObj.pages[activePageId] !== undefined && (
+                                                    <>
+                                                        <ComponentSelector seenWebsite={websiteObj} activePageId={activePageId} currentIndex={0} viewerComponentSet={viewerComponentSet} />
 
-                                                        } catch (error) {
-                                                            consoleAndToastError(error)
-                                                        }
-                                                    }}
-                                                >repalce with this component</button>
-                                            )}
-                                        </>
-                                    )}
+                                                        {viewerComponent.component !== null && (
+                                                            <button className='mainButton'
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        //replace the page component with this selection
 
-                                    <label>change order</label>
-                                    <ComponentOrderSelector websiteId={websiteObj.id} pageId={activePageId} pageComponentId={activePageComponent.id} seenPageComponents={websiteObj.pages[activePageId].pageComponents} />
+                                                                        //ensure the component info is there
+                                                                        if (viewerComponent.component === null || activePageComponent.data === null) return
 
-                                    <label>delete component</label>
-                                    <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
-                                        await deleteWebsitePageComponent(websiteObj.id, activePageId, activePageComponent.id)
+                                                                        //if pageComponents are the same type can reuse data
+                                                                        const reusingPageComponentData = activePageComponent.data.category === viewerComponent.component.categoryId
 
-                                        await refreshWebsitePath({ id: websiteObj.id })
-                                    }} />
+                                                                        //replace everything except id, pageid, compid, children
+                                                                        const newReplacedPageComponent = { ...activePageComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingPageComponentData ? activePageComponent.data : viewerComponent.component.defaultData, }
+
+                                                                        //ensure pageComponent is safe to send to server
+                                                                        const sanitizedPageComponent = sanitizePageComponentData(newReplacedPageComponent)
+
+                                                                        //send to server to replace
+                                                                        await updateWebsitePageComponent(websiteObj.id, activePageId, sanitizedPageComponent)
+                                                                        await refreshWebsitePath({ id: websiteObj.id })
+
+                                                                        viewerComponentSet(null)
+
+                                                                        toast.success("swapped component")
+
+                                                                    } catch (error) {
+                                                                        consoleAndToastError(error)
+                                                                    }
+                                                                }}
+                                                            >repalce with this component</button>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </>
+                                        }
+                                    />
+
+                                    <ShowMore
+                                        label='change position'
+                                        content={
+                                            <ComponentOrderSelector websiteId={websiteObj.id} pageId={activePageId} pageComponentId={activePageComponent.id} seenPageComponents={websiteObj.pages[activePageId].pageComponents} />
+                                        }
+                                    />
+
+                                    <ShowMore
+                                        label='Delete Component'
+                                        content={
+                                            <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
+                                                await deleteWebsitePageComponent(websiteObj.id, activePageId, activePageComponent.id)
+
+                                                await refreshWebsitePath({ id: websiteObj.id })
+                                            }} />
+                                        }
+                                    />
                                 </>
                             )}
                         </div>

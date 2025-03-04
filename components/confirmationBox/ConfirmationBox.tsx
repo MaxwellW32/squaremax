@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import toast from 'react-hot-toast'
 
-export default function ConfirmationBox({ text, confirmationText, successMessage, runAction, float = false }: { text: string, confirmationText: string, successMessage: string, runAction: () => void, float?: boolean }) {
+export default function ConfirmationBox({ text, confirmationText, successMessage, runAction, float = false, icon }: { text: string, confirmationText: string, successMessage: string, runAction: () => void, float?: boolean, icon?: React.JSX.Element }) {
     const [confirmed, confirmedSet] = useState(false)
     return (
         <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", position: "relative" }}>
@@ -12,6 +12,8 @@ export default function ConfirmationBox({ text, confirmationText, successMessage
                 }}
             >
                 {text}
+
+                {icon}
             </button>
 
             {confirmed && (

@@ -70,7 +70,7 @@
     bottom: 0;
     right: 0;
     height: 100%;
-    width: min(450px, 100%);
+    width: min(500px, 100%);
     overflow-y: auto;
 }
 
@@ -90,6 +90,7 @@
     overflow-y: auto;
     background-color: aliceblue;
     transition: opacity 200ms;
+    padding: 1rem;
 }
 
 .editing {
@@ -154,7 +155,7 @@
 
 
 /* styling component */
-.formInputCont {
+/* .formInputCont {
     display: grid;
     align-content: flex-start;
     gap: .5rem;
@@ -163,4 +164,15 @@
 
 .formInputCont>input {
     padding: .5rem 1rem;
+} */
+/* add edit website */
+.form {
+    display: grid;
+    align-content: flex-start;
+}
+
+.form>div {
+    display: grid;
+    align-content: flex-start;
+    gap: .5rem;
 }
