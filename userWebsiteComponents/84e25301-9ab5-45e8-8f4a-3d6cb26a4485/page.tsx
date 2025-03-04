@@ -21,7 +21,6 @@ export default function ContainTwo({ data }: { data: containersType }) {
 
       <div className={`container-children${data.styleId}`}>
         {data.children}
-        {/* {renderElements(data.children)} */}
       </div>
 
       <p className={`container-footer${data.styleId}`}>This is text below container 2</p>

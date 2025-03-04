@@ -531,7 +531,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                             {activePageComponent !== undefined && (
                                 <>
-                                    <label>Edit page component</label>
+                                    <label>page component</label>
 
                                     <ShowMore
                                         label='Styling'
@@ -548,14 +548,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     />
 
                                     <ShowMore
-                                        label='Props'
+                                        label='edit page component'
                                         content={
                                             <ComponentDataSwitch activePageComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} activePageId={activePageId} />
                                         }
                                     />
 
                                     <ShowMore
-                                        label='preview other components'
+                                        label='replace component'
                                         content={
                                             <>
                                                 {viewerComponent === null ? (

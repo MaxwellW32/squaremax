@@ -1,15 +1,30 @@
 import { changeWebsitePageComponentIndex, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
 import { pageComponent, website } from '@/types'
-import React, { useState } from 'react'
+import { deepClone } from '@/utility/utility'
+import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 
 export default function ComponentOrderSelector({ websiteId, pageId, seenPageComponents, pageComponentId }: { websiteId: website["id"], pageId: string, seenPageComponents: pageComponent[], pageComponentId: pageComponent["id"] }) {
     const [inputValue, inputValueSet] = useState("")
     const [wantedIndex, wantedIndexSet] = useState<number | null>(null)
 
-    const foundPageComponentArray = FindPageComponentArray(seenPageComponents, pageComponentId)
+    const [foundPageComponentArray, foundPageComponentArraySet] = useState(findPageComponentArray(seenPageComponents, pageComponentId))
+    const currentIndexInArray = useMemo(() => {
+        if (foundPageComponentArray === undefined) return undefined
 
-    function FindPageComponentArray(seenPageComponents: pageComponent[], wantedPageComponentId: string): pageComponent[] | undefined {
+        const seenIndex = foundPageComponentArray.findIndex(eachFindPageComponent => eachFindPageComponent.id === pageComponentId)
+        if (seenIndex < 0) return undefined
+
+        return seenIndex
+    }, [foundPageComponentArray])
+
+    //respond to outside changes in seenPageComponents
+    useEffect(() => {
+        foundPageComponentArraySet(findPageComponentArray(seenPageComponents, pageComponentId))
+
+    }, [seenPageComponents, pageComponentId])
+
+    function findPageComponentArray(seenPageComponents: pageComponent[], wantedPageComponentId: string): pageComponent[] | undefined {
         let foundArray: pageComponent[] | undefined = undefined
 
         seenPageComponents.map((eachPageComponent) => {
@@ -18,17 +33,21 @@ export default function ComponentOrderSelector({ websiteId, pageId, seenPageComp
                 return
             }
 
-            const seenChildArray = FindPageComponentArray(eachPageComponent.children, wantedPageComponentId)
+            const seenChildArray = findPageComponentArray(eachPageComponent.children, wantedPageComponentId)
             if (seenChildArray !== undefined) foundArray = seenChildArray
         });
 
-        return foundArray
+        return foundArray === undefined ? undefined : [...foundArray]
     }
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start" }}>
-            {foundPageComponentArray !== undefined && (
-                <p>max position: {foundPageComponentArray.length - 1 + 1}</p>
+            {foundPageComponentArray !== undefined && currentIndexInArray !== undefined && (
+                <>
+                    <p>current position: {currentIndexInArray + 1}</p>
+
+                    <p>max position: {foundPageComponentArray.length - 1 + 1}</p>
+                </>
             )}
 
             <input type='text' value={inputValue} placeholder='Enter new position'
