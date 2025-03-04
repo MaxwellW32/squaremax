@@ -521,7 +521,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                             )}
                         </div>
 
-                        <div style={{ display: "grid", gap: "1rem", alignContent: "flex-start", overflow: "auto" }}>
+                        <div style={{ display: "grid", gap: "1rem", alignContent: "flex-start", overflow: "auto", padding: "1rem" }}>
                             <ShowMore
                                 label='Edit global styles'
                                 content={
@@ -692,7 +692,7 @@ function RenderComponentTree({
         return null;
     }
 
-    const scopedCss = addScopeToCSS(seenPageComponent.css, seenPageComponent.id);
+    let scopedCss = addScopeToCSS(seenPageComponent.css, seenPageComponent.id);
 
     // Recursively render child components
     const childJSX = seenPageComponent.children.map((componentChild) => {
@@ -729,13 +729,25 @@ function RenderComponentTree({
     }
 
     //pass children to viewer component if valid
-    if (seenViewerComponentData !== null && seenViewerComponentData.category === "containers") {
-        //check for the children attribute
-        seenViewerComponentData.children = childJSX
+    if (seenViewerComponentData !== null) {
+        if (seenViewerComponentData.category === "containers") {
+
+            //check for the children attribute
+            seenViewerComponentData.children = childJSX
+        }
+
+        //ensure css on component data is local
+        if (viewerComponent !== null && viewerComponent.component !== null) {
+            scopedCss = addScopeToCSS(viewerComponent.component.defaultCss, seenPageComponent.id);
+
+            seenViewerComponentData.styleId = `____${seenPageComponent.id}`
+        }
     }
 
     return (
         <React.Fragment key={seenPageComponent.id}>
+            <style>{scopedCss}</style>
+
             {usingViewerComponent ? (
                 <>
                     {SeenViewerComp !== null && seenViewerComponentData !== null && (
@@ -744,8 +756,6 @@ function RenderComponentTree({
                 </>
             ) : (
                 <>
-                    <style>{scopedCss}</style>
-
                     {/* Render the main component with injected props */}
                     <ComponentToRender data={componentProps} />
                 </>

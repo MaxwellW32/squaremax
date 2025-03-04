@@ -198,3 +198,9 @@ section {
         opacity: 1;
     }
 }
+
+.reset * {
+    all: unset;
+    display: revert;
+    box-sizing: border-box;
+}

@@ -90,7 +90,6 @@
     overflow-y: auto;
     background-color: aliceblue;
     transition: opacity 200ms;
-    padding: 1rem;
 }
 
 .editing {
