@@ -18,11 +18,8 @@ import AddEditWebsite from './AddEditWebsite'
 
 //flesh out the data needed for all website categories
 //think up all the possible website categories
-//global page
-
-//get add / edit working website
-//get add / edit working page
-//add confirmations for everything - buttons
+//global elements - above / below
+//get file creation working
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -426,11 +423,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 <>
                                     <style>{addScopeToCSS(websiteObj.globalCss, styles.canvas)}</style>
 
-                                    {websiteObj.pages[activePageId].pageComponents.map(eachPageToComponent => {
-                                        return (
-                                            <RenderComponentTree key={eachPageToComponent.id} seenPageComponent={eachPageToComponent} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActivePageComponentId} viewerComponent={viewerComponent} />
-                                        )
-                                    })}
+                                    <RenderComponentTree seenPageComponents={websiteObj.pages[activePageId].pageComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActivePageComponentId} viewerComponent={viewerComponent} />
                                 </>
                             )}
                         </div>
@@ -659,107 +652,108 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 }
 
 function RenderComponentTree({
-    seenPageComponent, websiteObj, activePageId, renderedComponentsObj, tempActivePageComponentId, viewerComponent
+    seenPageComponents, websiteObj, activePageId, renderedComponentsObj, tempActivePageComponentId, viewerComponent
 }: {
-    seenPageComponent: pageComponent, websiteObj: website, activePageId: string, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActivePageComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null
+    seenPageComponents: pageComponent[], websiteObj: website, activePageId: string, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActivePageComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null
 }) {
-    let usingViewerComponent = false
-
-    let SeenViewerComp: React.ComponentType<{
-        data: componentDataType;
-    }> | null = null
-    let seenViewerComponentData: componentDataType | null = null
-
-    //assign new chosen component if using the viewer node
-    if (viewerComponent !== null && viewerComponent.pageComponentIdToSwap === seenPageComponent.id && viewerComponent.component !== null && viewerComponent.builtComponent !== null) {
-        usingViewerComponent = true
-        SeenViewerComp = viewerComponent.builtComponent
-        seenViewerComponentData = viewerComponent.component.defaultData
-    }
-
-    const ComponentToRender = renderedComponentsObj.current[seenPageComponent.componentId];
-    if (ComponentToRender === undefined) {
-        console.error(
-            `Component with ID ${seenPageComponent.componentId} is not in renderedComponentsObj.`,
-            renderedComponentsObj.current
-        );
-        return null;
-    }
-
-    //make sure component data is fetched
-    if (seenPageComponent.data === null) {
-        console.log(`No data in component`, seenPageComponent);
-        return null;
-    }
-
-    let scopedCss = addScopeToCSS(seenPageComponent.css, seenPageComponent.id);
-
-    // Recursively render child components
-    const childJSX = seenPageComponent.children.map((componentChild) => {
-        return <RenderComponentTree key={componentChild.id} seenPageComponent={componentChild} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActivePageComponentId} viewerComponent={viewerComponent} />;
-    })
-
-    // If the component is a container, pass children as a prop
-    const componentProps = seenPageComponent.data
-
-    //apply scoped styling starter value
-    componentProps.styleId = `____${seenPageComponent.id}`
-
-    //handle chuldren for different categories
-    if (childJSX.length > 0) {
-        if (componentProps.category === "containers") {
-            componentProps.children = childJSX
-        }
-    }
-
-    //add mouse over listener for interaction
-    //@ts-expect-error mouseOver
-    componentProps.mainElProps.onMouseOver = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        e.stopPropagation()
-
-        tempActivePageComponentId.current = seenPageComponent.id;
-
-        //highlight the element to show selection
-        const seenEl = e.currentTarget as HTMLElement;
-        seenEl.classList.add(styles.highlightComponent);
-
-        setTimeout(() => {
-            seenEl.classList.remove(styles.highlightComponent);
-        }, 1000);
-    }
-
-    //pass children to viewer component if valid
-    if (seenViewerComponentData !== null) {
-        if (seenViewerComponentData.category === "containers") {
-
-            //check for the children attribute
-            seenViewerComponentData.children = childJSX
-        }
-
-        //ensure css on component data is local
-        if (viewerComponent !== null && viewerComponent.component !== null) {
-            scopedCss = addScopeToCSS(viewerComponent.component.defaultCss, seenPageComponent.id);
-
-            seenViewerComponentData.styleId = `____${seenPageComponent.id}`
-        }
-    }
 
     return (
-        <React.Fragment key={seenPageComponent.id}>
-            <style>{scopedCss}</style>
+        <>
+            {seenPageComponents.map(eachPageComponent => {
+                let usingViewerComponent = false
 
-            {usingViewerComponent ? (
-                <>
-                    {SeenViewerComp !== null && seenViewerComponentData !== null && (
-                        <SeenViewerComp data={seenViewerComponentData} />
-                    )}
-                </>
-            ) : (
-                <>
-                    {/* Render the main component with injected props */}
-                    <ComponentToRender data={componentProps} />
-                </>
-            )}
-        </React.Fragment>
-    );
+                let SeenViewerComponent: React.ComponentType<{ data: componentDataType }> | null = null
+                let seenViewerComponentData: componentDataType | null = null
+
+                //assign new chosen component if using the viewer node
+                if (viewerComponent !== null && viewerComponent.pageComponentIdToSwap === eachPageComponent.id && viewerComponent.component !== null && viewerComponent.builtComponent !== null) {
+                    usingViewerComponent = true
+                    SeenViewerComponent = viewerComponent.builtComponent
+                    seenViewerComponentData = viewerComponent.component.defaultData
+                }
+
+                const ComponentToRender = renderedComponentsObj.current[eachPageComponent.componentId];
+                if (ComponentToRender === undefined) {
+                    console.error(
+                        `Component with ID ${eachPageComponent.componentId} is not in renderedComponentsObj.`,
+                        renderedComponentsObj.current
+                    );
+                    return null;
+                }
+
+                //make sure component data is fetched
+                if (eachPageComponent.data === null) {
+                    console.log(`No data in component`, eachPageComponent);
+                    return null;
+                }
+
+                let scopedCss = addScopeToCSS(eachPageComponent.css, eachPageComponent.id);
+
+                // Recursively render child components
+                const childJSX: React.JSX.Element | null = eachPageComponent.children.length > 0 ? <RenderComponentTree seenPageComponents={eachPageComponent.children} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActivePageComponentId} viewerComponent={viewerComponent} /> : null;
+
+                //apply scoped styling starter value
+                eachPageComponent.data.styleId = `____${eachPageComponent.id}`
+
+                // If the component is a container, pass children as a prop
+                //handle chuldren for different categories
+                if (childJSX !== null) {
+                    if (eachPageComponent.data.category === "containers") {
+                        eachPageComponent.data.children = childJSX
+                    }
+                }
+
+                //add mouse over listener for interaction
+                //@ts-expect-error mouseOver
+                eachPageComponent.data.mainElProps.onMouseOver = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                    e.stopPropagation()
+
+                    tempActivePageComponentId.current = eachPageComponent.id;
+
+                    //highlight the element to show selection
+                    const seenEl = e.currentTarget as HTMLElement;
+                    seenEl.classList.add(styles.highlightComponent);
+
+                    setTimeout(() => {
+                        seenEl.classList.remove(styles.highlightComponent);
+                    }, 1000);
+                }
+
+                //pass children to viewer component if valid
+                if (seenViewerComponentData !== null) {
+                    if (seenViewerComponentData.category === "containers") {
+
+                        //check for the children attribute
+                        seenViewerComponentData.children = childJSX
+                    }
+
+                    //ensure css on component data is local
+                    if (viewerComponent !== null && viewerComponent.component !== null) {
+                        scopedCss = addScopeToCSS(viewerComponent.component.defaultCss, eachPageComponent.id);
+
+                        seenViewerComponentData.styleId = `____${eachPageComponent.id}`
+                    }
+                }
+
+                return (
+                    <React.Fragment key={eachPageComponent.id}>
+                        <style>{scopedCss}</style>
+
+                        {usingViewerComponent ? (
+                            <>
+                                {SeenViewerComponent !== null && seenViewerComponentData !== null && (
+                                    <SeenViewerComponent data={seenViewerComponentData} />
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                {/* Render the main component with injected props */}
+                                <ComponentToRender data={eachPageComponent.data} />
+                            </>
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </>
+    )
 }

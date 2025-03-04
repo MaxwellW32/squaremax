@@ -91,8 +91,6 @@ export default function ComponentSelector({
 
                                                         await refreshWebsitePath({ id: seenWebsite.id })
 
-                                                        userInteractingSet(false)
-
                                                     } else {
                                                         //only preview the component
 

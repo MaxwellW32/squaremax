@@ -133,7 +133,7 @@ export const containersSchema = z.object({
     mainElProps: htmlAttributesSchema,
     styleId: z.string(),
 
-    children: z.array(z.any()),
+    children: z.any(),
 })
 export type containersType = z.infer<typeof containersSchema>
 
