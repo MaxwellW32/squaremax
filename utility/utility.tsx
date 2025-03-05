@@ -1,4 +1,4 @@
-import { pageComponent } from "@/types"
+import { usedComponent } from "@/types"
 
 export function deepClone(object: unknown) {
     return JSON.parse(JSON.stringify(object))
@@ -21,11 +21,11 @@ export function addScopeToCSS(cssString: string, idPrefix: string) {
     );
 }
 
-export function sanitizePageComponentData(pageComponent: pageComponent): pageComponent {
+export function sanitizeUsedComponentData(usedComponent: usedComponent): usedComponent {
     // Recursive function to update the component
-    function sanitizeComponent(seenPageComponents: pageComponent[]): pageComponent[] {
-        return seenPageComponents.map(eachPageComponent => {
-            const seenPropData = eachPageComponent.data
+    function sanitizeComponent(seenUsedComponents: usedComponent[]): usedComponent[] {
+        return seenUsedComponents.map(eachUsedComponent => {
+            const seenPropData = eachUsedComponent.data
 
             //ensure not to pass react data to server
             if (seenPropData !== null) {
@@ -34,18 +34,18 @@ export function sanitizePageComponentData(pageComponent: pageComponent): pageCom
                     seenPropData["children"] = []
                 }
 
-                eachPageComponent.data = seenPropData
+                eachUsedComponent.data = seenPropData
             }
 
             return {
-                ...eachPageComponent,
-                children: sanitizeComponent(eachPageComponent.children)
+                ...eachUsedComponent,
+                children: sanitizeComponent(eachUsedComponent.children)
             };
         });
     }
 
     // Update the page components recursively
-    const sanitizedPageComponent = sanitizeComponent([pageComponent]);
+    const sanitizedPageComponent = sanitizeComponent([usedComponent]);
 
     return deepClone(sanitizedPageComponent[0])
 }

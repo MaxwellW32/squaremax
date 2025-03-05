@@ -1,38 +1,60 @@
-import { changeWebsitePageComponentIndex, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { pageComponent, website } from '@/types'
+import { changeWebsiteUsedComponentIndex, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
+import { usedComponent, usedComponentLocationType, website } from '@/types'
+import { sanitizeUsedComponentData } from '@/utility/utility'
 import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 
-export default function ComponentOrderSelector({ websiteId, pageId, seenPageComponents, pageComponentId }: { websiteId: website["id"], pageId: string, seenPageComponents: pageComponent[], pageComponentId: pageComponent["id"] }) {
+export default function ComponentOrderSelector({ websiteId, seenUsedComponents, usedComponent }: { websiteId: website["id"], seenUsedComponents: usedComponent[], usedComponent: usedComponent }) {
     const [inputValue, inputValueSet] = useState("")
     const [wantedIndex, wantedIndexSet] = useState<number | null>(null)
 
-    const [foundPageComponentArray, foundPageComponentArraySet] = useState(findPageComponentArray(seenPageComponents, pageComponentId))
-    const currentIndexInArray = useMemo(() => {
-        if (foundPageComponentArray === undefined) return undefined
+    const [foundPageComponentLocalArray, foundPageComponentLocalArraySet] = useState(findUsedComponentLocalArray(seenUsedComponents, usedComponent.location, usedComponent.id))
 
-        const seenIndex = foundPageComponentArray.findIndex(eachFindPageComponent => eachFindPageComponent.id === pageComponentId)
+    const currentIndexInLocalArray = useMemo(() => {
+        if (foundPageComponentLocalArray === undefined) return undefined
+
+        const seenIndex = foundPageComponentLocalArray.findIndex(eachFindPageComponent => eachFindPageComponent.id === usedComponent.id)
         if (seenIndex < 0) return undefined
 
         return seenIndex
-    }, [foundPageComponentArray])
+    }, [foundPageComponentLocalArray])
 
     //respond to outside changes in seenPageComponents
     useEffect(() => {
-        foundPageComponentArraySet(findPageComponentArray(seenPageComponents, pageComponentId))
+        foundPageComponentLocalArraySet(findUsedComponentLocalArray(seenUsedComponents, usedComponent.location, usedComponent.id))
 
-    }, [seenPageComponents, pageComponentId])
+    }, [seenUsedComponents, usedComponent.id])
 
-    function findPageComponentArray(seenPageComponents: pageComponent[], wantedPageComponentId: string): pageComponent[] | undefined {
-        let foundArray: pageComponent[] | undefined = undefined
+    function findUsedComponentLocalArray(sentUsedComponents: usedComponent[], location: usedComponentLocationType, wantedSentComponentId: string): usedComponent[] | undefined {
+        let foundArray: usedComponent[] | undefined = undefined
 
-        seenPageComponents.map((eachPageComponent) => {
-            if (eachPageComponent.id === wantedPageComponentId) {
-                foundArray = seenPageComponents
+        //get usedComponents in same location
+        const filteredUsedComponents = sentUsedComponents.filter(eachFilterUsedComponent => {
+            let matchingLocation = false
+
+            //match header footer area
+            if (eachFilterUsedComponent.location === location) {
+                matchingLocation = true
+            }
+
+            //match usedComponents on the same page
+            if (typeof eachFilterUsedComponent.location === "object" && typeof location === "object") {
+                if (eachFilterUsedComponent.location.pageId === location.pageId) {
+                    matchingLocation = true
+                }
+            }
+
+            return matchingLocation
+        })
+
+        //if wanted usedComponent is found in the local array return that array
+        filteredUsedComponents.map((eachPageComponent) => {
+            if (eachPageComponent.id === wantedSentComponentId) {
+                foundArray = filteredUsedComponents
                 return
             }
 
-            const seenChildArray = findPageComponentArray(eachPageComponent.children, wantedPageComponentId)
+            const seenChildArray = findUsedComponentLocalArray(eachPageComponent.children, location, wantedSentComponentId)
             if (seenChildArray !== undefined) foundArray = seenChildArray
         });
 
@@ -41,11 +63,11 @@ export default function ComponentOrderSelector({ websiteId, pageId, seenPageComp
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start" }}>
-            {foundPageComponentArray !== undefined && currentIndexInArray !== undefined && (
+            {foundPageComponentLocalArray !== undefined && currentIndexInLocalArray !== undefined && (
                 <>
-                    <p>current position: {currentIndexInArray + 1}</p>
+                    <p>current position: {currentIndexInLocalArray + 1}</p>
 
-                    <p>max position: {foundPageComponentArray.length - 1 + 1}</p>
+                    <p>max position: {foundPageComponentLocalArray.length - 1 + 1}</p>
                 </>
             )}
 
@@ -55,7 +77,7 @@ export default function ComponentOrderSelector({ websiteId, pageId, seenPageComp
                 }}
 
                 onBlur={() => {
-                    if (foundPageComponentArray === undefined) return
+                    if (foundPageComponentLocalArray === undefined) return
 
                     let seenNumber = parseInt(inputValue)
                     //add +1 for the number/index difference
@@ -65,10 +87,11 @@ export default function ComponentOrderSelector({ websiteId, pageId, seenPageComp
                         seenNumber = 0 + 1
                     }
 
-                    if (seenNumber > foundPageComponentArray.length - 1 + 1) {
-                        seenNumber = foundPageComponentArray.length - 1 + 1
+                    if (seenNumber > foundPageComponentLocalArray.length - 1 + 1) {
+                        seenNumber = foundPageComponentLocalArray.length - 1 + 1
                     }
 
+                    //returns number position instead of index
                     wantedIndexSet(seenNumber)
                     inputValueSet(`${seenNumber}`)
                 }}
@@ -78,7 +101,10 @@ export default function ComponentOrderSelector({ websiteId, pageId, seenPageComp
                 onClick={async () => {
                     if (wantedIndex === null) return
 
-                    await changeWebsitePageComponentIndex(websiteId, pageId, pageComponentId, wantedIndex - 1)
+                    const sanitizedUsedComponent = sanitizeUsedComponentData(usedComponent)
+
+                    //change index position
+                    await changeWebsiteUsedComponentIndex(websiteId, sanitizedUsedComponent, wantedIndex - 1)
 
                     refreshWebsitePath({ id: websiteId })
 

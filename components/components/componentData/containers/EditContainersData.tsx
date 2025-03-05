@@ -1,14 +1,14 @@
-import { componentDataType, containersType, pageComponent, website } from '@/types'
+import { componentDataType, containersType, usedComponent, website } from '@/types'
 import React from 'react'
 import ComponentSelector from '../../ComponentSelector'
 
-export default function EditContainersData({ seenPageComponent, websiteObj, activePageId }: { data: containersType, seenPageComponent: pageComponent, handlePropsChange: (newPropsObj: componentDataType, sentPageComponent: pageComponent) => void, websiteObj: website, activePageId: string }) {
+export default function EditContainersData({ seenUsedComponent, websiteObj }: { data: containersType, seenUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentPageComponent: usedComponent) => void, websiteObj: website }) {
     return (
         <div>
             <h3>Edit container</h3>
 
             <div style={{ padding: "1rem" }}>
-                {seenPageComponent.children.map(eachPageComponentChild => {
+                {seenUsedComponent.children.map(eachPageComponentChild => {
                     return (
                         <div key={eachPageComponentChild.id}>{eachPageComponentChild.id}</div>
                     )
@@ -16,7 +16,7 @@ export default function EditContainersData({ seenPageComponent, websiteObj, acti
             </div>
 
             <h3>Add component children</h3>
-            <ComponentSelector seenWebsite={websiteObj} activePageId={activePageId} currentIndex={seenPageComponent.children.length} parentComponent={seenPageComponent} />
+            <ComponentSelector seenWebsite={websiteObj} currentIndex={seenUsedComponent.children.length} location={seenUsedComponent.location} parentComponent={seenUsedComponent} />
         </div>
     )
 }

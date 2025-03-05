@@ -1,8 +1,8 @@
 "use client"
-import { componentDataType, navBarsType, pageComponent } from '@/types'
+import { componentDataType, navBarsType, usedComponent } from '@/types'
 import React from 'react'
 
-export default function EditNavbarsData({ data, activePageComponent, handlePropsChange }: { data: navBarsType, activePageComponent: pageComponent, handlePropsChange: (newPropsObj: componentDataType, sentPageComponent: pageComponent) => void }) {
+export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentPageComponent: usedComponent) => void }) {
 
     return (
         <form action={() => { }}>
@@ -14,7 +14,7 @@ export default function EditNavbarsData({ data, activePageComponent, handleProps
                                 onChange={(e) => {
                                     data.menu[eachMenuItemIndex].label = e.target.value
 
-                                    handlePropsChange(data, activePageComponent)
+                                    handlePropsChange(data, activeUsedComponent)
                                 }}
                             />
 
@@ -22,7 +22,7 @@ export default function EditNavbarsData({ data, activePageComponent, handleProps
                                 onChange={(e) => {
                                     data.menu[eachMenuItemIndex].link = e.target.value
 
-                                    handlePropsChange(data, activePageComponent)
+                                    handlePropsChange(data, activeUsedComponent)
                                 }}
                             />
 
@@ -35,7 +35,7 @@ export default function EditNavbarsData({ data, activePageComponent, handleProps
                                                     if (data.menu[eachMenuItemIndex].subMenu === undefined) return null
                                                     data.menu[eachMenuItemIndex].subMenu[eachSubMenuItemIndex].label = e.target.value
 
-                                                    handlePropsChange(data, activePageComponent)
+                                                    handlePropsChange(data, activeUsedComponent)
                                                 }}
                                             />
 
@@ -44,7 +44,7 @@ export default function EditNavbarsData({ data, activePageComponent, handleProps
                                                     if (data.menu[eachMenuItemIndex].subMenu === undefined) return null
                                                     data.menu[eachMenuItemIndex].subMenu[eachSubMenuItemIndex].link = e.target.value
 
-                                                    handlePropsChange(data, activePageComponent)
+                                                    handlePropsChange(data, activeUsedComponent)
                                                 }}
                                             />
                                         </li>
@@ -64,7 +64,7 @@ export default function EditNavbarsData({ data, activePageComponent, handleProps
 
                                         data.menu[eachMenuItemIndex].subMenu = [...data.menu[eachMenuItemIndex].subMenu, ...newSubMenuItem]
 
-                                        handlePropsChange(data, activePageComponent)
+                                        handlePropsChange(data, activeUsedComponent)
                                     }}
                                 >Add Sub Menu</button>
                             </ul>
@@ -82,7 +82,7 @@ export default function EditNavbarsData({ data, activePageComponent, handleProps
 
                     data.menu = [...data.menu, newMenuItem]
 
-                    handlePropsChange(data, activePageComponent)
+                    handlePropsChange(data, activeUsedComponent)
                 }}
             >Add Menu</button>
         </form>

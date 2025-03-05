@@ -47,7 +47,7 @@ const collectionSchema = z.object({
 export type collection = z.infer<typeof collectionSchema>
 
 export type viewerComponentType = {
-    pageComponentIdToSwap: pageComponent["id"],
+    pageComponentIdToSwap: usedComponent["id"],
     component: component | null,
     builtComponent: React.ComponentType<{
         data: componentDataType;
@@ -187,25 +187,35 @@ export type updateUser = z.infer<typeof updateUserSchema>
 
 
 
+export const usedComponentLocationUnionPageSchema = z.object({
+    pageId: z.string().min(1)
+})
+export type usedComponentLocationUnionPageType = z.infer<typeof usedComponentLocationUnionPageSchema>
 
+export const usedComponentLocationSchema = z.union([usedComponentLocationUnionPageSchema, z.literal("header"), z.literal("footer")])
+export type usedComponentLocationType = z.infer<typeof usedComponentLocationSchema>
 
-export type pageComponent = {
+export type usedComponent = {
     id: string;
     componentId: string;
     css: string;
-    children: pageComponent[];
+    children: usedComponent[];
+    location: z.infer<typeof usedComponentLocationSchema>
+    component?: component,
+
     data: componentDataType | null;
-    component?: component
 };
 
-export const pageComponentSchema: z.ZodType<pageComponent> = z.lazy(() =>
+export const usedComponentSchema: z.ZodType<usedComponent> = z.lazy(() =>
     z.object({
         id: z.string().min(1),
         componentId: z.string().min(1),
         css: z.string(),
-        children: z.array(pageComponentSchema),
-        data: componentDataSchema.nullable(),
+        children: z.array(usedComponentSchema),
+        location: usedComponentLocationSchema,
         component: componentSchema.optional(),
+
+        data: componentDataSchema.nullable(),
     })
 );
 
@@ -215,14 +225,13 @@ export const pageComponentSchema: z.ZodType<pageComponent> = z.lazy(() =>
 
 export const pageSchema = z.object({
     name: z.string().min(1),
-    pageComponents: z.array(pageComponentSchema)
 })
 export type page = z.infer<typeof pageSchema>
 
 export const newPageSchema = pageSchema.pick({ name: true })
 export type newPage = z.infer<typeof newPageSchema>
 
-export const updatePageSchema = pageSchema.omit({ pageComponents: true })
+export const updatePageSchema = pageSchema.omit({})
 export type updatePage = z.infer<typeof updatePageSchema>
 
 
@@ -235,6 +244,7 @@ export const websiteSchema = z.object({
     name: z.string().min(1),
     fonts: fontsSchema,
     globalCss: z.string(),
+    usedComponents: z.array(usedComponentSchema),
     pages: z.record(z.string(), pageSchema),
     userUploadedImages: userUploadedImagesSchema,
 })

@@ -1,19 +1,19 @@
-import { componentDataType, pageComponent, website } from '@/types'
+import { componentDataType, usedComponent, website } from '@/types'
 import React from 'react'
 import EditNavbarsData from './navbars/EditNavbarsData'
 import EditContainersData from './containers/EditContainersData'
 
-export default function ComponentDataSwitch({ activePageComponent, handlePropsChange, websiteObj, activePageId }: { activePageComponent: pageComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: pageComponent) => void, websiteObj: website, activePageId: string }) {
-    if (activePageComponent.data === null) return null
+export default function ComponentDataSwitch({ activeUsedComponent, handlePropsChange, websiteObj }: { activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: usedComponent) => void, websiteObj: website }) {
+    if (activeUsedComponent.data === null) return null
 
     return (
         <>
-            {activePageComponent.data.category === "navbars" && (
-                <EditNavbarsData data={activePageComponent.data} activePageComponent={activePageComponent} handlePropsChange={handlePropsChange} />
+            {activeUsedComponent.data.category === "navbars" && (
+                <EditNavbarsData data={activeUsedComponent.data} activeUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} />
             )}
 
-            {activePageComponent.data.category === "containers" && (
-                <EditContainersData data={activePageComponent.data} seenPageComponent={activePageComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} activePageId={activePageId} />
+            {activeUsedComponent.data.category === "containers" && (
+                <EditContainersData data={activeUsedComponent.data} seenUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
             )}
         </>
     )

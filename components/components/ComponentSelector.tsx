@@ -1,18 +1,18 @@
 "use client"
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getComponents } from '@/serverFunctions/handleComponents'
-import { addWebsitePageComponent, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { category, component, pageComponent, viewerComponentType, website } from '@/types'
+import { addWebsiteUsedComponent, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
+import { category, component, usedComponent, usedComponentLocationType, viewerComponentType, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicComponents from '@/utility/globalComponents'
-import { sanitizePageComponentData } from '@/utility/utility'
+import { sanitizeUsedComponentData } from '@/utility/utility'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 export default function ComponentSelector({
-    seenWebsite, activePageId, currentIndex, parentComponent, viewerComponentSet
+    seenWebsite, currentIndex, parentComponent, location, viewerComponentSet
 }: {
-    seenWebsite: website, activePageId: string, currentIndex: number, parentComponent?: pageComponent, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
+    seenWebsite: website, currentIndex: number, parentComponent?: usedComponent, location: usedComponentLocationType, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
 
@@ -85,9 +85,9 @@ export default function ComponentSelector({
                                                 try {
                                                     //add component to page normally 
                                                     if (viewerComponentSet === undefined) {
-                                                        const sanitizedParentComponent = parentComponent !== undefined ? sanitizePageComponentData(parentComponent) : undefined
+                                                        const sanitizedParentComponent = parentComponent !== undefined ? sanitizeUsedComponentData(parentComponent) : undefined
 
-                                                        await addWebsitePageComponent(seenWebsite.id, activePageId, eachComponent, currentIndex, sanitizedParentComponent)
+                                                        await addWebsiteUsedComponent(seenWebsite.id, eachComponent, currentIndex, location, sanitizedParentComponent)
 
                                                         await refreshWebsitePath({ id: seenWebsite.id })
 

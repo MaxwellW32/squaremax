@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { websites } from "@/db/schema"
-import { component, newPage, newPageSchema, newWebsite, newWebsiteSchema, page, pageComponent, pageComponentSchema, pageSchema, updatePageSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema } from "@/types"
+import { component, newPage, newPageSchema, newWebsite, newWebsiteSchema, page, usedComponent, usedComponentSchema, pageSchema, updatePageSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema, usedComponentLocationType } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { moveItemInArray } from "@/utility/utility"
 import { eq } from "drizzle-orm"
@@ -100,7 +100,6 @@ export async function addWebsitePage(websiteId: website["id"], newPageObj: newPa
 
     const fullNewPage: page = {
         ...validatedNewPage,
-        pageComponents: [],
     }
 
     pageSchema.parse(fullNewPage)
@@ -160,116 +159,150 @@ export async function deleteWebsitePage(websiteId: website["id"], pageId: string
 }
 
 //website page components
-export async function addWebsitePageComponent(websiteId: website["id"], pageId: string, componentObj: component, currentIndex: number, parentComponent?: pageComponent) {
+export async function addWebsiteUsedComponent(websiteId: website["id"], componentObj: component, currentIndex: number, location: usedComponentLocationType, parentComponent?: usedComponent) {
     await sessionCheckWithError();
 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } });
     if (seenWebsite === undefined) throw new Error("Website not found");
 
-    const newPageComponent: pageComponent = {
+    const newUsedComponent: usedComponent = {
         id: uuidV4(),
-        css: "",
-        data: null,
-        children: [],
         componentId: componentObj.id,
+        css: "",
+        children: [],
+        location: location,
+        data: null,
     };
 
-    pageComponentSchema.parse(newPageComponent);
+    usedComponentSchema.parse(newUsedComponent);
 
     // Recursive function to find the parent and add the component to its children
-    function addToParent(components: pageComponent[]): pageComponent[] {
-        return components.map(component => {
-            if (component.id === parentComponent?.id) {
+    function addToParent(usedComponents: usedComponent[]): usedComponent[] {
+        return usedComponents.map(usedComponent => {
+            if (usedComponent.id === parentComponent?.id) {
                 return {
-                    ...component,
+                    ...usedComponent,
                     children: [
-                        ...component.children.slice(0, currentIndex),
-                        newPageComponent,
-                        ...component.children.slice(currentIndex)
+                        ...usedComponent.children.slice(0, currentIndex),
+                        newUsedComponent,
+                        ...usedComponent.children.slice(currentIndex)
                     ]
                 };
             }
 
             return {
-                ...component,
-                children: addToParent(component.children) // Recursively update children
+                ...usedComponent,
+                children: addToParent(usedComponent.children) // Recursively update children
             };
         });
     }
 
     if (parentComponent) {
         // Update the nested structure if a parent is specified
-        seenWebsite.pages[pageId].pageComponents = addToParent(seenWebsite.pages[pageId].pageComponents);
+        seenWebsite.usedComponents = addToParent(seenWebsite.usedComponents);
+
     } else {
         // Insert normally at the root level
-        seenWebsite.pages[pageId].pageComponents = [
-            ...seenWebsite.pages[pageId].pageComponents.slice(0, currentIndex),
-            newPageComponent,
-            ...seenWebsite.pages[pageId].pageComponents.slice(currentIndex)
+        seenWebsite.usedComponents = [
+            ...seenWebsite.usedComponents.slice(0, currentIndex),
+            newUsedComponent,
+            ...seenWebsite.usedComponents.slice(currentIndex)
         ];
     }
 
     await db.update(websites)
-        .set({ pages: seenWebsite.pages })
+        .set({ usedComponents: seenWebsite.usedComponents })
         .where(eq(websites.id, websiteId));
 }
-export async function updateWebsitePageComponent(websiteId: website["id"], pageId: string, pageComponentObj: Partial<pageComponent>) {
+export async function updateWebsiteUsedComponent(websiteId: website["id"], usedComponentObj: Partial<usedComponent>) {
     await sessionCheckWithError();
 
-    if (!pageComponentObj.id) throw new Error("Need page component ID");
+    if (!usedComponentObj.id) throw new Error("Need used component ID");
 
     // Remove component info for database
-    const { component, ...updateData } = pageComponentObj;
+    const { component, ...updateData } = usedComponentObj;
 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } });
     if (seenWebsite === undefined) throw new Error("Website not found");
 
     // Recursive function to update the component
-    function updateComponent(seenPageComponents: pageComponent[]): pageComponent[] {
-        return seenPageComponents.map(eachPageComponent => {
-            if (eachPageComponent.id === pageComponentObj.id) {
-                const updatedComponent = { ...eachPageComponent, ...updateData };
+    function updateUsedComponent(seenUsedComponents: usedComponent[]): usedComponent[] {
+        return seenUsedComponents.map(eachUsedComponent => {
+            if (eachUsedComponent.id === usedComponentObj.id) {
+                const updatedComponent = { ...eachUsedComponent, ...updateData };
 
                 // Validate the updated component
-                pageComponentSchema.parse(updatedComponent);
+                usedComponentSchema.parse(updatedComponent);
 
                 return updatedComponent;
             }
 
             return {
-                ...eachPageComponent,
-                children: updateComponent(eachPageComponent.children)
+                ...eachUsedComponent,
+                children: updateUsedComponent(eachUsedComponent.children)
             };
         });
     }
 
     // Update the page components recursively
-    seenWebsite.pages[pageId].pageComponents = updateComponent(seenWebsite.pages[pageId].pageComponents);
+    seenWebsite.usedComponents = updateUsedComponent(seenWebsite.usedComponents);
 
     // Update the database
     await db.update(websites)
-        .set({ pages: seenWebsite.pages })
+        .set({ usedComponents: seenWebsite.usedComponents })
         .where(eq(websites.id, websiteId));
 }
-export async function changeWebsitePageComponentIndex(websiteId: website["id"], pageId: string, pageComponentId: pageComponent["id"], wantedIndex: number) {
+export async function changeWebsiteUsedComponentIndex(websiteId: website["id"], sentUsedComponent: usedComponent, wantedIndex: number) {
     await sessionCheckWithError();
 
     // Get website
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } });
     if (seenWebsite === undefined) throw new Error("Website not found");
 
-    function FindProperArrayIndex(seenPageComponents: pageComponent[]): pageComponent[] {
+    const filteredUsedComponents: usedComponent[] = []
+
+    //filter by location
+    const arrayWithoutFilteredUsedComponents = seenWebsite.usedComponents.filter(eachFilterUsedComponent => {
+        let matchingLocation = false
+
+        //match header footer area
+        if (eachFilterUsedComponent.location === sentUsedComponent.location) {
+            matchingLocation = true
+        }
+
+        //match usedComponents on the same page
+        if (typeof eachFilterUsedComponent.location === "object" && typeof sentUsedComponent.location === "object") {
+            if (eachFilterUsedComponent.location.pageId === sentUsedComponent.location.pageId) {
+                matchingLocation = true
+            }
+        }
+
+        if (matchingLocation) {
+            filteredUsedComponents.push(eachFilterUsedComponent)
+        }
+
+        //ensure dont return matching locations
+        return !matchingLocation
+    })
+
+    console.log(`$arrayWithoutFilteredUsedComponents`, JSON.stringify(arrayWithoutFilteredUsedComponents, null, 2));
+    console.log(`$filteredUsedComponents`, JSON.stringify(filteredUsedComponents, null, 2));
+
+    // Update the specific page's components with the new arrangement
+    seenWebsite.usedComponents = [...arrayWithoutFilteredUsedComponents, ...FindAndApplyProperArrayIndex(filteredUsedComponents)]
+
+    function FindAndApplyProperArrayIndex(seenUsedComponents: usedComponent[]): usedComponent[] {
         let foundInArrayIndex: number | null = null
 
-        const seenArray = seenPageComponents.map((eachPageComponent, eachPageComponentIndex) => {
-            if (eachPageComponent.id === pageComponentId) {
-                foundInArrayIndex = eachPageComponentIndex
-                return eachPageComponent
+        const seenArray = seenUsedComponents.map((eachUsedComponent, eachUsedComponentIndex) => {
+            if (eachUsedComponent.id === sentUsedComponent.id) {
+                foundInArrayIndex = eachUsedComponentIndex
+                return eachUsedComponent
             }
 
             return {
-                ...eachPageComponent,
-                children: FindProperArrayIndex(eachPageComponent.children)
+                ...eachUsedComponent,
+                children: FindAndApplyProperArrayIndex(eachUsedComponent.children)
             };
         });
 
@@ -282,15 +315,12 @@ export async function changeWebsitePageComponentIndex(websiteId: website["id"], 
         return seenArray
     }
 
-    // Update the specific page's components with the new arrangement
-    seenWebsite.pages[pageId].pageComponents = FindProperArrayIndex(seenWebsite.pages[pageId].pageComponents);
-
     // Update the database
     await db.update(websites)
-        .set({ pages: seenWebsite.pages })
+        .set({ usedComponents: seenWebsite.usedComponents })
         .where(eq(websites.id, websiteId));
 }
-export async function deleteWebsitePageComponent(websiteId: website["id"], pageId: string, pageComponentId: pageComponent["id"]) {
+export async function deleteWebsiteUsedComponent(websiteId: website["id"], pageComponentId: usedComponent["id"]) {
     await sessionCheckWithError();
 
     // Get website
@@ -298,7 +328,7 @@ export async function deleteWebsitePageComponent(websiteId: website["id"], pageI
     if (seenWebsite === undefined) throw new Error("Website not found");
 
     // Recursive function to remove a component and its children
-    function removeComponent(pageComponents: pageComponent[]): pageComponent[] {
+    function removeComponent(pageComponents: usedComponent[]): usedComponent[] {
         return pageComponents
             .filter(component => component.id !== pageComponentId)
             .map(component => ({
@@ -308,11 +338,11 @@ export async function deleteWebsitePageComponent(websiteId: website["id"], pageI
     }
 
     // Update the specific page's components
-    seenWebsite.pages[pageId].pageComponents = removeComponent(seenWebsite.pages[pageId].pageComponents);
+    seenWebsite.usedComponents = removeComponent(seenWebsite.usedComponents);
 
     // Update the database
     await db.update(websites)
-        .set({ pages: seenWebsite.pages })
+        .set({ usedComponents: seenWebsite.usedComponents })
         .where(eq(websites.id, websiteId));
 }
 

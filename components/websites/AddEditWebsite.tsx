@@ -105,7 +105,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
             {Object.entries(formObj).map(eachEntry => {
                 const eachKey = eachEntry[0] as websiteKeys
 
-                if (eachKey === "fonts" || eachKey === "fromUser" || eachKey === "userUploadedImages" || eachKey === "pages") return null
+                if (eachKey === "fonts" || eachKey === "fromUser" || eachKey === "userUploadedImages" || eachKey === "pages" || eachKey === "usedComponents") return null
 
                 if (moreFormInfo[eachKey] === undefined) return null
 

@@ -35,17 +35,11 @@ export default function AddEditPage({ seenWebsite, sentPage, sentPageId, ...elPr
             inputType: "input",
             placeHolder: "Enter page name",
         },
-        pageComponents: {
-            label: "page components",
-            inputType: "input",
-            placeHolder: "Enter page name",
-        },
     });
 
     const [formErrors, formErrorsSet] = useState<Partial<{ [key in pageKeys]: string }>>({})
 
     function checkIfValid(seenFormObj: Partial<page>, seenName: keyof Partial<page>, schema: typeof pageSchema) {
-        //@ts-expect-error type
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 
         if (testSchema.success) {//worked
@@ -105,8 +99,6 @@ export default function AddEditPage({ seenWebsite, sentPage, sentPageId, ...elPr
         <form {...elProps} className={styles.form} action={() => { }}>
             {Object.entries(formObj).map(eachEntry => {
                 const eachKey = eachEntry[0] as pageKeys
-
-                if (eachKey === "pageComponents") return null
 
                 if (moreFormInfo[eachKey] === undefined) return null
 
