@@ -1,10 +1,8 @@
 import { usedComponentLocationType } from '@/types'
-import React, { useState } from 'react'
+import React from 'react'
 import toast from 'react-hot-toast'
 
 export default function LocationSelector({ location, activeLocationSet, activePageId }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePageId: string }) {
-    //view all location options
-    //choose and send up selectioed option
     const locationOptions: string[] = ["header", "page", 'footer']
     const seenLocation = typeof location === "object" ? "page" : location
 
