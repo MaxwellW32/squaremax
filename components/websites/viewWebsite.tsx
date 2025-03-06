@@ -79,26 +79,26 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const [activeUsedComponentId, activeUsedComponentIdSet] = useState<usedComponent["id"]>("")
 
     const activeUsedComponent = useMemo<usedComponent | undefined>(() => {
-        function searchRecursively(seenPageComponents: usedComponent[]): usedComponent | undefined {
-            let foundPageComponent: usedComponent | undefined = undefined
+        function searchRecursively(seenUsedComponents: usedComponent[]): usedComponent | undefined {
+            let foundUsedComponent: usedComponent | undefined = undefined
 
-            seenPageComponents.forEach(eachPageComponent => {
-                if (eachPageComponent.id === activeUsedComponentId) {
-                    foundPageComponent = eachPageComponent
+            seenUsedComponents.forEach(eachUsedComponent => {
+                if (eachUsedComponent.id === activeUsedComponentId) {
+                    foundUsedComponent = eachUsedComponent
 
                 } else {
-                    const foundPageComponentInChildren = searchRecursively(eachPageComponent.children)
-                    if (foundPageComponentInChildren !== undefined) {
-                        foundPageComponent = foundPageComponentInChildren
+                    const foundUsedComponentInChildren = searchRecursively(eachUsedComponent.children)
+                    if (foundUsedComponentInChildren !== undefined) {
+                        foundUsedComponent = foundUsedComponentInChildren
                     }
                 }
             })
 
-            return foundPageComponent
+            return foundUsedComponent
         }
 
-        const foundPageComponent = searchRecursively(websiteObj.usedComponents)
-        return foundPageComponent
+        const foundUsedComponent = searchRecursively(websiteObj.usedComponents)
+        return foundUsedComponent
 
     }, [websiteObj.usedComponents, activeUsedComponentId])
 
@@ -149,26 +149,26 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 //render all header and footer locations, and locations with page id
 
                 //add component from db onto object recursively
-                async function addTheComponentInfo(pageComponents: usedComponent[]) {
+                async function addTheComponentInfo(usedComponents: usedComponent[]) {
                     return Promise.all(
-                        pageComponents.map(async eachPageComponent => {
-                            const seenComponent = await getSpecificComponent({ id: eachPageComponent.componentId })
+                        usedComponents.map(async eachUsedComponent => {
+                            const seenComponent = await getSpecificComponent({ id: eachUsedComponent.componentId })
                             if (seenComponent === undefined) {
-                                console.log(`$not seeing component for `, eachPageComponent.componentId);
+                                console.log(`$not seeing component for `, eachUsedComponent.componentId);
                             }
 
                             //add component onto object
-                            eachPageComponent.component = seenComponent
+                            eachUsedComponent.component = seenComponent
 
                             //handle child components
-                            eachPageComponent.children = await addTheComponentInfo(eachPageComponent.children)
+                            eachUsedComponent.children = await addTheComponentInfo(eachUsedComponent.children)
 
-                            return eachPageComponent
+                            return eachUsedComponent
                         })
                     )
                 }
 
-                //page components now have component info added
+                //used components now have component info added
                 const usedComponentsWithInfo = await addTheComponentInfo(filteredUsedComponents)
 
                 //build components recursively
@@ -372,11 +372,11 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }, 3000);
     }
 
-    function handlePropsChange(newPropsObj: componentDataType, sentPageComponent: usedComponent) {
+    function handlePropsChange(newPropsObj: componentDataType, sentUsedComponent: usedComponent) {
         //update the data
-        sentPageComponent.data = newPropsObj
+        sentUsedComponent.data = newPropsObj
 
-        handleUsedComponentUpdate(sentPageComponent)
+        handleUsedComponentUpdate(sentUsedComponent)
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -389,7 +389,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
     }
 
-    function handleSelectPageComponent() {
+    function handleSelectUsedComponent() {
         if (tempActiveUsedComponentId.current === "") return
 
         activeUsedComponentIdSet(tempActiveUsedComponentId.current)
@@ -455,21 +455,22 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 <div ref={canvasContRef} className={styles.canvasCont}>
                     {activeSizeOption !== undefined && (
                         <div ref={canvasRef} className={styles.canvas} style={{ width: fit ? canvasContRef.current?.clientWidth : activeSizeOption.width, height: fit ? canvasContRef.current?.clientHeight : activeSizeOption.height, scale: fit ? 1 : canvasScale }}
-                            onClick={handleSelectPageComponent}
+                            onClick={handleSelectUsedComponent}
                         >
-                            <style>{addScopeToCSS(websiteObj.globalCss, styles.canvas)}</style>
+                            <style>{websiteObj.globalCss}</style>
+                            {/* <style>{addScopeToCSS(websiteObj.globalCss, styles.canvas)}</style> */}
 
                             {componentsBuilt && (
                                 <>
-                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
 
                                     {websiteObj.pages[activePageId] !== undefined && (
                                         <>
-                                            <RenderComponentTree seenUsedComponents={pageUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                            <RenderComponentTree seenUsedComponents={pageUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
                                         </>
                                     )}
 
-                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
                                 </>
                             )}
                         </div>
@@ -577,7 +578,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                             {activeUsedComponent !== undefined && (
                                 <>
-                                    <label>page component</label>
+                                    <label>component</label>
 
                                     <ShowMore
                                         label='Styling'
@@ -608,7 +609,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                 {viewerComponent === null ? (
                                                     <button className='mainButton'
                                                         onClick={() => {
-                                                            viewerComponentSet({ pageComponentIdToSwap: activeUsedComponent.id, component: null, builtComponent: null })
+                                                            viewerComponentSet({ usedComponentIdToSwap: activeUsedComponent.id, component: null, builtComponent: null })
                                                         }}
                                                     >enable viewer node</button>
                                                 ) : (
@@ -620,7 +621,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                 )}
 
                                                 {/* show options for active */}
-                                                {viewerComponent !== null && viewerComponent.pageComponentIdToSwap === activeUsedComponent.id && (
+                                                {viewerComponent !== null && viewerComponent.usedComponentIdToSwap === activeUsedComponent.id && (
                                                     <>
                                                         <ComponentSelector seenWebsite={websiteObj} currentIndex={0} viewerComponentSet={viewerComponentSet} location={activeUsedComponent.location} />
 
@@ -628,22 +629,22 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                             <button className='mainButton'
                                                                 onClick={async () => {
                                                                     try {
-                                                                        //replace the page component with this selection
+                                                                        //replace the used component with this selection
 
                                                                         //ensure the component info is there
                                                                         if (viewerComponent.component === null || activeUsedComponent.data === null) return
 
-                                                                        //if pageComponents are the same type can reuse data
-                                                                        const reusingPageComponentData = activeUsedComponent.data.category === viewerComponent.component.categoryId
+                                                                        //if usedComponents are the same type can reuse data
+                                                                        const reusingUsedComponentData = activeUsedComponent.data.category === viewerComponent.component.categoryId
 
                                                                         //replace everything except id, pageid, compid, children
-                                                                        const newReplacedPageComponent = { ...activeUsedComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingPageComponentData ? activeUsedComponent.data : viewerComponent.component.defaultData, }
+                                                                        const newReplacedUsedComponent = { ...activeUsedComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerComponent.component.defaultData, }
 
-                                                                        //ensure pageComponent is safe to send to server
-                                                                        const sanitizedPageComponent = sanitizeUsedComponentData(newReplacedPageComponent)
+                                                                        //ensure usedComponent is safe to send to server
+                                                                        const sanitizedUsedComponent = sanitizeUsedComponentData(newReplacedUsedComponent)
 
                                                                         //send to server to replace
-                                                                        await updateWebsiteUsedComponent(websiteObj.id, sanitizedPageComponent)
+                                                                        await updateWebsiteUsedComponent(websiteObj.id, sanitizedUsedComponent)
                                                                         await refreshWebsitePath({ id: websiteObj.id })
 
                                                                         viewerComponentSet(null)
@@ -699,9 +700,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 }
 
 function RenderComponentTree({
-    seenUsedComponents, websiteObj, activePageId, renderedComponentsObj, tempActivePageComponentId, viewerComponent
+    seenUsedComponents, websiteObj, activePageId, renderedComponentsObj, tempActiveUsedComponentId, viewerComponent
 }: {
-    seenUsedComponents: usedComponent[], websiteObj: website, activePageId: string, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActivePageComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null
+    seenUsedComponents: usedComponent[], websiteObj: website, activePageId: string, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null
 }) {
 
     return (
@@ -713,7 +714,7 @@ function RenderComponentTree({
                 let seenViewerComponentData: componentDataType | null = null
 
                 //assign new chosen component if using the viewer node
-                if (viewerComponent !== null && viewerComponent.pageComponentIdToSwap === eachUsedComponent.id && viewerComponent.component !== null && viewerComponent.builtComponent !== null) {
+                if (viewerComponent !== null && viewerComponent.usedComponentIdToSwap === eachUsedComponent.id && viewerComponent.component !== null && viewerComponent.builtComponent !== null) {
                     usingViewerComponent = true
                     SeenViewerComponent = viewerComponent.builtComponent
                     seenViewerComponentData = viewerComponent.component.defaultData
@@ -737,7 +738,7 @@ function RenderComponentTree({
                 let scopedCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id);
 
                 // Recursively render child components
-                const childJSX: React.JSX.Element | null = eachUsedComponent.children.length > 0 ? <RenderComponentTree seenUsedComponents={eachUsedComponent.children} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActivePageComponentId={tempActivePageComponentId} viewerComponent={viewerComponent} /> : null;
+                const childJSX: React.JSX.Element | null = eachUsedComponent.children.length > 0 ? <RenderComponentTree seenUsedComponents={eachUsedComponent.children} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} /> : null;
 
                 //apply scoped styling starter value
                 eachUsedComponent.data.styleId = `____${eachUsedComponent.id}`
@@ -755,7 +756,7 @@ function RenderComponentTree({
                 eachUsedComponent.data.mainElProps.onMouseOver = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                     e.stopPropagation()
 
-                    tempActivePageComponentId.current = eachUsedComponent.id;
+                    tempActiveUsedComponentId.current = eachUsedComponent.id;
 
                     //highlight the element to show selection
                     const seenEl = e.currentTarget as HTMLElement;

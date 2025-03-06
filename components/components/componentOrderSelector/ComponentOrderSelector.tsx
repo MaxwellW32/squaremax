@@ -8,20 +8,20 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
     const [inputValue, inputValueSet] = useState("")
     const [wantedIndex, wantedIndexSet] = useState<number | null>(null)
 
-    const [foundPageComponentLocalArray, foundPageComponentLocalArraySet] = useState(findUsedComponentLocalArray(seenUsedComponents, usedComponent.location, usedComponent.id))
+    const [foundUsedComponentLocalArray, foundUsedComponentLocalArraySet] = useState(findUsedComponentLocalArray(seenUsedComponents, usedComponent.location, usedComponent.id))
 
     const currentIndexInLocalArray = useMemo(() => {
-        if (foundPageComponentLocalArray === undefined) return undefined
+        if (foundUsedComponentLocalArray === undefined) return undefined
 
-        const seenIndex = foundPageComponentLocalArray.findIndex(eachFindPageComponent => eachFindPageComponent.id === usedComponent.id)
+        const seenIndex = foundUsedComponentLocalArray.findIndex(eachFindUsedComponent => eachFindUsedComponent.id === usedComponent.id)
         if (seenIndex < 0) return undefined
 
         return seenIndex
-    }, [foundPageComponentLocalArray])
+    }, [foundUsedComponentLocalArray])
 
-    //respond to outside changes in seenPageComponents
+    //respond to outside changes in seenUsedComponents
     useEffect(() => {
-        foundPageComponentLocalArraySet(findUsedComponentLocalArray(seenUsedComponents, usedComponent.location, usedComponent.id))
+        foundUsedComponentLocalArraySet(findUsedComponentLocalArray(seenUsedComponents, usedComponent.location, usedComponent.id))
 
     }, [seenUsedComponents, usedComponent.id])
 
@@ -48,13 +48,13 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
         })
 
         //if wanted usedComponent is found in the local array return that array
-        filteredUsedComponents.map((eachPageComponent) => {
-            if (eachPageComponent.id === wantedSentComponentId) {
+        filteredUsedComponents.map((eachUsedComponent) => {
+            if (eachUsedComponent.id === wantedSentComponentId) {
                 foundArray = filteredUsedComponents
                 return
             }
 
-            const seenChildArray = findUsedComponentLocalArray(eachPageComponent.children, location, wantedSentComponentId)
+            const seenChildArray = findUsedComponentLocalArray(eachUsedComponent.children, location, wantedSentComponentId)
             if (seenChildArray !== undefined) foundArray = seenChildArray
         });
 
@@ -63,11 +63,11 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start" }}>
-            {foundPageComponentLocalArray !== undefined && currentIndexInLocalArray !== undefined && (
+            {foundUsedComponentLocalArray !== undefined && currentIndexInLocalArray !== undefined && (
                 <>
                     <p>current position: {currentIndexInLocalArray + 1}</p>
 
-                    <p>max position: {foundPageComponentLocalArray.length - 1 + 1}</p>
+                    <p>max position: {foundUsedComponentLocalArray.length - 1 + 1}</p>
                 </>
             )}
 
@@ -77,7 +77,7 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
                 }}
 
                 onBlur={() => {
-                    if (foundPageComponentLocalArray === undefined) return
+                    if (foundUsedComponentLocalArray === undefined) return
 
                     let seenNumber = parseInt(inputValue)
                     //add +1 for the number/index difference
@@ -87,8 +87,8 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
                         seenNumber = 0 + 1
                     }
 
-                    if (seenNumber > foundPageComponentLocalArray.length - 1 + 1) {
-                        seenNumber = foundPageComponentLocalArray.length - 1 + 1
+                    if (seenNumber > foundUsedComponentLocalArray.length - 1 + 1) {
+                        seenNumber = foundUsedComponentLocalArray.length - 1 + 1
                     }
 
                     //returns number position instead of index

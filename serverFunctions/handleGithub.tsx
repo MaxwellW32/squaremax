@@ -1,6 +1,6 @@
 "use server"
 import { githubRepo, githubUser, newGithubRepoType, user } from "@/types";
-// import { githubContentData, githubRepo, githubUser, newGithubRepoType, website, websiteSchema, pageComponent, pageComponentSchema, user } from "@/types";
+// import { githubContentData, githubRepo, githubUser, newGithubRepoType, website, websiteSchema, usedComponent, user } from "@/types";
 import { Octokit } from "octokit";
 import fs from "fs/promises";
 import path from "path";

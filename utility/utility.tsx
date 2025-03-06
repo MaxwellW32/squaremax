@@ -44,10 +44,10 @@ export function sanitizeUsedComponentData(usedComponent: usedComponent): usedCom
         });
     }
 
-    // Update the page components recursively
-    const sanitizedPageComponent = sanitizeComponent([usedComponent]);
+    // Update the used components recursively
+    const sanitizedUsedComponent = sanitizeComponent([usedComponent]);
 
-    return deepClone(sanitizedPageComponent[0])
+    return deepClone(sanitizedUsedComponent[0])
 }
 
 export function moveItemInArray<T>(arr: T[], fromIndex: number, toIndex: number): T[] {

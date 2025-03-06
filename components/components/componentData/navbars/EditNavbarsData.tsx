@@ -2,7 +2,7 @@
 import { componentDataType, navBarsType, usedComponent } from '@/types'
 import React from 'react'
 
-export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentPageComponent: usedComponent) => void }) {
+export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentUsedComponent: usedComponent) => void }) {
 
     return (
         <form action={() => { }}>

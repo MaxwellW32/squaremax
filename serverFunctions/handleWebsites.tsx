@@ -158,7 +158,7 @@ export async function deleteWebsitePage(websiteId: website["id"], pageId: string
         .where(eq(websites.id, websiteId));
 }
 
-//website page components
+//website used components
 export async function addWebsiteUsedComponent(websiteId: website["id"], componentId: component["id"], currentIndex: number, location: usedComponentLocationType, parentComponent?: usedComponent) {
     await sessionCheckWithError();
 
@@ -244,7 +244,7 @@ export async function updateWebsiteUsedComponent(websiteId: website["id"], usedC
         });
     }
 
-    // Update the page components recursively
+    // Update the used components recursively
     seenWebsite.usedComponents = updateUsedComponent(seenWebsite.usedComponents);
 
     // Update the database
@@ -320,7 +320,7 @@ export async function changeWebsiteUsedComponentIndex(websiteId: website["id"], 
         .set({ usedComponents: seenWebsite.usedComponents })
         .where(eq(websites.id, websiteId));
 }
-export async function deleteWebsiteUsedComponent(websiteId: website["id"], pageComponentId: usedComponent["id"]) {
+export async function deleteWebsiteUsedComponent(websiteId: website["id"], usedComponentId: usedComponent["id"]) {
     await sessionCheckWithError();
 
     // Get website
@@ -328,9 +328,9 @@ export async function deleteWebsiteUsedComponent(websiteId: website["id"], pageC
     if (seenWebsite === undefined) throw new Error("Website not found");
 
     // Recursive function to remove a component and its children
-    function removeComponent(pageComponents: usedComponent[]): usedComponent[] {
-        return pageComponents
-            .filter(component => component.id !== pageComponentId)
+    function removeComponent(usedComponents: usedComponent[]): usedComponent[] {
+        return usedComponents
+            .filter(component => component.id !== usedComponentId)
             .map(component => ({
                 ...component,
                 children: removeComponent(component.children),
