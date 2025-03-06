@@ -2,15 +2,15 @@ import { componentDataType, containersType, usedComponent, website } from '@/typ
 import React from 'react'
 import ComponentSelector from '../../ComponentSelector'
 
-export default function EditContainersData({ seenUsedComponent, websiteObj }: { data: containersType, seenUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentPageComponent: usedComponent) => void, websiteObj: website }) {
+export default function EditContainersData({ seenUsedComponent, websiteObj }: { data: containersType, seenUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentUsedComponent: usedComponent) => void, websiteObj: website }) {
     return (
         <div>
             <h3>Edit container</h3>
 
             <div style={{ padding: "1rem" }}>
-                {seenUsedComponent.children.map(eachPageComponentChild => {
+                {seenUsedComponent.children.map(eachUsedComponentChild => {
                     return (
-                        <div key={eachPageComponentChild.id}>{eachPageComponentChild.id}</div>
+                        <div key={eachUsedComponentChild.id}>{eachUsedComponentChild.id}</div>
                     )
                 })}
             </div>

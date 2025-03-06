@@ -159,7 +159,7 @@ export async function deleteWebsitePage(websiteId: website["id"], pageId: string
 }
 
 //website page components
-export async function addWebsiteUsedComponent(websiteId: website["id"], componentObj: component, currentIndex: number, location: usedComponentLocationType, parentComponent?: usedComponent) {
+export async function addWebsiteUsedComponent(websiteId: website["id"], componentId: component["id"], currentIndex: number, location: usedComponentLocationType, parentComponent?: usedComponent) {
     await sessionCheckWithError();
 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } });
@@ -167,7 +167,7 @@ export async function addWebsiteUsedComponent(websiteId: website["id"], componen
 
     const newUsedComponent: usedComponent = {
         id: uuidV4(),
-        componentId: componentObj.id,
+        componentId: componentId,
         css: "",
         children: [],
         location: location,

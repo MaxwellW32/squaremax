@@ -254,7 +254,7 @@ export type website = z.infer<typeof websiteSchema> & {
 export const newWebsiteSchema = websiteSchema.pick({ name: true })
 export type newWebsite = z.infer<typeof newWebsiteSchema>
 
-export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, pages: true })
+export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, pages: true, usedComponents: true })
 export type updateWebsite = z.infer<typeof updateWebsiteSchema>
 
 

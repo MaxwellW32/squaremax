@@ -27,7 +27,7 @@ export function sanitizeUsedComponentData(usedComponent: usedComponent): usedCom
         return seenUsedComponents.map(eachUsedComponent => {
             const seenPropData = eachUsedComponent.data
 
-            //ensure not to pass react data to server
+            //ensure not to pass react children data to server
             if (seenPropData !== null) {
                 if (Object.hasOwn(seenPropData, "children")) {
                     // @ts-expect-error types

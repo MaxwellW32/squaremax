@@ -87,8 +87,7 @@ export default function ComponentSelector({
                                                     if (viewerComponentSet === undefined) {
                                                         const sanitizedParentComponent = parentComponent !== undefined ? sanitizeUsedComponentData(parentComponent) : undefined
 
-                                                        await addWebsiteUsedComponent(seenWebsite.id, eachComponent, currentIndex, location, sanitizedParentComponent)
-
+                                                        await addWebsiteUsedComponent(seenWebsite.id, eachComponent.id, currentIndex, location, sanitizedParentComponent)
                                                         await refreshWebsitePath({ id: seenWebsite.id })
 
                                                     } else {

@@ -172,7 +172,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 const usedComponentsWithInfo = await addTheComponentInfo(filteredUsedComponents)
 
                 //build components recursively
-                const builtUsedComponents: usedComponent[] = await buildPageComponents(usedComponentsWithInfo)
+                const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
 
                 //add back onto the original list
                 newWebsite.usedComponents = newWebsite.usedComponents.map(eachUsedComponent => {
@@ -231,47 +231,47 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? canvasContRef.current.clientWidth : activeSizeOption.width) / 2}px`
     }
 
-    async function buildPageComponents(sentPageComponents: usedComponent[], atTop = true): Promise<usedComponent[]> {
+    async function buildUsedComponents(sentUsedComponents: usedComponent[], atTop = true): Promise<usedComponent[]> {
         if (atTop) componentBuiltSet(false)
 
         //build all components
-        const builtPageComponents = await Promise.all(
-            sentPageComponents.map(async eachPageComponent => {
-                if (eachPageComponent.component === undefined || eachPageComponent.component.category === undefined) throw new Error("need component and category")
+        const builtUsedComponents = await Promise.all(
+            sentUsedComponents.map(async eachUsedComponent => {
+                if (eachUsedComponent.component === undefined || eachUsedComponent.component.category === undefined) throw new Error("need component and category")
 
                 //get started props if none there
-                if (eachPageComponent.data === null) {
-                    eachPageComponent.data = eachPageComponent.component.defaultData
+                if (eachUsedComponent.data === null) {
+                    eachUsedComponent.data = eachUsedComponent.component.defaultData
                 }
 
                 //get started props if none there
-                if (eachPageComponent.css === "") {
-                    eachPageComponent.css = eachPageComponent.component.defaultCss
+                if (eachUsedComponent.css === "") {
+                    eachUsedComponent.css = eachUsedComponent.component.defaultCss
                 }
 
                 //if doesnt exist in renderObj then render it
-                if (renderedComponentsObj.current[eachPageComponent.component.id] === undefined) {
-                    const seenResponse = await globalDynamicComponents(eachPageComponent.component.id)
+                if (renderedComponentsObj.current[eachUsedComponent.component.id] === undefined) {
+                    const seenResponse = await globalDynamicComponents(eachUsedComponent.component.id)
 
                     //assign builds to renderObj
                     if (seenResponse !== undefined) {
-                        renderedComponentsObj.current[eachPageComponent.component.id] = seenResponse()
+                        renderedComponentsObj.current[eachUsedComponent.component.id] = seenResponse()
 
                     } else {
                         //log component id not found
-                        console.log(`$element component id not found`, eachPageComponent.component.id);
+                        console.log(`$element component id not found`, eachUsedComponent.component.id);
                     }
                 }
 
                 //handle children
-                eachPageComponent.children = await buildPageComponents(eachPageComponent.children, false)
+                eachUsedComponent.children = await buildUsedComponents(eachUsedComponent.children, false)
 
-                return eachPageComponent
+                return eachUsedComponent
             }))
 
         if (atTop) componentBuiltSet(true)
 
-        return deepClone(builtPageComponents)
+        return deepClone(builtUsedComponents)
     }
 
     async function handleWebsiteUpdate(newWebsite: website) {
