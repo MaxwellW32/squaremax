@@ -221,6 +221,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
     }, [tempActiveUsedComponentId])
 
+    //keep active location in line with page selection 
+    useEffect(() => {
+        //if page selection is active update on page change
+        if (typeof activeLocation === "object") {
+            activeLocationSet({ pageId: activePageId })
+        }
+    }, [activePageId])
+
     function centerCanvas() {
         if (canvasContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
 
@@ -549,7 +557,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                             <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePageId={activePageId} />
 
-                            <ComponentSelector seenWebsite={websiteObj} currentIndex={pageUsedComponents.length} location={activeLocation} />
+                            <ComponentSelector seenWebsite={websiteObj} currentIndex={(typeof activeLocation === "object" ? pageUsedComponents : activeLocation === "header" ? headerUsedComponents : footerUsedComponents).length} location={activeLocation} />
                         </div>
 
                         <div style={{ display: "grid", gap: "1rem", alignContent: "flex-start", overflow: "auto", padding: "1rem" }}>
@@ -587,7 +595,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     />
 
                                     <ShowMore
-                                        label='edit page component'
+                                        label={`edit ${activeUsedComponent.component?.categoryId ?? ""} component`}
                                         content={
                                             <ComponentDataSwitch activeUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
                                         }
@@ -655,7 +663,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     />
 
                                     <ShowMore
-                                        label='change position'
+                                        label='order'
                                         content={
                                             <ComponentOrderSelector websiteId={websiteObj.id} usedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
                                         }
