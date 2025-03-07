@@ -50,7 +50,7 @@
     z-index: 1;
     transform-origin: top center;
 
-    background-color: aqua;
+    background-color: rgb(var(--shade3));
     overflow-y: scroll;
 }
 

@@ -56,3 +56,59 @@ export function moveItemInArray<T>(arr: T[], fromIndex: number, toIndex: number)
     newArr.splice(toIndex, 0, movedItem); // Insert at new position
     return newArr;
 }
+
+
+export function getUsedComponentsInSameLocation(seenUsedComponents: usedComponent[], sentUsedComponentLocation: usedComponent["location"]) {
+    const usedComponentsInSameLocation: usedComponent[] = []
+
+    //filter by location
+    const usedComponentsInDifferentLocation = seenUsedComponents.filter(eachFilterUsedComponent => {
+        let matchingLocation = false
+
+        //match header footer area
+        if (eachFilterUsedComponent.location === sentUsedComponentLocation) {
+            matchingLocation = true
+        }
+
+        //match usedComponents on the same page
+        if (typeof eachFilterUsedComponent.location === "object" && typeof sentUsedComponentLocation === "object" && eachFilterUsedComponent.location.pageId === sentUsedComponentLocation.pageId) {
+            matchingLocation = true
+        }
+
+        if (matchingLocation) {
+            usedComponentsInSameLocation.push(eachFilterUsedComponent)
+        }
+
+        //ensure dont return matching locations
+        return !matchingLocation
+    })
+
+    console.log(`$usedComponentsInDifferentLocation`, JSON.stringify(usedComponentsInDifferentLocation, null, 2));
+    console.log(`$usedComponentsInSameLocation`, JSON.stringify(usedComponentsInSameLocation, null, 2));
+
+    return {
+        usedComponentsInSameLocation: usedComponentsInSameLocation,
+        usedComponentsInDifferentLocation: usedComponentsInDifferentLocation
+    }
+}
+
+// Recursive function to find the parent and add the component to its children
+export function addToParent(usedComponents: usedComponent[], newUsedComponent: usedComponent, sentParentComponent: usedComponent, sentIndexToAdd: number): usedComponent[] {
+    return usedComponents.map(usedComponent => {
+        if (usedComponent.id === sentParentComponent.id) {
+            return {
+                ...usedComponent,
+                children: [
+                    ...usedComponent.children.slice(0, sentIndexToAdd),
+                    newUsedComponent,
+                    ...usedComponent.children.slice(sentIndexToAdd)
+                ]
+            };
+        }
+
+        return {
+            ...usedComponent,
+            children: addToParent(usedComponent.children, newUsedComponent, sentParentComponent, sentIndexToAdd) // Recursively update children
+        };
+    });
+}

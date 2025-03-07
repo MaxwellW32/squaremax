@@ -1,23 +1,25 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { newWebsite, newWebsiteSchema, updateWebsiteSchema, website, websiteSchema } from '@/types'
-import { addWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
+import { addWebsite, } from '@/serverFunctions/handleWebsites'
 import { useRouter } from 'next/navigation'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 
-export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website }) {
+export default function AddEditWebsite({ sentWebsite, handleWebsiteUpdate }: {
+    sentWebsite?: website, handleWebsiteUpdate?: (newWebsite: website) => Promise<void>
+}) {
     const router = useRouter()
 
     const initialFormObj: newWebsite = {
         name: "",
     }
 
-    const [formObj, formObjSet] = useState<Partial<website>>((deepClone(sentWebsite !== undefined ? updateWebsiteSchema.parse(sentWebsite) : initialFormObj)))
+    const [formObj, formObjSet] = useState<Partial<website>>(deepClone(sentWebsite === undefined ? initialFormObj : updateWebsiteSchema.parse(sentWebsite)))
     type websiteKeys = keyof Partial<website>
 
     type moreFormInfoType = Partial<{
@@ -90,15 +92,27 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                 //update website
                 const validatedUpdateWebsite = updateWebsiteSchema.parse(formObj)
 
-                await updateTheWebsite(sentWebsite.id, validatedUpdateWebsite)
-                await refreshWebsitePath({ id: sentWebsite.id })
-                toast.success("updated website")
+                const newWebsite: website = { ...formObj, ...validatedUpdateWebsite }
+
+                if (handleWebsiteUpdate !== undefined)
+                    websiteObjSet(prevWebsite => {
+                        const newWebsite = { ...prevWebsite, ...validatedUpdateWebsite }
+
+                        return newWebsite
+                    })
             }
 
         } catch (error) {
             consoleAndToastError(error)
         }
     }
+
+    //respond to changes above
+    useEffect(() => {
+        if (sentWebsite === undefined) return
+
+        formObjSet(updateWebsiteSchema.parse(sentWebsite))
+    }, [sentWebsite])
 
     return (
         <form className={styles.form} action={() => { }}>

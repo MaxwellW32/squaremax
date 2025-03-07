@@ -1,18 +1,16 @@
 "use client"
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getComponents } from '@/serverFunctions/handleComponents'
-import { addWebsiteUsedComponent, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { category, component, usedComponent, usedComponentLocationType, viewerComponentType, website } from '@/types'
+import { category, component, handleManageUpdateComponentsOptions, usedComponent, usedComponentLocationType, viewerComponentType } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicComponents from '@/utility/globalComponents'
-import { sanitizeUsedComponentData } from '@/utility/utility'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
+import { v4 as uuidV4 } from "uuid"
 
-export default function ComponentSelector({
-    seenWebsite, currentIndex, parentComponent, location, viewerComponentSet
+export default function ComponentSelector({ indexToAdd, parentComponent, location, handleManageUsedComponents, viewerComponentSet
 }: {
-    seenWebsite: website, currentIndex: number, parentComponent?: usedComponent, location: usedComponentLocationType, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
+    indexToAdd: number, parentComponent?: usedComponent, location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateComponentsOptions): Promise<void>, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
 
@@ -85,18 +83,13 @@ export default function ComponentSelector({
                                                 try {
                                                     //add component to page normally 
                                                     if (viewerComponentSet === undefined) {
-                                                        const sanitizedParentComponent = parentComponent !== undefined ? sanitizeUsedComponentData(parentComponent) : undefined
-
-                                                        await addWebsiteUsedComponent(seenWebsite.id, eachComponent.id, currentIndex, location, sanitizedParentComponent)
-                                                        await refreshWebsitePath({ id: seenWebsite.id })
+                                                        handleManageUsedComponents({ option: "create", newUseComponentId: uuidV4(), componentId: eachComponent.id, indexToAdd: indexToAdd, sentLocation: location, parentComponent: parentComponent })
 
                                                     } else {
                                                         //only preview the component
 
                                                         //build component
                                                         const seenResponse = await globalDynamicComponents(eachComponent.id)
-
-                                                        //assign builds to renderObj
                                                         if (seenResponse === undefined) return
 
                                                         //locally build and show new component
@@ -110,7 +103,6 @@ export default function ComponentSelector({
 
                                                             return newViewerComponent
                                                         })
-
                                                     }
 
                                                 } catch (error) {

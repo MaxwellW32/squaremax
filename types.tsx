@@ -55,6 +55,38 @@ export type viewerComponentType = {
 }
 
 
+
+
+
+export type handleManagePageOptions =
+    {
+        option: "create",
+        seenNewPage: newPage,
+        newPageId: string,
+    } | {
+        option: "update",
+        seenNewPage: page,
+        activePageId: string
+    }
+
+export type handleManageUpdateComponentsOptions =
+    {
+        option: "create",
+        componentId: component["id"],
+        newUseComponentId: usedComponent["id"],
+        sentLocation: usedComponentLocationType,
+        indexToAdd: number,
+        parentComponent?: usedComponent
+
+    } | {
+        option: "update",
+        newUsedComponent: usedComponent
+    }
+
+
+
+
+
 //form validation types
 export type formInputInputType = {
     label?: string,

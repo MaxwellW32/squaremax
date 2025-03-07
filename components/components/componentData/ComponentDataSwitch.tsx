@@ -1,9 +1,9 @@
-import { componentDataType, usedComponent, website } from '@/types'
+import { componentDataType, handleManageUpdateComponentsOptions, usedComponent, website } from '@/types'
 import React from 'react'
 import EditNavbarsData from './navbars/EditNavbarsData'
 import EditContainersData from './containers/EditContainersData'
 
-export default function ComponentDataSwitch({ activeUsedComponent, handlePropsChange, websiteObj }: { activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: usedComponent) => void, websiteObj: website }) {
+export default function ComponentDataSwitch({ activeUsedComponent, handlePropsChange, handleManageUsedComponents }: { activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: usedComponent) => void, handleManageUsedComponents(options: handleManageUpdateComponentsOptions): Promise<void> }) {
     if (activeUsedComponent.data === null) return null
 
     return (
@@ -13,7 +13,7 @@ export default function ComponentDataSwitch({ activeUsedComponent, handlePropsCh
             )}
 
             {activeUsedComponent.data.category === "containers" && (
-                <EditContainersData data={activeUsedComponent.data} seenUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} websiteObj={websiteObj} />
+                <EditContainersData data={activeUsedComponent.data} seenUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} handleManageUsedComponents={handleManageUsedComponents} />
             )}
         </>
     )
