@@ -1,4 +1,4 @@
-import { componentDataType, handleManageUpdateComponentsOptions, usedComponent, website } from '@/types'
+import { componentDataType, handleManageUpdateComponentsOptions, usedComponent } from '@/types'
 import React from 'react'
 import EditNavbarsData from './navbars/EditNavbarsData'
 import EditContainersData from './containers/EditContainersData'

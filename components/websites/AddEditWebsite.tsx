@@ -3,16 +3,14 @@ import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { newWebsite, newWebsiteSchema, updateWebsiteSchema, website, websiteSchema } from '@/types'
-import { addWebsite, } from '@/serverFunctions/handleWebsites'
+import { addWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { useRouter } from 'next/navigation'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 
-export default function AddEditWebsite({ sentWebsite, handleWebsiteUpdate }: {
-    sentWebsite?: website, handleWebsiteUpdate?: (newWebsite: website) => Promise<void>
-}) {
+export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website }) {
     const router = useRouter()
 
     const initialFormObj: newWebsite = {
@@ -91,15 +89,12 @@ export default function AddEditWebsite({ sentWebsite, handleWebsiteUpdate }: {
             } else {
                 //update website
                 const validatedUpdateWebsite = updateWebsiteSchema.parse(formObj)
+                await updateTheWebsite(sentWebsite.id, validatedUpdateWebsite)
 
-                const newWebsite: website = { ...formObj, ...validatedUpdateWebsite }
+                //refresh
+                refreshWebsitePath({ id: sentWebsite.id })
 
-                if (handleWebsiteUpdate !== undefined)
-                    websiteObjSet(prevWebsite => {
-                        const newWebsite = { ...prevWebsite, ...validatedUpdateWebsite }
-
-                        return newWebsite
-                    })
+                toast.success("updated website!")
             }
 
         } catch (error) {

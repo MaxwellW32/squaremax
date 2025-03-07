@@ -83,9 +83,6 @@ export function getUsedComponentsInSameLocation(seenUsedComponents: usedComponen
         return !matchingLocation
     })
 
-    console.log(`$usedComponentsInDifferentLocation`, JSON.stringify(usedComponentsInDifferentLocation, null, 2));
-    console.log(`$usedComponentsInSameLocation`, JSON.stringify(usedComponentsInSameLocation, null, 2));
-
     return {
         usedComponentsInSameLocation: usedComponentsInSameLocation,
         usedComponentsInDifferentLocation: usedComponentsInDifferentLocation
@@ -112,3 +109,4 @@ export function addToParent(usedComponents: usedComponent[], newUsedComponent: u
         };
     });
 }
+

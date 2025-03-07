@@ -1,4 +1,4 @@
-import { componentDataType, containersType, handleManageUpdateComponentsOptions, usedComponent, website } from '@/types'
+import { componentDataType, containersType, handleManageUpdateComponentsOptions, usedComponent } from '@/types'
 import React from 'react'
 import ComponentSelector from '../../ComponentSelector'
 

@@ -117,16 +117,7 @@ export async function updateWebsitePage(websiteId: website["id"], pageId: string
     const validatedPageObj = updatePageSchema.partial().parse(pageObj)
 
     //update specific page
-    seenWebsite.pages = Object.fromEntries(Object.entries(seenWebsite.pages).map(eachPageEntry => {
-        const eachPageKey = eachPageEntry[0]
-        let eachPageValue = eachPageEntry[1]
-
-        if (eachPageKey === pageId) {
-            eachPageValue = { ...eachPageValue, ...validatedPageObj }
-        }
-
-        return [eachPageKey, eachPageValue]
-    }))
+    seenWebsite.pages[pageId] = { ...seenWebsite.pages[pageId], ...validatedPageObj }
 
     await db.update(websites)
         .set({
@@ -134,7 +125,7 @@ export async function updateWebsitePage(websiteId: website["id"], pageId: string
         })
         .where(eq(websites.id, websiteId));
 }
-export async function deleteWebsitePage(websiteId: website["id"], pageId: string) {
+export async function deleteWebsitePage(websiteId: website["id"], pageId: string, deleteRelatedUsedComponents?: boolean) {
     await sessionCheckWithError()
 
     //get website
@@ -144,22 +135,35 @@ export async function deleteWebsitePage(websiteId: website["id"], pageId: string
     //update specific page
     delete seenWebsite.pages[pageId]
 
+    if (deleteRelatedUsedComponents) {
+        //dont return if page id match
+        seenWebsite.usedComponents = seenWebsite.usedComponents.filter(eachUsedComponentFilter => {
+            return !(typeof eachUsedComponentFilter.location === "object" && eachUsedComponentFilter.location.pageId === pageId)
+        })
+    }
+
     await db.update(websites)
         .set({
-            pages: seenWebsite.pages
+            pages: seenWebsite.pages,
+            usedComponents: seenWebsite.usedComponents
         })
         .where(eq(websites.id, websiteId));
 }
 
 //website used components
-export async function addWebsiteUsedComponent(websiteId: website["id"], newUsedComponent: usedComponent, indexToAdd: number, parentComponent?: usedComponent) {
+export async function addWebsiteUsedComponent(websiteId: website["id"], seenNewUsedComponent: usedComponent, indexToAdd: number, parentComponent?: usedComponent) {
     await sessionCheckWithError();
 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } });
     if (seenWebsite === undefined) throw new Error("Website not found");
 
+    //if component on used component remove it
+    if (seenNewUsedComponent.component !== undefined) {
+        delete seenNewUsedComponent["component"]
+    }
+
     //validation
-    const validatedNewUsedComponent = usedComponentSchema.parse(newUsedComponent);
+    const validatedNewUsedComponent = usedComponentSchema.parse(seenNewUsedComponent);
 
     let seenUsedComponents = seenWebsite.usedComponents
 

@@ -1,7 +1,7 @@
 "use client"
 import React, { HTMLAttributes, useEffect, useState } from 'react'
 import styles from "./style.module.css"
-import { handleManagePageOptions, newPage, newPageSchema, page, pageSchema, updatePageSchema, website } from '@/types'
+import { handleManagePageOptions, newPage, newPageSchema, page, pageSchema, updatePageSchema } from '@/types'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone } from '@/utility/utility'
