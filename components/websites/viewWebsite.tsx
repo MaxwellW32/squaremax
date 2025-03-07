@@ -30,6 +30,14 @@ import LocationSelector from './LocationSelector'
 //name them appropriately by their category
 //have a function to write a used component to code, call it recursively if children seen on that page
 
+//Ease of dB access
+// website is one table, pages one table, used components one table
+// Preserve data when updating used component 
+// One array of used components, location tells all - is header, footer, on specific page or is child 
+// Web sockets - signals to update website, update page, update used components 
+// Deleting pages, deleting used components cascades
+
+
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
@@ -781,12 +789,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                                         //replace everything except id, pageid, compid, children
                                                                         const newReplacedUsedComponent = { ...activeUsedComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerComponent.component.defaultData, }
 
-                                                                        //ensure usedComponent is safe to send to server
-                                                                        const sanitizedUsedComponent = sanitizeUsedComponentData(newReplacedUsedComponent)
-
-                                                                        //send to server to replace
-                                                                        await updateWebsiteUsedComponent(websiteObj.id, sanitizedUsedComponent)
-                                                                        await refreshWebsitePath({ id: websiteObj.id })
+                                                                        //send to update 
+                                                                        handleManageUsedComponents({ option: "update", newUsedComponent: newReplacedUsedComponent })
 
                                                                         viewerComponentSet(null)
 
