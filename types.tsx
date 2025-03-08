@@ -61,26 +61,20 @@ export type viewerComponentType = {
 export type handleManagePageOptions =
     {
         option: "create",
-        seenNewPage: newPage,
-        newPageId: string,
+        seenAddedPage: page,
     } | {
         option: "update",
-        seenNewPage: page,
-        activePageId: string
+        seenUpdatedPage: page,
     }
 
 export type handleManageUpdateComponentsOptions =
     {
         option: "create",
-        componentId: component["id"],
-        newUseComponentId: usedComponent["id"],
-        sentLocation: usedComponentLocationType,
-        indexToAdd: number,
-        parentComponent?: usedComponent
+        seenAddedUsedComponent: usedComponent,
 
     } | {
         option: "update",
-        newUsedComponent: usedComponent
+        seenUpdatedUsedComponent: usedComponent
     }
 
 
@@ -219,55 +213,6 @@ export type updateUser = z.infer<typeof updateUserSchema>
 
 
 
-export const usedComponentLocationUnionPageSchema = z.object({
-    pageId: z.string().min(1)
-})
-export type usedComponentLocationUnionPageType = z.infer<typeof usedComponentLocationUnionPageSchema>
-
-export const usedComponentLocationSchema = z.union([usedComponentLocationUnionPageSchema, z.literal("header"), z.literal("footer")])
-export type usedComponentLocationType = z.infer<typeof usedComponentLocationSchema>
-
-export type usedComponent = {
-    id: string;
-    componentId: string;
-    css: string;
-    children: usedComponent[];
-    location: z.infer<typeof usedComponentLocationSchema>
-    component?: component,
-
-    data: componentDataType | null;
-};
-
-export const usedComponentSchema: z.ZodType<usedComponent> = z.lazy(() =>
-    z.object({
-        id: z.string().min(1),
-        componentId: z.string().min(1),
-        css: z.string(),
-        children: z.array(usedComponentSchema),
-        location: usedComponentLocationSchema,
-        component: componentSchema.optional(),
-
-        data: componentDataSchema.nullable(),
-    })
-);
-
-
-
-
-
-export const pageSchema = z.object({
-    name: z.string().min(1),
-})
-export type page = z.infer<typeof pageSchema>
-
-export const newPageSchema = pageSchema.pick({ name: true })
-export type newPage = z.infer<typeof newPageSchema>
-
-export const updatePageSchema = pageSchema.omit({})
-export type updatePage = z.infer<typeof updatePageSchema>
-
-
-
 
 
 export const websiteSchema = z.object({
@@ -276,19 +221,87 @@ export const websiteSchema = z.object({
     name: z.string().min(1),
     fonts: fontsSchema,
     globalCss: z.string(),
-    usedComponents: z.array(usedComponentSchema),
-    pages: z.record(z.string(), pageSchema),
     userUploadedImages: userUploadedImagesSchema,
 })
 export type website = z.infer<typeof websiteSchema> & {
     fromUser?: user,
+    pages?: page[],
+    usedComponents?: usedComponent[],
 }
 export const newWebsiteSchema = websiteSchema.pick({ name: true })
 export type newWebsite = z.infer<typeof newWebsiteSchema>
 
-export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, pages: true, usedComponents: true })
+export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, })
 export type updateWebsite = z.infer<typeof updateWebsiteSchema>
 
+
+
+
+
+export const pageSchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    websiteId: z.string().min(1),
+})
+export type page = z.infer<typeof pageSchema> & {
+    fromWebsite?: website
+}
+
+export const newPageSchema = pageSchema.omit({ id: true })
+export type newPage = z.infer<typeof newPageSchema>
+
+export const updatePageSchema = pageSchema.omit({ id: true, websiteId: true })
+export type updatePage = z.infer<typeof updatePageSchema>
+
+
+
+
+
+export const locationHeaderSchema = z.object({
+    type: z.literal("header"),
+})
+export type locationHeaderSchemaType = z.infer<typeof locationHeaderSchema>
+
+export const locationFooterSchema = z.object({
+    type: z.literal("footer"),
+})
+export type locationFooterSchemaType = z.infer<typeof locationFooterSchema>
+
+export const locationPageSchema = z.object({
+    type: z.literal("page"),
+    pageId: z.string().min(1)
+})
+export type locationPageSchemaType = z.infer<typeof locationPageSchema>
+
+export const locationChildSchema = z.object({
+    type: z.literal("child"),
+    parentId: z.string().min(1)
+})
+export type locationChildSchemaType = z.infer<typeof locationChildSchema>
+
+export const usedComponentLocationSchema = z.union([locationHeaderSchema, locationFooterSchema, locationPageSchema, locationChildSchema])
+export type usedComponentLocationType = z.infer<typeof usedComponentLocationSchema>
+
+export const usedComponentSchema = z.object({
+    id: z.string().min(1),
+    websiteId: z.string().min(1),
+    componentId: z.string().min(1),
+    css: z.string(),
+    index: z.number(),
+    location: usedComponentLocationSchema,
+
+    data: componentDataSchema.nullable(),
+})
+export type usedComponent = z.infer<typeof usedComponentSchema> & {
+    fromWebsite?: website,
+    component?: component,
+};
+
+export const newUsedComponentSchema = usedComponentSchema.omit({ id: true, index: true })
+export type newUsedComponent = z.infer<typeof newUsedComponentSchema>
+
+export const updateUsedComponentSchema = usedComponentSchema.omit({ id: true, websiteId: true })
+export type updateUsedComponent = z.infer<typeof updateUsedComponentSchema>
 
 
 
@@ -302,6 +315,7 @@ export const componentSchema = z.object({
 })
 export type component = z.infer<typeof componentSchema> & {
     componentsToStyles?: componentsToStyle[],
+    usedComponents?: usedComponent[],
     category?: category,
 }
 export const newComponentSchema = componentSchema.omit({ id: true })

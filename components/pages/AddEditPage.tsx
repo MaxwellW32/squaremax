@@ -1,17 +1,18 @@
 "use client"
 import React, { HTMLAttributes, useEffect, useState } from 'react'
 import styles from "./style.module.css"
-import { handleManagePageOptions, newPage, newPageSchema, page, pageSchema, updatePageSchema } from '@/types'
+import { handleManagePageOptions, newPage, newPageSchema, page, pageSchema, updatePageSchema, website } from '@/types'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import toast from 'react-hot-toast'
-import { v4 as uuidV4 } from "uuid"
+import { addPage, updateThePage } from '@/serverFunctions/handlePages'
 
-export default function AddEditPage({ sentPage, sentPageId, submissionAction, handleManagePage, ...elProps }: { sentPage?: page, sentPageId?: string, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
+export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage, submissionAction, ...elProps }: { sentWebsiteId: website["id"], sentPage?: page, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
     const initialFormObj: newPage = {
         name: "",
+        websiteId: sentWebsiteId
     }
 
     //form object hold page partial values
@@ -47,6 +48,7 @@ export default function AddEditPage({ sentPage, sentPageId, submissionAction, ha
     }, [sentPage])
 
     function checkIfValid(seenFormObj: Partial<page>, seenName: keyof Partial<page>, schema: typeof pageSchema) {
+        // @ts-expect-error type
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 
         if (testSchema.success) {//worked
@@ -77,23 +79,31 @@ export default function AddEditPage({ sentPage, sentPageId, submissionAction, ha
     async function handleSubmit() {
         try {
             if (sentPage === undefined) {
+                //make new page
+
                 //validate
                 const validatedNewPage: newPage = newPageSchema.parse(formObj)
 
-                //add new
-                handleManagePage({ option: "create", newPageId: uuidV4(), seenNewPage: validatedNewPage })
+
+
+                //send up to server
+                const seenAddedPage = await addPage(validatedNewPage)
+
+                //send up to client
+                handleManagePage({ option: "create", seenAddedPage: seenAddedPage })
 
                 toast.success("page added")
                 formObjSet(deepClone(initialFormObj))
 
             } else {
-                if (sentPageId === undefined) throw new Error("need page id")
-
                 //validate
                 const validatedUpdatedPage = updatePageSchema.parse(formObj)
 
-                //update
-                handleManagePage({ option: "update", activePageId: sentPageId, seenNewPage: validatedUpdatedPage })
+                //update on server
+                const updatedPage = await updateThePage(sentPage.id, sentWebsiteId, validatedUpdatedPage)
+
+                //send up to client
+                handleManagePage({ option: "update", seenUpdatedPage: updatedPage })
 
                 toast.success("page updated")
             }
@@ -112,6 +122,8 @@ export default function AddEditPage({ sentPage, sentPageId, submissionAction, ha
                 const eachKey = eachEntry[0] as pageKeys
 
                 if (moreFormInfo[eachKey] === undefined) return null
+
+                if (eachKey === "fromWebsite") return null
 
                 return (
                     <React.Fragment key={eachKey}>

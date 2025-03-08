@@ -1,6 +1,5 @@
-import { changeWebsiteUsedComponentIndex, refreshWebsitePath } from '@/serverFunctions/handleWebsites'
+import { refreshWebsitePath } from '@/serverFunctions/handleWebsites'
 import { usedComponent, usedComponentLocationType, website } from '@/types'
-import { sanitizeUsedComponentData } from '@/utility/utility'
 import React, { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 
@@ -38,7 +37,7 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
             }
 
             //match usedComponents on the same page
-            if (typeof eachFilterUsedComponent.location === "object" && typeof location === "object") {
+            if (eachFilterUsedComponent.location.type === "page" && location.type === "page") {
                 if (eachFilterUsedComponent.location.pageId === location.pageId) {
                     matchingLocation = true
                 }
@@ -54,7 +53,8 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
                 return
             }
 
-            const seenChildArray = findUsedComponentLocalArray(eachUsedComponent.children, location, wantedSentComponentId)
+            const seenChildren: usedComponent[] = []
+            const seenChildArray = findUsedComponentLocalArray(seenChildren, location, wantedSentComponentId)
             if (seenChildArray !== undefined) foundArray = seenChildArray
         });
 
@@ -101,10 +101,10 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
                 onClick={async () => {
                     if (wantedIndex === null) return
 
-                    const sanitizedUsedComponent = sanitizeUsedComponentData(usedComponent)
+                    // const sanitizedUsedComponent = sanitizeUsedComponentData(usedComponent)
 
                     //change index position
-                    await changeWebsiteUsedComponentIndex(websiteId, sanitizedUsedComponent, wantedIndex - 1)
+                    // await changeWebsiteUsedComponentIndex(websiteId, sanitizedUsedComponent, wantedIndex - 1)
 
                     refreshWebsitePath({ id: websiteId })
 

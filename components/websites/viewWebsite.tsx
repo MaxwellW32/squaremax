@@ -1,12 +1,11 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
-import { componentDataType, usedComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, usedComponentLocationType, page, updatePageSchema, handleManagePageOptions, handleManageUpdateComponentsOptions, usedComponentSchema, } from '@/types'
-import { addScopeToCSS, addToParent, getUsedComponentsInSameLocation, sanitizeUsedComponentData } from '@/utility/utility'
+import { componentDataType, usedComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, usedComponentLocationType, page, handleManagePageOptions, handleManageUpdateComponentsOptions, } from '@/types'
+import { addScopeToCSS, } from '@/utility/utility'
 import AddEditPage from '../pages/AddEditPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import { addWebsitePage, addWebsiteUsedComponent, deleteWebsitePage, deleteWebsiteUsedComponent, refreshWebsitePath, updateTheWebsite, updateWebsitePage, updateWebsiteUsedComponent } from '@/serverFunctions/handleWebsites'
 import ComponentDataSwitch from '../components/componentData/ComponentDataSwitch'
 import ComponentSelector from '../components/ComponentSelector'
 import toast from 'react-hot-toast'
@@ -16,6 +15,9 @@ import ComponentOrderSelector from '../components/componentOrderSelector/Compone
 import ShowMore from '../showMore/ShowMore'
 import AddEditWebsite from './AddEditWebsite'
 import LocationSelector from './LocationSelector'
+import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
+import { deletePage } from '@/serverFunctions/handlePages'
+import { deleteUsedComponent } from '@/serverFunctions/handleUsedComponents'
 
 //flesh out the data needed for all website categories
 //think up all the possible website categories
@@ -36,7 +38,7 @@ import LocationSelector from './LocationSelector'
 // One array of used components, location tells all - is header, footer, on specific page or is child 
 // Web sockets - signals to update website, update page, update used components 
 // Deleting pages, deleting used components cascades
-
+//container elements affect location on active
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -79,15 +81,17 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
 
-    const [activePageId, activePageIdSet] = useState<string>(() => {
-        const pageEntries = Object.entries(websiteObj.pages)
-        if (pageEntries.length > 0) {
-            return pageEntries[0][0]
-        } else {
-            return ""
-        }
-    })
-    const [activeLocation, activeLocationSet] = useState<usedComponentLocationType>(activePageId !== "" ? { pageId: activePageId } : "header")
+    const [activePageId, activePageIdSet] = useState<page["id"] | undefined>(websiteObj.pages !== undefined ? websiteObj.pages[0].id : undefined)
+    const activePage = useMemo<page | undefined>(() => {
+        if (websiteObj.pages === undefined || activePageId === undefined) return undefined
+
+        const foundPage = websiteObj.pages.find(eachPageFind => eachPageFind.id === activePageId)
+        if (foundPage === undefined) return undefined
+
+        return foundPage
+    }, [websiteObj.pages, activePageId])
+
+    const [activeLocation, activeLocationSet] = useState<usedComponentLocationType>(activePageId !== undefined ? { type: "page", pageId: activePageId } : { type: "header" })
 
     const [addingPage, addingPageSet] = useState(false)
     const [componentsBuilt, componentBuiltSet] = useState(false)
@@ -96,25 +100,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const [activeUsedComponentId, activeUsedComponentIdSet] = useState<usedComponent["id"]>("")
 
     const activeUsedComponent = useMemo<usedComponent | undefined>(() => {
-        function searchRecursively(seenUsedComponents: usedComponent[], seenActiveUsedComponentId: usedComponent["id"]): usedComponent | undefined {
-            let foundUsedComponent: usedComponent | undefined = undefined
+        if (websiteObj.usedComponents === undefined) return undefined
 
-            seenUsedComponents.forEach(eachUsedComponent => {
-                if (eachUsedComponent.id === seenActiveUsedComponentId) {
-                    foundUsedComponent = eachUsedComponent
-
-                } else {
-                    const foundUsedComponentInChildren = searchRecursively(eachUsedComponent.children, seenActiveUsedComponentId)
-                    if (foundUsedComponentInChildren !== undefined) {
-                        foundUsedComponent = foundUsedComponentInChildren
-                    }
-                }
-            })
-
-            return foundUsedComponent
-        }
-
-        const foundUsedComponent = searchRecursively(websiteObj.usedComponents, activeUsedComponentId)
+        const foundUsedComponent = websiteObj.usedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === activeUsedComponentId)
         return foundUsedComponent
 
     }, [websiteObj.usedComponents, activeUsedComponentId])
@@ -126,41 +114,33 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }>({})
 
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
-    const managePageDebounce = useRef<{
-        create: NodeJS.Timeout | undefined,
-        update: NodeJS.Timeout | undefined,
-    }>({
-        create: undefined,
-        update: undefined
-    })
-    const manageUsedComponentDebounce = useRef<{
-        create: { [key: string]: NodeJS.Timeout | undefined },
-        update: { [key: string]: NodeJS.Timeout | undefined },
-    }>({
-        create: {},
-        update: {}
-    })
 
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
     const [viewerComponent, viewerComponentSet] = useState<viewerComponentType | null>(null)
 
     //get usedComponents on the active page
     const pageUsedComponents = useMemo(() => {
+        if (websiteObj.usedComponents === undefined) return []
+
         return websiteObj.usedComponents.filter(eachUsedComponentFilter => {
-            return typeof eachUsedComponentFilter.location === "object" && eachUsedComponentFilter.location.pageId === activePageId
+            return eachUsedComponentFilter.location.type === "page" && eachUsedComponentFilter.location.pageId === activePageId
         })
 
     }, [websiteObj.usedComponents, activePageId])
 
     const headerUsedComponents = useMemo(() => {
+        if (websiteObj.usedComponents === undefined) return []
+
         return websiteObj.usedComponents.filter(eachUsedComponentFilter => {
-            return eachUsedComponentFilter.location === "header"
+            return eachUsedComponentFilter.location.type === "header"
         })
     }, [websiteObj.usedComponents])
 
     const footerUsedComponents = useMemo(() => {
+        if (websiteObj.usedComponents === undefined) return []
+
         return websiteObj.usedComponents.filter(eachUsedComponentFilter => {
-            return eachUsedComponentFilter.location === "footer"
+            return eachUsedComponentFilter.location.type === "footer"
         })
     }, [websiteObj.usedComponents])
 
@@ -169,7 +149,10 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         const start = async () => {
             try {
                 //replace original
-                websiteFromServer.usedComponents = await renderUsedComponentsInUse(websiteFromServer.usedComponents, activePageId)
+
+                if (websiteFromServer.usedComponents !== undefined && activePageId !== undefined) {
+                    websiteFromServer.usedComponents = await renderUsedComponentsInUse(websiteFromServer.usedComponents, activePageId)
+                }
 
                 //update obj locally with changes
                 websiteObjSet(websiteFromServer)
@@ -212,8 +195,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     //keep active location in line with page selection 
     useEffect(() => {
         //if page selection is active update on page change
-        if (typeof activeLocation === "object") {
-            activeLocationSet({ pageId: activePageId })
+        if (activeLocation.type === "page" && activePageId !== undefined) {
+            activeLocationSet({ type: "page", pageId: activePageId })
         }
     }, [activePageId])
 
@@ -241,16 +224,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     eachUsedComponent.component = seenComponent
                 }
 
-                //handle child components
-                eachUsedComponent.children = await addComponentInfoToUsedComponents(eachUsedComponent.children)
-
                 return eachUsedComponent
             })
         )
     }
 
-    async function buildUsedComponents(sentUsedComponents: usedComponent[], atTop = true): Promise<usedComponent[]> {
-        if (atTop) componentBuiltSet(false)
+    async function buildUsedComponents(sentUsedComponents: usedComponent[]): Promise<usedComponent[]> {
+        componentBuiltSet(false)
 
         //build all components
         const builtUsedComponents = await Promise.all(
@@ -281,13 +261,10 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     }
                 }
 
-                //handle children
-                eachUsedComponent.children = await buildUsedComponents(eachUsedComponent.children, false)
-
                 return eachUsedComponent
             }))
 
-        if (atTop) componentBuiltSet(true)
+        componentBuiltSet(true)
 
         return builtUsedComponents
     }
@@ -320,59 +297,36 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     async function handleManagePage(options: handleManagePageOptions) {
         try {
             if (options.option === "create") {
-                const fullPage: page = {
-                    ...options.seenNewPage
-                }
-
-                const validatedFullPage = updatePageSchema.parse(fullPage)
 
                 //add locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
 
+                    //ensure pages seen
+                    if (newWebsite.pages === undefined) return prevWebsite
+
                     //set new page
-                    newWebsite.pages[options.newPageId] = validatedFullPage
+                    const indexToAddAt = newWebsite.pages.findIndex(eachPageFindIndex => eachPageFindIndex.id === options.seenAddedPage.id)
+                    newWebsite.pages[indexToAddAt] = options.seenAddedPage
 
                     return newWebsite
                 })
 
-
-                //update on server after delay
-                if (managePageDebounce.current.create) clearTimeout(managePageDebounce.current.create)
-
-                managePageDebounce.current.create = setTimeout(async () => {
-
-                    saveStateSet("saving")
-                    await addWebsitePage(websiteObj.id, options.newPageId, validatedFullPage)
-                    console.log(`$saved page to db`);
-                    saveStateSet("saved")
-                }, 3000);
-
-
             } else if (options.option === "update") {
-
-                const validatedNewPage = updatePageSchema.parse(options.seenNewPage)
 
                 //update locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
 
-                    newWebsite.pages[options.activePageId] = { ...newWebsite.pages[options.activePageId], ...validatedNewPage }
+                    //ensure pages seen
+                    if (newWebsite.pages === undefined) return prevWebsite
+
+                    //set new page
+                    const indexToAddAt = newWebsite.pages.findIndex(eachPageFindIndex => eachPageFindIndex.id === options.seenUpdatedPage.id)
+                    newWebsite.pages[indexToAddAt] = options.seenUpdatedPage
 
                     return newWebsite
                 })
-
-                //update on server after delay
-                if (managePageDebounce.current.update) clearTimeout(managePageDebounce.current.update)
-
-                managePageDebounce.current.update = setTimeout(async () => {
-
-                    saveStateSet("saving")
-                    await updateWebsitePage(websiteObj.id, options.activePageId, validatedNewPage)
-                    console.log(`$saved page to db`);
-                    saveStateSet("saved")
-                }, 3000);
-
             }
 
         } catch (error) {
@@ -382,78 +336,29 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     async function handleManageUsedComponents(options: handleManageUpdateComponentsOptions) {
         try {
             if (options.option === "create") {
-                //make full new usedComponent
-                const newUsedComponent: usedComponent = {
-                    id: options.newUseComponentId,
-                    componentId: options.componentId,
-                    css: "",
-                    children: [],
-                    location: options.sentLocation,
-                    data: null,
-                };
-
-                //get component info on the new used component
-                const [newUsedComponentWithInfo] = await addComponentInfoToUsedComponents([newUsedComponent])
-
-                //build component
-                const [builtUsedComponent]: usedComponent[] = await buildUsedComponents([newUsedComponentWithInfo])
-
-                //validation
-                const validatedNewUsedComponent = usedComponentSchema.parse(builtUsedComponent);
-
-                let seenUsedComponents = websiteObj.usedComponents
-
-                // Update the nested structure if a parent is specified
-                if (options.parentComponent !== undefined) {
-                    seenUsedComponents = addToParent(seenUsedComponents, validatedNewUsedComponent, options.parentComponent, options.indexToAdd);
-
-                } else {
-                    //filter out usedComponents not in location - add new used component to base array
-                    const { usedComponentsInDifferentLocation, usedComponentsInSameLocation } = getUsedComponentsInSameLocation(seenUsedComponents, validatedNewUsedComponent.location)
-
-                    const usedComponentsWithNewOrder = [
-                        ...usedComponentsInSameLocation.slice(0, options.indexToAdd),
-                        validatedNewUsedComponent,
-                        ...usedComponentsInSameLocation.slice(options.indexToAdd)
-                    ];
-
-                    // Insert normally at the root level
-                    seenUsedComponents = [...usedComponentsInDifferentLocation, ...usedComponentsWithNewOrder];
-                }
-
                 //add locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
 
+                    if (newWebsite.usedComponents === undefined) return prevWebsite
+
                     //assign latest built component to state
-                    newWebsite.usedComponents = seenUsedComponents
+                    newWebsite.usedComponents = [...newWebsite.usedComponents, options.seenAddedUsedComponent]
 
                     return newWebsite
                 })
-
-                //send to server
-                if (manageUsedComponentDebounce.current.create[validatedNewUsedComponent.id]) clearTimeout(manageUsedComponentDebounce.current.create[validatedNewUsedComponent.id])
-
-                manageUsedComponentDebounce.current.create[validatedNewUsedComponent.id] = setTimeout(async () => {
-                    //ensure fields are appropriate for server transfer
-                    const sanitizedParentComponent = options.parentComponent === undefined ? undefined : sanitizeUsedComponentData(options.parentComponent)
-                    const sanitizedNewUsedComponent = sanitizeUsedComponentData(validatedNewUsedComponent)
-
-                    saveStateSet("saving")
-                    await addWebsiteUsedComponent(websiteObj.id, sanitizedNewUsedComponent, options.indexToAdd, sanitizedParentComponent)
-                    console.log(`$saved used Component to db`);
-                    saveStateSet("saved")
-                }, 3000);
-
 
             } else if (options.option === "update") {
                 //update locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
 
+                    if (newWebsite.usedComponents === undefined) return prevWebsite
+
+                    //assign latest built component to state
                     newWebsite.usedComponents = newWebsite.usedComponents.map(eachUsedComponent => {
-                        if (eachUsedComponent.id === options.newUsedComponent.id) {
-                            return options.newUsedComponent
+                        if (eachUsedComponent.id === options.seenUpdatedUsedComponent.id) {
+                            return options.seenUpdatedUsedComponent
                         }
 
                         return eachUsedComponent
@@ -461,22 +366,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                     return newWebsite
                 })
-
-                //send to server
-                if (manageUsedComponentDebounce.current.update[options.newUsedComponent.id]) clearTimeout(manageUsedComponentDebounce.current.update[options.newUsedComponent.id])
-
-                manageUsedComponentDebounce.current.update[options.newUsedComponent.id] = setTimeout(async () => {
-                    //ensure fields are appropriate for server transfer
-                    const sanitizedUsedComponent = sanitizeUsedComponentData(options.newUsedComponent)
-
-                    saveStateSet("saving")
-                    await updateWebsiteUsedComponent(websiteObj.id, sanitizedUsedComponent)
-                    console.log(`$saved used Component to db`);
-                    saveStateSet("saved")
-                }, 3000);
-
             }
-
 
         } catch (error) {
             consoleAndToastError(error)
@@ -487,7 +377,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         //update the data
         sentUsedComponent.data = newPropsObj
 
-        handleManageUsedComponents({ option: "update", newUsedComponent: sentUsedComponent })
+        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: sentUsedComponent })
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -507,13 +397,18 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }
 
     async function renderUsedComponentsInUse(seenUsedComponents: usedComponent[], seenActivePageId: string) {
+        //get all descendent elements used on this page
+        //build em
+
         //only build header, footer and usedComponents on page
-        const filteredUsedComponentsInUse = seenUsedComponents.filter(eachFilterUsedComponent => {
-            return eachFilterUsedComponent.location === "header" || eachFilterUsedComponent.location === "footer" || (typeof eachFilterUsedComponent.location === "object" && eachFilterUsedComponent.location.pageId === seenActivePageId)
+        const baseUsedComponentsInUse = seenUsedComponents.filter(eachFilterUsedComponent => {
+            return eachFilterUsedComponent.location.type === "header" || eachFilterUsedComponent.location.type === "footer" || (eachFilterUsedComponent.location.type === "page" && eachFilterUsedComponent.location.pageId === seenActivePageId)
         })
 
+        //then get all their children
+
         //add component info onto object
-        const usedComponentsWithInfo = await addComponentInfoToUsedComponents(filteredUsedComponentsInUse)
+        const usedComponentsWithInfo = await addComponentInfoToUsedComponents(baseUsedComponentsInUse)
 
         //build components
         const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
@@ -593,15 +488,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         >
                             <style>{addScopeToCSS(websiteObj.globalCss, websiteObj.id)}</style>
 
-                            {componentsBuilt && (
+                            {componentsBuilt && activePage !== undefined && (
                                 <>
-                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
 
-                                    {websiteObj.pages[activePageId] !== undefined && (
-                                        <RenderComponentTree seenUsedComponents={pageUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
-                                    )}
+                                    <RenderComponentTree seenUsedComponents={pageUsedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
 
-                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
                                 </>
                             )}
                         </div>
@@ -627,12 +520,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     }
                                 />
 
-                                <ShowMore
-                                    label='Edit Page'
-                                    content={
-                                        <AddEditPage key={activePageId} sentPage={websiteObj.pages[activePageId]} sentPageId={activePageId} handleManagePage={handleManagePage} />
-                                    }
-                                />
+                                {activePage !== undefined && (
+                                    <ShowMore
+                                        label='Edit Page'
+                                        content={
+                                            <AddEditPage key={activePageId} sentPage={activePage} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
+                                        }
+                                    />
+                                )}
                             </div>
                         </div>
 
@@ -652,19 +547,19 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}>
                         <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
                             <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
-                                {Object.entries(websiteObj.pages).map(eachPageEntry => {
+                                {activePage !== undefined && websiteObj.pages?.map(eachPage => {
                                     //show each page name
-                                    const eachPageKey = eachPageEntry[0]
-                                    const eachPageValue = eachPageEntry[1]
 
                                     return (
-                                        <button key={eachPageKey} className='mainButton' style={{ backgroundColor: eachPageKey === activePageId ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
+                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPage.id === activePage.id ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
                                             onClick={async () => {
+                                                if (websiteObj.usedComponents === undefined) return
+
                                                 //whenever page id changes hold off on showing results
-                                                activePageIdSet(eachPageKey)
+                                                activePageIdSet(eachPage.id)
 
                                                 //render components for new page
-                                                const seenUsedComponents = await renderUsedComponentsInUse(websiteObj.usedComponents, eachPageKey)
+                                                const seenUsedComponents = await renderUsedComponentsInUse(websiteObj.usedComponents, eachPage.id)
 
                                                 //add onto website obj
                                                 websiteObjSet(prevWebsiteObj => {
@@ -675,7 +570,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                     return newWebsiteObj
                                                 })
                                             }}
-                                        >{eachPageValue.name}</button>
+                                        >{eachPage.name}</button>
                                     )
                                 })}
 
@@ -685,13 +580,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     }}
                                 >{addingPage ? "close" : "add page"}</button>
 
-                                {activePageId !== "" && (
+                                {activePage !== undefined && (
                                     <ConfirmationBox text='' confirmationText='are you sure you want to delete the page?' successMessage='page deleted!' float={true}
                                         icon={
                                             <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                                         }
                                         runAction={async () => {
-                                            await deleteWebsitePage(websiteObj.id, activePageId, true)
+                                            await deletePage(websiteObj.id, activePage.id, true)
 
                                             await refreshWebsitePath({ id: websiteObj.id })
                                         }}
@@ -699,7 +594,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 )}
                             </ul>
 
-                            <AddEditPage style={{ display: addingPage ? "" : "none" }} handleManagePage={handleManagePage}
+                            <AddEditPage style={{ display: addingPage ? "" : "none" }} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage}
                                 submissionAction={() => {
                                     addingPageSet(false)
                                 }}
@@ -707,7 +602,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                             <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePageId={activePageId} />
 
-                            <ComponentSelector handleManageUsedComponents={handleManageUsedComponents} indexToAdd={(typeof activeLocation === "object" ? pageUsedComponents : activeLocation === "header" ? headerUsedComponents : footerUsedComponents).length} location={activeLocation} />
+                            <ComponentSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} location={activeLocation} />
                         </div>
 
                         <div style={{ display: "grid", gap: "1rem", alignContent: "flex-start", overflow: "auto", padding: "1rem" }}>
@@ -725,7 +620,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 }
                             />
 
-                            {activeUsedComponent !== undefined && (
+                            {activeUsedComponent !== undefined && websiteObj.usedComponents !== undefined && (
                                 <>
                                     <label>{activeUsedComponent.component?.categoryId ?? ""} component</label>
 
@@ -738,7 +633,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                     const newActiveComp: usedComponent = { ...activeUsedComponent }
                                                     newActiveComp.css = e.target.value
 
-                                                    handleManageUsedComponents({ option: "update", newUsedComponent: newActiveComp })
+                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
                                                 }}
                                             />
                                         }
@@ -747,7 +642,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     <ShowMore
                                         label="edit data"
                                         content={
-                                            <ComponentDataSwitch activeUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} handleManageUsedComponents={handleManageUsedComponents} />
+                                            <ComponentDataSwitch websiteId={websiteObj.id} seenLocation={activeLocation} activeUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} handleManageUsedComponents={handleManageUsedComponents} />
                                         }
                                     />
 
@@ -772,7 +667,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                 {/* show options for active */}
                                                 {viewerComponent !== null && viewerComponent.usedComponentIdToSwap === activeUsedComponent.id && (
                                                     <>
-                                                        <ComponentSelector indexToAdd={0} handleManageUsedComponents={handleManageUsedComponents} viewerComponentSet={viewerComponentSet} location={activeUsedComponent.location} />
+                                                        <ComponentSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerComponentSet={viewerComponentSet} location={activeUsedComponent.location} />
 
                                                         {viewerComponent.component !== null && (
                                                             <button className='mainButton'
@@ -790,7 +685,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                                         const newReplacedUsedComponent = { ...activeUsedComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerComponent.component.defaultData, }
 
                                                                         //send to update 
-                                                                        handleManageUsedComponents({ option: "update", newUsedComponent: newReplacedUsedComponent })
+                                                                        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newReplacedUsedComponent })
 
                                                                         viewerComponentSet(null)
 
@@ -819,7 +714,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                         label='Delete Component'
                                         content={
                                             <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
-                                                await deleteWebsiteUsedComponent(websiteObj.id, activeUsedComponent.id)
+                                                await deleteUsedComponent(websiteObj.id, activeUsedComponent.id)
 
                                                 await refreshWebsitePath({ id: websiteObj.id })
                                             }} />
@@ -882,8 +777,10 @@ function RenderComponentTree({
 
                 let scopedCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id);
 
+                const seenChildren: usedComponent[] = []
+
                 // Recursively render child components
-                const childJSX: React.JSX.Element | null = eachUsedComponent.children.length > 0 ? <RenderComponentTree seenUsedComponents={eachUsedComponent.children} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} /> : null;
+                const childJSX: React.JSX.Element | null = seenChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenChildren} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} /> : null;
 
                 //apply scoped styling starter value
                 eachUsedComponent.data.styleId = `____${eachUsedComponent.id}`

@@ -2,7 +2,7 @@ import { usedComponentLocationType } from '@/types'
 import React from 'react'
 import toast from 'react-hot-toast'
 
-export default function LocationSelector({ location, activeLocationSet, activePageId }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePageId: string }) {
+export default function LocationSelector({ location, activeLocationSet, activePageId }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePageId: string | undefined }) {
     const locationOptions: string[] = ["header", "page", 'footer']
     const seenLocation = typeof location === "object" ? "page" : location
 
@@ -15,18 +15,18 @@ export default function LocationSelector({ location, activeLocationSet, activePa
                     const eachLocationOption = event.target.value
 
                     if (eachLocationOption === "footer") {
-                        activeLocationSet("footer")
+                        activeLocationSet({ type: "footer" })
 
                     } else if (eachLocationOption === "header") {
-                        activeLocationSet("header")
+                        activeLocationSet({ type: "header" })
 
                     } else if (eachLocationOption === "page") {
-                        if (activePageId === "") {
+                        if (activePageId === undefined) {
                             toast.error("need to select a page")
                             return
                         }
 
-                        activeLocationSet({ pageId: activePageId })
+                        activeLocationSet({ type: "page", pageId: activePageId })
                     }
                 }}
             >

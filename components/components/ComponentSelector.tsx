@@ -1,16 +1,16 @@
 "use client"
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getComponents } from '@/serverFunctions/handleComponents'
-import { category, component, handleManageUpdateComponentsOptions, usedComponent, usedComponentLocationType, viewerComponentType } from '@/types'
+import { addUsedComponent } from '@/serverFunctions/handleUsedComponents'
+import { category, component, handleManageUpdateComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerComponentType, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicComponents from '@/utility/globalComponents'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
-import { v4 as uuidV4 } from "uuid"
 
-export default function ComponentSelector({ indexToAdd, parentComponent, location, handleManageUsedComponents, viewerComponentSet
+export default function ComponentSelector({ websiteId, location, handleManageUsedComponents, viewerComponentSet
 }: {
-    indexToAdd: number, parentComponent?: usedComponent, location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateComponentsOptions): Promise<void>, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
+    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateComponentsOptions): Promise<void>, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
 
@@ -83,7 +83,22 @@ export default function ComponentSelector({ indexToAdd, parentComponent, locatio
                                                 try {
                                                     //add component to page normally 
                                                     if (viewerComponentSet === undefined) {
-                                                        handleManageUsedComponents({ option: "create", newUseComponentId: uuidV4(), componentId: eachComponent.id, indexToAdd: indexToAdd, sentLocation: location, parentComponent: parentComponent })
+                                                        //add to server
+                                                        const newUsedComponent: newUsedComponent = {
+                                                            componentId: eachComponent.id,
+                                                            css: "",
+                                                            data: null,
+                                                            location: location,
+                                                            websiteId: websiteId
+                                                        }
+
+                                                        const validatedNewUsedComponent = newUsedComponentSchema.parse(newUsedComponent)
+
+
+                                                        const newAddedUsedComponent = await addUsedComponent(validatedNewUsedComponent)
+
+                                                        //the add to page
+                                                        handleManageUsedComponents({ option: "create", seenAddedUsedComponent: newAddedUsedComponent })
 
                                                     } else {
                                                         //only preview the component
