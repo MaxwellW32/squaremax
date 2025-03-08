@@ -32,13 +32,8 @@ import { deleteUsedComponent } from '@/serverFunctions/handleUsedComponents'
 //name them appropriately by their category
 //have a function to write a used component to code, call it recursively if children seen on that page
 
-//Ease of dB access
 // Web sockets - signals to update website, update page, update used components 
-// Deleting pages, deleting used components cascades
-//container elements affect location on active
-
 //fix ordering
-//reuse descendant function in handle used components
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
