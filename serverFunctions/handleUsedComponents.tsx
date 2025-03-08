@@ -132,10 +132,8 @@ export async function deleteUsedComponent(websiteId: website["id"], usedComponen
     //delete children used components recursively
     const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: websiteId } })
 
-    const foundUsedComponentToDelete = latestUsedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === usedComponentId)
-    if (foundUsedComponentToDelete === undefined) throw new Error("not seeing usedComponent")
-
-    const allDescendentUsedComponents = getDescendedUsedComponents([foundUsedComponentToDelete], latestUsedComponents)
+    //get all descended used components
+    const allDescendentUsedComponents = getDescendedUsedComponents([usedComponentId], latestUsedComponents)
 
     //delete children used component
     await Promise.all(

@@ -29,6 +29,9 @@ export async function getComponents(selectionObj: { option: "name", data: Pick<c
 
         const result = await db.query.components.findMany({
             where: like(components.name, `%${selectionObj.data}%`),
+            with: {
+                category: true,
+            }
         });
 
         return result
@@ -38,6 +41,9 @@ export async function getComponents(selectionObj: { option: "name", data: Pick<c
 
         const result = await db.query.components.findMany({
             where: eq(components.categoryId, selectionObj.data.categoryId),
+            with: {
+                category: true,
+            }
         });
 
         return result

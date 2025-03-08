@@ -46,15 +46,17 @@ export function moveItemInArray<T>(arr: T[], fromIndex: number, toIndex: number)
     return newArr;
 }
 
-export function getDescendedUsedComponents(parentUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[]): usedComponent[] {
+export function getDescendedUsedComponents(parentUsedComponentIds: (usedComponent["id"])[], originalUsedComponentsList: usedComponent[]): usedComponent[] {
     const descendedArray: usedComponent[] = []
 
-    parentUsedComponents.forEach(eachParentUsedComponent => {
+    parentUsedComponentIds.forEach(eachParentUsedComponentId => {
         // get children for each usedComponent
-        let childrenUsedComponents = getChildrenUsedComponents(eachParentUsedComponent.id, originalUsedComponentsList)
+        let childrenUsedComponents = getChildrenUsedComponents(eachParentUsedComponentId, originalUsedComponentsList)
         descendedArray.push(...childrenUsedComponents)
 
-        const seenFutherChildComponents = getDescendedUsedComponents(childrenUsedComponents, originalUsedComponentsList)
+        const childrenUsedComponentIds = childrenUsedComponents.map(eachUsedComponentChild => eachUsedComponentChild.id)
+
+        const seenFutherChildComponents = getDescendedUsedComponents(childrenUsedComponentIds, originalUsedComponentsList)
         descendedArray.push(...seenFutherChildComponents)
     })
 
