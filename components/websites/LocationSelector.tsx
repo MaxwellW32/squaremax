@@ -1,14 +1,13 @@
-import { usedComponent, usedComponentLocationType } from '@/types'
+import { page, usedComponent, usedComponentLocationType } from '@/types'
 import React, { useEffect } from 'react'
-import toast from 'react-hot-toast'
 
-export default function LocationSelector({ location, activeLocationSet, activePageId, activeUsedComponent }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePageId: string | undefined, activeUsedComponent?: usedComponent }) {
+export default function LocationSelector({ location, activeLocationSet, activePage, activeUsedComponent }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePage: page | undefined, activeUsedComponent?: usedComponent }) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
-    const ableToAddChild = !(activeUsedComponent === undefined || activeUsedComponent.component === undefined || activeUsedComponent.component.category === undefined)
+    const usedComponentCanHaveChild = !(activeUsedComponent === undefined || activeUsedComponent.component === undefined || activeUsedComponent.component.category === undefined)
 
     //keep activeLocation in line with activeUsedComponent
     useEffect(() => {
-        if (!ableToAddChild) return
+        if (!usedComponentCanHaveChild) return
 
         //if can accept children update the location
         if (activeUsedComponent.component?.categoryId === "containers") {
@@ -18,16 +17,13 @@ export default function LocationSelector({ location, activeLocationSet, activePa
             })
 
         } else {
-            //is not compatile with children
-            //check if already child type selected
-
-            if (location.type === "child" && activePageId !== undefined) {
+            //if not compatible with children and location set to child then switch off
+            if (location.type === "child" && activePage !== undefined) {
                 activeLocationSet({
                     type: "page",
-                    pageId: activePageId
+                    pageId: activePage.id
                 })
             }
-
         }
 
     }, [activeUsedComponent])
@@ -47,17 +43,15 @@ export default function LocationSelector({ location, activeLocationSet, activePa
                         activeLocationSet({ type: "header" })
 
                     } else if (eachLocationOption === "page") {
-                        if (activePageId === undefined) {
-                            toast.error("need to select a page")
-                            return
-                        }
+                        if (activePage === undefined) return
 
-                        activeLocationSet({ type: "page", pageId: activePageId })
+                        activeLocationSet({ type: "page", pageId: activePage.id })
                     }
                 }}
             >
                 {locationSelectionOptions.map(eachLocationOption => {
-                    if (eachLocationOption === "child" && !ableToAddChild) return null
+                    if (eachLocationOption === "page" && activePage === undefined) return null
+                    if (eachLocationOption === "child" && !usedComponentCanHaveChild) return null
 
                     return (
                         <option key={eachLocationOption} value={eachLocationOption}

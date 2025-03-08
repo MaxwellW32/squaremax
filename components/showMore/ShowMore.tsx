@@ -2,8 +2,8 @@
 import { useState } from "react"
 import styles from "./styles.module.css"
 
-export default function ShowMore({ label, content, svgColor }: { label: string, content: JSX.Element, svgColor?: string }) {
-    const [showing, showingSet] = useState(false)
+export default function ShowMore({ label, content, svgColor, startShowing }: { label: string, content: JSX.Element, svgColor?: string, startShowing?: boolean }) {
+    const [showing, showingSet] = useState(startShowing === undefined ? false : startShowing)
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start" }}>

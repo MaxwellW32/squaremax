@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm"
 import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
-import { getDescendedUsedComponents, getUsedComponentsInSameLocation } from "@/utility/utility"
+import { getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByIndex } from "@/utility/utility"
 
 export async function getSpecificUsedComponent(usedComponentId: usedComponent["id"]): Promise<usedComponent | undefined> {
     //validation
@@ -94,7 +94,7 @@ export async function addUsedComponent(newUsedComponent: newUsedComponent): Prom
     return result
 }
 
-export async function updateTheUsedComponent(websiteId: website["id"], usedComponentId: usedComponent["id"], updatedUsedComponentObj: Partial<updateUsedComponent>): Promise<usedComponent> {
+export async function updateTheUsedComponent(websiteId: website["id"], usedComponentId: usedComponent["id"], updatedUsedComponentObj: Partial<updateUsedComponent>, runSecurity = true): Promise<usedComponent> {
     const seenSession = await sessionCheckWithError()
 
     //validation
@@ -102,11 +102,12 @@ export async function updateTheUsedComponent(websiteId: website["id"], usedCompo
     usedComponentSchema.shape.id.parse(usedComponentId)
     const validatedUpdatedUsedComponent = updateUsedComponentSchema.partial().parse(updatedUsedComponentObj)
 
-    //security check 
-    const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
-    if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
-
+    if (runSecurity) {
+        //security check 
+        const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
+        if (seenWebsite === undefined) throw new Error("not seeing website")
+        await ensureUserCanAccess(seenSession, seenWebsite.userId)
+    }
 
     const [result] = await db.update(usedComponents)
         .set({
@@ -147,17 +148,32 @@ export async function deleteUsedComponent(websiteId: website["id"], usedComponen
 }
 
 export async function changeUsedComponentIndex(seenUsedComponent: usedComponent, wantedIndex: number) {
-    //get latest usedComponents on server
+    //validation
+    usedComponentSchema.parse(seenUsedComponent)
+
     //security
+    //get latest usedComponents on server
     let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
 
     //get used components in same location
     //put them in an array
     const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent, latestUsedComponents)
 
+    //order those components for the array
+    const orderedUsedComponentsInSameLocation = sortUsedComponentsByIndex(usedComponentsInSameLocation)
+
     //change the array by inserting at the wanted index
+    let updatedUsedComponentsArray = moveItemInArray(orderedUsedComponentsInSameLocation, seenUsedComponent.index, wantedIndex)
 
     //redo the ordering by map index
+    updatedUsedComponentsArray = updatedUsedComponentsArray.map((eachUsedComponent, eachUsedComponentIndex) => {
+        eachUsedComponent.index = eachUsedComponentIndex
+
+        return eachUsedComponent
+    })
 
     //update each of the usedComponents
+    await Promise.all(updatedUsedComponentsArray.map(async eachUsedComponent => {
+        await updateTheUsedComponent(eachUsedComponent.websiteId, eachUsedComponent.id, eachUsedComponent, false)
+    }))
 }

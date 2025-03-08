@@ -33,7 +33,7 @@ import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/h
 //have a function to write a used component to code, call it recursively if children seen on that page
 
 // Web sockets - signals to update website, update page, update used components 
-//fix ordering
+//fix location on switch
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -86,7 +86,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         return foundPage
     }, [websiteObj.pages, activePageId])
 
-    const [activeLocation, activeLocationSet] = useState<usedComponentLocationType>(activePageId === undefined ? { type: "header" } : { type: "page", pageId: activePageId })
+    const [activeLocation, activeLocationSet] = useState<usedComponentLocationType>(activePage === undefined ? { type: "header" } : { type: "page", pageId: activePage.id })
 
     const [addingPage, addingPageSet] = useState(false)
     const [componentsBuilt, componentBuiltSet] = useState(false)
@@ -116,17 +116,16 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     //get usedComponents on the active page
     const pageUsedComponents = useMemo(() => {
-        if (websiteObj.usedComponents === undefined) return []
+        if (websiteObj.usedComponents === undefined || activePage === undefined) return []
 
         const usedComponentsInPage = websiteObj.usedComponents.filter(eachUsedComponentFilter => {
-            return eachUsedComponentFilter.location.type === "page" && eachUsedComponentFilter.location.pageId === activePageId
+            return eachUsedComponentFilter.location.type === "page" && eachUsedComponentFilter.location.pageId === activePage.id
         })
 
         const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInPage)
-
         return sortedUsedComponents
 
-    }, [websiteObj.usedComponents, activePageId])
+    }, [websiteObj.usedComponents, activePage])
 
     const headerUsedComponents = useMemo(() => {
         if (websiteObj.usedComponents === undefined) return []
@@ -135,7 +134,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             return eachUsedComponentFilter.location.type === "header"
         })
         const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInHeader)
-
         return sortedUsedComponents
 
     }, [websiteObj.usedComponents])
@@ -147,7 +145,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             return eachUsedComponentFilter.location.type === "footer"
         })
         const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInFooter)
-
         return sortedUsedComponents
 
     }, [websiteObj.usedComponents])
@@ -157,9 +154,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         const start = async () => {
             try {
                 //replace original
-
-                if (websiteFromServer.usedComponents !== undefined && activePageId !== undefined) {
-                    websiteFromServer.usedComponents = await renderUsedComponentsInUse(websiteFromServer.usedComponents, activePageId)
+                if (websiteFromServer.usedComponents !== undefined) {
+                    websiteFromServer.usedComponents = await renderUsedComponentsInUse(websiteFromServer.usedComponents, activePage?.id)
                 }
 
                 //update obj locally with changes
@@ -202,11 +198,18 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     //keep active location in line with page selection 
     useEffect(() => {
-        //if page selection is active update on page change
-        if (activeLocation.type === "page" && activePageId !== undefined) {
-            activeLocationSet({ type: "page", pageId: activePageId })
+        if (activeLocation.type === "page") {
+            //if page selection is active update on page change
+            if (activePage !== undefined) {
+                activeLocationSet({ type: "page", pageId: activePage.id })
+
+            } else {
+                //if no page set to header
+                activeLocationSet({ type: "header" })
+            }
         }
-    }, [activePageId])
+
+    }, [activePage])
 
     function centerCanvas() {
         if (canvasContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
@@ -434,10 +437,10 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         activeUsedComponentIdSet(tempActiveUsedComponentId.current)
     }
 
-    async function renderUsedComponentsInUse(seenUsedComponents: usedComponent[], seenActivePageId: string) {
+    async function renderUsedComponentsInUse(seenUsedComponents: usedComponent[], seenActivePageId?: page["id"]) {
         //get the header, footer and usedComponents on this page
         const baseUsedComponentsInUse = seenUsedComponents.filter(eachFilterUsedComponent => {
-            return eachFilterUsedComponent.location.type === "header" || eachFilterUsedComponent.location.type === "footer" || (eachFilterUsedComponent.location.type === "page" && eachFilterUsedComponent.location.pageId === seenActivePageId)
+            return eachFilterUsedComponent.location.type === "header" || eachFilterUsedComponent.location.type === "footer" || (seenActivePageId !== undefined && eachFilterUsedComponent.location.type === "page" && eachFilterUsedComponent.location.pageId === seenActivePageId)
         })
 
         const baseUsedComponentsInUseIds = baseUsedComponentsInUse.map(eachBaseUsedComponentInUseId => eachBaseUsedComponentInUseId.id)
@@ -565,7 +568,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     <ShowMore
                                         label='Edit Page'
                                         content={
-                                            <AddEditPage key={activePageId} sentPage={activePage} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
+                                            <AddEditPage key={activePage.id} sentPage={activePage} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
                                         }
                                     />
                                 )}
@@ -629,6 +632,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                         runAction={async () => {
                                             await deletePage(websiteObj.id, activePage.id)
 
+                                            //ensure page is no longer selected
+                                            activePageIdSet(undefined)
+
                                             await refreshWebsitePath({ id: websiteObj.id })
                                         }}
                                     />
@@ -641,7 +647,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 }}
                             />
 
-                            <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePageId={activePageId} activeUsedComponent={activeUsedComponent} />
+                            <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
 
                             <ComponentSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} location={activeLocation} />
                         </div>
@@ -667,7 +673,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                                     <ShowMore
                                         label='Styling'
-
+                                        startShowing={true}
                                         content={
                                             <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
                                                 onChange={(e) => {

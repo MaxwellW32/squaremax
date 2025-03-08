@@ -1,8 +1,8 @@
 import { changeUsedComponentIndex } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { usedComponent, usedComponentLocationType, website } from '@/types'
-import { getUsedComponentsInSameLocation } from '@/utility/utility'
-import React, { useEffect, useMemo, useState } from 'react'
+import { usedComponent, website } from '@/types'
+import { getUsedComponentsInSameLocation, sanitizeUsedComponentData } from '@/utility/utility'
+import React, { useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 
 export default function ComponentOrderSelector({ websiteId, seenUsedComponents, seenUsedComponent }: { websiteId: website["id"], seenUsedComponents: usedComponent[], seenUsedComponent: usedComponent }) {
@@ -50,8 +50,10 @@ export default function ComponentOrderSelector({ websiteId, seenUsedComponents, 
                 onClick={async () => {
                     if (wantedIndex === null) return
 
+                    const sanitizedUsedComponent = sanitizeUsedComponentData(seenUsedComponent)
+
                     //change index position
-                    await changeUsedComponentIndex(seenUsedComponent, wantedIndex - 1)
+                    await changeUsedComponentIndex(sanitizedUsedComponent, wantedIndex - 1)
 
                     refreshWebsitePath({ id: websiteId })
 
