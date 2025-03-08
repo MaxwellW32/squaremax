@@ -1,8 +1,8 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
-import { componentDataType, usedComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, usedComponentLocationType, page, handleManagePageOptions, handleManageUpdateComponentsOptions, } from '@/types'
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sortUsedComponentsByIndex, } from '@/utility/utility'
+import { componentDataType, usedComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, usedComponentLocationType, page, handleManagePageOptions, handleManageUpdateComponentsOptions, updateUsedComponentSchema, } from '@/types'
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sanitizeUsedComponentData, sortUsedComponentsByIndex, } from '@/utility/utility'
 import AddEditPage from '../pages/AddEditPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
@@ -17,7 +17,7 @@ import AddEditWebsite from './AddEditWebsite'
 import LocationSelector from './LocationSelector'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { deletePage } from '@/serverFunctions/handlePages'
-import { deleteUsedComponent } from '@/serverFunctions/handleUsedComponents'
+import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 
 //flesh out the data needed for all website categories
 //think up all the possible website categories
@@ -34,6 +34,7 @@ import { deleteUsedComponent } from '@/serverFunctions/handleUsedComponents'
 
 // Web sockets - signals to update website, update page, update used components 
 //fix ordering
+//separare update function into quick updates sync later, and sync now local later
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -109,6 +110,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }>({})
 
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
+    const updateUsedComponentDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
 
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
     const [viewerComponent, viewerComponentSet] = useState<viewerComponentType | null>(null)
@@ -343,52 +345,66 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     async function handleManageUsedComponents(options: handleManageUpdateComponentsOptions) {
         try {
             if (options.option === "create") {
-                //assign latest built component to state
-                const latestUsedComponents = [...websiteObj.usedComponents ?? [], options.seenAddedUsedComponent]
-
-                //build the new component
                 //add component info onto object
-                const usedComponentsWithInfo = await addComponentInfoToUsedComponents(latestUsedComponents)
+                const usedComponentsWithInfo = await addComponentInfoToUsedComponents([options.seenAddedUsedComponent])
 
                 //build components
-                const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+                const [builtUsedComponent]: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
 
                 //add locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
                     if (newWebsite.usedComponents === undefined) return prevWebsite
 
-                    newWebsite.usedComponents = builtUsedComponents
+                    newWebsite.usedComponents = [...newWebsite.usedComponents, builtUsedComponent]
 
                     return newWebsite
                 })
 
             } else if (options.option === "update") {
-                //assign latest built component to state
-                const latestUsedComponents = (websiteObj.usedComponents ?? []).map(eachUsedComponent => {
-                    if (eachUsedComponent.id === options.seenUpdatedUsedComponent.id) {
-                        return options.seenUpdatedUsedComponent
-                    }
-
-                    return eachUsedComponent
-                })
-
-                //build the new component
                 //add component info onto object
-                const usedComponentsWithInfo = await addComponentInfoToUsedComponents(latestUsedComponents)
 
-                //build components
-                const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+                if (options.rebuild) {
+                    const usedComponentsWithInfo = await addComponentInfoToUsedComponents([options.seenUpdatedUsedComponent])
+
+                    //build components
+                    const [builtUsedComponent]: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+
+                    options.seenUpdatedUsedComponent = builtUsedComponent
+                }
 
                 //update locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
                     if (newWebsite.usedComponents === undefined) return prevWebsite
 
-                    newWebsite.usedComponents = builtUsedComponents
+                    newWebsite.usedComponents = newWebsite.usedComponents.map(eachUsedComponent => {
+                        if (eachUsedComponent.id === options.seenUpdatedUsedComponent.id) {
+                            return options.seenUpdatedUsedComponent
+                        }
+
+                        return eachUsedComponent
+                    })
 
                     return newWebsite
                 })
+
+                //update on server after delay
+                if (updateUsedComponentDebounce.current[options.seenUpdatedUsedComponent.id]) clearTimeout(updateUsedComponentDebounce.current[options.seenUpdatedUsedComponent.id])
+
+                //make new website schema
+                updateUsedComponentDebounce.current[options.seenUpdatedUsedComponent.id] = setTimeout(async () => {
+                    //ensure only certain fields can be updated
+                    const sanitizedUpdateComponent = sanitizeUsedComponentData(options.seenUpdatedUsedComponent)
+
+                    const validatedUpdatedUsedComponent = updateUsedComponentSchema.parse(sanitizedUpdateComponent)
+
+                    saveStateSet("saving")
+                    await updateTheUsedComponent(options.seenUpdatedUsedComponent.websiteId, options.seenUpdatedUsedComponent.id, validatedUpdatedUsedComponent)
+
+                    console.log(`$saved usedComponent to db`);
+                    saveStateSet("saved")
+                }, 3000);
             }
 
         } catch (error) {
@@ -702,6 +718,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                                         //ensure the component info is there
                                                                         if (viewerComponent.component === null || activeUsedComponent.data === null) return
 
+                                                                        console.log(`$got here`);
+
                                                                         //if usedComponents are the same type can reuse data
                                                                         const reusingUsedComponentData = activeUsedComponent.data.category === viewerComponent.component.categoryId
 
@@ -709,7 +727,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                                         const newReplacedUsedComponent = { ...activeUsedComponent, componentId: viewerComponent.component.id, css: viewerComponent.component.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerComponent.component.defaultData, }
 
                                                                         //send to update 
-                                                                        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newReplacedUsedComponent })
+                                                                        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
 
                                                                         viewerComponentSet(null)
 

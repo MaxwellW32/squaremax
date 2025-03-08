@@ -74,7 +74,8 @@ export type handleManageUpdateComponentsOptions =
 
     } | {
         option: "update",
-        seenUpdatedUsedComponent: usedComponent
+        seenUpdatedUsedComponent: usedComponent,
+        rebuild?: boolean
     }
 
 
