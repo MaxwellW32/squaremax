@@ -34,7 +34,6 @@ import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/h
 
 // Web sockets - signals to update website, update page, update used components 
 //fix ordering
-//separare update function into quick updates sync later, and sync now local later
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -750,7 +749,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     <ShowMore
                                         label='order'
                                         content={
-                                            <ComponentOrderSelector websiteId={websiteObj.id} usedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
+                                            <ComponentOrderSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
                                         }
                                     />
 

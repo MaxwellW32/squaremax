@@ -72,6 +72,29 @@ export function getChildrenUsedComponents(usedComponentParentId: usedComponent["
     return childrenUsedComponents
 }
 
+export function getUsedComponentsInSameLocation(seenUsedComponent: usedComponent, usedComponents: usedComponent[]) {
+    const usedComponentsInSameLocation = usedComponents.filter(eachUsedComponentFilter => {
+        let seenInMatchingLocation = false
+
+        if (eachUsedComponentFilter.location.type === "header" && seenUsedComponent.location.type === "header") {
+            seenInMatchingLocation = true
+
+        } else if (eachUsedComponentFilter.location.type === "footer" && seenUsedComponent.location.type === "footer") {
+            seenInMatchingLocation = true
+
+        } else if (eachUsedComponentFilter.location.type === "page" && seenUsedComponent.location.type === "page" && eachUsedComponentFilter.location.pageId === seenUsedComponent.location.pageId) {
+            seenInMatchingLocation = true
+
+        } else if (eachUsedComponentFilter.location.type === "child" && seenUsedComponent.location.type === "child" && eachUsedComponentFilter.location.parentId === seenUsedComponent.location.parentId) {
+            seenInMatchingLocation = true
+        }
+
+        return seenInMatchingLocation
+    })
+
+    return usedComponentsInSameLocation
+}
+
 export function sortUsedComponentsByIndex(seenUsedComponents: usedComponent[]) {
     let orderedUsedComponents = seenUsedComponents.sort((a, b) => a.index - b.index);
     return orderedUsedComponents

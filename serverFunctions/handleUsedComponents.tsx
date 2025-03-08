@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm"
 import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
-import { getDescendedUsedComponents } from "@/utility/utility"
+import { getDescendedUsedComponents, getUsedComponentsInSameLocation } from "@/utility/utility"
 
 export async function getSpecificUsedComponent(usedComponentId: usedComponent["id"]): Promise<usedComponent | undefined> {
     //validation
@@ -144,4 +144,20 @@ export async function deleteUsedComponent(websiteId: website["id"], usedComponen
 
     //delte parent used component
     await db.delete(usedComponents).where(eq(usedComponents.id, usedComponentId));
+}
+
+export async function changeUsedComponentIndex(seenUsedComponent: usedComponent, wantedIndex: number) {
+    //get latest usedComponents on server
+    //security
+    let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
+
+    //get used components in same location
+    //put them in an array
+    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent, latestUsedComponents)
+
+    //change the array by inserting at the wanted index
+
+    //redo the ordering by map index
+
+    //update each of the usedComponents
 }
