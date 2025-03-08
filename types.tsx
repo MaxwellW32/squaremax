@@ -297,7 +297,7 @@ export type usedComponent = z.infer<typeof usedComponentSchema> & {
     component?: component,
 };
 
-export const newUsedComponentSchema = usedComponentSchema.omit({ id: true, index: true })
+export const newUsedComponentSchema = usedComponentSchema.omit({ id: true })
 export type newUsedComponent = z.infer<typeof newUsedComponentSchema>
 
 export const updateUsedComponentSchema = usedComponentSchema.omit({ id: true, websiteId: true })

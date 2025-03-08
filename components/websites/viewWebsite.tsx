@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
 import { componentDataType, usedComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, usedComponentLocationType, page, handleManagePageOptions, handleManageUpdateComponentsOptions, } from '@/types'
-import { addScopeToCSS, } from '@/utility/utility'
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sortUsedComponentsByIndex, } from '@/utility/utility'
 import AddEditPage from '../pages/AddEditPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
@@ -33,12 +33,12 @@ import { deleteUsedComponent } from '@/serverFunctions/handleUsedComponents'
 //have a function to write a used component to code, call it recursively if children seen on that page
 
 //Ease of dB access
-// website is one table, pages one table, used components one table
-// Preserve data when updating used component 
-// One array of used components, location tells all - is header, footer, on specific page or is child 
 // Web sockets - signals to update website, update page, update used components 
 // Deleting pages, deleting used components cascades
 //container elements affect location on active
+
+//fix ordering
+//reuse descendant function in handle used components
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -81,7 +81,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
 
-    const [activePageId, activePageIdSet] = useState<page["id"] | undefined>(websiteObj.pages !== undefined ? websiteObj.pages[0].id : undefined)
+    const [activePageId, activePageIdSet] = useState<page["id"] | undefined>(websiteObj.pages !== undefined && websiteObj.pages.length > 0 ? websiteObj.pages[0].id : undefined)
     const activePage = useMemo<page | undefined>(() => {
         if (websiteObj.pages === undefined || activePageId === undefined) return undefined
 
@@ -91,7 +91,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         return foundPage
     }, [websiteObj.pages, activePageId])
 
-    const [activeLocation, activeLocationSet] = useState<usedComponentLocationType>(activePageId !== undefined ? { type: "page", pageId: activePageId } : { type: "header" })
+    const [activeLocation, activeLocationSet] = useState<usedComponentLocationType>(activePageId === undefined ? { type: "header" } : { type: "page", pageId: activePageId })
 
     const [addingPage, addingPageSet] = useState(false)
     const [componentsBuilt, componentBuiltSet] = useState(false)
@@ -122,26 +122,38 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     const pageUsedComponents = useMemo(() => {
         if (websiteObj.usedComponents === undefined) return []
 
-        return websiteObj.usedComponents.filter(eachUsedComponentFilter => {
+        const usedComponentsInPage = websiteObj.usedComponents.filter(eachUsedComponentFilter => {
             return eachUsedComponentFilter.location.type === "page" && eachUsedComponentFilter.location.pageId === activePageId
         })
+
+        const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInPage)
+
+        return sortedUsedComponents
 
     }, [websiteObj.usedComponents, activePageId])
 
     const headerUsedComponents = useMemo(() => {
         if (websiteObj.usedComponents === undefined) return []
 
-        return websiteObj.usedComponents.filter(eachUsedComponentFilter => {
+        const usedComponentsInHeader = websiteObj.usedComponents.filter(eachUsedComponentFilter => {
             return eachUsedComponentFilter.location.type === "header"
         })
+        const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInHeader)
+
+        return sortedUsedComponents
+
     }, [websiteObj.usedComponents])
 
     const footerUsedComponents = useMemo(() => {
         if (websiteObj.usedComponents === undefined) return []
 
-        return websiteObj.usedComponents.filter(eachUsedComponentFilter => {
+        const usedComponentsInFooter = websiteObj.usedComponents.filter(eachUsedComponentFilter => {
             return eachUsedComponentFilter.location.type === "footer"
         })
+        const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInFooter)
+
+        return sortedUsedComponents
+
     }, [websiteObj.usedComponents])
 
     // respond to changes from server - build components seen there
@@ -297,17 +309,17 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     async function handleManagePage(options: handleManagePageOptions) {
         try {
             if (options.option === "create") {
-
                 //add locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
 
                     //ensure pages seen
-                    if (newWebsite.pages === undefined) return prevWebsite
+                    if (newWebsite.pages === undefined) {
+                        return prevWebsite
+                    }
 
                     //set new page
-                    const indexToAddAt = newWebsite.pages.findIndex(eachPageFindIndex => eachPageFindIndex.id === options.seenAddedPage.id)
-                    newWebsite.pages[indexToAddAt] = options.seenAddedPage
+                    newWebsite.pages = [...newWebsite.pages, options.seenAddedPage]
 
                     return newWebsite
                 })
@@ -336,33 +348,49 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     async function handleManageUsedComponents(options: handleManageUpdateComponentsOptions) {
         try {
             if (options.option === "create") {
+                //assign latest built component to state
+                const latestUsedComponents = [...websiteObj.usedComponents ?? [], options.seenAddedUsedComponent]
+
+                //build the new component
+                //add component info onto object
+                const usedComponentsWithInfo = await addComponentInfoToUsedComponents(latestUsedComponents)
+
+                //build components
+                const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+
                 //add locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
-
                     if (newWebsite.usedComponents === undefined) return prevWebsite
 
-                    //assign latest built component to state
-                    newWebsite.usedComponents = [...newWebsite.usedComponents, options.seenAddedUsedComponent]
+                    newWebsite.usedComponents = builtUsedComponents
 
                     return newWebsite
                 })
 
             } else if (options.option === "update") {
+                //assign latest built component to state
+                const latestUsedComponents = (websiteObj.usedComponents ?? []).map(eachUsedComponent => {
+                    if (eachUsedComponent.id === options.seenUpdatedUsedComponent.id) {
+                        return options.seenUpdatedUsedComponent
+                    }
+
+                    return eachUsedComponent
+                })
+
+                //build the new component
+                //add component info onto object
+                const usedComponentsWithInfo = await addComponentInfoToUsedComponents(latestUsedComponents)
+
+                //build components
+                const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+
                 //update locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
-
                     if (newWebsite.usedComponents === undefined) return prevWebsite
 
-                    //assign latest built component to state
-                    newWebsite.usedComponents = newWebsite.usedComponents.map(eachUsedComponent => {
-                        if (eachUsedComponent.id === options.seenUpdatedUsedComponent.id) {
-                            return options.seenUpdatedUsedComponent
-                        }
-
-                        return eachUsedComponent
-                    })
+                    newWebsite.usedComponents = builtUsedComponents
 
                     return newWebsite
                 })
@@ -397,18 +425,18 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }
 
     async function renderUsedComponentsInUse(seenUsedComponents: usedComponent[], seenActivePageId: string) {
-        //get all descendent elements used on this page
-        //build em
-
-        //only build header, footer and usedComponents on page
+        //get the header, footer and usedComponents on this page
         const baseUsedComponentsInUse = seenUsedComponents.filter(eachFilterUsedComponent => {
             return eachFilterUsedComponent.location.type === "header" || eachFilterUsedComponent.location.type === "footer" || (eachFilterUsedComponent.location.type === "page" && eachFilterUsedComponent.location.pageId === seenActivePageId)
         })
 
-        //then get all their children
+        //then get all of the base components children recursively
+        const baseUsedComponentsDecendants: usedComponent[] = getDescendedUsedComponents(baseUsedComponentsInUse, seenUsedComponents)
+
+        const totalUsedComponentsToRender = [...baseUsedComponentsInUse, ...baseUsedComponentsDecendants]
 
         //add component info onto object
-        const usedComponentsWithInfo = await addComponentInfoToUsedComponents(baseUsedComponentsInUse)
+        const usedComponentsWithInfo = await addComponentInfoToUsedComponents(totalUsedComponentsToRender)
 
         //build components
         const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
@@ -422,6 +450,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             return eachUsedComponent
         })
 
+        //return the exact list with some components built/added to render obj
         return updatedUsedComponents
     }
 
@@ -488,13 +517,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         >
                             <style>{addScopeToCSS(websiteObj.globalCss, websiteObj.id)}</style>
 
-                            {componentsBuilt && activePage !== undefined && (
+                            {componentsBuilt && activePage !== undefined && websiteObj.usedComponents !== undefined && (
                                 <>
-                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
 
-                                    <RenderComponentTree seenUsedComponents={pageUsedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                    <RenderComponentTree seenUsedComponents={pageUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
 
-                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
+                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} activePageId={activePage.id} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} />
                                 </>
                             )}
                         </div>
@@ -547,11 +576,11 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}>
                         <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
                             <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
-                                {activePage !== undefined && websiteObj.pages?.map(eachPage => {
+                                {websiteObj.pages !== undefined && websiteObj.pages.map(eachPage => {
                                     //show each page name
 
                                     return (
-                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: eachPage.id === activePage.id ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
+                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: activePage !== undefined && eachPage.id === activePage.id ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
                                             onClick={async () => {
                                                 if (websiteObj.usedComponents === undefined) return
 
@@ -586,7 +615,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                             <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                                         }
                                         runAction={async () => {
-                                            await deletePage(websiteObj.id, activePage.id, true)
+                                            await deletePage(websiteObj.id, activePage.id)
 
                                             await refreshWebsitePath({ id: websiteObj.id })
                                         }}
@@ -600,7 +629,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 }}
                             />
 
-                            <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePageId={activePageId} />
+                            <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePageId={activePageId} activeUsedComponent={activeUsedComponent} />
 
                             <ComponentSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} location={activeLocation} />
                         </div>
@@ -642,7 +671,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     <ShowMore
                                         label="edit data"
                                         content={
-                                            <ComponentDataSwitch websiteId={websiteObj.id} seenLocation={activeLocation} activeUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} handleManageUsedComponents={handleManageUsedComponents} />
+                                            <ComponentDataSwitch location={activeLocation} activeUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} handlePropsChange={handlePropsChange} />
                                         }
                                     />
 
@@ -740,9 +769,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 }
 
 function RenderComponentTree({
-    seenUsedComponents, websiteObj, activePageId, renderedComponentsObj, tempActiveUsedComponentId, viewerComponent
+    seenUsedComponents, originalUsedComponentsList, websiteObj, activePageId, renderedComponentsObj, tempActiveUsedComponentId, viewerComponent
 }: {
-    seenUsedComponents: usedComponent[], websiteObj: website, activePageId: string, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null
+    seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], websiteObj: website, activePageId: string, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: componentDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, viewerComponent: viewerComponentType | null
 }) {
 
     return (
@@ -777,10 +806,13 @@ function RenderComponentTree({
 
                 let scopedCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id);
 
-                const seenChildren: usedComponent[] = []
+                const seenChildren: usedComponent[] = getChildrenUsedComponents(eachUsedComponent.id, originalUsedComponentsList)
+
+                //order the children
+                const seenOrderedChildren = sortUsedComponentsByIndex(seenChildren)
 
                 // Recursively render child components
-                const childJSX: React.JSX.Element | null = seenChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenChildren} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} /> : null;
+                const childJSX: React.JSX.Element | null = seenOrderedChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenOrderedChildren} originalUsedComponentsList={originalUsedComponentsList} websiteObj={websiteObj} activePageId={activePageId} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} /> : null;
 
                 //apply scoped styling starter value
                 eachUsedComponent.data.styleId = `____${eachUsedComponent.id}`

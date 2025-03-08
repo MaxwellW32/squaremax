@@ -39,7 +39,6 @@ export function sanitizeUsedComponentData(usedComponent: usedComponent): usedCom
     return deepClone(usedComponent)
 }
 
-
 export function moveItemInArray<T>(arr: T[], fromIndex: number, toIndex: number): T[] {
     const newArr = [...arr]; // Clone to avoid mutation
     const [movedItem] = newArr.splice(fromIndex, 1); // Remove item
@@ -47,5 +46,32 @@ export function moveItemInArray<T>(arr: T[], fromIndex: number, toIndex: number)
     return newArr;
 }
 
+export function getDescendedUsedComponents(parentUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[]): usedComponent[] {
+    const descendedArray: usedComponent[] = []
 
+    parentUsedComponents.forEach(eachParentUsedComponent => {
+        // get children for each usedComponent
+        let childrenUsedComponents = getChildrenUsedComponents(eachParentUsedComponent.id, originalUsedComponentsList)
+        descendedArray.push(...childrenUsedComponents)
+
+        const seenFutherChildComponents = getDescendedUsedComponents(childrenUsedComponents, originalUsedComponentsList)
+        descendedArray.push(...seenFutherChildComponents)
+    })
+
+    return descendedArray
+}
+
+export function getChildrenUsedComponents(usedComponentParentId: usedComponent["id"], originalUsedComponentsList: usedComponent[]) {
+    // get children for each usedComponent
+    const childrenUsedComponents = originalUsedComponentsList.filter(eachUsedComponent => {
+        return eachUsedComponent.location.type === "child" && eachUsedComponent.location.parentId === usedComponentParentId
+    })
+
+    return childrenUsedComponents
+}
+
+export function sortUsedComponentsByIndex(seenUsedComponents: usedComponent[]) {
+    let orderedUsedComponents = seenUsedComponents.sort((a, b) => a.index - b.index);
+    return orderedUsedComponents
+}
 

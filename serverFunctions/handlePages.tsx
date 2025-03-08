@@ -52,7 +52,7 @@ export async function updateThePage(pageId: page["id"], websiteId: website["id"]
     return result
 }
 
-export async function deletePage(websiteId: website["id"], pageId: page["id"], deleteRelatedUsedComponents?: boolean) {
+export async function deletePage(websiteId: website["id"], pageId: page["id"], deleteRelatedUsedComponents = true) {
     const seenSession = await sessionCheckWithError()
 
     //validate

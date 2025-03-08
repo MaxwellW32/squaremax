@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm"
 import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
+import { getDescendedUsedComponents } from "@/utility/utility"
 
 export async function getSpecificUsedComponent(usedComponentId: usedComponent["id"]): Promise<usedComponent | undefined> {
     //validation
@@ -60,23 +61,33 @@ export async function getUsedComponents(selectionObj: { option: "website", data:
 export async function addUsedComponent(newUsedComponent: newUsedComponent): Promise<usedComponent> {
     const fullNewUsedComponent: usedComponent = {
         id: uuidV4(),
-        index: 0, //make it work
         ...newUsedComponent,
     }
+
+    //get latest usedComponents on server
+    let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: fullNewUsedComponent.websiteId } })
 
     //validation
     usedComponentSchema.parse(fullNewUsedComponent)
 
-    //sort out children
+    //add to last index of elements in same location header, footer, page
+    if (fullNewUsedComponent.location.type !== "child") {
+        const usedComponentsInSameLocation = latestUsedComponents.filter(eachUsedComponent => {
+            return eachUsedComponent.location.type === fullNewUsedComponent.location.type
+        })
 
+        //assign latest index
+        fullNewUsedComponent.index = usedComponentsInSameLocation.length
 
-    //get all the latest components on server
-    //also runs security check
-    // let latestUsedComponent = await getUsedComponents({ option: "website", data: { websiteId: fullNewUsedComponent.websiteId } })
+    } else {
+        //add child usedComponent to the latest seen with its siblings
+        const siblingUsedComponents = latestUsedComponents.filter(eachUsedComponent => {
+            return eachUsedComponent.location.type === "child" && fullNewUsedComponent.location.type === "child" && eachUsedComponent.location.parentId === fullNewUsedComponent.location.parentId
+        })
 
-    //insert in array normally
-    //check for siblings to get proper order numbering
-    //refix the order
+        //assign latest index
+        fullNewUsedComponent.index = siblingUsedComponents.length
+    }
 
     const [result] = await db.insert(usedComponents).values(fullNewUsedComponent).returning()
 
@@ -120,21 +131,11 @@ export async function deleteUsedComponent(websiteId: website["id"], usedComponen
 
     //delete children used components recursively
     const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: websiteId } })
-    const allDescendentUsedComponents = await findChildren(usedComponentId, latestUsedComponents)
-    async function findChildren(parentUsedComponentId: usedComponent["id"], sentUsedComponents: usedComponent[]): Promise<usedComponent[]> {
-        // Find direct children
-        let seenChildren = sentUsedComponents.filter(eachUsedComponent => {
-            return eachUsedComponent.location.type === "child" && eachUsedComponent.location.parentId === parentUsedComponentId
-        })
 
-        // Recursively find children of each child component
-        const subChildrenArrays = await Promise.all(seenChildren.map(async eachChildUsedComponent => {
-            return await findChildren(eachChildUsedComponent.id, sentUsedComponents);
-        }));
+    const foundUsedComponentToDelete = latestUsedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === usedComponentId)
+    if (foundUsedComponentToDelete === undefined) throw new Error("not seeing usedComponent")
 
-        // Flatten the results and return
-        return seenChildren.concat(...subChildrenArrays);
-    }
+    const allDescendentUsedComponents = getDescendedUsedComponents([foundUsedComponentToDelete], latestUsedComponents)
 
     //delete children used component
     await Promise.all(

@@ -1,9 +1,9 @@
-import { componentDataType, handleManageUpdateComponentsOptions, usedComponent, usedComponentLocationType, website } from '@/types'
+import { componentDataType, usedComponent, usedComponentLocationType } from '@/types'
 import React from 'react'
 import EditNavbarsData from './navbars/EditNavbarsData'
 import EditContainersData from './containers/EditContainersData'
 
-export default function ComponentDataSwitch({ websiteId, seenLocation, activeUsedComponent, handlePropsChange, handleManageUsedComponents }: { websiteId: website["id"], seenLocation: usedComponentLocationType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: usedComponent) => void, handleManageUsedComponents(options: handleManageUpdateComponentsOptions): Promise<void> }) {
+export default function ComponentDataSwitch({ location, activeUsedComponent, seenUsedComponents, handlePropsChange }: { location: usedComponentLocationType, seenUsedComponents: usedComponent[], activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, seenComponentInPage: usedComponent) => void }) {
     if (activeUsedComponent.data === null) return null
 
     return (
@@ -12,8 +12,8 @@ export default function ComponentDataSwitch({ websiteId, seenLocation, activeUse
                 <EditNavbarsData data={activeUsedComponent.data} activeUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} />
             )}
 
-            {activeUsedComponent.data.category === "containers" && (
-                <EditContainersData websiteId={websiteId} seenLocation={seenLocation} data={activeUsedComponent.data} seenUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} handleManageUsedComponents={handleManageUsedComponents} />
+            {activeUsedComponent.data.category === "containers" && location.type === "child" && (
+                <EditContainersData location={location} seenUsedComponents={seenUsedComponents} data={activeUsedComponent.data} seenUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} />
             )}
         </>
     )

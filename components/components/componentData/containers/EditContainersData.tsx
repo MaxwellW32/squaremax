@@ -1,9 +1,9 @@
-import { componentDataType, containersType, handleManageUpdateComponentsOptions, usedComponent, usedComponentLocationType, website } from '@/types'
+import { componentDataType, containersType, locationChildSchemaType, usedComponent } from '@/types'
 import React from 'react'
-import ComponentSelector from '../../ComponentSelector'
+import { getChildrenUsedComponents } from '@/utility/utility'
 
-export default function EditContainersData({ websiteId, seenLocation, handleManageUsedComponents }: { websiteId: website["id"], seenLocation: usedComponentLocationType, data: containersType, seenUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentUsedComponent: usedComponent) => void, handleManageUsedComponents(options: handleManageUpdateComponentsOptions): Promise<void> }) {
-    const seenChildren: usedComponent[] = []
+export default function EditContainersData({ location, seenUsedComponents }: { data: containersType, seenUsedComponent: usedComponent, location: locationChildSchemaType, seenUsedComponents: usedComponent[], handlePropsChange: (newPropsObj: componentDataType, sentUsedComponent: usedComponent) => void }) {
+    const seenChildren: usedComponent[] = getChildrenUsedComponents(location.parentId, seenUsedComponents)
 
     return (
         <div>
@@ -16,9 +16,6 @@ export default function EditContainersData({ websiteId, seenLocation, handleMana
                     )
                 })}
             </div>
-
-            <h3>Add component children</h3>
-            <ComponentSelector websiteId={websiteId} handleManageUsedComponents={handleManageUsedComponents} location={seenLocation} />
         </div>
     )
 }

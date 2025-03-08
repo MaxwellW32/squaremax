@@ -71,7 +71,11 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
                 pages: true,
                 usedComponents: {
                     with: {
-                        component: true
+                        component: {
+                            with: {
+                                category: true
+                            }
+                        }
                     }
                 }
             }
@@ -93,7 +97,11 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
                 pages: true,
                 usedComponents: {
                     with: {
-                        component: true
+                        component: {
+                            with: {
+                                category: true
+                            }
+                        }
                     }
                 }
             }

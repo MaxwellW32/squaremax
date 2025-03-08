@@ -84,8 +84,6 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
                 //validate
                 const validatedNewPage: newPage = newPageSchema.parse(formObj)
 
-
-
                 //send up to server
                 const seenAddedPage = await addPage(validatedNewPage)
 
