@@ -78,7 +78,7 @@ export const usedComponents = pgTable('usedComponents', {
     websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
     componentId: varchar("componentId", { length: 255 }).notNull().references(() => components.id),
     css: text("css").default("").notNull(),
-    index: integer("index").notNull(),
+    order: integer("order").notNull(),
     location: json("location").$type<usedComponentLocationType>().notNull(),
 
     data: json("data").$type<componentDataType | null>().default(null),

@@ -98,7 +98,7 @@ export function getUsedComponentsInSameLocation(seenUsedComponent: usedComponent
     return usedComponentsInSameLocation
 }
 
-export function sortUsedComponentsByIndex(seenUsedComponents: usedComponent[]) {
-    let orderedUsedComponents = seenUsedComponents.sort((a, b) => a.index - b.index);
+export function sortUsedComponentsByOrder(seenUsedComponents: usedComponent[]) {
+    let orderedUsedComponents = seenUsedComponents.sort((a, b) => a.order - b.order);
     return orderedUsedComponents
 }

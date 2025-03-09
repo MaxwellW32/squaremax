@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import styles from "./style.module.css"
 import { componentDataType, usedComponent, sizeOptionType, updateWebsiteSchema, viewerComponentType, website, usedComponentLocationType, page, handleManagePageOptions, handleManageUpdateComponentsOptions, updateUsedComponentSchema, } from '@/types'
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sanitizeUsedComponentData, sortUsedComponentsByIndex, } from '@/utility/utility'
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
 import AddEditPage from '../pages/AddEditPage'
 import globalDynamicComponents from '@/utility/globalComponents'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
@@ -18,6 +18,7 @@ import LocationSelector from './LocationSelector'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
+import ComponentLocationSelector from '../components/componentLocationSelector/ComponentLocationSelector'
 
 //flesh out the data needed for all website categories
 //think up all the possible website categories
@@ -32,8 +33,10 @@ import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/h
 //name them appropriately by their category
 //have a function to write a used component to code, call it recursively if children seen on that page
 
-// Web sockets - signals to update website, update page, update used components 
-//fix location on switch
+//order is just for ordering - on add new used component just increment the largest value
+//when re arranging get the order of the the position in the array after ordering - then cascade update new orders
+//make a move location component - add at largest order
+//then build your first design - sophisticated nav
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
@@ -122,7 +125,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             return eachUsedComponentFilter.location.type === "page" && eachUsedComponentFilter.location.pageId === activePage.id
         })
 
-        const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInPage)
+        const sortedUsedComponents = sortUsedComponentsByOrder(usedComponentsInPage)
         return sortedUsedComponents
 
     }, [websiteObj.usedComponents, activePage])
@@ -133,7 +136,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         const usedComponentsInHeader = websiteObj.usedComponents.filter(eachUsedComponentFilter => {
             return eachUsedComponentFilter.location.type === "header"
         })
-        const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInHeader)
+        const sortedUsedComponents = sortUsedComponentsByOrder(usedComponentsInHeader)
         return sortedUsedComponents
 
     }, [websiteObj.usedComponents])
@@ -144,7 +147,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         const usedComponentsInFooter = websiteObj.usedComponents.filter(eachUsedComponentFilter => {
             return eachUsedComponentFilter.location.type === "footer"
         })
-        const sortedUsedComponents = sortUsedComponentsByIndex(usedComponentsInFooter)
+        const sortedUsedComponents = sortUsedComponentsByOrder(usedComponentsInFooter)
         return sortedUsedComponents
 
     }, [websiteObj.usedComponents])
@@ -320,6 +323,10 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     //set new page
                     newWebsite.pages = [...newWebsite.pages, options.seenAddedPage]
 
+                    if (newWebsite.pages.length === 1) {
+                        activePageIdSet(options.seenAddedPage.id)
+                    }
+
                     return newWebsite
                 })
 
@@ -471,7 +478,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
     return (
         <main className={styles.main}>
-            <div className={styles.mainSettingsCont}>
+            <div className={styles.topSettingsCont}>
                 <div>
                     {saveState === "saving" ? (
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z" /></svg>
@@ -548,7 +555,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 </div>
 
                 <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}                >
-                    <div className={styles.sideBarSettings} style={{ backgroundColor: dimSideBar ? "" : "rgb(var(--color3))" }}>
+                    <div className={styles.sideBarButtons} style={{ backgroundColor: dimSideBar ? "" : "rgb(var(--color3))" }}>
                         <div style={{ display: "grid", alignContent: "flex-start", }}>
                             <button className='secondaryButton'
                                 onClick={() => {
@@ -589,7 +596,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                     </div>
 
                     <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}>
-                        <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto" }}>
+                        <div className={styles.sideBarTopContent}>
                             <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
                                 {websiteObj.pages !== undefined && websiteObj.pages.map(eachPage => {
                                     //show each page name
@@ -652,7 +659,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                             <ComponentSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} location={activeLocation} />
                         </div>
 
-                        <div style={{ display: "grid", gap: "1rem", alignContent: "flex-start", overflow: "auto", padding: "1rem" }}>
+                        <div className={styles.sideBarOtherContent}>
                             <ShowMore
                                 label='Edit global styles'
                                 content={
@@ -670,6 +677,18 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                             {activeUsedComponent !== undefined && websiteObj.usedComponents !== undefined && (
                                 <>
                                     <label>{activeUsedComponent.component?.categoryId ?? ""} component</label>
+
+                                    {activeUsedComponent.data !== null && Object.hasOwn(activeUsedComponent.data, "children") && (
+                                        <button style={{ justifySelf: "flex-end", position: "absolute", zIndex: 1 }}
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(activeUsedComponent.id);
+
+                                                toast.success("parent id copied to cliboard")
+                                            }}
+                                        >
+                                            <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
+                                        </button>
+                                    )}
 
                                     <ShowMore
                                         label='Styling'
@@ -744,7 +763,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                                         consoleAndToastError(error)
                                                                     }
                                                                 }}
-                                                            >repalce with this component</button>
+                                                            >replace with this component</button>
                                                         )}
                                                     </>
                                                 )}
@@ -756,6 +775,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                         label='order'
                                         content={
                                             <ComponentOrderSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
+                                        }
+                                    />
+
+                                    <ShowMore
+                                        label='change location'
+                                        content={
+                                            <ComponentLocationSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenPage={activePage} />
                                         }
                                     />
 
@@ -829,7 +855,7 @@ function RenderComponentTree({
                 const seenChildren: usedComponent[] = getChildrenUsedComponents(eachUsedComponent.id, originalUsedComponentsList)
 
                 //order the children
-                const seenOrderedChildren = sortUsedComponentsByIndex(seenChildren)
+                const seenOrderedChildren = sortUsedComponentsByOrder(seenChildren)
 
                 // Recursively render child components
                 const childJSX: React.JSX.Element | null = seenOrderedChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenOrderedChildren} originalUsedComponentsList={originalUsedComponentsList} websiteObj={websiteObj} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerComponent={viewerComponent} /> : null;
@@ -855,10 +881,16 @@ function RenderComponentTree({
                     //highlight the element to show selection
                     const seenEl = e.currentTarget as HTMLElement;
                     seenEl.classList.add(styles.highlightComponent);
+                }
 
-                    setTimeout(() => {
-                        seenEl.classList.remove(styles.highlightComponent);
-                    }, 1000);
+                //@ts-expect-error mouseLeave
+                eachUsedComponent.data.mainElProps.onMouseLeave = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                    e.stopPropagation()
+
+                    const seenEl = e.currentTarget as HTMLElement;
+
+                    //remove the highlight 
+                    seenEl.classList.remove(styles.highlightComponent);
                 }
 
                 //pass children to viewer component if valid

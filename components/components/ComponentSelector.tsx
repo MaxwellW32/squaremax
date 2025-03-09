@@ -86,7 +86,7 @@ export default function ComponentSelector({ websiteId, location, handleManageUse
                                                         //add to server
                                                         const newUsedComponent: newUsedComponent = {
                                                             componentId: eachComponent.id,
-                                                            index: 0,
+                                                            order: 0,
                                                             css: "",
                                                             data: null,
                                                             location: location,

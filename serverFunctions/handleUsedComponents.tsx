@@ -3,10 +3,10 @@ import { db } from "@/db"
 import { usedComponents } from "@/db/schema"
 import { ensureUserCanAccess, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
-import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentSchema, website, websiteSchema } from "@/types"
+import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentLocationType, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
-import { getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByIndex } from "@/utility/utility"
+import { getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByOrder } from "@/utility/utility"
 
 export async function getSpecificUsedComponent(usedComponentId: usedComponent["id"]): Promise<usedComponent | undefined> {
     //validation
@@ -64,30 +64,24 @@ export async function addUsedComponent(newUsedComponent: newUsedComponent): Prom
         ...newUsedComponent,
     }
 
+    //security
     //get latest usedComponents on server
     let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: fullNewUsedComponent.websiteId } })
 
     //validation
     usedComponentSchema.parse(fullNewUsedComponent)
 
-    //add to last index of elements in same location header, footer, page
-    if (fullNewUsedComponent.location.type !== "child") {
-        const usedComponentsInSameLocation = latestUsedComponents.filter(eachUsedComponent => {
-            return eachUsedComponent.location.type === fullNewUsedComponent.location.type
-        })
+    //match other usedComponents in same location
+    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(fullNewUsedComponent, latestUsedComponents)
 
-        //assign latest index
-        fullNewUsedComponent.index = usedComponentsInSameLocation.length
-
-    } else {
-        //add child usedComponent to the latest seen with its siblings
-        const siblingUsedComponents = latestUsedComponents.filter(eachUsedComponent => {
-            return eachUsedComponent.location.type === "child" && fullNewUsedComponent.location.type === "child" && eachUsedComponent.location.parentId === fullNewUsedComponent.location.parentId
-        })
-
-        //assign latest index
-        fullNewUsedComponent.index = siblingUsedComponents.length
-    }
+    //ensure the ordering always adds to the last in the array
+    let largestOrderNumberSeen = -1
+    usedComponentsInSameLocation.forEach(eachUsedComponentInSameLocation => {
+        if (eachUsedComponentInSameLocation.order > largestOrderNumberSeen) {
+            largestOrderNumberSeen = eachUsedComponentInSameLocation.order
+        }
+    })
+    fullNewUsedComponent.order = largestOrderNumberSeen + 1
 
     const [result] = await db.insert(usedComponents).values(fullNewUsedComponent).returning()
 
@@ -160,14 +154,17 @@ export async function changeUsedComponentIndex(seenUsedComponent: usedComponent,
     const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent, latestUsedComponents)
 
     //order those components for the array
-    const orderedUsedComponentsInSameLocation = sortUsedComponentsByIndex(usedComponentsInSameLocation)
+    const orderedUsedComponentsInSameLocation = sortUsedComponentsByOrder(usedComponentsInSameLocation)
+
+    //put where found in array index 
+    const seenIndexInArray = orderedUsedComponentsInSameLocation.findIndex(eachOrderedUsedComponentsInSameLocation => eachOrderedUsedComponentsInSameLocation.id === seenUsedComponent.id)
 
     //change the array by inserting at the wanted index
-    let updatedUsedComponentsArray = moveItemInArray(orderedUsedComponentsInSameLocation, seenUsedComponent.index, wantedIndex)
+    let updatedUsedComponentsArray = moveItemInArray(orderedUsedComponentsInSameLocation, seenIndexInArray, wantedIndex)
 
     //redo the ordering by map index
     updatedUsedComponentsArray = updatedUsedComponentsArray.map((eachUsedComponent, eachUsedComponentIndex) => {
-        eachUsedComponent.index = eachUsedComponentIndex
+        eachUsedComponent.order = eachUsedComponentIndex
 
         return eachUsedComponent
     })
@@ -176,4 +173,38 @@ export async function changeUsedComponentIndex(seenUsedComponent: usedComponent,
     await Promise.all(updatedUsedComponentsArray.map(async eachUsedComponent => {
         await updateTheUsedComponent(eachUsedComponent.websiteId, eachUsedComponent.id, eachUsedComponent, false)
     }))
+}
+
+export async function changeUsedComponentLocation(seenUsedComponent: usedComponent, newLocation: usedComponentLocationType) {
+    //validation
+    usedComponentSchema.parse(seenUsedComponent)
+
+    //security
+    //get latest usedComponents on server
+    let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
+
+    //ensure parentEl can actually take children elements
+    if (newLocation.type === "child") {
+        const foundParentUsedComponent = latestUsedComponents.find(e => e.id === newLocation.parentId)
+        if (foundParentUsedComponent === undefined) throw new Error("not seeing parent used component")
+
+        if (foundParentUsedComponent.data === null) throw new Error("interact with that component  first")
+
+        if (!Object.hasOwn(foundParentUsedComponent.data, "children")) throw new Error("This component can't take child elements")
+    }
+
+    //get used components in same location
+    //put them in an array
+    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent, latestUsedComponents)
+
+    //ensure the ordering always adds to the last in the array
+    let largestOrderNumberSeen = -1
+    usedComponentsInSameLocation.forEach(eachUsedComponentInSameLocation => {
+        if (eachUsedComponentInSameLocation.order > largestOrderNumberSeen) {
+            largestOrderNumberSeen = eachUsedComponentInSameLocation.order
+        }
+    })
+
+    //update component
+    await updateTheUsedComponent(seenUsedComponent.websiteId, seenUsedComponent.id, { order: largestOrderNumberSeen + 1, location: newLocation })
 }

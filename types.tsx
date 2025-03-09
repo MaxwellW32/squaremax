@@ -288,7 +288,7 @@ export const usedComponentSchema = z.object({
     websiteId: z.string().min(1),
     componentId: z.string().min(1),
     css: z.string(),
-    index: z.number(),
+    order: z.number(),
     location: usedComponentLocationSchema,
 
     data: componentDataSchema.nullable(),
