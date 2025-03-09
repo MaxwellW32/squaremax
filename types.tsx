@@ -49,7 +49,7 @@ export type collection = z.infer<typeof collectionSchema>
 export type viewerTemplateType = {
     usedComponentIdToSwap: usedComponent["id"],
     template: template | null,
-    builtComponent: React.ComponentType<{
+    builtUsedComponent: React.ComponentType<{
         data: templateDataType;
     }> | null
 }
@@ -339,8 +339,7 @@ export const usedComponentSchema = z.object({
     css: z.string(),
     order: z.number(),
     location: usedComponentLocationSchema,
-
-    data: templateDataSchema.nullable(),
+    data: templateDataSchema,
 })
 export type usedComponent = z.infer<typeof usedComponentSchema> & {
     fromWebsite?: website,

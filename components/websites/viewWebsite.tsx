@@ -7,7 +7,6 @@ import AddEditPage from '../pages/AddEditPage'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import toast from 'react-hot-toast'
-import { getSpecificTemplate } from '@/serverFunctions/handleTemplates'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
 import ShowMore from '../showMore/ShowMore'
 import AddEditWebsite from './AddEditWebsite'
@@ -21,7 +20,7 @@ import UsedComponentLocationSelector from '../usedComponents/usedComponentLocati
 import TemplateDataSwitch from '../templates/templateData/TemplateDataSwitch'
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
-    const [showingSideBar, showingSideBarSet] = useState(false)
+    const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
     const [editOptions, editOptionsSet] = useState(false)
 
@@ -181,21 +180,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
     }, [tempActiveUsedComponentId])
 
-    //keep active location in line with page selection 
-    useEffect(() => {
-        if (activeLocation.type === "page") {
-            //if page selection is active update on page change
-            if (activePage !== undefined) {
-                activeLocationSet({ type: "page", pageId: activePage.id })
-
-            } else {
-                //if no page set to header
-                activeLocationSet({ type: "header" })
-            }
-        }
-
-    }, [activePage])
-
     function centerCanvas() {
         if (canvasContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
 
@@ -206,63 +190,23 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? canvasContRef.current.clientWidth : activeSizeOption.width) / 2}px`
     }
 
-    async function addTemplateInfoToUsedComponents(usedComponents: usedComponent[]): Promise<usedComponent[]> {
-        return Promise.all(
-            usedComponents.map(async eachUsedComponent => {
-                //if no template get it for the first time
-                if (eachUsedComponent.template === undefined) {
-                    const seenTemplate = await getSpecificTemplate({ id: eachUsedComponent.templateId })
-                    if (seenTemplate === undefined) {
-                        console.log(`$not seeing template for `, eachUsedComponent.templateId);
-                    }
-
-                    //add template onto object
-                    eachUsedComponent.template = seenTemplate
-                }
-
-                return eachUsedComponent
-            })
-        )
-    }
-
     async function buildUsedComponents(sentUsedComponents: usedComponent[]): Promise<usedComponent[]> {
         usedComponentBuiltSet(false)
 
         //build all templates
         const builtUsedComponents = await Promise.all(
             sentUsedComponents.map(async eachUsedComponent => {
-                if (eachUsedComponent.template === undefined || eachUsedComponent.template.category === undefined) throw new Error("need template and category")
-
-                let neededToUpdateDefaultData = false
-
-                //get started props if none there
-                if (eachUsedComponent.data === null) {
-                    eachUsedComponent.data = eachUsedComponent.template.defaultData
-                    neededToUpdateDefaultData = true
-                }
-
-                //get started props if none there
-                if (eachUsedComponent.css === "") {
-                    eachUsedComponent.css = eachUsedComponent.template.defaultCss
-                    neededToUpdateDefaultData = true
-                }
-
-                //write data changes to server if first time interacting
-                if (neededToUpdateDefaultData) {
-                    await updateTheUsedComponent(eachUsedComponent.websiteId, eachUsedComponent.id, sanitizeUsedComponentData(eachUsedComponent))
-                }
-
                 //if doesnt exist in renderObj then render it
-                if (renderedComponentsObj.current[eachUsedComponent.template.id] === undefined) {
-                    const seenResponse = await globalDynamicTemplates(eachUsedComponent.template.id)
+                if (renderedComponentsObj.current[eachUsedComponent.templateId] === undefined) {
+                    const seenResponse = await globalDynamicTemplates(eachUsedComponent.templateId)
 
                     //assign builds to renderObj
                     if (seenResponse !== undefined) {
-                        renderedComponentsObj.current[eachUsedComponent.template.id] = seenResponse()
+                        renderedComponentsObj.current[eachUsedComponent.templateId] = seenResponse()
 
                     } else {
                         //log component id not found
-                        console.log(`$element template id not found`, eachUsedComponent.template.id);
+                        console.log(`$element template id not found`, eachUsedComponent.templateId);
                     }
                 }
 
@@ -345,11 +289,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     async function handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions) {
         try {
             if (options.option === "create") {
-                //add template info onto object
-                const usedComponentsWithInfo = await addTemplateInfoToUsedComponents([options.seenAddedUsedComponent])
-
                 //build components
-                const [builtUsedComponent]: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+                const [builtUsedComponent]: usedComponent[] = await buildUsedComponents([options.seenAddedUsedComponent])
 
                 //add locally
                 websiteObjSet(prevWebsite => {
@@ -365,10 +306,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                 //add component info onto object
 
                 if (options.rebuild) {
-                    const usedComponentsWithInfo = await addTemplateInfoToUsedComponents([options.seenUpdatedUsedComponent])
-
                     //build components
-                    const [builtUsedComponent]: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+                    const [builtUsedComponent]: usedComponent[] = await buildUsedComponents([options.seenUpdatedUsedComponent])
 
                     options.seenUpdatedUsedComponent = builtUsedComponent
                 }
@@ -441,18 +380,14 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             return eachFilterUsedComponent.location.type === "header" || eachFilterUsedComponent.location.type === "footer" || (seenActivePageId !== undefined && eachFilterUsedComponent.location.type === "page" && eachFilterUsedComponent.location.pageId === seenActivePageId)
         })
 
-        const baseUsedComponentsInUseIds = baseUsedComponentsInUse.map(eachBaseUsedComponentInUseId => eachBaseUsedComponentInUseId.id)
-
         //then get all of the base components children recursively
+        const baseUsedComponentsInUseIds = baseUsedComponentsInUse.map(eachBaseUsedComponentInUseId => eachBaseUsedComponentInUseId.id)
         const baseUsedComponentsDecendants: usedComponent[] = getDescendedUsedComponents(baseUsedComponentsInUseIds, seenUsedComponents)
 
         const totalUsedComponentsToRender = [...baseUsedComponentsInUse, ...baseUsedComponentsDecendants]
 
-        //add template info onto object
-        const usedComponentsWithInfo = await addTemplateInfoToUsedComponents(totalUsedComponentsToRender)
-
         //build components
-        const builtUsedComponents: usedComponent[] = await buildUsedComponents(usedComponentsWithInfo)
+        const builtUsedComponents: usedComponent[] = await buildUsedComponents(totalUsedComponentsToRender)
 
         //add back onto the original list
         const updatedUsedComponents = seenUsedComponents.map(eachUsedComponent => {
@@ -647,7 +582,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                             <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
 
-                            <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} location={activeLocation} />
+                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} />
                         </div>
 
                         <div className={styles.sideBarOtherContent}>
@@ -667,9 +602,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                             {activeUsedComponent !== undefined && websiteObj.usedComponents !== undefined && (
                                 <>
-                                    <label>{activeUsedComponent.template?.categoryId ?? ""} template </label>
+                                    <label>{activeUsedComponent.data.category} template</label>
 
-                                    {activeUsedComponent.data !== null && Object.hasOwn(activeUsedComponent.data, "children") && (
+                                    {Object.hasOwn(activeUsedComponent.data, "children") && (
                                         <button style={{ justifySelf: "flex-end", position: "absolute", zIndex: 1 }}
                                             onClick={() => {
                                                 navigator.clipboard.writeText(activeUsedComponent.id);
@@ -710,7 +645,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                 {viewerTemplate === null ? (
                                                     <button className='mainButton'
                                                         onClick={() => {
-                                                            viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtComponent: null })
+                                                            viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtUsedComponent: null })
                                                         }}
                                                     >enable viewer node</button>
                                                 ) : (
@@ -733,15 +668,13 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                                         //replace the used component with this selection
 
                                                                         //ensure the component info is there
-                                                                        if (viewerTemplate.template === null || activeUsedComponent.data === null) return
-
-                                                                        console.log(`$got here`);
+                                                                        if (viewerTemplate.template === null) return
 
                                                                         //if usedComponents are the same type can reuse data
                                                                         const reusingUsedComponentData = activeUsedComponent.data.category === viewerTemplate.template.categoryId
 
                                                                         //replace everything except id, pageid, compid, children
-                                                                        const newReplacedUsedComponent = { ...activeUsedComponent, componentId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData, }
+                                                                        const newReplacedUsedComponent: usedComponent = { ...activeUsedComponent, templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData, }
 
                                                                         //send to update 
                                                                         handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
@@ -816,13 +749,13 @@ function RenderComponentTree({
             {seenUsedComponents.map(eachUsedComponent => {
                 let usingViewerTemplate = false
 
-                let SeenViewerTemplate: React.ComponentType<{ data: templateDataType }> | null = null
+                let SeenViewerUsedComponent: React.ComponentType<{ data: templateDataType }> | null = null
                 let seenViewerTemplateData: templateDataType | null = null
 
                 //assign new chosen component if using the viewer node
-                if (viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === eachUsedComponent.id && viewerTemplate.template !== null && viewerTemplate.builtComponent !== null) {
+                if (viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === eachUsedComponent.id && viewerTemplate.template !== null && viewerTemplate.builtUsedComponent !== null) {
                     usingViewerTemplate = true
-                    SeenViewerTemplate = viewerTemplate.builtComponent
+                    SeenViewerUsedComponent = viewerTemplate.builtUsedComponent
                     seenViewerTemplateData = viewerTemplate.template.defaultData
                 }
 
@@ -832,12 +765,6 @@ function RenderComponentTree({
                         `Component with ID ${eachUsedComponent.templateId} is not in renderedComponentsObj.`,
                         renderedComponentsObj.current
                     );
-                    return null;
-                }
-
-                //make sure component data is fetched
-                if (eachUsedComponent.data === null) {
-                    console.log(`No data in component`, eachUsedComponent);
                     return null;
                 }
 
@@ -906,8 +833,8 @@ function RenderComponentTree({
 
                         {usingViewerTemplate ? (
                             <>
-                                {SeenViewerTemplate !== null && seenViewerTemplateData !== null && (
-                                    <SeenViewerTemplate data={seenViewerTemplateData} />
+                                {SeenViewerUsedComponent !== null && seenViewerTemplateData !== null && (
+                                    <SeenViewerUsedComponent data={seenViewerTemplateData} />
                                 )}
                             </>
                         ) : (

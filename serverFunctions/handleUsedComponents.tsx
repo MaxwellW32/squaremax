@@ -70,6 +70,12 @@ export async function addUsedComponent(newUsedComponent: newUsedComponent): Prom
     //validation
     usedComponentSchema.parse(fullNewUsedComponent)
 
+    //maintain db recusrive constraint with child used component
+    //ensure child can be added to wanted parent
+    if (fullNewUsedComponent.location.type === "child") {
+        await ensureChildCanBeAddedToParent(fullNewUsedComponent.location.parentId, { option: "reuse", sentUsedComponent: latestUsedComponents })
+    }
+
     //match other usedComponents in same location
     const usedComponentsInSameLocation = getUsedComponentsInSameLocation(fullNewUsedComponent, latestUsedComponents)
 
@@ -182,14 +188,9 @@ export async function changeUsedComponentLocation(seenUsedComponent: usedCompone
     //get latest usedComponents on server
     let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
 
-    //ensure parentEl can actually take children elements
+    //if adding as a child of another element ensure parentEl is valid
     if (newLocation.type === "child") {
-        const foundParentUsedComponent = latestUsedComponents.find(e => e.id === newLocation.parentId)
-        if (foundParentUsedComponent === undefined) throw new Error("not seeing parent used component")
-
-        if (foundParentUsedComponent.data === null) throw new Error("not seeing data on used component")
-
-        if (!Object.hasOwn(foundParentUsedComponent.data, "children")) throw new Error("This component can't take child elements")
+        ensureChildCanBeAddedToParent(newLocation.parentId, { option: "reuse", sentUsedComponent: latestUsedComponents })
     }
 
     //get used components in same location
@@ -206,4 +207,22 @@ export async function changeUsedComponentLocation(seenUsedComponent: usedCompone
 
     //update component
     await updateTheUsedComponent(seenUsedComponent.websiteId, seenUsedComponent.id, { order: largestOrderNumberSeen + 1, location: newLocation })
+}
+
+//ensure parentEl can actually take children elements
+export async function ensureChildCanBeAddedToParent(parentId: usedComponent["id"], otherData: { option: "reuse", sentUsedComponent: usedComponent[] } | { option: "fetch", websiteId: website["id"] }) {
+    let latestUsedComponents: usedComponent[] = []
+
+    if (otherData.option === "reuse") {
+        latestUsedComponents = otherData.sentUsedComponent
+    } else if (otherData.option === "fetch") {
+        latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: otherData.websiteId } })
+    }
+
+    //ensure parent exists in array
+    const foundParentUsedComponent = latestUsedComponents.find(eachSentUsedComponent => eachSentUsedComponent.id === parentId)
+    if (foundParentUsedComponent === undefined) throw new Error("not seeing parent used component")
+
+    //ensure parent can take children
+    if (!Object.hasOwn(foundParentUsedComponent.data, "children")) throw new Error("This component can't take child elements")
 }

@@ -80,8 +80,7 @@ export const usedComponents = pgTable('usedComponents', {
     css: text("css").default("").notNull(),
     order: integer("order").notNull(),
     location: json("location").$type<usedComponentLocationType>().notNull(),
-
-    data: json("data").$type<templateDataType | null>().default(null),
+    data: json("data").$type<templateDataType>().notNull(),
 
 }, (t) => ({
     websiteIdIndex: index("websiteIdIndex").on(t.websiteId),

@@ -23,18 +23,15 @@ export function addScopeToCSS(cssString: string, idPrefix: string) {
 
 export function sanitizeUsedComponentData(usedComponent: usedComponent): usedComponent {
     // Update the used components recursively
-
     const seenPropData = usedComponent.data
 
     //ensure not to pass react children data to server
-    if (seenPropData !== null) {
-        if (Object.hasOwn(seenPropData, "children")) {
-            // @ts-expect-error types
-            seenPropData["children"] = []
-        }
-
-        usedComponent.data = seenPropData
+    if (Object.hasOwn(seenPropData, "children")) {
+        // @ts-expect-error types
+        seenPropData["children"] = []
     }
+
+    usedComponent.data = seenPropData
 
     return deepClone(usedComponent)
 }

@@ -119,7 +119,7 @@
 
 
 .highlightComponent {
-    animation: highlightComponent 2s ease;
+    animation: highlightComponent 5s ease;
 }
 
 @media only screen and (max-width: 600px) {
@@ -135,7 +135,13 @@
 
 @keyframes highlightComponent {
     0% {
+        filter: brightness(1);
+
+    }
+
+    10% {
         filter: brightness(.5);
+
     }
 
     100% {

@@ -32,15 +32,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
                     return (
                         <button key={eachLocationSelectionOption} className='mainButton' style={{ backgroundColor: transferToLocation !== undefined && eachLocationSelectionOption === transferToLocation ? "rgb(var(--color1))" : "" }}
                             onClick={() => {
-                                if (eachLocationSelectionOption === "header" || eachLocationSelectionOption === "footer") {
-                                    transferToLocationSet(eachLocationSelectionOption)
-
-                                } else if (eachLocationSelectionOption === "page") {
-                                    transferToLocationSet(eachLocationSelectionOption)
-
-                                } else if (eachLocationSelectionOption === "child") {
-                                    transferToLocationSet(eachLocationSelectionOption)
-                                }
+                                transferToLocationSet(eachLocationSelectionOption)
                             }}
                         >{eachLocationSelectionOption}</button>
                     )
@@ -57,7 +49,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
                                 onClick={async () => {
                                     handleSubmission(seenUsedComponent, { type: transferToLocation })
                                 }}
-                            >Add to place</button>
+                            >Add to {transferToLocation}</button>
                         </>
                     )}
 
@@ -87,12 +79,15 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
 
                             <button className='mainButton'
                                 onClick={async () => {
+                                    //ensure active selection
                                     if (activeParentId === "") {
                                         toast.error("copy the id of a container parent")
                                         return
                                     }
 
                                     await handleSubmission(seenUsedComponent, { type: "child", parentId: activeParentId })
+
+                                    activeParentIdSet("")
                                 }}
                             >Add to container</button>
                         </>

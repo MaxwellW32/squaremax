@@ -80,17 +80,19 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
 
                                         <button className='mainButton'
                                             onClick={async () => {
+                                                console.log(`$location`, location);
+
                                                 try {
                                                     //add template to page normally 
                                                     if (viewerTemplateSet === undefined) {
                                                         //add to server
                                                         const newUsedComponent: newUsedComponent = {
+                                                            websiteId: websiteId,
                                                             templateId: eachTemplate.id,
+                                                            css: eachTemplate.defaultCss,
                                                             order: 0,
-                                                            css: "",
-                                                            data: null,
                                                             location: location,
-                                                            websiteId: websiteId
+                                                            data: eachTemplate.defaultData,
                                                         }
 
                                                         const validatedNewUsedComponent = newUsedComponentSchema.parse(newUsedComponent)
@@ -114,7 +116,7 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
                                                             const newViewerTemplate = { ...prevViewerTemplate }
 
                                                             newViewerTemplate.template = eachTemplate
-                                                            newViewerTemplate.builtComponent = seenResponse()
+                                                            newViewerTemplate.builtUsedComponent = seenResponse()
 
                                                             return newViewerTemplate
                                                         })
