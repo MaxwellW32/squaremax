@@ -400,16 +400,6 @@ export type style = z.infer<typeof stylesSchema> & {
 
 
 
-
-
-
-
-
-
-
-
-
-
 export const templatesToStylesSchema = z.object({
     templateId: z.string().min(1),
     styleName: z.string().min(1),
@@ -418,9 +408,3 @@ export type templatesToStyles = z.infer<typeof templatesToStylesSchema> & {
     template?: template,
     style?: style
 }
-
-
-
-
-
-

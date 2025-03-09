@@ -6,7 +6,7 @@ import { sanitizeUsedComponentData } from '@/utility/utility';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
 
-export default function UsedComponentLocationSelector({ seenUsedComponent, seenPage }: { websiteId: website["id"], seenUsedComponent: usedComponent, seenPage?: page }) {
+export default function UsedComponentLocationSelector({ seenUsedComponent, seenPages }: { websiteId: website["id"], seenUsedComponent: usedComponent, seenPages: page[] }) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
     const [transferToLocation, transferToLocationSet] = useState<usedComponentLocationType["type"] | undefined>()
     const [activeParentId, activeParentIdSet] = useState<usedComponent["id"]>("")
@@ -63,15 +63,17 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
 
                     {transferToLocation === "page" && (
                         <>
-                            <button className='mainButton'
-                                onClick={async () => {
-                                    if (seenPage === undefined) {
-                                        toast.error("need to provide a page")
-                                        return
-                                    }
-                                    handleSubmission(seenUsedComponent, { type: "page", pageId: seenPage.id })
-                                }}
-                            >Add to page</button>
+                            <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem" }}>
+                                {seenPages.map(eachPage => {
+                                    return (
+                                        <button key={eachPage.id} className='mainButton'
+                                            onClick={async () => {
+                                                handleSubmission(seenUsedComponent, { type: "page", pageId: eachPage.id })
+                                            }}
+                                        >add to {eachPage.name}</button>
+                                    )
+                                })}
+                            </div>
                         </>
                     )}
 

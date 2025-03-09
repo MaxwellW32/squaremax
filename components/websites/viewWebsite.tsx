@@ -233,14 +233,23 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             sentUsedComponents.map(async eachUsedComponent => {
                 if (eachUsedComponent.template === undefined || eachUsedComponent.template.category === undefined) throw new Error("need template and category")
 
+                let neededToUpdateDefaultData = false
+
                 //get started props if none there
                 if (eachUsedComponent.data === null) {
                     eachUsedComponent.data = eachUsedComponent.template.defaultData
+                    neededToUpdateDefaultData = true
                 }
 
                 //get started props if none there
                 if (eachUsedComponent.css === "") {
                     eachUsedComponent.css = eachUsedComponent.template.defaultCss
+                    neededToUpdateDefaultData = true
+                }
+
+                //write data changes to server if first time interacting
+                if (neededToUpdateDefaultData) {
+                    await updateTheUsedComponent(eachUsedComponent.websiteId, eachUsedComponent.id, sanitizeUsedComponentData(eachUsedComponent))
                 }
 
                 //if doesnt exist in renderObj then render it
@@ -763,7 +772,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     <ShowMore
                                         label='change location'
                                         content={
-                                            <UsedComponentLocationSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenPage={activePage} />
+                                            <UsedComponentLocationSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenPages={websiteObj.pages !== undefined ? websiteObj.pages : []} />
                                         }
                                     />
 

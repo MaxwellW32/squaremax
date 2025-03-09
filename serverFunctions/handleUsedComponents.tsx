@@ -187,7 +187,7 @@ export async function changeUsedComponentLocation(seenUsedComponent: usedCompone
         const foundParentUsedComponent = latestUsedComponents.find(e => e.id === newLocation.parentId)
         if (foundParentUsedComponent === undefined) throw new Error("not seeing parent used component")
 
-        if (foundParentUsedComponent.data === null) throw new Error("interact with that component  first")
+        if (foundParentUsedComponent.data === null) throw new Error("not seeing data on used component")
 
         if (!Object.hasOwn(foundParentUsedComponent.data, "children")) throw new Error("This component can't take child elements")
     }
