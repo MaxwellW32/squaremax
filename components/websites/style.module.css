@@ -166,19 +166,6 @@
 
 
 
-
-/* styling component */
-/* .formInputCont {
-    display: grid;
-    align-content: flex-start;
-    gap: .5rem;
-    font-size: .7rem;
-}
-
-.formInputCont>input {
-    padding: .5rem 1rem;
-} */
-/* add edit website */
 .form {
     display: grid;
     align-content: flex-start;

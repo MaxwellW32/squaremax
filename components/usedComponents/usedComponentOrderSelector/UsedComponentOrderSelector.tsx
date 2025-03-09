@@ -6,7 +6,7 @@ import { getUsedComponentsInSameLocation, sanitizeUsedComponentData } from '@/ut
 import React, { useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 
-export default function ComponentOrderSelector({ websiteId, seenUsedComponents, seenUsedComponent }: { websiteId: website["id"], seenUsedComponents: usedComponent[], seenUsedComponent: usedComponent }) {
+export default function UsedComponentOrderSelector({ websiteId, seenUsedComponents, seenUsedComponent }: { websiteId: website["id"], seenUsedComponents: usedComponent[], seenUsedComponent: usedComponent }) {
     const [inputValue, inputValueSet] = useState("")
     const [wantedIndex, wantedIndexSet] = useState<number | null>(null)
 

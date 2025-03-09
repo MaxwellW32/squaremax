@@ -1,30 +1,30 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import path from "path"
-import styles from "./addWebsiteComponent.module.css"
+import styles from "./addTemplate.module.css"
 import { toast } from 'react-hot-toast'
-import { category, collection, component, componentDataSchema, componentSchema, newComponent, newComponentSchema } from '@/types'
+import { category, collection, template, templateDataSchema, templatesSchema, newTemplate, newTemplateSchema } from '@/types'
 import { deepClone } from '@/utility/utility'
 import { getAllCategories } from '@/serverFunctions/handleCategories'
-import { addComponent, deleteComponent, removeEntryFromGlobalComponentsFile, updateComponent } from '@/serverFunctions/handleComponents'
+import { addTemplate, deleteTemplate, removeEntryFromGlobalTemplatesFile, updateTemplate } from '@/serverFunctions/handleTemplates'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import { deleteDirectory } from '@/serverFunctions/handleServerFiles'
-import { userWebsiteComponentsDir } from '@/lib/userWebsiteComponents'
-import TextInput from '../textInput/TextInput'
-import TextArea from '../textArea/TextArea'
+import { websiteTemplatesDir } from '@/lib/websiteTemplateLib'
 import { useRouter } from "next/navigation"
+import TextInput from '@/components/textInput/TextInput'
+import TextArea from '@/components/textArea/TextArea'
 
-export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWebsiteComponent?: component }) {
+export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: template }) {
     const router = useRouter()
 
-    const [initialForm,] = useState<Partial<newComponent>>({
+    const [initialForm,] = useState<Partial<newTemplate>>({
         name: "",
         categoryId: "",
         defaultCss: "",
         defaultData: undefined,
     })
 
-    const [formObj, formObjSet] = useState<Partial<newComponent> | component>(oldWebsiteComponent !== undefined ? deepClone(oldWebsiteComponent) : deepClone(initialForm))
+    const [formObj, formObjSet] = useState<Partial<newTemplate> | template>(oldTemplate !== undefined ? deepClone(oldTemplate) : deepClone(initialForm))
     const [userWantsToDelete, userWantsToDeleteSet] = useState(false)
     const [categories, categoriesSet] = useState<category[]>([])
     const [selectedCategory, selectedCategorySet] = useState<category | null>(null)
@@ -34,16 +34,16 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
     useEffect(() => {
         handleGetCategories()
 
-        if (oldWebsiteComponent !== undefined && oldWebsiteComponent.category !== undefined) {
+        if (oldTemplate !== undefined && oldTemplate.category !== undefined) {
             //assign category seen
-            selectedCategorySet(oldWebsiteComponent.category)
+            selectedCategorySet(oldTemplate.category)
         }
     }, [])
 
-    type componentKeys = keyof Partial<newComponent>
+    type templateKeys = keyof Partial<newTemplate>
 
     type moreFormInfoType = {
-        [key in componentKeys]: {
+        [key in templateKeys]: {
             label?: string,
             placeHolder?: string,
             type?: string,
@@ -55,12 +55,12 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
         "name": {
             label: "name",
             inputType: "input",
-            placeHolder: "Enter component name",
+            placeHolder: "Enter template name",
         },
         "categoryId": {
             label: "category id",
             inputType: "input",
-            placeHolder: "Enter component category",
+            placeHolder: "Enter template category",
         },
         "defaultCss": {
             label: "default css",
@@ -75,10 +75,10 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
     });
 
     const [formErrors, formErrorsSet] = useState<Partial<{
-        [key in componentKeys]: string
+        [key in templateKeys]: string
     }>>({})
 
-    function checkIfValid(seenFormObj: Partial<newComponent>, seenName: keyof Partial<newComponent>, schema: typeof newComponentSchema) {
+    function checkIfValid(seenFormObj: Partial<newTemplate>, seenName: keyof Partial<newTemplate>, schema: typeof newTemplateSchema) {
         // @ts-expect-error types
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 
@@ -140,27 +140,27 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
         if (!wantsToSubmit) return
 
         try {
-            if (oldWebsiteComponent === undefined) {
+            if (oldTemplate === undefined) {
                 if (seenCollection.length === 0) throw new Error("upload some files")
 
-                //new component
-                const validatedComponent = newComponentSchema.parse(formObj)
+                //new template
+                const validatedTemplate = newTemplateSchema.parse(formObj)
 
-                await addComponent(validatedComponent, seenCollection)
+                await addTemplate(validatedTemplate, seenCollection)
 
                 formObjSet(deepClone(initialForm))
 
 
-                toast.success("new component submitted")
+                toast.success("new template submitted")
 
             } else {
-                //edit component
+                //edit template
 
-                componentSchema.parse(formObj)
+                templatesSchema.parse(formObj)
 
-                await updateComponent(formObj, seenCollection)
+                await updateTemplate(formObj, seenCollection)
 
-                toast.success("updated component!")
+                toast.success("updated template!")
             }
 
         } catch (error) {
@@ -172,19 +172,19 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
         try {
             toast.success("deleting...")
 
-            //delete any tables with relations to the component
-            const validatedFullComponent = componentSchema.parse(formObj)
+            //delete any tables with relations to the template
+            const validatedFullTemplate = templatesSchema.parse(formObj)
 
-            //remove component
-            await deleteComponent({ id: validatedFullComponent.id })
+            //remove template
+            await deleteTemplate({ id: validatedFullTemplate.id })
 
-            //delete the website component dir
-            await deleteDirectory(path.join(userWebsiteComponentsDir, validatedFullComponent.id))
+            //delete the website template dir
+            await deleteDirectory(path.join(websiteTemplatesDir, validatedFullTemplate.id))
 
-            //delete from global components file
-            await removeEntryFromGlobalComponentsFile(validatedFullComponent.id)
+            //delete from global templates file
+            await removeEntryFromGlobalTemplatesFile(validatedFullTemplate.id)
 
-            toast.success("deleted component")
+            toast.success("deleted template")
 
             setTimeout(() => {
                 router.push("/")
@@ -201,16 +201,16 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
     return (
         <main className={styles.main}>
             <section>
-                <h1>{oldWebsiteComponent ? "Edit component" : "Upload a component"}</h1>
+                <h1>{oldTemplate ? "Edit template" : "Upload a template"}</h1>
 
-                {oldWebsiteComponent && (
+                {oldTemplate && (
                     <>
                         {!userWantsToDelete ? (
                             <button className='mainButton'
                                 onClick={() => {
                                     userWantsToDeleteSet(true)
                                 }}
-                            >Delete Component</button>
+                            >Delete Template</button>
                         ) : (
                             <div>
                                 <p>Confirm Deletion</p>
@@ -251,7 +251,7 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
             </section>
 
             <section>
-                <h3>Upload component folder</h3>
+                <h3>Upload template folder</h3>
 
                 <input type='file' multiple={true}
                     onChange={handleFileChange}
@@ -270,7 +270,7 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
                                 const parsedObj = eval(`(${input})`); // Wrap in parentheses to treat it as an expression
 
                                 //validate
-                                const validatedCompData = componentDataSchema.parse(parsedObj);
+                                const validatedCompData = templateDataSchema.parse(parsedObj);
 
                                 newFormObj.defaultData = validatedCompData;
 
@@ -288,7 +288,7 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
 
             <form action={() => { }} className={styles.form}>
                 {Object.entries(formObj).map(eachEntry => {
-                    const eachKey = eachEntry[0] as componentKeys
+                    const eachKey = eachEntry[0] as templateKeys
                     if (eachKey === "defaultData" || eachKey === "categoryId") return null
 
                     if (moreFormInfo[eachKey] === undefined) return null
@@ -309,7 +309,7 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
                                             return newFormObj
                                         })
                                     }}
-                                    onBlur={() => { checkIfValid(formObj, eachKey, newComponentSchema) }}
+                                    onBlur={() => { checkIfValid(formObj, eachKey, newTemplateSchema) }}
                                     errors={formErrors[eachKey]}
                                 />
                             ) : moreFormInfo[eachKey].inputType === "textarea" ? (
@@ -326,7 +326,7 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
                                             return newFormObj
                                         })
                                     }}
-                                    onBlur={() => { checkIfValid(formObj, eachKey, newComponentSchema) }}
+                                    onBlur={() => { checkIfValid(formObj, eachKey, newTemplateSchema) }}
                                     errors={formErrors[eachKey]}
                                 />
                             ) : null}

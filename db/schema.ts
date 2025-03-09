@@ -1,4 +1,4 @@
-import { categoryName, componentDataType, fontsType, page, usedComponentLocationType, user, userUploadedImagesType, website } from "@/types";
+import { categoryName, templateDataType, fontsType, page, usedComponentLocationType, user, userUploadedImagesType, website } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -74,14 +74,14 @@ export const pageRelations = relations(pages, ({ one, many }) => ({
 
 
 export const usedComponents = pgTable('usedComponents', {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//unqieu id for component on page
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//unqieu id for template
     websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
-    componentId: varchar("componentId", { length: 255 }).notNull().references(() => components.id),
+    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
     css: text("css").default("").notNull(),
     order: integer("order").notNull(),
     location: json("location").$type<usedComponentLocationType>().notNull(),
 
-    data: json("data").$type<componentDataType | null>().default(null),
+    data: json("data").$type<templateDataType | null>().default(null),
 
 }, (t) => ({
     websiteIdIndex: index("websiteIdIndex").on(t.websiteId),
@@ -92,9 +92,9 @@ export const usedComponentsRelations = relations(usedComponents, ({ one }) => ({
         fields: [usedComponents.websiteId],
         references: [websites.id],
     }),
-    component: one(components, {
-        fields: [usedComponents.componentId],
-        references: [components.id],
+    template: one(templates, {
+        fields: [usedComponents.templateId],
+        references: [templates.id],
     }),
 }));
 
@@ -102,18 +102,18 @@ export const usedComponentsRelations = relations(usedComponents, ({ one }) => ({
 
 
 
-export const components = pgTable("components", {
+export const templates = pgTable("templates", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//where you find it
     name: varchar("name", { length: 255 }).notNull().unique(),
     categoryId: varchar("categoryId", { length: 255 }).notNull().references(() => categories.name),
     defaultCss: text("defaultCss").notNull(),
-    defaultData: json("defaultData").$type<componentDataType>().notNull(),
+    defaultData: json("defaultData").$type<templateDataType>().notNull(),
 })
-export const componentsRelations = relations(components, ({ one, many }) => ({
-    componentsToStyles: many(componentsToStyles),
+export const templatesRelations = relations(templates, ({ one, many }) => ({
+    templatesToStyles: many(templatesToStyles),
     usedComponents: many(usedComponents),
     category: one(categories, {
-        fields: [components.categoryId],
+        fields: [templates.categoryId],
         references: [categories.name],
     }),
 }));
@@ -126,7 +126,7 @@ export const categories = pgTable("categories", {
     name: varchar("name", { length: 255 }).$type<categoryName>().notNull().unique(),
 })
 export const categoriesRelations = relations(categories, ({ many }) => ({
-    components: many(components),
+    templates: many(templates),
 }));
 
 
@@ -137,27 +137,27 @@ export const styles = pgTable("styles", {
     name: varchar("name", { length: 255 }).notNull().unique(),
 })
 export const stylesRelations = relations(styles, ({ many }) => ({
-    componentsToStyles: many(componentsToStyles),
+    templateToStyles: many(templatesToStyles),
 }));
 
 
 
 
 
-export const componentsToStyles = pgTable('componentsToStyles', {
-    componentId: varchar("componentId", { length: 255 }).notNull().references(() => components.id),
+export const templatesToStyles = pgTable('templatesToStyles', {
+    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
     styleName: varchar("styleName", { length: 255 }).notNull().references(() => styles.name),
 }, (t) => ({
-    pk: primaryKey({ columns: [t.componentId, t.styleName] }),
+    pk: primaryKey({ columns: [t.templateId, t.styleName] }),
 }),
 );
-export const componentsToStylesRelations = relations(componentsToStyles, ({ one }) => ({
-    componentId: one(components, {
-        fields: [componentsToStyles.componentId],
-        references: [components.id],
+export const templatesToStylesRelations = relations(templatesToStyles, ({ one }) => ({
+    template: one(templates, {
+        fields: [templatesToStyles.templateId],
+        references: [templates.id],
     }),
     style: one(styles, {
-        fields: [componentsToStyles.styleName],
+        fields: [templatesToStyles.styleName],
         references: [styles.name],
     }),
 }));

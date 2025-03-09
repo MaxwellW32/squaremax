@@ -14,15 +14,14 @@ export async function getSpecificUsedComponent(usedComponentId: usedComponent["i
 
     const result = await db.query.usedComponents.findFirst({
         where: eq(usedComponents.id, usedComponentId),
-        // with: {
-        //     category: true,
-        // }
+        with: {
+        }
     });
 
     return result
 }
 
-export async function getUsedComponents(selectionObj: { option: "website", data: Pick<usedComponent, "websiteId"> } | { option: "component", data: Pick<usedComponent, "componentId"> }): Promise<usedComponent[]> {
+export async function getUsedComponents(selectionObj: { option: "website", data: Pick<usedComponent, "websiteId"> } | { option: "template", data: Pick<usedComponent, "templateId"> }): Promise<usedComponent[]> {
     const seenSession = await sessionCheckWithError()
 
     if (selectionObj.option === "website") {
@@ -40,15 +39,15 @@ export async function getUsedComponents(selectionObj: { option: "website", data:
 
         return results
 
-    } else if (selectionObj.option === "component") {
+    } else if (selectionObj.option === "template") {
         //validation
-        usedComponentSchema.pick({ componentId: true }).parse(selectionObj.data)
+        usedComponentSchema.pick({ templateId: true }).parse(selectionObj.data)
 
         //security check
         if (seenSession.user.role !== "admin") throw new Error("not authorised")
 
         const results = await db.query.usedComponents.findMany({
-            where: eq(usedComponents.componentId, selectionObj.data.componentId),
+            where: eq(usedComponents.templateId, selectionObj.data.templateId),
         });
 
         return results

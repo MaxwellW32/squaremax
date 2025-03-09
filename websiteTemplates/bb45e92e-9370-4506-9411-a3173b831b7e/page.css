@@ -1,0 +1,87 @@
+.nav {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem:hover .navSubmenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu {
+        flex-direction: column;
+    }
+
+    .navItem {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}

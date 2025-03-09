@@ -6,7 +6,7 @@ import { sanitizeUsedComponentData } from '@/utility/utility';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
 
-export default function ComponentLocationSelector({ seenUsedComponent, seenPage }: { websiteId: website["id"], seenUsedComponent: usedComponent, seenPage?: page }) {
+export default function UsedComponentLocationSelector({ seenUsedComponent, seenPage }: { websiteId: website["id"], seenUsedComponent: usedComponent, seenPage?: page }) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
     const [transferToLocation, transferToLocationSet] = useState<usedComponentLocationType["type"] | undefined>()
     const [activeParentId, activeParentIdSet] = useState<usedComponent["id"]>("")
@@ -14,11 +14,9 @@ export default function ComponentLocationSelector({ seenUsedComponent, seenPage 
     async function handleSubmission(sentUsedComponent: usedComponent, newLocation: usedComponentLocationType) {
         try {
             const sanitizedUsedComponent = sanitizeUsedComponentData(sentUsedComponent)
-
             await changeUsedComponentLocation(sanitizedUsedComponent, newLocation)
 
             toast.success("location changed!")
-
             await refreshWebsitePath({ id: sentUsedComponent.websiteId })
 
         } catch (error) {
@@ -91,11 +89,6 @@ export default function ComponentLocationSelector({ seenUsedComponent, seenPage 
                                         toast.error("copy the id of a container parent")
                                         return
                                     }
-
-                                    //get seen components
-                                    //if not seen blah
-                                    //scan 
-                                    //if no then blah 
 
                                     await handleSubmission(seenUsedComponent, { type: "child", parentId: activeParentId })
                                 }}

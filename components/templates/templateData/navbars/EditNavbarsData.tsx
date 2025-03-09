@@ -1,8 +1,8 @@
 "use client"
-import { componentDataType, navBarsType, usedComponent } from '@/types'
+import { templateDataType, navBarsType, usedComponent } from '@/types'
 import React from 'react'
 
-export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: componentDataType, sentUsedComponent: usedComponent) => void }) {
+export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: templateDataType, sentUsedComponent: usedComponent) => void }) {
 
     return (
         <form action={() => { }}>

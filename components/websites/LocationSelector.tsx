@@ -3,14 +3,14 @@ import React, { useEffect } from 'react'
 
 export default function LocationSelector({ location, activeLocationSet, activePage, activeUsedComponent }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePage: page | undefined, activeUsedComponent?: usedComponent }) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
-    const usedComponentCanHaveChild = !(activeUsedComponent === undefined || activeUsedComponent.component === undefined || activeUsedComponent.component.category === undefined)
+    const usedComponentCanHaveChild = !(activeUsedComponent === undefined || activeUsedComponent.template === undefined || activeUsedComponent.template.category === undefined)
 
     //keep activeLocation in line with activeUsedComponent
     useEffect(() => {
         if (!usedComponentCanHaveChild) return
 
         //if can accept children update the location
-        if (activeUsedComponent.component?.categoryId === "containers") {
+        if (activeUsedComponent.template?.categoryId === "containers") {
             activeLocationSet({
                 type: "child",
                 parentId: activeUsedComponent.id

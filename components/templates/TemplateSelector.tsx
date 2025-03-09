@@ -1,23 +1,23 @@
 "use client"
 import { getAllCategories } from '@/serverFunctions/handleCategories'
-import { getComponents } from '@/serverFunctions/handleComponents'
+import { getTemplates } from '@/serverFunctions/handleTemplates'
 import { addUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { category, component, handleManageUpdateComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerComponentType, website } from '@/types'
+import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import globalDynamicComponents from '@/utility/globalComponents'
+import globalDynamicTemplates from '@/utility/globalTemplates'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function ComponentSelector({ websiteId, location, handleManageUsedComponents, viewerComponentSet
+export default function TemplateSelector({ websiteId, location, handleManageUsedComponents, viewerTemplateSet
 }: {
-    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateComponentsOptions): Promise<void>, viewerComponentSet?: React.Dispatch<React.SetStateAction<viewerComponentType | null>>
+    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
 
     const [allCategories, allCategoriesSet] = useState<category[]>([])
     const [activeCategory, activeCategorySet] = useState<category | null>(null)
 
-    const [seenComponents, seenComponentsSet] = useState<component[]>([])
+    const [seenTemplates, seenTemplatesSet] = useState<template[]>([])
 
     //get categories on launch
     useEffect(() => {
@@ -39,7 +39,7 @@ export default function ComponentSelector({ websiteId, location, handleManageUse
                 onClick={() => {
                     userInteractingSet(prev => !prev)
                 }}
-            >{userInteracting ? "close" : viewerComponentSet ? "Choose a component" : "Add a component"}</button>
+            >{userInteracting ? "close" : viewerTemplateSet ? "Choose a template" : "Add a template"}</button>
 
             <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid rgb(var(--shade1))" }}>
                 {allCategories.length > 0 && (
@@ -52,11 +52,11 @@ export default function ComponentSelector({ websiteId, location, handleManageUse
                                             //update active selection
                                             activeCategorySet(eachCategory)
 
-                                            //search for component
-                                            const searchedComponents = await getComponents({ option: "categoryId", data: { categoryId: eachCategory.name } })
-                                            seenComponentsSet(searchedComponents)
+                                            //search for template
+                                            const searchedTemplates = await getTemplates({ option: "categoryId", data: { categoryId: eachCategory.name } })
+                                            seenTemplatesSet(searchedTemplates)
 
-                                            toast.success(`searched ${eachCategory.name} components`)
+                                            toast.success(`searched ${eachCategory.name} templates`)
 
                                         } catch (error) {
                                             consoleAndToastError(error)
@@ -68,24 +68,24 @@ export default function ComponentSelector({ websiteId, location, handleManageUse
                     </ul>
                 )}
 
-                {seenComponents.length > 0 && (
+                {seenTemplates.length > 0 && (
                     <>
-                        <h3>{viewerComponentSet === undefined ? "Select" : "Swap"} your component</h3>
+                        <h3>{viewerTemplateSet === undefined ? "Select" : "Swap"} your template</h3>
 
                         <div style={{ backgroundColor: "white", overflow: "auto", display: "grid", gridAutoFlow: "column", gridAutoColumns: "80%" }}>
-                            {seenComponents.map(eachComponent => {
+                            {seenTemplates.map(eachTemplate => {
                                 return (
-                                    <div key={eachComponent.id} style={{ padding: "1rem", border: "1px solid rgb(var(--shade1))", display: "grid", justifyItems: "center", alignContent: "flex-start", gap: ".5rem" }}>
-                                        <h3>{eachComponent.name}</h3>
+                                    <div key={eachTemplate.id} style={{ padding: "1rem", border: "1px solid rgb(var(--shade1))", display: "grid", justifyItems: "center", alignContent: "flex-start", gap: ".5rem" }}>
+                                        <h3>{eachTemplate.name}</h3>
 
                                         <button className='mainButton'
                                             onClick={async () => {
                                                 try {
-                                                    //add component to page normally 
-                                                    if (viewerComponentSet === undefined) {
+                                                    //add template to page normally 
+                                                    if (viewerTemplateSet === undefined) {
                                                         //add to server
                                                         const newUsedComponent: newUsedComponent = {
-                                                            componentId: eachComponent.id,
+                                                            templateId: eachTemplate.id,
                                                             order: 0,
                                                             css: "",
                                                             data: null,
@@ -101,22 +101,22 @@ export default function ComponentSelector({ websiteId, location, handleManageUse
                                                         handleManageUsedComponents({ option: "create", seenAddedUsedComponent: newAddedUsedComponent })
 
                                                     } else {
-                                                        //only preview the component
+                                                        //only preview the template
 
-                                                        //build component
-                                                        const seenResponse = await globalDynamicComponents(eachComponent.id)
+                                                        //build template
+                                                        const seenResponse = await globalDynamicTemplates(eachTemplate.id)
                                                         if (seenResponse === undefined) return
 
-                                                        //locally build and show new component
-                                                        viewerComponentSet(prevViewerComponent => {
-                                                            if (prevViewerComponent === null) return prevViewerComponent
+                                                        //locally build and show new template
+                                                        viewerTemplateSet(prevViewerTemplate => {
+                                                            if (prevViewerTemplate === null) return prevViewerTemplate
 
-                                                            const newViewerComponent = { ...prevViewerComponent }
+                                                            const newViewerTemplate = { ...prevViewerTemplate }
 
-                                                            newViewerComponent.component = eachComponent
-                                                            newViewerComponent.builtComponent = seenResponse()
+                                                            newViewerTemplate.template = eachTemplate
+                                                            newViewerTemplate.builtComponent = seenResponse()
 
-                                                            return newViewerComponent
+                                                            return newViewerTemplate
                                                         })
                                                     }
 

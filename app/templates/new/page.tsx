@@ -1,5 +1,5 @@
 import { auth } from '@/auth/auth'
-import AddEditWebsiteComponent from '@/components/editWebsiteComponents/AddEditWebsiteComponent'
+import AddEditTemplate from '@/components/templates/editTemplates/AddEditTemplate'
 import React from 'react'
 
 export default async function Page() {
@@ -11,6 +11,6 @@ export default async function Page() {
     if (session.user.role !== "admin") return null
 
     return (
-        <AddEditWebsiteComponent />
+        <AddEditTemplate />
     )
 }

@@ -46,11 +46,11 @@ const collectionSchema = z.object({
 })
 export type collection = z.infer<typeof collectionSchema>
 
-export type viewerComponentType = {
+export type viewerTemplateType = {
     usedComponentIdToSwap: usedComponent["id"],
-    component: component | null,
+    template: template | null,
     builtComponent: React.ComponentType<{
-        data: componentDataType;
+        data: templateDataType;
     }> | null
 }
 
@@ -67,7 +67,7 @@ export type handleManagePageOptions =
         seenUpdatedPage: page,
     }
 
-export type handleManageUpdateComponentsOptions =
+export type handleManageUpdateUsedComponentsOptions =
     {
         option: "create",
         seenAddedUsedComponent: usedComponent,
@@ -77,6 +77,21 @@ export type handleManageUpdateComponentsOptions =
         seenUpdatedUsedComponent: usedComponent,
         rebuild?: boolean
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -105,6 +120,21 @@ export type formInputImageType = {
     inputType: "image"
 }
 export type formInputType = formInputInputType | formInputTextareaType | formInputImageType
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -179,9 +209,24 @@ export type textElementsType = z.infer<typeof textElementsSchema>
 
 
 
-export const componentDataSchema = z.union([navBarsSchema, herosSchema, containersSchema, textElementsSchema])
-export type componentDataType = z.infer<typeof componentDataSchema>
+export const templateDataSchema = z.union([navBarsSchema, herosSchema, containersSchema, textElementsSchema])
+export type templateDataType = z.infer<typeof templateDataSchema>
 //category data type end copy here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -280,22 +325,26 @@ export const locationChildSchema = z.object({
 })
 export type locationChildSchemaType = z.infer<typeof locationChildSchema>
 
+
+
+
+
 export const usedComponentLocationSchema = z.union([locationHeaderSchema, locationFooterSchema, locationPageSchema, locationChildSchema])
 export type usedComponentLocationType = z.infer<typeof usedComponentLocationSchema>
 
 export const usedComponentSchema = z.object({
     id: z.string().min(1),
     websiteId: z.string().min(1),
-    componentId: z.string().min(1),
+    templateId: z.string().min(1),
     css: z.string(),
     order: z.number(),
     location: usedComponentLocationSchema,
 
-    data: componentDataSchema.nullable(),
+    data: templateDataSchema.nullable(),
 })
 export type usedComponent = z.infer<typeof usedComponentSchema> & {
     fromWebsite?: website,
-    component?: component,
+    template?: template,
 };
 
 export const newUsedComponentSchema = usedComponentSchema.omit({ id: true })
@@ -307,20 +356,20 @@ export type updateUsedComponent = z.infer<typeof updateUsedComponentSchema>
 
 
 
-export const componentSchema = z.object({
+export const templatesSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     categoryId: z.string().min(1),
     defaultCss: z.string(),
-    defaultData: componentDataSchema,
+    defaultData: templateDataSchema,
 })
-export type component = z.infer<typeof componentSchema> & {
-    componentsToStyles?: componentsToStyle[],
+export type template = z.infer<typeof templatesSchema> & {
+    templatesToStyles?: templatesToStyles[],
     usedComponents?: usedComponent[],
     category?: category,
 }
-export const newComponentSchema = componentSchema.omit({ id: true })
-export type newComponent = z.infer<typeof newComponentSchema>
+export const newTemplateSchema = templatesSchema.omit({ id: true })
+export type newTemplate = z.infer<typeof newTemplateSchema>
 
 
 
@@ -333,7 +382,7 @@ export const categoriesSchema = z.object({
     name: categoryNameSchema,
 })
 export type category = z.infer<typeof categoriesSchema> & {
-    components?: component[]
+    templates?: template[]
 }
 
 
@@ -344,7 +393,7 @@ export const stylesSchema = z.object({
     name: z.string().min(1),
 })
 export type style = z.infer<typeof stylesSchema> & {
-    componentsToStyles?: componentsToStyle[]
+    templatesToStyles?: templatesToStyles[]
 }
 
 
@@ -361,12 +410,12 @@ export type style = z.infer<typeof stylesSchema> & {
 
 
 
-export const componentsToStylesSchema = z.object({
-    componentId: z.string().min(1),
+export const templatesToStylesSchema = z.object({
+    templateId: z.string().min(1),
     styleName: z.string().min(1),
 })
-export type componentsToStyle = z.infer<typeof componentsToStylesSchema> & {
-    component?: component,
+export type templatesToStyles = z.infer<typeof templatesToStylesSchema> & {
+    template?: template,
     style?: style
 }
 
