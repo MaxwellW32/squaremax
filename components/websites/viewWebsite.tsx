@@ -20,24 +20,6 @@ import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import ComponentLocationSelector from '../components/componentLocationSelector/ComponentLocationSelector'
 
-//flesh out the data needed for all website categories
-//think up all the possible website categories
-//get file creation working
-
-//built website folder - separated by website id
-//starting point with base files
-//package json customized
-//layout - fonts built and spread, global css built
-//each page router built
-//import the used components based on component id
-//name them appropriately by their category
-//have a function to write a used component to code, call it recursively if children seen on that page
-
-//order is just for ordering - on add new used component just increment the largest value
-//when re arranging get the order of the the position in the array after ordering - then cascade update new orders
-//make a move location component - add at largest order
-//then build your first design - sophisticated nav
-
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(false)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)

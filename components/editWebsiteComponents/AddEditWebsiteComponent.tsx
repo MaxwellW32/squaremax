@@ -40,7 +40,6 @@ export default function AddEditWebsiteComponent({ oldWebsiteComponent }: { oldWe
         }
     }, [])
 
-
     type componentKeys = keyof Partial<newComponent>
 
     type moreFormInfoType = {
