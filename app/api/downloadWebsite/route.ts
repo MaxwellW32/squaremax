@@ -77,7 +77,7 @@ export async function POST(request: Request) {
 
     //make global.css
     const globalsCssFilePath = path.join(appFolderPath, "globals.css")
-    await fs.writeFile(globalsCssFilePath, seenWebsite.globalCss);
+    await fs.writeFile(globalsCssFilePath, `@import "tailwindcss";\n${seenWebsite.globalCss}`);
 
     //ensure website usedComponents seen
     if (seenWebsite.usedComponents === undefined) throw new Error("not seeing usedComponents")
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
 
     //make layout.tsx
-    const layoutFilePath = path.join(baseFolderPath, "layout.tsx")
+    const layoutFilePath = path.join(appFolderPath, "layout.tsx")
 
     //get base usedComponents in location header and footer
     const headerUsedComponents = getUsedComponentsInSameLocation({ type: "header" }, seenWebsite.usedComponents)
