@@ -5,6 +5,7 @@ import { requestDownloadWebsiteBodySchema } from "@/types";
 import { auth } from "@/auth/auth";
 import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
+import { websiteBuildsStagingAreaDir } from "@/lib/websiteTemplateLib";
 
 export async function GET(request: Request) {
     //ensure logged in
@@ -21,13 +22,20 @@ export async function GET(request: Request) {
     //security check - ensure authed to download site
     await ensureUserCanAccess(session, seenWebsite.userId)
 
+    const basePath = path.join(process.cwd(), websiteBuildsStagingAreaDir, seenWebsite.id)
+
     //build website
-    //grab website, pages, and all used components
-    //make new entry in websiteBuildStagingArea by website id
+    //
+    //grab website, pages, and all used components...
+    //make new entry in websiteBuildsStagingArea by website id
     //copy down the websiteBuildsStarter folder
     //start editing it
+    //files to loop over - package.json - give it website name
+    //files to create - layout.tsx, page.tsx, each page folder - page.tsx combo
+    //
+    //layout.tsx
     //get the layout file working
-    //  fonts
+    //  fonts - font array - import name, variable name, local variable name in next js
     //  use same usedComponentBuildProcess to write the header and footer usedComponents
     //  
     //loop over the pages and build those files - folder name/page.tsx
@@ -96,11 +104,11 @@ export async function GET(request: Request) {
     };
 
     // Add the entire temp folder to the zip object
-    await addFolderToZip(tempPath, "");
+    await addFolderToZip(basePath, "");
     const archive = await zip.generateAsync({ type: "blob" });
 
     //delete temp directory when finished
-    await fs.rm(tempPath, { force: true, recursive: true })
+    // await fs.rm(tempPath, { force: true, recursive: true })
 
     //send zipped file to client
     return new Response(archive);
