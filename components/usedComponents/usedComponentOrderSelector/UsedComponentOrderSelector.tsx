@@ -12,7 +12,7 @@ export default function UsedComponentOrderSelector({ websiteId, seenUsedComponen
 
     const usedComponentsInSameLocation = useMemo<usedComponent[]>(() => {
         //match other usedComponents in same location
-        const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent, seenUsedComponents)
+        const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent.location, seenUsedComponents)
 
         return usedComponentsInSameLocation
     }, [seenUsedComponent, seenUsedComponents])

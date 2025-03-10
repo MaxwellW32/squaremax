@@ -1,4 +1,4 @@
-import { usedComponent } from "@/types"
+import { usedComponent, usedComponentLocationType } from "@/types"
 
 export function deepClone(object: unknown) {
     return JSON.parse(JSON.stringify(object))
@@ -72,20 +72,43 @@ export function getChildrenUsedComponents(usedComponentParentId: usedComponent["
     return childrenUsedComponents
 }
 
-export function getUsedComponentsInSameLocation(seenUsedComponent: usedComponent, usedComponents: usedComponent[]) {
+// export function getUsedComponentsInSameLocation(seenUsedComponent: usedComponent, usedComponents: usedComponent[]) {
+//     const usedComponentsInSameLocation = usedComponents.filter(eachUsedComponentFilter => {
+//         let seenInMatchingLocation = false
+
+//         if (eachUsedComponentFilter.location.type === "header" && seenUsedComponent.location.type === "header") {
+//             seenInMatchingLocation = true
+
+//         } else if (eachUsedComponentFilter.location.type === "footer" && seenUsedComponent.location.type === "footer") {
+//             seenInMatchingLocation = true
+
+//         } else if (eachUsedComponentFilter.location.type === "page" && seenUsedComponent.location.type === "page" && eachUsedComponentFilter.location.pageId === seenUsedComponent.location.pageId) {
+//             seenInMatchingLocation = true
+
+//         } else if (eachUsedComponentFilter.location.type === "child" && seenUsedComponent.location.type === "child" && eachUsedComponentFilter.location.parentId === seenUsedComponent.location.parentId) {
+//             seenInMatchingLocation = true
+//         }
+
+//         return seenInMatchingLocation
+//     })
+
+//     return usedComponentsInSameLocation
+// }
+
+export function getUsedComponentsInSameLocation(seenLocation: usedComponentLocationType, usedComponents: usedComponent[]) {
     const usedComponentsInSameLocation = usedComponents.filter(eachUsedComponentFilter => {
         let seenInMatchingLocation = false
 
-        if (eachUsedComponentFilter.location.type === "header" && seenUsedComponent.location.type === "header") {
+        if (eachUsedComponentFilter.location.type === "header" && seenLocation.type === "header") {
             seenInMatchingLocation = true
 
-        } else if (eachUsedComponentFilter.location.type === "footer" && seenUsedComponent.location.type === "footer") {
+        } else if (eachUsedComponentFilter.location.type === "footer" && seenLocation.type === "footer") {
             seenInMatchingLocation = true
 
-        } else if (eachUsedComponentFilter.location.type === "page" && seenUsedComponent.location.type === "page" && eachUsedComponentFilter.location.pageId === seenUsedComponent.location.pageId) {
+        } else if (eachUsedComponentFilter.location.type === "page" && seenLocation.type === "page" && eachUsedComponentFilter.location.pageId === seenLocation.pageId) {
             seenInMatchingLocation = true
 
-        } else if (eachUsedComponentFilter.location.type === "child" && seenUsedComponent.location.type === "child" && eachUsedComponentFilter.location.parentId === seenUsedComponent.location.parentId) {
+        } else if (eachUsedComponentFilter.location.type === "child" && seenLocation.type === "child" && eachUsedComponentFilter.location.parentId === seenLocation.parentId) {
             seenInMatchingLocation = true
         }
 
@@ -98,4 +121,43 @@ export function getUsedComponentsInSameLocation(seenUsedComponent: usedComponent
 export function sortUsedComponentsByOrder(seenUsedComponents: usedComponent[]) {
     let orderedUsedComponents = seenUsedComponents.sort((a, b) => a.order - b.order);
     return orderedUsedComponents
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export function getUsedComponentsImportString(seenUsedComponents: usedComponent[]) {
+    return seenUsedComponents.map(eachUsedComponent => {
+        const componentName = getUsedComponentsImportName(eachUsedComponent)
+
+        return `import ${componentName} from "@/components/${eachUsedComponent.templateId}/page";`
+    }).join("\n")
+}
+
+export function getUsedComponentsImportName(seenUsedComponent: usedComponent) {
+    let componentName = seenUsedComponent.template !== undefined ? seenUsedComponent.template.name : seenUsedComponent.data.category
+
+    //capitalize the first letter
+    componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+
+    //add on the id - replace any - in the id with _
+    componentName = `${componentName}_${seenUsedComponent.templateId.replace(/-/g, "_")}`
+
+    //remove any spaces in the name
+    componentName = componentName.replace(/\s+/g, "")
+
+    return componentName
 }

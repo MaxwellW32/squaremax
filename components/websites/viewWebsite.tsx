@@ -1,23 +1,23 @@
 "use client"
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import styles from "./style.module.css"
-import { templateDataType, usedComponent, sizeOptionType, updateWebsiteSchema, viewerTemplateType, website, usedComponentLocationType, page, handleManagePageOptions, handleManageUpdateUsedComponentsOptions, updateUsedComponentSchema, } from '@/types'
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
-import AddEditPage from '../pages/AddEditPage'
-import globalDynamicTemplates from '@/utility/globalTemplates'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import toast from 'react-hot-toast'
-import ConfirmationBox from '../confirmationBox/ConfirmationBox'
-import ShowMore from '../showMore/ShowMore'
-import AddEditWebsite from './AddEditWebsite'
-import LocationSelector from './LocationSelector'
-import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import TemplateSelector from '../templates/TemplateSelector'
-import UsedComponentOrderSelector from '../usedComponents/usedComponentOrderSelector/UsedComponentOrderSelector'
-import UsedComponentLocationSelector from '../usedComponents/usedComponentLocationSelector/UsedComponentLocationSelector'
+import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
+import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import globalDynamicTemplates from '@/utility/globalTemplates'
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
+import ConfirmationBox from '../confirmationBox/ConfirmationBox'
+import AddEditPage from '../pages/AddEditPage'
+import ShowMore from '../showMore/ShowMore'
 import TemplateDataSwitch from '../templates/templateData/TemplateDataSwitch'
+import TemplateSelector from '../templates/TemplateSelector'
+import UsedComponentLocationSelector from '../usedComponents/usedComponentLocationSelector/UsedComponentLocationSelector'
+import UsedComponentOrderSelector from '../usedComponents/usedComponentOrderSelector/UsedComponentOrderSelector'
+import AddEditWebsite from './AddEditWebsite'
+import LocationSelector from './LocationSelector'
+import styles from "./style.module.css"
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
@@ -408,6 +408,31 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             //zip it
             //download it
             //offer upload to github - sort out settings
+            const newrequestDownloadWebsiteBody: requestDownloadWebsiteBodyType = {
+                websiteId: websiteObj.id
+            }
+
+            //validation
+            requestDownloadWebsiteBodySchema.parse(newrequestDownloadWebsiteBody)
+
+            const response = await fetch(`/api/downloadWebsite`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newrequestDownloadWebsiteBody),
+            })
+
+            //download action
+            const responseBlob = await response.blob()
+            const url = window.URL.createObjectURL(responseBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${websiteObj.name}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
 
         } catch (error) {
             consoleAndToastError(error)

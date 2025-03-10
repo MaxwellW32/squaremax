@@ -1,19 +1,21 @@
 import JSZip from "jszip";
 import path from "path";
 import fs from "fs/promises";
-import { requestDownloadWebsiteBodySchema } from "@/types";
+import { requestDownloadWebsiteBodySchema, templateDataType, usedComponent } from "@/types";
 import { auth } from "@/auth/auth";
 import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
-import { websiteBuildsStagingAreaDir } from "@/lib/websiteTemplateLib";
+import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir } from "@/lib/websiteTemplateLib";
+import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
+import { getChildrenUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation } from "@/utility/utility";
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
     //ensure logged in
     const session = await auth()
     if (session === null) throw new Error("not authorised to download")
 
     //parse body
-    const requestDownloadWebsiteBody = requestDownloadWebsiteBodySchema.parse(request.body)
+    const requestDownloadWebsiteBody = requestDownloadWebsiteBodySchema.parse(await request.json())
 
     //fetch website
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": requestDownloadWebsiteBody.websiteId } })
@@ -22,15 +24,169 @@ export async function GET(request: Request) {
     //security check - ensure authed to download site
     await ensureUserCanAccess(session, seenWebsite.userId)
 
-    const basePath = path.join(process.cwd(), websiteBuildsStagingAreaDir, seenWebsite.id)
+    const baseFolderPath = path.join(process.cwd(), websiteBuildsStagingAreaDir, seenWebsite.id)
+
+    //if baseFolder already exists delete it
+    if (await checkIfDirectoryExists(baseFolderPath)) {
+        await fs.rm(baseFolderPath, { force: true, recursive: true })
+    }
+
+    //make baseFolder
+    await ensureDirectoryExists(baseFolderPath)
+
+    //get the starter files
+    const websiteBuildsStarterFolderPath = path.join(process.cwd(), websiteBuildsStarterDir)
+
+    //copy the starter to my base path
+    await fs.cp(websiteBuildsStarterFolderPath, baseFolderPath, { recursive: true })
+
+
+
+
+    //edit the package.json
+    const packageJsonFilePath = path.join(baseFolderPath, "package.json")
+
+    const packageJsonContent = await fs.readFile(packageJsonFilePath, "utf-8");
+    const packageJson = JSON.parse(packageJsonContent);
+
+    // Remove invalid characters (allow only a-z, 0-9, hyphens, underscores)
+    let sanitizedName = seenWebsite.name.replace(/[^a-z0-9-_]/g, '');
+    // Convert to lowercase
+    sanitizedName = sanitizedName.toLowerCase();
+    // Ensure no leading or trailing hyphens/underscores
+    sanitizedName = sanitizedName.replace(/^[-_]+|[-_]+$/g, '');
+
+    packageJson.name = sanitizedName;
+
+    await fs.writeFile(packageJsonFilePath, JSON.stringify(packageJson, null, 2));
+
+
+
+
+    //create the app folder
+    const appFolderPath = path.join(baseFolderPath, "app")
+    await ensureDirectoryExists(appFolderPath)
+
+    //make fav icon
+    //make global.css
+    const globalsCssFilePath = path.join(baseFolderPath, "globals.css")
+    await fs.writeFile(globalsCssFilePath, seenWebsite.globalCss);
+
+    //ensure website usedComponents seen
+    if (seenWebsite.usedComponents === undefined) throw new Error("not seeing usedComponents")
+
+
+    const headerUsedComponents = getUsedComponentsInSameLocation({ type: "header" }, seenWebsite.usedComponents)
+    const footerUsedComponents = getUsedComponentsInSameLocation({ type: "header" }, seenWebsite.usedComponents)
+    const headerAndFooterUsedComponents: usedComponent[] = [...headerUsedComponents, ...footerUsedComponents]
+
+    //make layout.tsx
+    const usedComponentsImportsText = getUsedComponentsImportString(headerAndFooterUsedComponents)
+
+    function makeUsedComponentsImplementationString(seenUsedComponents: usedComponent[], originalList: usedComponent[]): string {
+        return seenUsedComponents.map(eachUsedComponent => {
+            const seenImplementationName = getUsedComponentsImportName(eachUsedComponent)
+
+            const seenChildren = getChildrenUsedComponents(eachUsedComponent.id, originalList)
+
+            let seenPropData = eachUsedComponent.data
+            let writablePropData = ""
+
+            //cant write text to the file
+            //need to write a string representing the Component
+
+            //replace children with this implementation
+            if (Object.hasOwn(seenPropData, "children")) {
+                //remove the children key value on the object
+                // @ts-expect-error type
+                const propsWithoutChildren = delete seenPropData["children"]
+
+                //stringify it
+                writablePropData = `
+                ${JSON.stringify(propsWithoutChildren, null, 2)}
+                `
+
+                //add on the key value pair children and the component implamentation
+                const seenChildrenImplementation = (`\n ${makeUsedComponentsImplementationString(seenChildren, originalList)}`)
+                writablePropData.replace(/}(\s*)$/, `children: (\n<>${seenChildrenImplementation}</>\n)` + " }");
+
+            } else {
+                //can handle normally
+                writablePropData = JSON.stringify(seenPropData, null, 2)
+            }
+
+            const componentImplementation = `<${seenImplementationName}
+data={${writablePropData}}
+/>
+            `
+            return componentImplementation
+        }).join("\n\n\n")
+    }
+
+    const headerUsedComponentsText = ``
+    const footerUsedComponentsText = ``
+
+    //get all the needed import statements for a page file
+    //need to get usedComponents in this location
+
+    const layoutTsxFileString =
+        `import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+${usedComponentsImportsText}
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+
+export const metadata: Metadata = {
+  title: "new website",
+  description: "new website description",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={\`\${geistSans.variable} \${geistMono.variable} antialiased\`}
+      >
+        ${headerUsedComponentsText}
+
+        {children}
+
+        ${footerUsedComponentsText}
+      </body>
+    </html>
+  );
+}
+`
+
+    //make page.tsx
+
+
+    //create the components folder
+    //create the public folder
+    const publicFolderPath = path.join(baseFolderPath, "public")
+    await ensureDirectoryExists(publicFolderPath)
 
     //build website
     //
     //grab website, pages, and all used components...
-    //make new entry in websiteBuildsStagingArea by website id
-    //copy down the websiteBuildsStarter folder
+    //make new entry in websiteBuildsStagingArea by website id..
+    //copy down the websiteBuildsStarter folder...
     //start editing it
-    //files to loop over - package.json - give it website name
+    //files to update - package.json - give it website name...
     //files to create - layout.tsx, page.tsx, each page folder - page.tsx combo
     //
     //layout.tsx
@@ -104,11 +260,8 @@ export async function GET(request: Request) {
     };
 
     // Add the entire temp folder to the zip object
-    await addFolderToZip(basePath, "");
+    await addFolderToZip(baseFolderPath, "");
     const archive = await zip.generateAsync({ type: "blob" });
-
-    //delete temp directory when finished
-    // await fs.rm(tempPath, { force: true, recursive: true })
 
     //send zipped file to client
     return new Response(archive);

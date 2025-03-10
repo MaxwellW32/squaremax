@@ -77,7 +77,7 @@ export async function addUsedComponent(newUsedComponent: newUsedComponent): Prom
     }
 
     //match other usedComponents in same location
-    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(fullNewUsedComponent, latestUsedComponents)
+    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(fullNewUsedComponent.location, latestUsedComponents)
 
     //ensure the ordering always adds to the last in the array
     let largestOrderNumberSeen = -1
@@ -156,7 +156,7 @@ export async function changeUsedComponentIndex(seenUsedComponent: usedComponent,
 
     //get used components in same location
     //put them in an array
-    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent, latestUsedComponents)
+    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent.location, latestUsedComponents)
 
     //order those components for the array
     const orderedUsedComponentsInSameLocation = sortUsedComponentsByOrder(usedComponentsInSameLocation)
@@ -195,7 +195,7 @@ export async function changeUsedComponentLocation(seenUsedComponent: usedCompone
 
     //get used components in same location
     //put them in an array
-    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent, latestUsedComponents)
+    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(seenUsedComponent.location, latestUsedComponents)
 
     //ensure the ordering always adds to the last in the array
     let largestOrderNumberSeen = -1

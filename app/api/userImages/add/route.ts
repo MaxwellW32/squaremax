@@ -2,10 +2,10 @@ import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidV4 } from "uuid"
 import { NextResponse } from "next/server";
-import { ensureDirectoryExists } from "@/usefulFunctions/fileManagement";
 import { maxImageUploadSize, userUploadedImagesDirectory } from "@/types/userUploadedTypes";
 import { convertBtyes } from "@/usefulFunctions/usefulFunctions";
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
+import { ensureDirectoryExists } from "@/utility/manageFiles";
 
 export async function POST(request: Request) {
     await sessionCheckWithError()
