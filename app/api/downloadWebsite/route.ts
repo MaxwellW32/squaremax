@@ -74,13 +74,27 @@ export async function POST(request: Request) {
 
 
 
+    //ensure website usedComponents seen
+    if (seenWebsite.usedComponents === undefined) throw new Error("not seeing usedComponents")
+
+
+
 
     //make global.css
     const globalsCssFilePath = path.join(appFolderPath, "globals.css")
-    await fs.writeFile(globalsCssFilePath, `@import "tailwindcss";\n${seenWebsite.globalCss}`);
 
-    //ensure website usedComponents seen
-    if (seenWebsite.usedComponents === undefined) throw new Error("not seeing usedComponents")
+    //start off global css string
+    let combinedPageCssString = `@import "tailwindcss";\n${seenWebsite.globalCss}`
+
+    //write the css for all usedComponents
+    combinedPageCssString += seenWebsite.usedComponents.map(eachUsedComponent => {
+        const scopedUsedComponentCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id)
+
+        return `\n\n\n\n\n${scopedUsedComponentCss}\n\n\n\n\n`
+    }).join("")
+
+    //write the global.css file
+    await fs.writeFile(globalsCssFilePath, combinedPageCssString);
 
 
 
@@ -156,7 +170,6 @@ export default function RootLayout({
 
     //make pages
     if (seenWebsite.pages === undefined) throw new Error("not seeing pages")
-    const combinedPageCssObj: { [key: string]: string } = {}
 
     await Promise.all(
         seenWebsite.pages.map(async eachPage => {
@@ -185,13 +198,6 @@ export default function RootLayout({
             //get all the needed import statements
             const usedComponentsImportsText = getUsedComponentsImportString(allUsedComponentsUsed)
 
-            //write the usedComponents on page css to combinedPageCssObj
-            allUsedComponentsUsed.map(eachUsedComponent => {
-                const scopedUsedComponentCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id)
-
-                combinedPageCssObj[eachUsedComponent.id] = scopedUsedComponentCss
-            })
-
             //get usedComponents in this location
             const pageUsedComponentsText = makeUsedComponentsImplementationString(usedComponentsOnPageOrdered, seenWebsite.usedComponents)
 
@@ -214,16 +220,6 @@ export default function ${onHomePage ? "Home" : "Page"}() {
             await fs.writeFile(pageFilePath, pageTsxFileString);
         })
     )
-
-    //combine all the usedComponents css into one string
-    const combinedPageCssString = Object.entries(combinedPageCssObj).map(eachEntry => {
-        const usedComponentCssValue = eachEntry[1]
-
-        return `\n\n\n\n\n${usedComponentCssValue}\n\n\n\n\n`
-    }).join("")
-
-    //add all combined css to the global.css
-    await fs.appendFile(globalsCssFilePath, `\n\n\n${combinedPageCssString}`, "utf8");
 
 
 
@@ -266,11 +262,6 @@ export default function ${onHomePage ? "Home" : "Page"}() {
 
 
 
-
-    //build website
-    //
-    //layout.tsx
-    //  fonts - font array - import name, variable name, local variable name in next js
 
     //zip the folder
     const zip = new JSZip();
