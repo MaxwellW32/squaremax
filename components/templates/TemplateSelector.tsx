@@ -80,8 +80,6 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
 
                                         <button className='mainButton'
                                             onClick={async () => {
-                                                console.log(`$location`, location);
-
                                                 try {
                                                     //add template to page normally 
                                                     if (viewerTemplateSet === undefined) {

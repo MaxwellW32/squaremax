@@ -17,7 +17,7 @@ export default function ConfirmationBox({ text, confirmationText, successMessage
             </button>
 
             {confirmed && (
-                <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", position: float ? "fixed" : "relative", backgroundColor: "beige", padding: "1rem" }}>
+                <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", ...(float ? { position: "fixed", right: 0 } : { position: "relative" }), backgroundColor: "beige", padding: "1rem", zIndex: 999 }}>
                     <p style={{ fontSize: "var(--fontSizeS)" }}>{confirmationText}</p>
 
                     <div style={{ display: "flex", flexWrap: "wrap", textTransform: "capitalize" }}>

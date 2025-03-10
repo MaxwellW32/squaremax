@@ -103,7 +103,7 @@ export async function updateTemplate(templateObj: Partial<template>, collections
 
 export async function deleteTemplate(templateIdObj: Pick<template, "id">) {
     const session = await sessionCheckWithError()
-    if (session.user.role !== "admin") throw new Error("not authorized to delete template")
+    if (session.user.role !== "admin") throw new Error("not authorised to delete template")
 
     templatesSchema.pick({ id: true }).parse(templateIdObj)
 

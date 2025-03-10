@@ -74,6 +74,17 @@
     overflow-y: auto;
 }
 
+/* mobile */
+/* .sideBarButtons {
+    display: flex;
+    justify-content: flex-end;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+} */
+
+/* desktop */
 .sideBarButtons {
     display: flex;
     justify-content: flex-end;
@@ -96,6 +107,14 @@
     display: grid;
     align-content: flex-start;
     overflow: auto;
+}
+
+.pageButtonsCont {
+    display: flex;
+    overflow-x: auto;
+    max-width: 80%;
+    white-space: nowrap;
+    align-items: center;
 }
 
 .sideBarOtherContent {

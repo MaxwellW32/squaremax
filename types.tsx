@@ -54,10 +54,6 @@ export type viewerTemplateType = {
     }> | null
 }
 
-
-
-
-
 export type handleManagePageOptions =
     {
         option: "create",
@@ -78,6 +74,10 @@ export type handleManageUpdateUsedComponentsOptions =
         rebuild?: boolean
     }
 
+export const requestDownloadWebsiteBodySchema = z.object({
+    websiteId: z.string().min(1),
+});
+export type requestDownloadWebsiteBodyType = z.infer<typeof requestDownloadWebsiteBodySchema>
 
 
 

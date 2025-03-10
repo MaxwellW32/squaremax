@@ -69,15 +69,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
             where: eq(websites.id, websiteObj.data.id),
             with: {
                 pages: true,
-                usedComponents: {
-                    with: {
-                        template: {
-                            with: {
-                                category: true
-                            }
-                        }
-                    }
-                }
+                usedComponents: true
             }
         });
 
@@ -95,15 +87,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
             where: eq(websites.name, websiteObj.data.name),
             with: {
                 pages: true,
-                usedComponents: {
-                    with: {
-                        template: {
-                            with: {
-                                category: true
-                            }
-                        }
-                    }
-                }
+                usedComponents: true
             }
         });
 

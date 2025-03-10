@@ -402,6 +402,18 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         return updatedUsedComponents
     }
 
+    async function handleWebsiteDownload() {
+        try {
+            //build site
+            //zip it
+            //download it
+            //offer upload to github - sort out settings
+
+        } catch (error) {
+            consoleAndToastError(error)
+        }
+    }
+
     return (
         <main className={styles.main}>
             <div className={styles.topSettingsCont}>
@@ -523,7 +535,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                     <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}>
                         <div className={styles.sideBarTopContent}>
-                            <ul style={{ display: "flex", flexWrap: "wrap", overflowX: "auto" }}>
+                            <ul className={styles.pageButtonsCont}>
                                 {websiteObj.pages !== undefined && websiteObj.pages.map(eachPage => {
                                     //show each page name
 
@@ -555,7 +567,11 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     onClick={() => {
                                         addingPageSet(prev => !prev)
                                     }}
-                                >{addingPage ? "close" : "add page"}</button>
+                                >{addingPage ? (
+                                    <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z" /></svg>
+                                ) : (
+                                    <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z" /></svg>
+                                )}</button>
 
                                 {activePage !== undefined && (
                                     <ConfirmationBox text='' confirmationText='are you sure you want to delete the page?' successMessage='page deleted!' float={true}
@@ -579,13 +595,21 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                     addingPageSet(false)
                                 }}
                             />
-
-                            <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
-
-                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} />
                         </div>
 
                         <div className={styles.sideBarOtherContent}>
+                            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
+                                <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
+
+                                <button
+                                    onClick={handleWebsiteDownload}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
+                                </button>
+                            </div>
+
+                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} />
+
                             <ShowMore
                                 label='Edit global styles'
                                 content={
