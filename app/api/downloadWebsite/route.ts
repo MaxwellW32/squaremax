@@ -123,18 +123,7 @@ export async function POST(request: Request) {
   const footerUsedComponentsText = makeUsedComponentsImplementationString(footerUsedComponentsOrdered, seenWebsite.usedComponents)
 
   //get global fonts
-  const newFonts: fontsType[] = [
-    {
-      importName: "Geist",
-      subsets: ["latin"]
-    },
-    {
-      importName: "Geist_Mono",
-      subsets: ["latin"]
-    },
-  ]
-
-  const seenFontImportStrings = getFontImportStrings(newFonts)
+  const seenFontImportStrings = getFontImportStrings(seenWebsite.fonts)
 
   const layoutTsxFileString =
     `${seenFontImportStrings.fontImportStr}

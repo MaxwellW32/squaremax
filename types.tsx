@@ -257,10 +257,10 @@ export type updateUser = z.infer<typeof updateUserSchema>
 
 
 
-
 export const fontsSchema = z.object({
     importName: z.string().min(1),
-    subsets: z.array(z.string().min(1))
+    subsets: z.array(z.string().min(1)),
+    weights: z.array(z.string().min(1)).nullable()
 })
 export type fontsType = z.infer<typeof fontsSchema>
 

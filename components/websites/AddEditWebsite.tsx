@@ -48,6 +48,11 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
             inputType: "input",
             placeHolder: "Enter website description",
         },
+        "fonts": {
+            label: "fonts",
+            inputType: "input",
+            placeHolder: "Enter website fonts",
+        },
     });
 
     const [formErrors, formErrorsSet] = useState<Partial<{
@@ -126,9 +131,34 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
             {Object.entries(formObj).map(eachEntry => {
                 const eachKey = eachEntry[0] as websiteKeys
 
-                if (eachKey === "fonts" || eachKey === "fromUser" || eachKey === "userUploadedImages" || eachKey === "pages" || eachKey === "usedComponents") return null
+                if (eachKey === "fromUser" || eachKey === "userUploadedImages" || eachKey === "pages" || eachKey === "usedComponents") return null
 
                 if (moreFormInfo[eachKey] === undefined) return null
+
+                if (eachKey === "fonts") {
+                    return (
+                        <>
+                            {formObj[eachKey].map(eachFont => {
+                                return (
+                                    <div key={eachFont}></div>
+                                )
+                            })}
+                            {/* name */}
+                            <input type='text' placeholder='enter font name'
+                                onChange={(e) => {
+                                    formObjSet(prevFormObj => {
+                                        const newFormObj = { ...prevFormObj }
+                                        newFormObj["fonts"] = e.target.value
+                                        return newFormObj
+                                    })
+                                }}
+                            />
+                            {/* read as array, display as array, edit as string */}
+                            {/* subsets */}
+                            {/* weight */}
+                        </>
+                    )
+                }
 
                 return (
                     <React.Fragment key={eachKey}>

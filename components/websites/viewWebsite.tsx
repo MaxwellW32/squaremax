@@ -5,7 +5,7 @@ import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWe
 import { fontsType, handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getFontImportStrings, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getFontImportStrings, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
@@ -18,6 +18,7 @@ import UsedComponentOrderSelector from '../usedComponents/usedComponentOrderSele
 import AddEditWebsite from './AddEditWebsite'
 import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
+import dynamic from "next/dynamic";
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
@@ -439,30 +440,33 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
     }
 
-    // async function handleWebsiteDownload() {
-    //     try {
-    //         //test
-    //         const newFonts: fontsType[] = [
-    //             {
-    //                 importName: "Geist",
-    //                 cssVariableName: "--font-geist",
-    //                 subsets: ["latin"]
-    //             },
-    //             {
-    //                 importName: "Geist_Mono",
-    //                 cssVariableName: "--font-geistMono",
-    //                 subsets: ["latin"]
-    //             },
-    //         ]
+    //load up fonts dynamically
+    useEffect(() => {
+        const linkElements = websiteObj.fonts.map(eachFont => {
+            const link = document.createElement('link')
 
-    //         const seen = getFontImportStrings(newFonts)
+            link.rel = 'stylesheet'
+            link.href = `https://fonts.googleapis.com/css?family=${eachFont.importName}&subset=${eachFont.subsets.join(", ")}`
+            document.head.appendChild(link);
 
-    //         console.log(`$seen`, JSON.stringify(seen, null, 2));
+            const validName = makeValidVariableName(eachFont.importName)
 
-    //     } catch (error) {
-    //         consoleAndToastError(error)
-    //     }
-    // }
+            link.onload = () => {
+                // Set the font family as a CSS variable
+                document.documentElement.style.setProperty(`--font-${validName}`, `${eachFont.importName}`);
+                // href="https://fonts.googleapis.com/css?family=Tangerine">
+            };
+
+            return link
+        })
+
+        return () => {
+
+            linkElements.map(eachLinkEl => {
+                document.head.removeChild(eachLinkEl);
+            })
+        };
+    }, [websiteObj.fonts])
 
     return (
         <main className={styles.main}>

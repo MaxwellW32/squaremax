@@ -236,8 +236,7 @@ export function getFontImportStrings(seenFonts: fontsType[]) {
     const variableImplementationString = seenFonts.map(eachFont => {
         //make lower case first letter
         //remove any underscores
-        const newName = eachFont.importName.replace(/_/g, '')
-            .replace(/^\w/, (c) => c.toLowerCase());
+        const newName = makeValidVariableName(eachFont.importName)
 
         //add used variable names to array
         if (!usedVariableNames.includes(newName)) {
@@ -245,10 +244,12 @@ export function getFontImportStrings(seenFonts: fontsType[]) {
         }
 
         const subsetsString = eachFont.subsets.map(eachSubSet => `"${eachSubSet}"`).join(", ")
+        const weightsString = eachFont.weights !== null ? eachFont.weights.map(eachWeight => `"${eachWeight}"`).join(", ") : ""
 
         return `const ${newName} = ${eachFont.importName}({
 variable: "--font-${newName}",
 subsets: [${subsetsString}],
+${eachFont.weights !== null ? `weight: [${weightsString}],` : ``}
 });`
     }).join("\n\n")
 
@@ -262,4 +263,9 @@ subsets: [${subsetsString}],
         variableImplementationStr: variableImplementationString,
         classNameImplementationStr: classNameImplementationString,
     }
+}
+
+export function makeValidVariableName(seenString: string) {
+    return seenString.replace(/_/g, '')
+        .replace(/^\w/, (c) => c.toLowerCase());
 }
