@@ -7,7 +7,7 @@ import { addWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFuncti
 import { useRouter } from 'next/navigation'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
-import { deepClone } from '@/utility/utility'
+import { deepClone, makeValidVariableName } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 
 export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website }) {
@@ -140,7 +140,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                         <div key={eachKey} className={`${styles.fontsCont} snap`}>
                             {formObj.fonts.map((eachFont, eachFontIndex) => {
                                 return (
-                                    <div className={styles.fontCont} key={eachFontIndex}>
+                                    <div className={styles.fontCont} key={eachFontIndex} data-toolTip={`--font-${makeValidVariableName(eachFont.importName)}`}>
                                         <button className='secondaryButton'
                                             onClick={() => {
                                                 formObjSet(prevFormObj => {

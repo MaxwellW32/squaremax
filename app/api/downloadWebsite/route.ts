@@ -1,13 +1,13 @@
 import JSZip from "jszip";
 import path from "path";
 import fs from "fs/promises";
-import { fontsType, requestDownloadWebsiteBodySchema, templateDataType, usedComponent } from "@/types";
+import { requestDownloadWebsiteBodySchema, usedComponent } from "@/types";
 import { auth } from "@/auth/auth";
 import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getFontImportStrings, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
+import { addScopeToCSS, getDescendedUsedComponents, getFontImportStrings, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
 
 export async function POST(request: Request) {
   //ensure logged in

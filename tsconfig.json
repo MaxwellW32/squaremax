@@ -38,5 +38,6 @@
     "node_modules",
     "websiteBuildsStarter",
     "websiteTemplates",
+    "websiteBuildsStagingArea",
   ]
 }

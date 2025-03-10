@@ -2,10 +2,10 @@
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { fontsType, handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getFontImportStrings, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
@@ -18,7 +18,6 @@ import UsedComponentOrderSelector from '../usedComponents/usedComponentOrderSele
 import AddEditWebsite from './AddEditWebsite'
 import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
-import dynamic from "next/dynamic";
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
