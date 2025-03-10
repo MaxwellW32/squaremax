@@ -5,9 +5,9 @@ import { requestDownloadWebsiteBodySchema, templateDataType, usedComponent } fro
 import { auth } from "@/auth/auth";
 import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
-import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir } from "@/lib/websiteTemplateLib";
+import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
-import { getChildrenUsedComponents, getDescendedUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
 
 export async function POST(request: Request) {
     //ensure logged in
@@ -149,7 +149,6 @@ export default function RootLayout({
 
     //make pages
     if (seenWebsite.pages === undefined) throw new Error("not seeing pages")
-
     const combinedPageCssObj: { [key: string]: string } = {}
 
     await Promise.all(
@@ -181,13 +180,15 @@ export default function RootLayout({
 
             //write the usedComponents on page css to combinedPageCssObj
             allUsedComponentsUsed.map(eachUsedComponent => {
-                combinedPageCssObj[eachUsedComponent.id] = eachUsedComponent.css
+                const scopedUsedComponentCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id)
+
+                combinedPageCssObj[eachUsedComponent.id] = scopedUsedComponentCss
             })
 
             //get usedComponents in this location
             const pageUsedComponentsText = makeUsedComponentsImplementationString(usedComponentsOnPageOrdered, seenWebsite.usedComponents)
 
-
+            //whats in the page.tsx file
             const pageTsxFileString = `${usedComponentsImportsText}
 
 export default function ${onHomePage ? "Home" : "Page"}() {
@@ -207,15 +208,85 @@ export default function ${onHomePage ? "Home" : "Page"}() {
         })
     )
 
+    //combine all the usedComponents css into one string
+    const combinedPageCssString = Object.entries(combinedPageCssObj).map(eachEntry => {
+        const usedComponentCssValue = eachEntry[1]
+
+        return `\n\n\n${usedComponentCssValue}\n\n\n`
+    }).join("")
+
+    //add all combined css to the global.css
+    await fs.appendFile(globalsCssFilePath, `\n\n\n${combinedPageCssString}`, "utf8");
+
 
 
 
     //create the components folder
+    const componentsFolderPath = path.join(baseFolderPath, "components")
+    await ensureDirectoryExists(componentsFolderPath)
+
+    //hold all template ids for file copying
+    const allTemplateIdsToCopy: string[] = []
+    seenWebsite.usedComponents.map(eachUsedComponent => {
+        if (!allTemplateIdsToCopy.includes(eachUsedComponent.templateId)) {
+            allTemplateIdsToCopy.push(eachUsedComponent.templateId)
+        }
+    })
+
+    //all templates lcoation on main website
+    const websiteTemplatesFolderPath = path.join(process.cwd(), websiteTemplatesDir)
+
+    //copy all the used template's component files to the components folder
+    await Promise.all(allTemplateIdsToCopy.map(async eachTemplateId => {
+        const websiteTemplateIndividualPath = path.join(websiteTemplatesFolderPath, eachTemplateId)
+
+        //copyt from the websiteTemplatesDir to the local components directory
+        await fs.cp(websiteTemplateIndividualPath, componentsFolderPath, { recursive: true })
+    }))
+
+    //delete the css files seen, delete the ./page.css import
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //create the public folder
-
     const publicFolderPath = path.join(baseFolderPath, "public")
     await ensureDirectoryExists(publicFolderPath)
+
+
+
+
+    //build types file
+
+
+
+
 
     //build website
     //

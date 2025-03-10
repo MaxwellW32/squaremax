@@ -1,7 +1,7 @@
 import { navBarsType } from '@/types';
 import Link from 'next/link';
 import React from 'react';
-import './page.css';
+import "./globals.css";
 
 export default function Nav({ data }: { data: navBarsType }) {
     return (

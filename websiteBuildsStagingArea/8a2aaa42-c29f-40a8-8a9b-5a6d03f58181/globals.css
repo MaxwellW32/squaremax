@@ -1,0 +1,1009 @@
+
+
+
+
+
+
+.nav____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    background-color: red;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____c21b0bae-393f-494d-a103-e68cc77a1371:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____c21b0bae-393f-494d-a103-e68cc77a1371:hover .navSubmenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____c21b0bae-393f-494d-a103-e68cc77a1371 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____c21b0bae-393f-494d-a103-e68cc77a1371:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
+        flex-direction: column;
+    }
+
+    .navItem____c21b0bae-393f-494d-a103-e68cc77a1371 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+.container____96a1b667-5fed-4f63-9f0d-722c51029239 {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+}
+
+.container-header____96a1b667-5fed-4f63-9f0d-722c51029239 {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container-grid____96a1b667-5fed-4f63-9f0d-722c51029239 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.container-grid-item____96a1b667-5fed-4f63-9f0d-722c51029239 {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container-children____96a1b667-5fed-4f63-9f0d-722c51029239 {
+    margin-bottom: 1rem;
+}
+
+.container-footer____96a1b667-5fed-4f63-9f0d-722c51029239 {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
+}
+
+
+
+
+
+.container____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+}
+
+.container-header____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container-grid____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.container-grid-item____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container-children____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    margin-bottom: 1rem;
+}
+
+.container-footer____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
+}
+
+
+
+
+
+.nav____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____0365539c-4364-4fb4-bf2c-56e3ab838812:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____0365539c-4364-4fb4-bf2c-56e3ab838812:hover .navSubmenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____0365539c-4364-4fb4-bf2c-56e3ab838812:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+        flex-direction: column;
+    }
+
+    .navItem____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+.container____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: aliceblue;
+    font-family: Arial, sans-serif;
+}
+
+.container-header____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container-grid____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.container-grid-item____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container-children____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+    margin-bottom: 1rem;
+}
+
+.container-footer____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
+}
+
+
+
+
+
+.nav____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____37527abf-4610-4608-96ea-e9f45aa06b58:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____37527abf-4610-4608-96ea-e9f45aa06b58:hover .navSubmenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____37527abf-4610-4608-96ea-e9f45aa06b58 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____37527abf-4610-4608-96ea-e9f45aa06b58:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
+        flex-direction: column;
+    }
+
+    .navItem____37527abf-4610-4608-96ea-e9f45aa06b58 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+.container____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+}
+
+.container-header____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container-grid____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.container-grid-item____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container-children____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+    margin-bottom: 1rem;
+}
+
+.container-footer____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
+}
+
+
+
+
+
+.nav____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____524f7435-c6a9-4941-96b5-d9387f1de124:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____524f7435-c6a9-4941-96b5-d9387f1de124:hover .navSubmenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____524f7435-c6a9-4941-96b5-d9387f1de124:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+        flex-direction: column;
+    }
+
+    .navItem____524f7435-c6a9-4941-96b5-d9387f1de124 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+.nav____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96:hover .navSubmenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+        flex-direction: column;
+    }
+
+    .navItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+.container____fadc90fa-81b0-460d-9303-130a06a5dc9d {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+}
+
+.container-header____fadc90fa-81b0-460d-9303-130a06a5dc9d {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container-grid____fadc90fa-81b0-460d-9303-130a06a5dc9d {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.container-grid-item____fadc90fa-81b0-460d-9303-130a06a5dc9d {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container-children____fadc90fa-81b0-460d-9303-130a06a5dc9d {
+    margin-bottom: 1rem;
+}
+
+.container-footer____fadc90fa-81b0-460d-9303-130a06a5dc9d {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
+}
+
+
+
+
+
+.container____ec5a1664-f72d-4a16-8825-047275a35f98 {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+}
+
+.container-header____ec5a1664-f72d-4a16-8825-047275a35f98 {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container-grid____ec5a1664-f72d-4a16-8825-047275a35f98 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.container-grid-item____ec5a1664-f72d-4a16-8825-047275a35f98 {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container-children____ec5a1664-f72d-4a16-8825-047275a35f98 {
+    margin-bottom: 1rem;
+}
+
+.container-footer____ec5a1664-f72d-4a16-8825-047275a35f98 {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
+}
+
+
+
+
+
+.nav____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754:hover .navSubmenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+        flex-direction: column;
+    }
+
+    .navItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+.nav____1688157b-8aa8-491c-a185-7d59f049f109 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____1688157b-8aa8-491c-a185-7d59f049f109 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____1688157b-8aa8-491c-a185-7d59f049f109 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____1688157b-8aa8-491c-a185-7d59f049f109:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____1688157b-8aa8-491c-a185-7d59f049f109:hover .navSubmenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____1688157b-8aa8-491c-a185-7d59f049f109 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____1688157b-8aa8-491c-a185-7d59f049f109 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____1688157b-8aa8-491c-a185-7d59f049f109:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+        flex-direction: column;
+    }
+
+    .navItem____1688157b-8aa8-491c-a185-7d59f049f109 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+.nav____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87:hover .navSubmenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+        flex-direction: column;
+    }
+
+    .navItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
