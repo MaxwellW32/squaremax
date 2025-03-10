@@ -123,6 +123,12 @@ export function sortUsedComponentsByOrder(seenUsedComponents: usedComponent[]) {
     return orderedUsedComponents
 }
 
+export function makeValidPageName(pageName: string) {
+    return pageName
+        .trim() // Remove leading and trailing spaces
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/[^a-zA-Z0-9-_]/g, "") // Remove invalid characters
+}
 
 
 

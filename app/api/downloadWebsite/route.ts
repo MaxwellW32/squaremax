@@ -7,7 +7,7 @@ import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
-import { getChildrenUsedComponents, getDescendedUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, sortUsedComponentsByOrder } from "@/utility/utility";
+import { getChildrenUsedComponents, getDescendedUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
 
 export async function POST(request: Request) {
     //ensure logged in
@@ -150,18 +150,70 @@ export default function RootLayout({
     //make pages
     if (seenWebsite.pages === undefined) throw new Error("not seeing pages")
 
-    seenWebsite.pages.map(eachPage => {
-        const pageFolderName = eachPage.name === "home" ? null : eachPage.name
+    const combinedPageCssObj: { [key: string]: string } = {}
 
-        //create the page folder
-        const pageFolderPath = pageFolderName === null ? path.join(appFolderPath) : path.join(appFolderPath, pageFolderName)
+    await Promise.all(
+        seenWebsite.pages.map(async eachPage => {
+            if (seenWebsite.usedComponents === undefined) return
+
+            //ensure page name is possible
+            const validatedPageName = makeValidPageName(eachPage.name)
+
+            //create the page folder
+            const onHomePage = validatedPageName === "home"
+            const pageFolderPath = onHomePage ? path.join(appFolderPath) : path.join(appFolderPath, validatedPageName)
+
+            //make the page folder in the app directory
+            await ensureDirectoryExists(pageFolderPath)
+
+            //get base usedComponents on the page
+            const usedComponentsOnPage = getUsedComponentsInSameLocation({ type: "page", pageId: eachPage.id }, seenWebsite.usedComponents)
+
+            //order the components
+            const usedComponentsOnPageOrdered = sortUsedComponentsByOrder(usedComponentsOnPage)
+
+            //then get all their descendants for proper import
+            const allDescendedUsedComponents: usedComponent[] = getDescendedUsedComponents(usedComponentsOnPageOrdered.map(e => e.id), seenWebsite.usedComponents)
+            const allUsedComponentsUsed: usedComponent[] = [...usedComponentsOnPageOrdered, ...allDescendedUsedComponents]
+
+            //get all the needed import statements
+            const usedComponentsImportsText = getUsedComponentsImportString(allUsedComponentsUsed)
+
+            //write the usedComponents on page css to combinedPageCssObj
+            allUsedComponentsUsed.map(eachUsedComponent => {
+                combinedPageCssObj[eachUsedComponent.id] = eachUsedComponent.css
+            })
+
+            //get usedComponents in this location
+            const pageUsedComponentsText = makeUsedComponentsImplementationString(usedComponentsOnPageOrdered, seenWebsite.usedComponents)
+
+
+            const pageTsxFileString = `${usedComponentsImportsText}
+
+export default function ${onHomePage ? "Home" : "Page"}() {
+  return (
+    <>
+        ${pageUsedComponentsText}
+    </>
+  );
+}
+`
+
+            //page.tsx file path
+            const pageFilePath = path.join(pageFolderPath, "page.tsx")
+
+            //write to the actual file
+            await fs.writeFile(pageFilePath, pageTsxFileString);
+        })
+    )
 
 
 
-    })
 
     //create the components folder
+
     //create the public folder
+
     const publicFolderPath = path.join(baseFolderPath, "public")
     await ensureDirectoryExists(publicFolderPath)
 
