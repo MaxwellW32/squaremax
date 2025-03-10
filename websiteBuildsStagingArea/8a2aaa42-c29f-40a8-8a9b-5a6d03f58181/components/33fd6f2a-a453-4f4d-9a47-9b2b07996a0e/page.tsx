@@ -1,6 +1,7 @@
 import { containersType } from '@/types';
 import React from 'react';
-import './page.css';
+import "@/app/globals.css";
+
 
 export default function ContainOne({ data }: { data: containersType }) {
   return (

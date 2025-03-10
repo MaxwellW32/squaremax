@@ -67,9 +67,16 @@ export async function POST(request: Request) {
     const appFolderPath = path.join(baseFolderPath, "app")
     await ensureDirectoryExists(appFolderPath)
 
+
+
+
     //make fav icon
+
+
+
+
     //make global.css
-    const globalsCssFilePath = path.join(baseFolderPath, "globals.css")
+    const globalsCssFilePath = path.join(appFolderPath, "globals.css")
     await fs.writeFile(globalsCssFilePath, seenWebsite.globalCss);
 
     //ensure website usedComponents seen
@@ -212,7 +219,7 @@ export default function ${onHomePage ? "Home" : "Page"}() {
     const combinedPageCssString = Object.entries(combinedPageCssObj).map(eachEntry => {
         const usedComponentCssValue = eachEntry[1]
 
-        return `\n\n\n${usedComponentCssValue}\n\n\n`
+        return `\n\n\n\n\n${usedComponentCssValue}\n\n\n\n\n`
     }).join("")
 
     //add all combined css to the global.css
@@ -238,42 +245,15 @@ export default function ${onHomePage ? "Home" : "Page"}() {
 
     //copy all the used template's component files to the components folder
     await Promise.all(allTemplateIdsToCopy.map(async eachTemplateId => {
-        const websiteTemplateIndividualPath = path.join(websiteTemplatesFolderPath, eachTemplateId)
+        //where copying from
+        const websiteTemplateIndividualFolderPath = path.join(websiteTemplatesFolderPath, eachTemplateId)
 
-        //copyt from the websiteTemplatesDir to the local components directory
-        await fs.cp(websiteTemplateIndividualPath, componentsFolderPath, { recursive: true })
+        //where to copy to
+        const individualComponentsFolderPath = path.join(componentsFolderPath, eachTemplateId)
+
+        //copy from the websiteTemplatesDir to the local components directory
+        await fs.cp(websiteTemplateIndividualFolderPath, individualComponentsFolderPath, { recursive: true })
     }))
-
-    //delete the css files seen, delete the ./page.css import
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //create the public folder
     const publicFolderPath = path.join(baseFolderPath, "public")
@@ -287,64 +267,10 @@ export default function ${onHomePage ? "Home" : "Page"}() {
 
 
 
-
     //build website
     //
-    //grab website, pages, and all used components...
-    //make new entry in websiteBuildsStagingArea by website id..
-    //copy down the websiteBuildsStarter folder...
-    //start editing it...
-    //files to update - package.json - give it website name...
-    //files to create - layout.tsx..., page.tsx, each page folder - page.tsx combo
-    //
     //layout.tsx
-    //get the layout file working
     //  fonts - font array - import name, variable name, local variable name in next js
-    //  use same usedComponentBuildProcess to write the header and footer usedComponents
-    //  
-    //loop over the pages and build those files - folder name/page.tsx
-    //in each of those page.tsx files write the used components
-    //  ensure used components on page ordered 
-    //  import the appropriate template 
-    //  put the appropiate string on screen
-    //  handle recursion
-    //gather all the templates used and copy them from the main website to the components folder
-    //write the global css file with each scoped css declaration under the global css plain
-    //
-    //
-    //zip all of these files
-    //download it
-    //replace the original download folder if peeps downloding again
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //zip the folder
     const zip = new JSZip();
