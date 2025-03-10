@@ -291,7 +291,7 @@ export type updateWebsite = z.infer<typeof updateWebsiteSchema>
 
 export const pageSchema = z.object({
     id: z.string().min(1),
-    name: z.string().min(1),
+    link: z.string().min(1),
     websiteId: z.string().min(1),
 })
 export type page = z.infer<typeof pageSchema> & {

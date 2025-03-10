@@ -62,7 +62,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
                                             onClick={async () => {
                                                 handleSubmission(seenUsedComponent, { type: "page", pageId: eachPage.id })
                                             }}
-                                        >add to {eachPage.name}</button>
+                                        >add to {eachPage.link}</button>
                                     )
                                 })}
                             </div>

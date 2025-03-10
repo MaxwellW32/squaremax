@@ -1,36 +1,12 @@
-import { Tangerine, Roboto, Open_Sans, Poppins, Fira_Sans } from "next/font/google";
+import { Barriecito } from "next/font/google";
 import "./globals.css";
 import type { Metadata } from "next";
 import Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 from "@/components/76a62d0d-2f49-4a3b-88e5-ba248caa79a4/page";
 
-const tangerine = Tangerine({
-variable: "--font-tangerine",
+const barriecito = Barriecito({
+variable: "--font-barriecito",
 subsets: ["latin"],
 weight: ["400"],
-});
-
-const roboto = Roboto({
-variable: "--font-roboto",
-subsets: ["latin"],
-
-});
-
-const openSans = Open_Sans({
-variable: "--font-openSans",
-subsets: ["latin"],
-
-});
-
-const poppins = Poppins({
-variable: "--font-poppins",
-subsets: ["latin"],
-weight: ["300", "400", "500"],
-});
-
-const firaSans = Fira_Sans({
-variable: "--font-firaSans",
-subsets: ["latin"],
-weight: ["300", "400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -46,16 +22,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${tangerine.variable} ${roboto.variable} ${openSans.variable} ${poppins.variable} ${firaSans.variable} antialiased`}
+        className={`${barriecito.variable} antialiased`}
       >
         <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
   "category": "navbars",
   "mainElProps": {},
-  "styleId": "____23661674-a82f-4824-9b6a-4f302d276fb8",
+  "styleId": "____36876f1a-4b60-492b-a41a-b99840b738ed",
   "menu": [
     {
-      "label": "nav 1",
+      "label": "menu item 1",
       "link": "/",
       "subMenu": [
         {
@@ -78,7 +54,7 @@ data={{
 data={{
   "category": "navbars",
   "mainElProps": {},
-  "styleId": "____6f31b110-8f42-4cda-ba36-8e0def003e0b",
+  "styleId": "____717840fa-6d13-4d0f-978a-b055a22100ea",
   "menu": [
     {
       "label": "menu item 1",

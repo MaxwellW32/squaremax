@@ -7,7 +7,7 @@ import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
-import { addScopeToCSS, getDescendedUsedComponents, getFontImportStrings, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
+import { addScopeToCSS, getDescendedUsedComponents, getFontImportStrings, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageLinkName as makeValidPageLinkName, sortUsedComponentsByOrder } from "@/utility/utility";
 
 export async function POST(request: Request) {
   //ensure logged in
@@ -170,12 +170,14 @@ export default function RootLayout({
     seenWebsite.pages.map(async eachPage => {
       if (seenWebsite.usedComponents === undefined) return
 
-      //ensure page name is possible
-      const validatedPageName = makeValidPageName(eachPage.name)
+      //ensure page link is possible
+      const validatedPageLinkName = makeValidPageLinkName(eachPage.link)
 
       //create the page folder
-      const onHomePage = validatedPageName === "home"
-      const pageFolderPath = onHomePage ? path.join(appFolderPath) : path.join(appFolderPath, validatedPageName)
+      const onHomePage = eachPage.link === "/"
+
+      //where to write new page
+      const pageFolderPath = onHomePage ? path.join(appFolderPath) : path.join(appFolderPath, validatedPageLinkName)
 
       //make the page folder in the app directory
       await ensureDirectoryExists(pageFolderPath)

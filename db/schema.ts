@@ -56,7 +56,7 @@ export const websiteRelations = relations(websites, ({ one, many }) => ({
 
 export const pages = pgTable("pages", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    name: varchar("name", { length: 255 }).notNull(),
+    link: varchar("link", { length: 255 }).notNull(),
     websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
 },
     (t) => {

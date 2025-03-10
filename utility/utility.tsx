@@ -123,11 +123,18 @@ export function sortUsedComponentsByOrder(seenUsedComponents: usedComponent[]) {
     return orderedUsedComponents
 }
 
-export function makeValidPageName(pageName: string) {
+export function makeValidPageLinkName(pageName: string) {
     return pageName
         .trim() // Remove leading and trailing spaces
         .replace(/\s+/g, "-") // Replace spaces with hyphens
         .replace(/[^a-zA-Z0-9-_]/g, "") // Remove invalid characters
+}
+export function formatCSS(cssString: string) {
+    return cssString
+        .replace(/\s*{\s*/g, ' {\n    ')  // Add newline and indent after opening brace
+        .replace(/\s*;\s*/g, ';\n    ')  // Add newline and indent after semicolon
+        .replace(/\s*}\s*/g, '\n}\n')    // Add newline before closing brace
+        .replace(/\n\s*\n/g, '\n');      // Remove extra empty lines
 }
 
 
@@ -191,24 +198,24 @@ export function makeUsedComponentsImplementationString(seenUsedComponents: usedC
             //get the children
             const seenChildren = getChildrenUsedComponents(eachUsedComponent.id, originalList)
 
+            //ensure ordered
+            const seenChildrenOrdered = sortUsedComponentsByOrder(seenChildren)
+
             //remove the children key value on the object
             // @ts-expect-error type
             delete seenPropData["children"]
 
-            const propsWithoutChildren = seenPropData
-
             //stringify it
-            writablePropData = JSON.stringify(propsWithoutChildren, null, 2)
+            writablePropData = JSON.stringify(seenPropData, null, 2)
 
             //add on the key value pair children and the component implamentation
-            const seenChildrenImplementation = makeUsedComponentsImplementationString(seenChildren, originalList)
+            const seenChildrenImplementation = makeUsedComponentsImplementationString(seenChildrenOrdered, originalList)
 
             //get rid of the closing }
             writablePropData = writablePropData.slice(0, writablePropData.length - 2) + ","
 
             //write the new values to the string
             writablePropData = writablePropData + `\n "children": (\n<>\n${seenChildrenImplementation}\n</>\n)` + "\n}";
-            // writablePropData = writablePropData.replace(/}(\s*)$/, `,\n "children": (\n<>${seenChildrenImplementation}</>\n)` + " }");
 
         } else {
             //can handle normally

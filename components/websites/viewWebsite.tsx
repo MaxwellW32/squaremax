@@ -5,7 +5,7 @@ import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWe
 import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
+import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
@@ -590,10 +590,9 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                         <div className={styles.sideBarTopContent}>
                             <ul className={styles.pageButtonsCont}>
                                 {websiteObj.pages !== undefined && websiteObj.pages.map(eachPage => {
-                                    //show each page name
 
                                     return (
-                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: activePage !== undefined && eachPage.id === activePage.id ? "rgb(var(--color1))" : "rgb(var(--shade1))" }}
+                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: activePage !== undefined && eachPage.id === activePage.id ? "rgb(var(--color1))" : "rgb(var(--shade1))", textTransform: "none" }}
                                             onClick={async () => {
                                                 if (websiteObj.usedComponents === undefined) return
 
@@ -612,7 +611,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                                     return newWebsiteObj
                                                 })
                                             }}
-                                        >{eachPage.name}</button>
+                                        >{eachPage.link === "/" ? "home" : eachPage.link}</button>
                                     )
                                 })}
 
@@ -673,38 +672,85 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
                                             handleWebsiteUpdate(newWebsite)
                                         }}
+                                        onBlur={() => {
+                                            const newWebsite = { ...websiteObj }
+                                            newWebsite.globalCss = formatCSS(newWebsite.globalCss)
+
+                                            handleWebsiteUpdate(newWebsite)
+                                        }}
                                     />
                                 }
                             />
 
                             {activeUsedComponent !== undefined && websiteObj.usedComponents !== undefined && (
                                 <>
-                                    <label>{activeUsedComponent.data.category} template</label>
+                                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: 'center', justifyContent: "space-between" }}>
+                                        <label>{activeUsedComponent.data.category} template</label>
 
-                                    {Object.hasOwn(activeUsedComponent.data, "children") && (
-                                        <button style={{ justifySelf: "flex-end", position: "absolute", zIndex: 1 }}
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(activeUsedComponent.id);
+                                        {Object.hasOwn(activeUsedComponent.data, "children") && (
+                                            <button style={{ zIndex: 1 }}
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(activeUsedComponent.id);
 
-                                                toast.success("parent id copied to cliboard")
-                                            }}
-                                        >
-                                            <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
-                                        </button>
-                                    )}
+                                                    toast.success("parent id copied to cliboard")
+                                                }}
+                                            >
+                                                <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
+                                            </button>
+                                        )}
+                                    </div>
 
                                     <ShowMore
                                         label='Styling'
                                         startShowing={true}
                                         content={
-                                            <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
-                                                onChange={(e) => {
-                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                    newActiveComp.css = e.target.value
+                                            <>
+                                                <ShowMore
+                                                    label='Element Css'
+                                                    startShowing={true}
+                                                    content={
+                                                        <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
+                                                            onChange={(e) => {
+                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                newActiveComp.css = e.target.value
 
-                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
-                                                }}
-                                            />
+                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                            }}
+                                                            onBlur={() => {
+                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                newActiveComp.css = formatCSS(newActiveComp.css)
+
+                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                            }}
+                                                        />
+                                                    }
+                                                />
+
+                                                <ShowMore
+                                                    label='add id & class'
+                                                    content={
+                                                        <>
+                                                            <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
+                                                                onChange={(e) => {
+                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                    newActiveComp.data.mainElProps.id = e.target.value
+
+                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                }}
+                                                            />
+
+                                                            <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names to this element' style={{ marginTop: "1rem" }}
+                                                                onChange={(e) => {
+                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                    newActiveComp.data.mainElProps.className = e.target.value
+
+                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                }}
+                                                            />
+                                                        </>
+                                                    }
+                                                />
+                                            </>
                                         }
                                     />
 
@@ -904,13 +950,16 @@ function RenderComponentTree({
                     }
                 }
 
+                let seenElementId: string | undefined = undefined
+                let seenElementClassNames: string | undefined = undefined
+
                 //modify id and className of mainElProps render
-                if (eachUsedComponent.data.mainElProps.className !== undefined && !eachUsedComponent.data.mainElProps.className.includes(eachUsedComponent.websiteId)) {
-                    eachUsedComponent.data.mainElProps.className = `${eachUsedComponent.data.mainElProps.className}____${eachUsedComponent.websiteId}`
+                if (eachUsedComponent.data.mainElProps.className !== undefined) {
+                    seenElementClassNames = `${eachUsedComponent.data.mainElProps.className}____${eachUsedComponent.websiteId}`
                 }
 
-                if (eachUsedComponent.data.mainElProps.id !== undefined && !eachUsedComponent.data.mainElProps.id.includes(eachUsedComponent.websiteId)) {
-                    eachUsedComponent.data.mainElProps.id = `${eachUsedComponent.data.mainElProps.id}____${eachUsedComponent.websiteId}`
+                if (eachUsedComponent.data.mainElProps.id !== undefined) {
+                    seenElementId = `${eachUsedComponent.data.mainElProps.id}____${eachUsedComponent.websiteId}`
                 }
 
                 return (
@@ -926,7 +975,7 @@ function RenderComponentTree({
                         ) : (
                             <>
                                 {/* Render the main component with injected props */}
-                                <ComponentToRender data={eachUsedComponent.data} />
+                                <ComponentToRender data={{ ...eachUsedComponent.data, mainElProps: { ...eachUsedComponent.data.mainElProps, id: seenElementId, className: seenElementClassNames } }} />
                             </>
                         )}
                     </React.Fragment>

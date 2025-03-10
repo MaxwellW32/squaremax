@@ -4,14 +4,14 @@ import styles from "./style.module.css"
 import { handleManagePageOptions, newPage, newPageSchema, page, pageSchema, updatePageSchema, website } from '@/types'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
-import { deepClone } from '@/utility/utility'
+import { deepClone, makeValidPageLinkName } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import toast from 'react-hot-toast'
 import { addPage, updateThePage } from '@/serverFunctions/handlePages'
 
 export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage, submissionAction, ...elProps }: { sentWebsiteId: website["id"], sentPage?: page, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
     const initialFormObj: newPage = {
-        name: "",
+        link: "",
         websiteId: sentWebsiteId
     }
 
@@ -31,10 +31,10 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
             inputType: "input" | "textarea",
         } }>
     const [moreFormInfo,] = useState<moreFormInfoType>({
-        "name": {
-            label: "name",
+        "link": {
+            label: "link",
             inputType: "input",
-            placeHolder: "Enter page name",
+            placeHolder: "Enter page link `/` for home",
         },
     });
 
@@ -135,7 +135,20 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     formObjSet(prevFormObj => {
                                         const newFormObj = { ...prevFormObj }
+
                                         newFormObj[eachKey] = e.target.value
+
+                                        //link validation
+                                        if (eachKey === "link") {
+                                            const seenValidatedPageLink = makeValidPageLinkName(e.target.value)
+
+                                            if (seenValidatedPageLink === "") {
+                                                newFormObj[eachKey] = "/"
+                                            } else {
+                                                newFormObj[eachKey] = seenValidatedPageLink
+                                            }
+                                        }
+
                                         return newFormObj
                                     })
                                 }}
@@ -153,6 +166,19 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
                                         const newFormObj = { ...prevFormObj }
                                         //@ts-expect-error type
                                         newFormObj[eachKey] = e.target.value
+
+                                        //link validation
+                                        if (eachKey === "link") {
+                                            //@ts-expect-error type
+                                            const seenValidatedPageLink = makeValidPageLinkName(e.target.value)
+
+                                            if (seenValidatedPageLink === "") {
+                                                newFormObj[eachKey] = "/"
+                                            } else {
+                                                newFormObj[eachKey] = seenValidatedPageLink
+                                            }
+                                        }
+
                                         return newFormObj
                                     })
                                 }}

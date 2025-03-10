@@ -137,110 +137,118 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
 
                 if (eachKey === "fonts" && formObj.fonts !== undefined) {
                     return (
-                        <div key={eachKey} className={`${styles.fontsCont} snap`}>
-                            {formObj.fonts.map((eachFont, eachFontIndex) => {
-                                return (
-                                    <div className={styles.fontCont} key={eachFontIndex} data-toolTip={`--font-${makeValidVariableName(eachFont.importName)}`}>
-                                        <button className='secondaryButton'
-                                            onClick={() => {
-                                                formObjSet(prevFormObj => {
-                                                    const newFormObj = { ...prevFormObj }
-                                                    if (newFormObj.fonts === undefined) return prevFormObj
+                        <React.Fragment key={eachKey}>
+                            <label>Fonts</label>
 
-                                                    newFormObj.fonts = newFormObj.fonts.filter((ef, efIndex) => {
-                                                        return efIndex !== eachFontIndex
+                            <div className={`${styles.fontsCont} snap`}>
+                                {formObj.fonts.map((eachFont, eachFontIndex) => {
+                                    return (
+                                        <div className={styles.fontCont} key={eachFontIndex} >
+                                            <button className='secondaryButton'
+                                                onClick={() => {
+                                                    formObjSet(prevFormObj => {
+                                                        const newFormObj = { ...prevFormObj }
+                                                        if (newFormObj.fonts === undefined) return prevFormObj
+
+                                                        newFormObj.fonts = newFormObj.fonts.filter((ef, efIndex) => {
+                                                            return efIndex !== eachFontIndex
+                                                        })
+
+                                                        return newFormObj
+                                                    })
+                                                }}
+                                            >delete</button>
+
+                                            <TextInput
+                                                name={eachKey + "importName"}
+                                                value={eachFont.importName}
+                                                type={"text"}
+                                                label={"Website font name"}
+                                                placeHolder={"Enter website font - case sensitive"}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                    formObjSet(prevFormObj => {
+                                                        const newFormObj = { ...prevFormObj }
+                                                        if (newFormObj.fonts === undefined) return prevFormObj
+
+                                                        newFormObj.fonts[eachFontIndex].importName = e.target.value
+                                                        return newFormObj
+                                                    })
+                                                }}
+                                                onBlur={() => { checkIfValid(formObj, eachKey, websiteSchema) }}
+                                                errors={formErrors[eachKey]}
+                                            />
+
+                                            {formObj.fonts !== undefined && formObj.fonts[eachFontIndex].importName !== "" && (
+                                                <p>css: var(--font-{makeValidVariableName(eachFont.importName)})</p>
+                                            )}
+
+                                            <TextInput
+                                                name={eachKey + "subset"}
+                                                value={eachFont.subsets.join(",")}
+                                                type={"text"}
+                                                label={"Website font subset"}
+                                                placeHolder={"enter font subsets - e.g latin"}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                    formObjSet(prevFormObj => {
+                                                        const newFormObj = { ...prevFormObj }
+                                                        if (newFormObj.fonts === undefined) return prevFormObj
+
+                                                        newFormObj.fonts[eachFontIndex].subsets = e.target.value.split(",")
+                                                        return newFormObj
                                                     })
 
-                                                    return newFormObj
-                                                })
-                                            }}
-                                        >delete</button>
+                                                }}
+                                                onBlur={() => {
+                                                    checkIfValid(formObj, eachKey, websiteSchema)
+                                                }}
+                                                errors={formErrors[eachKey]}
+                                            />
 
-                                        <TextInput
-                                            name={eachKey + "importName"}
-                                            value={eachFont.importName}
-                                            type={"text"}
-                                            label={"Website font name"}
-                                            placeHolder={"Enter website fonts - precise name"}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                formObjSet(prevFormObj => {
-                                                    const newFormObj = { ...prevFormObj }
-                                                    if (newFormObj.fonts === undefined) return prevFormObj
+                                            <TextInput
+                                                name={eachKey + "weight"}
+                                                value={eachFont.weights !== null ? eachFont.weights.join(",") : ""}
+                                                type={"text"}
+                                                label={"enter font weight"}
+                                                placeHolder={"blank for variable fonts or 300,400...etc"}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                    formObjSet(prevFormObj => {
+                                                        const newFormObj = { ...prevFormObj }
+                                                        if (newFormObj.fonts === undefined) return prevFormObj
 
-                                                    newFormObj.fonts[eachFontIndex].importName = e.target.value
-                                                    return newFormObj
-                                                })
-                                            }}
-                                            onBlur={() => { checkIfValid(formObj, eachKey, websiteSchema) }}
-                                            errors={formErrors[eachKey]}
-                                        />
+                                                        newFormObj.fonts[eachFontIndex].weights = e.target.value.split(",")
 
-                                        <TextInput
-                                            name={eachKey + "subset"}
-                                            value={eachFont.subsets.join(",")}
-                                            type={"text"}
-                                            label={"Website font subset"}
-                                            placeHolder={"enter font subsets - e.g latin"}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                formObjSet(prevFormObj => {
-                                                    const newFormObj = { ...prevFormObj }
-                                                    if (newFormObj.fonts === undefined) return prevFormObj
+                                                        if (e.target.value === "") {
+                                                            newFormObj.fonts[eachFontIndex].weights = null
+                                                        }
+                                                        return newFormObj
+                                                    })
+                                                }}
+                                                onBlur={() => {
+                                                    checkIfValid(formObj, eachKey, websiteSchema)
+                                                }}
+                                                errors={formErrors[eachKey]}
+                                            />
+                                        </div>
+                                    )
+                                })}
 
-                                                    newFormObj.fonts[eachFontIndex].subsets = e.target.value.split(",")
-                                                    return newFormObj
-                                                })
+                                <button className='mainButton' style={{ alignSelf: "center" }}
+                                    onClick={() => {
+                                        formObjSet(prevFormObj => {
+                                            const newFormObj = { ...prevFormObj }
+                                            if (newFormObj.fonts === undefined) return prevFormObj
 
-                                            }}
-                                            onBlur={() => {
-                                                checkIfValid(formObj, eachKey, websiteSchema)
-                                            }}
-                                            errors={formErrors[eachKey]}
-                                        />
-
-                                        <TextInput
-                                            name={eachKey + "weight"}
-                                            value={eachFont.weights !== null ? eachFont.weights.join(",") : ""}
-                                            type={"text"}
-                                            label={"enter font weight"}
-                                            placeHolder={"blank for variable fonts or 300,400...etc"}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                formObjSet(prevFormObj => {
-                                                    const newFormObj = { ...prevFormObj }
-                                                    if (newFormObj.fonts === undefined) return prevFormObj
-
-                                                    newFormObj.fonts[eachFontIndex].weights = e.target.value.split(",")
-
-                                                    if (e.target.value === "") {
-                                                        newFormObj.fonts[eachFontIndex].weights = null
-                                                    }
-                                                    return newFormObj
-                                                })
-                                            }}
-                                            onBlur={() => {
-                                                checkIfValid(formObj, eachKey, websiteSchema)
-                                            }}
-                                            errors={formErrors[eachKey]}
-                                        />
-                                    </div>
-                                )
-                            })}
-
-                            <button className='mainButton' style={{ alignSelf: "center" }}
-                                onClick={() => {
-                                    formObjSet(prevFormObj => {
-                                        const newFormObj = { ...prevFormObj }
-                                        if (newFormObj.fonts === undefined) return prevFormObj
-
-                                        newFormObj.fonts = [...newFormObj.fonts, {
-                                            importName: "",
-                                            subsets: [],
-                                            weights: null
-                                        }]
-                                        return newFormObj
-                                    })
-                                }}
-                            >add</button>
-                        </div>
+                                            newFormObj.fonts = [...newFormObj.fonts, {
+                                                importName: "",
+                                                subsets: [],
+                                                weights: null
+                                            }]
+                                            return newFormObj
+                                        })
+                                    }}
+                                >add</button>
+                            </div>
+                        </React.Fragment>
                     )
                 }
 

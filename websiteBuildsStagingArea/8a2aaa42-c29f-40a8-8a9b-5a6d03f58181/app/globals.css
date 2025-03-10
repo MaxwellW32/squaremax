@@ -1,81 +1,32 @@
 @import "tailwindcss";
 
 .red{
-     border: 5px solid green !important; 
+     border: 5px solid pink !important; 
 }
 
 
 
 
-.container____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background-color: #f9f9f9;
-    font-family: var(--font-tangerine);
-}
-
-.container-header____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    color: #333;
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.container-grid____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.container-grid-item____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.container-children____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    margin-bottom: 1rem;
-}
-
-.container-footer____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    text-align: center;
-    font-size: 1rem;
-    color: #555;
-    margin-top: 1rem;
-}
-
-
-
-
-
-
-
-
-
-.nav____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.nav____36876f1a-4b60-492b-a41a-b99840b738ed {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.navMenu____36876f1a-4b60-492b-a41a-b99840b738ed {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.navItem____36876f1a-4b60-492b-a41a-b99840b738ed {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.navLink____36876f1a-4b60-492b-a41a-b99840b738ed {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -83,12 +34,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____23661674-a82f-4824-9b6a-4f302d276fb8:hover {
+.navLink____36876f1a-4b60-492b-a41a-b99840b738ed:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.navSubmenu____36876f1a-4b60-492b-a41a-b99840b738ed {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -103,39 +54,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____23661674-a82f-4824-9b6a-4f302d276fb8:hover .navSubmenu____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.navItem____36876f1a-4b60-492b-a41a-b99840b738ed:hover .navSubmenu____36876f1a-4b60-492b-a41a-b99840b738ed {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.submenuItem____36876f1a-4b60-492b-a41a-b99840b738ed {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____23661674-a82f-4824-9b6a-4f302d276fb8 {
+.submenuLink____36876f1a-4b60-492b-a41a-b99840b738ed {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____23661674-a82f-4824-9b6a-4f302d276fb8:hover {
+.submenuLink____36876f1a-4b60-492b-a41a-b99840b738ed:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____23661674-a82f-4824-9b6a-4f302d276fb8 {
+    .navMenu____36876f1a-4b60-492b-a41a-b99840b738ed {
         flex-direction: column;
     }
 
-    .navItem____23661674-a82f-4824-9b6a-4f302d276fb8 {
+    .navItem____36876f1a-4b60-492b-a41a-b99840b738ed {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____23661674-a82f-4824-9b6a-4f302d276fb8 {
+    .navSubmenu____36876f1a-4b60-492b-a41a-b99840b738ed {
         position: static;
         box-shadow: none;
         transform: none;
@@ -152,26 +103,26 @@
 
 
 
-.nav____6f31b110-8f42-4cda-ba36-8e0def003e0b {
-    background-color: green;
+.nav____717840fa-6d13-4d0f-978a-b055a22100ea {
+    background-color: blue;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+.navMenu____717840fa-6d13-4d0f-978a-b055a22100ea {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+.navItem____717840fa-6d13-4d0f-978a-b055a22100ea {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+.navLink____717840fa-6d13-4d0f-978a-b055a22100ea {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -179,12 +130,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____6f31b110-8f42-4cda-ba36-8e0def003e0b:hover {
+.navLink____717840fa-6d13-4d0f-978a-b055a22100ea:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+.navSubmenu____717840fa-6d13-4d0f-978a-b055a22100ea {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -199,39 +150,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____6f31b110-8f42-4cda-ba36-8e0def003e0b:hover .navSubmenu____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+.navItem____717840fa-6d13-4d0f-978a-b055a22100ea:hover .navSubmenu____717840fa-6d13-4d0f-978a-b055a22100ea {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+.submenuItem____717840fa-6d13-4d0f-978a-b055a22100ea {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+.submenuLink____717840fa-6d13-4d0f-978a-b055a22100ea {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____6f31b110-8f42-4cda-ba36-8e0def003e0b:hover {
+.submenuLink____717840fa-6d13-4d0f-978a-b055a22100ea:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+    .navMenu____717840fa-6d13-4d0f-978a-b055a22100ea {
         flex-direction: column;
     }
 
-    .navItem____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+    .navItem____717840fa-6d13-4d0f-978a-b055a22100ea {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____6f31b110-8f42-4cda-ba36-8e0def003e0b {
+    .navSubmenu____717840fa-6d13-4d0f-978a-b055a22100ea {
         position: static;
         box-shadow: none;
         transform: none;
@@ -248,122 +199,26 @@
 
 
 
-.nav____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    background-color: red;
-    padding: 1rem 2rem;
-    font-family: 'Arial', sans-serif;
-    color: #ffffff;
-}
-
-.navMenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.navItem____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    position: relative;
-    margin-right: 2rem;
-}
-
-.navLink____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.navLink____c21b0bae-393f-494d-a103-e68cc77a1371:hover {
-    color: #38bdf8;
-}
-
-/* Submenu Styles */
-.navSubmenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    position: absolute;
-    top: 2.5rem;
-    left: 0;
-    list-style: none;
-    background-color: #334155;
-    padding: 0.5rem 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.navItem____c21b0bae-393f-494d-a103-e68cc77a1371:hover .navSubmenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.submenuItem____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    padding: 0.5rem 1.5rem;
-}
-
-.submenuLink____c21b0bae-393f-494d-a103-e68cc77a1371 {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-}
-
-.submenuLink____c21b0bae-393f-494d-a103-e68cc77a1371:hover {
-    color: #38bdf8;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .navMenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
-        flex-direction: column;
-    }
-
-    .navItem____c21b0bae-393f-494d-a103-e68cc77a1371 {
-        margin-right: 0;
-        margin-bottom: 1rem;
-    }
-
-    .navSubmenu____c21b0bae-393f-494d-a103-e68cc77a1371 {
-        position: static;
-        box-shadow: none;
-        transform: none;
-        opacity: 1;
-        visibility: visible;
-    }
-}
-
-
-
-
-
-
-
-
-
-.nav____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.nav____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.navMenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.navLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -371,12 +226,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____0365539c-4364-4fb4-bf2c-56e3ab838812:hover {
+.navLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -391,39 +246,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____0365539c-4364-4fb4-bf2c-56e3ab838812:hover .navSubmenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover .navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.submenuItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+.submenuLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____0365539c-4364-4fb4-bf2c-56e3ab838812:hover {
+.submenuLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    .navMenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
         flex-direction: column;
     }
 
-    .navItem____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    .navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____0365539c-4364-4fb4-bf2c-56e3ab838812 {
+    .navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
         position: static;
         box-shadow: none;
         transform: none;
@@ -440,7 +295,7 @@
 
 
 
-.container____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+.container____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
     border: 2px solid #ddd;
     border-radius: 10px;
     padding: 20px;
@@ -449,32 +304,32 @@
     font-family: Arial, sans-serif;
 }
 
-.container-header____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+.container-header____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
     color: #333;
     font-size: 1.5rem;
     text-align: center;
     margin-bottom: 1rem;
 }
 
-.container-grid____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+.container-grid____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 10px;
     margin-bottom: 1rem;
 }
 
-.container-grid-item____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+.container-grid-item____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
     background-color: #ffffff;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.container-children____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+.container-children____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
     margin-bottom: 1rem;
 }
 
-.container-footer____ffbcff56-376b-403f-ab1a-b1ac960754bd {
+.container-footer____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
     text-align: center;
     font-size: 1rem;
     color: #555;
@@ -489,103 +344,7 @@
 
 
 
-.nav____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    background-color: #1e293b;
-    padding: 1rem 2rem;
-    font-family: 'Arial', sans-serif;
-    color: #ffffff;
-}
-
-.navMenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.navItem____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    position: relative;
-    margin-right: 2rem;
-}
-
-.navLink____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.navLink____37527abf-4610-4608-96ea-e9f45aa06b58:hover {
-    color: #38bdf8;
-}
-
-/* Submenu Styles */
-.navSubmenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    position: absolute;
-    top: 2.5rem;
-    left: 0;
-    list-style: none;
-    background-color: #334155;
-    padding: 0.5rem 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.navItem____37527abf-4610-4608-96ea-e9f45aa06b58:hover .navSubmenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.submenuItem____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    padding: 0.5rem 1.5rem;
-}
-
-.submenuLink____37527abf-4610-4608-96ea-e9f45aa06b58 {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-}
-
-.submenuLink____37527abf-4610-4608-96ea-e9f45aa06b58:hover {
-    color: #38bdf8;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .navMenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
-        flex-direction: column;
-    }
-
-    .navItem____37527abf-4610-4608-96ea-e9f45aa06b58 {
-        margin-right: 0;
-        margin-bottom: 1rem;
-    }
-
-    .navSubmenu____37527abf-4610-4608-96ea-e9f45aa06b58 {
-        position: static;
-        box-shadow: none;
-        transform: none;
-        opacity: 1;
-        visibility: visible;
-    }
-}
-
-
-
-
-
-
-
-
-
-.container____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+.container____6b797084-a472-4116-a1fc-62f28778faec {
     border: 2px solid #ddd;
     border-radius: 10px;
     padding: 20px;
@@ -594,32 +353,32 @@
     font-family: Arial, sans-serif;
 }
 
-.container-header____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+.container-header____6b797084-a472-4116-a1fc-62f28778faec {
     color: #333;
     font-size: 1.5rem;
     text-align: center;
     margin-bottom: 1rem;
 }
 
-.container-grid____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+.container-grid____6b797084-a472-4116-a1fc-62f28778faec {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 10px;
     margin-bottom: 1rem;
 }
 
-.container-grid-item____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+.container-grid-item____6b797084-a472-4116-a1fc-62f28778faec {
     background-color: #ffffff;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.container-children____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+.container-children____6b797084-a472-4116-a1fc-62f28778faec {
     margin-bottom: 1rem;
 }
 
-.container-footer____87c56603-5d1e-4e5c-9010-13ce86d25025 {
+.container-footer____6b797084-a472-4116-a1fc-62f28778faec {
     text-align: center;
     font-size: 1rem;
     color: #555;
@@ -634,41 +393,137 @@
 
 
 
-.container____96a1b667-5fed-4f63-9f0d-722c51029239 {
+.nav____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____cad39b18-af04-4bf5-b171-3bd90cc89591:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____cad39b18-af04-4bf5-b171-3bd90cc89591:hover .navSubmenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____cad39b18-af04-4bf5-b171-3bd90cc89591:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+        flex-direction: column;
+    }
+
+    .navItem____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+
+
+
+
+.container____3717e81c-6063-4ac1-bf78-cce19b9b89dd {
     border: 2px solid #ddd;
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     background-color: #f9f9f9;
-    font-family: Arial, sans-serif;
+    font-family: var(--font-barriecito);
 }
 
-.container-header____96a1b667-5fed-4f63-9f0d-722c51029239 {
+.container-header____3717e81c-6063-4ac1-bf78-cce19b9b89dd {
     color: #333;
     font-size: 1.5rem;
     text-align: center;
     margin-bottom: 1rem;
 }
 
-.container-grid____96a1b667-5fed-4f63-9f0d-722c51029239 {
+.container-grid____3717e81c-6063-4ac1-bf78-cce19b9b89dd {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 10px;
     margin-bottom: 1rem;
 }
 
-.container-grid-item____96a1b667-5fed-4f63-9f0d-722c51029239 {
+.container-grid-item____3717e81c-6063-4ac1-bf78-cce19b9b89dd {
     background-color: #ffffff;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.container-children____96a1b667-5fed-4f63-9f0d-722c51029239 {
+.container-children____3717e81c-6063-4ac1-bf78-cce19b9b89dd {
     margin-bottom: 1rem;
 }
 
-.container-footer____96a1b667-5fed-4f63-9f0d-722c51029239 {
+.container-footer____3717e81c-6063-4ac1-bf78-cce19b9b89dd {
     text-align: center;
     font-size: 1rem;
     color: #555;
@@ -683,26 +538,26 @@
 
 
 
-.nav____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.nav____ea092261-1588-4bd0-b6b1-faabbc655084 {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.navMenu____ea092261-1588-4bd0-b6b1-faabbc655084 {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.navItem____ea092261-1588-4bd0-b6b1-faabbc655084 {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.navLink____ea092261-1588-4bd0-b6b1-faabbc655084 {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -710,12 +565,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____524f7435-c6a9-4941-96b5-d9387f1de124:hover {
+.navLink____ea092261-1588-4bd0-b6b1-faabbc655084:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.navSubmenu____ea092261-1588-4bd0-b6b1-faabbc655084 {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -730,39 +585,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____524f7435-c6a9-4941-96b5-d9387f1de124:hover .navSubmenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.navItem____ea092261-1588-4bd0-b6b1-faabbc655084:hover .navSubmenu____ea092261-1588-4bd0-b6b1-faabbc655084 {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.submenuItem____ea092261-1588-4bd0-b6b1-faabbc655084 {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____524f7435-c6a9-4941-96b5-d9387f1de124 {
+.submenuLink____ea092261-1588-4bd0-b6b1-faabbc655084 {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____524f7435-c6a9-4941-96b5-d9387f1de124:hover {
+.submenuLink____ea092261-1588-4bd0-b6b1-faabbc655084:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    .navMenu____ea092261-1588-4bd0-b6b1-faabbc655084 {
         flex-direction: column;
     }
 
-    .navItem____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    .navItem____ea092261-1588-4bd0-b6b1-faabbc655084 {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____524f7435-c6a9-4941-96b5-d9387f1de124 {
+    .navSubmenu____ea092261-1588-4bd0-b6b1-faabbc655084 {
         position: static;
         box-shadow: none;
         transform: none;
@@ -779,124 +634,26 @@
 
 
 
-.container____ec5a1664-f72d-4a16-8825-047275a35f98 {
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background-color: #f9f9f9;
-    font-family: Arial, sans-serif;
-}
-
-.container-header____ec5a1664-f72d-4a16-8825-047275a35f98 {
-    color: #333;
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.container-grid____ec5a1664-f72d-4a16-8825-047275a35f98 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.container-grid-item____ec5a1664-f72d-4a16-8825-047275a35f98 {
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.container-children____ec5a1664-f72d-4a16-8825-047275a35f98 {
-    margin-bottom: 1rem;
-}
-
-.container-footer____ec5a1664-f72d-4a16-8825-047275a35f98 {
-    text-align: center;
-    font-size: 1rem;
-    color: #555;
-    margin-top: 1rem;
-}
-
-
-
-
-
-
-
-
-
-.container____fadc90fa-81b0-460d-9303-130a06a5dc9d {
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background-color: #f9f9f9;
-    font-family: Arial, sans-serif;
-}
-
-.container-header____fadc90fa-81b0-460d-9303-130a06a5dc9d {
-    color: #333;
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.container-grid____fadc90fa-81b0-460d-9303-130a06a5dc9d {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.container-grid-item____fadc90fa-81b0-460d-9303-130a06a5dc9d {
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.container-children____fadc90fa-81b0-460d-9303-130a06a5dc9d {
-    margin-bottom: 1rem;
-}
-
-.container-footer____fadc90fa-81b0-460d-9303-130a06a5dc9d {
-    text-align: center;
-    font-size: 1rem;
-    color: #555;
-    margin-top: 1rem;
-}
-
-
-
-
-
-
-
-
-
-.nav____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.nav____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.navMenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.navLink____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -904,12 +661,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754:hover {
+.navLink____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -924,39 +681,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754:hover .navSubmenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover .navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.submenuItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+.submenuLink____f96703f6-2c97-411c-84f3-fef0ead57dcc {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____a7c80a1c-3ca9-4ba2-bc21-e693698b8754:hover {
+.submenuLink____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    .navMenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
         flex-direction: column;
     }
 
-    .navItem____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    .navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____a7c80a1c-3ca9-4ba2-bc21-e693698b8754 {
+    .navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
         position: static;
         box-shadow: none;
         transform: none;
@@ -973,26 +730,26 @@
 
 
 
-.nav____1688157b-8aa8-491c-a185-7d59f049f109 {
+.nav____cd7905dd-b392-4832-b4ce-ce88250da0de {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+.navMenu____cd7905dd-b392-4832-b4ce-ce88250da0de {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____1688157b-8aa8-491c-a185-7d59f049f109 {
+.navItem____cd7905dd-b392-4832-b4ce-ce88250da0de {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____1688157b-8aa8-491c-a185-7d59f049f109 {
+.navLink____cd7905dd-b392-4832-b4ce-ce88250da0de {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -1000,12 +757,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____1688157b-8aa8-491c-a185-7d59f049f109:hover {
+.navLink____cd7905dd-b392-4832-b4ce-ce88250da0de:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+.navSubmenu____cd7905dd-b392-4832-b4ce-ce88250da0de {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -1020,39 +777,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____1688157b-8aa8-491c-a185-7d59f049f109:hover .navSubmenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+.navItem____cd7905dd-b392-4832-b4ce-ce88250da0de:hover .navSubmenu____cd7905dd-b392-4832-b4ce-ce88250da0de {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____1688157b-8aa8-491c-a185-7d59f049f109 {
+.submenuItem____cd7905dd-b392-4832-b4ce-ce88250da0de {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____1688157b-8aa8-491c-a185-7d59f049f109 {
+.submenuLink____cd7905dd-b392-4832-b4ce-ce88250da0de {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____1688157b-8aa8-491c-a185-7d59f049f109:hover {
+.submenuLink____cd7905dd-b392-4832-b4ce-ce88250da0de:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+    .navMenu____cd7905dd-b392-4832-b4ce-ce88250da0de {
         flex-direction: column;
     }
 
-    .navItem____1688157b-8aa8-491c-a185-7d59f049f109 {
+    .navItem____cd7905dd-b392-4832-b4ce-ce88250da0de {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____1688157b-8aa8-491c-a185-7d59f049f109 {
+    .navSubmenu____cd7905dd-b392-4832-b4ce-ce88250da0de {
         position: static;
         box-shadow: none;
         transform: none;
@@ -1069,26 +826,26 @@
 
 
 
-.nav____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.nav____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.navMenu____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.navItem____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.navLink____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -1096,12 +853,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96:hover {
+.navLink____029b5a46-227e-4e1b-a2e9-ab1523ecc768:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.navSubmenu____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -1116,39 +873,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96:hover .navSubmenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.navItem____029b5a46-227e-4e1b-a2e9-ab1523ecc768:hover .navSubmenu____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.submenuItem____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+.submenuLink____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____38b663f7-f663-4fc0-a2a9-eb42875f7a96:hover {
+.submenuLink____029b5a46-227e-4e1b-a2e9-ab1523ecc768:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    .navMenu____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
         flex-direction: column;
     }
 
-    .navItem____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    .navItem____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____38b663f7-f663-4fc0-a2a9-eb42875f7a96 {
+    .navSubmenu____029b5a46-227e-4e1b-a2e9-ab1523ecc768 {
         position: static;
         box-shadow: none;
         transform: none;
@@ -1165,26 +922,26 @@
 
 
 
-.nav____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.nav____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 
-.navMenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.navMenu____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.navItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.navItem____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     position: relative;
     margin-right: 2rem;
 }
 
-.navLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.navLink____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     text-decoration: none;
     color: #ffffff;
     font-size: 1rem;
@@ -1192,12 +949,12 @@
     transition: color 0.3s ease;
 }
 
-.navLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87:hover {
+.navLink____685f0d2a-e399-40bb-bd40-7fd4d5b4547d:hover {
     color: #38bdf8;
 }
 
 /* Submenu Styles */
-.navSubmenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.navSubmenu____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     position: absolute;
     top: 2.5rem;
     left: 0;
@@ -1212,39 +969,39 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.navItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87:hover .navSubmenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.navItem____685f0d2a-e399-40bb-bd40-7fd4d5b4547d:hover .navSubmenu____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.submenuItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.submenuItem____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     padding: 0.5rem 1.5rem;
 }
 
-.submenuLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+.submenuLink____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
 
-.submenuLink____6bbade89-1611-484f-b9e1-d3f94eb4cb87:hover {
+.submenuLink____685f0d2a-e399-40bb-bd40-7fd4d5b4547d:hover {
     color: #38bdf8;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .navMenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    .navMenu____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
         flex-direction: column;
     }
 
-    .navItem____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    .navItem____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
         margin-right: 0;
         margin-bottom: 1rem;
     }
 
-    .navSubmenu____6bbade89-1611-484f-b9e1-d3f94eb4cb87 {
+    .navSubmenu____685f0d2a-e399-40bb-bd40-7fd4d5b4547d {
         position: static;
         box-shadow: none;
         transform: none;
