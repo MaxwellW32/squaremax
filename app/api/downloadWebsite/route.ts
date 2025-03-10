@@ -90,7 +90,9 @@ export async function POST(request: Request) {
     const footerUsedComponentsOrdered = sortUsedComponentsByOrder(footerUsedComponents)
 
     //then get all their descendants for proper import
-    const allUsedComponentsUsed: usedComponent[] = getDescendedUsedComponents([...headerUsedComponentsOrdered, ...footerUsedComponentsOrdered].map(e => e.id), seenWebsite.usedComponents)
+    const headerAndFooterUsedComponents: usedComponent[] = [...headerUsedComponentsOrdered, ...footerUsedComponentsOrdered]
+    const allDescendedUsedComponents: usedComponent[] = getDescendedUsedComponents(headerAndFooterUsedComponents.map(e => e.id), seenWebsite.usedComponents)
+    const allUsedComponentsUsed: usedComponent[] = [...headerAndFooterUsedComponents, ...allDescendedUsedComponents]
 
     //get all the needed import statements
     const usedComponentsImportsText = getUsedComponentsImportString(allUsedComponentsUsed)
