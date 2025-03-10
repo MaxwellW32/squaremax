@@ -7,6 +7,55 @@
 
 
 
+.container____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    font-family: var(--font-geistMono);
+}
+
+.container-header____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container-grid____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.container-grid-item____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container-children____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    margin-bottom: 1rem;
+}
+
+.container-footer____afe138e7-335b-497d-b436-2c7f109a9b2a {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
+}
+
+
+
+
+
+
+
+
+
 .nav____23661674-a82f-4824-9b6a-4f302d276fb8 {
     background-color: #1e293b;
     padding: 1rem 2rem;
@@ -285,55 +334,6 @@
         opacity: 1;
         visibility: visible;
     }
-}
-
-
-
-
-
-
-
-
-
-.container____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background-color: #f9f9f9;
-    font-family: Arial, sans-serif;
-}
-
-.container-header____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    color: #333;
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.container-grid____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.container-grid-item____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.container-children____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    margin-bottom: 1rem;
-}
-
-.container-footer____afe138e7-335b-497d-b436-2c7f109a9b2a {
-    text-align: center;
-    font-size: 1rem;
-    color: #555;
-    margin-top: 1rem;
 }
 
 

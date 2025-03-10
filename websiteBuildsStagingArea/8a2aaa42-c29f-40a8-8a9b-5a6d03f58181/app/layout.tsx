@@ -1,21 +1,20 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 from "@/components/76a62d0d-2f49-4a3b-88e5-ba248caa79a4/page";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const geist = Geist({
+variable: "--font-geist",
+subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+variable: "--font-geistMono",
+subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "new website",
-  description: "new website description",
+  title: "first website",
+  description: "the best website ever",
 };
 
 export default function RootLayout({
@@ -26,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geist.variable} ${geistMono.variable} antialiased`}
       >
         <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{

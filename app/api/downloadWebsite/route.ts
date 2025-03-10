@@ -1,13 +1,13 @@
 import JSZip from "jszip";
 import path from "path";
 import fs from "fs/promises";
-import { requestDownloadWebsiteBodySchema, templateDataType, usedComponent } from "@/types";
+import { fontsType, requestDownloadWebsiteBodySchema, templateDataType, usedComponent } from "@/types";
 import { auth } from "@/auth/auth";
 import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getFontImportStrings, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageName, sortUsedComponentsByOrder } from "@/utility/utility";
 
 export async function POST(request: Request) {
   //ensure logged in
@@ -122,21 +122,27 @@ export async function POST(request: Request) {
   const headerUsedComponentsText = makeUsedComponentsImplementationString(headerUsedComponentsOrdered, seenWebsite.usedComponents)
   const footerUsedComponentsText = makeUsedComponentsImplementationString(footerUsedComponentsOrdered, seenWebsite.usedComponents)
 
+  //get global fonts
+  const newFonts: fontsType[] = [
+    {
+      importName: "Geist",
+      subsets: ["latin"]
+    },
+    {
+      importName: "Geist_Mono",
+      subsets: ["latin"]
+    },
+  ]
+
+  const seenFontImportStrings = getFontImportStrings(newFonts)
+
   const layoutTsxFileString =
-    `import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+    `${seenFontImportStrings.fontImportStr}
 import "./globals.css";
+import type { Metadata } from "next";
 ${usedComponentsImportsText}
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+${seenFontImportStrings.variableImplementationStr}
 
 export const metadata: Metadata = {
   title: "${seenWebsite.title}",
@@ -151,7 +157,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={\`\${geistSans.variable} \${geistMono.variable} antialiased\`}
+        className={\`${seenFontImportStrings.classNameImplementationStr} antialiased\`}
       >
         ${headerUsedComponentsText}
 

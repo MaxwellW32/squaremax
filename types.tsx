@@ -260,7 +260,6 @@ export type updateUser = z.infer<typeof updateUserSchema>
 
 export const fontsSchema = z.object({
     importName: z.string().min(1),
-    cssVariableName: z.string().min(1),
     subsets: z.array(z.string().min(1))
 })
 export type fontsType = z.infer<typeof fontsSchema>

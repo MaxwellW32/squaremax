@@ -2,10 +2,10 @@
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
+import { fontsType, handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
-import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
+import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, getFontImportStrings, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
@@ -438,6 +438,31 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             consoleAndToastError(error)
         }
     }
+
+    // async function handleWebsiteDownload() {
+    //     try {
+    //         //test
+    //         const newFonts: fontsType[] = [
+    //             {
+    //                 importName: "Geist",
+    //                 cssVariableName: "--font-geist",
+    //                 subsets: ["latin"]
+    //             },
+    //             {
+    //                 importName: "Geist_Mono",
+    //                 cssVariableName: "--font-geistMono",
+    //                 subsets: ["latin"]
+    //             },
+    //         ]
+
+    //         const seen = getFontImportStrings(newFonts)
+
+    //         console.log(`$seen`, JSON.stringify(seen, null, 2));
+
+    //     } catch (error) {
+    //         consoleAndToastError(error)
+    //     }
+    // }
 
     return (
         <main className={styles.main}>
