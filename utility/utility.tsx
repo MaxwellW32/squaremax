@@ -177,6 +177,9 @@ export function makeUsedComponentsImplementationString(seenUsedComponents: usedC
         let seenPropData = eachUsedComponent.data
         let writablePropData = ""
 
+        //make the style id
+        seenPropData.styleId = `____${eachUsedComponent.id}`
+
         //replace children with this implementation
         if (Object.hasOwn(seenPropData, "children")) {
             //get the children
@@ -194,8 +197,12 @@ export function makeUsedComponentsImplementationString(seenUsedComponents: usedC
             //add on the key value pair children and the component implamentation
             const seenChildrenImplementation = makeUsedComponentsImplementationString(seenChildren, originalList)
 
+            //get rid of the closing }
+            writablePropData = writablePropData.slice(0, writablePropData.length - 2) + ","
+
             //write the new values to the string
-            writablePropData = writablePropData.replace(/}(\s*)$/, `,\n "children": (\n<>${seenChildrenImplementation}</>\n)` + " }");
+            writablePropData = writablePropData + `\n "children": (\n<>\n${seenChildrenImplementation}\n</>\n)` + "\n}";
+            // writablePropData = writablePropData.replace(/}(\s*)$/, `,\n "children": (\n<>${seenChildrenImplementation}</>\n)` + " }");
 
         } else {
             //can handle normally

@@ -147,8 +147,18 @@ export default function RootLayout({
 
 
 
-    //make page.tsx
+    //make pages
+    if (seenWebsite.pages === undefined) throw new Error("not seeing pages")
 
+    seenWebsite.pages.map(eachPage => {
+        const pageFolderName = eachPage.name === "home" ? null : eachPage.name
+
+        //create the page folder
+        const pageFolderPath = pageFolderName === null ? path.join(appFolderPath) : path.join(appFolderPath, pageFolderName)
+
+
+
+    })
 
     //create the components folder
     //create the public folder
@@ -160,9 +170,9 @@ export default function RootLayout({
     //grab website, pages, and all used components...
     //make new entry in websiteBuildsStagingArea by website id..
     //copy down the websiteBuildsStarter folder...
-    //start editing it
+    //start editing it...
     //files to update - package.json - give it website name...
-    //files to create - layout.tsx, page.tsx, each page folder - page.tsx combo
+    //files to create - layout.tsx..., page.tsx, each page folder - page.tsx combo
     //
     //layout.tsx
     //get the layout file working

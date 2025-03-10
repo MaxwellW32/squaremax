@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 from "@/components/76a62d0d-2f49-4a3b-88e5-ba248caa79a4/page";
-import Container1_33fd6f2a_a453_4f4d_9a47_9b2b07996a0e from "@/components/33fd6f2a-a453-4f4d-9a47-9b2b07996a0e/page";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,10 +32,10 @@ export default function RootLayout({
           data={{
             "category": "navbars",
             "mainElProps": {},
-            "styleId": "",
+            "styleId": "____23661674-a82f-4824-9b6a-4f302d276fb8",
             "menu": [
               {
-                "label": "menu item 1",
+                "label": "nav 1",
                 "link": "/",
                 "subMenu": [
                   {
@@ -50,103 +49,6 @@ export default function RootLayout({
                 "link": "/"
               }
             ]
-          }}
-        />
-
-
-        <Container1_33fd6f2a_a453_4f4d_9a47_9b2b07996a0e
-          data={{
-            "category": "containers",
-            "mainElProps": {},
-            "styleId": "",
-            "children": (
-              <><Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4
-                data={{
-                  "category": "navbars",
-                  "mainElProps": {},
-                  "styleId": "",
-                  "menu": [
-                    {
-                      "label": "menu item 1",
-                      "link": "/",
-                      "subMenu": [
-                        {
-                          "label": "sub menu item 1",
-                          "link": "/"
-                        }
-                      ]
-                    },
-                    {
-                      "label": "menu item 2",
-                      "link": "/"
-                    }
-                  ]
-                }}
-              />
-
-
-                <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4
-                  data={{
-                    "category": "navbars",
-                    "mainElProps": {},
-                    "styleId": "",
-                    "menu": [
-                      {
-                        "label": "menu item 1",
-                        "link": "/",
-                        "subMenu": [
-                          {
-                            "label": "sub menu item 1",
-                            "link": "/"
-                          }
-                        ]
-                      },
-                      {
-                        "label": "menu item 2",
-                        "link": "/"
-                      }
-                    ]
-                  }}
-                />
-
-
-                <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4
-                  data={{
-                    "category": "navbars",
-                    "mainElProps": {},
-                    "styleId": "",
-                    "menu": [
-                      {
-                        "label": "menu item 1",
-                        "link": "/",
-                        "subMenu": [
-                          {
-                            "label": "sub menu item 1",
-                            "link": "/"
-                          }
-                        ]
-                      },
-                      {
-                        "label": "menu item 2",
-                        "link": "/"
-                      }
-                    ]
-                  }}
-                /></>
-            )
-          }}
-        />
-
-
-        <Container1_33fd6f2a_a453_4f4d_9a47_9b2b07996a0e
-          data={{
-            "category": "containers",
-            "mainElProps": {},
-            "styleId": ""
-            ,
-            "children": (
-              <></>
-            )
           }}
         />
 
