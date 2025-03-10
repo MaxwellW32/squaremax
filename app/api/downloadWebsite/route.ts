@@ -7,7 +7,7 @@ import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
-import { getChildrenUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation } from "@/utility/utility";
+import { getChildrenUsedComponents, getDescendedUsedComponents, getUsedComponentsImportName, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, sortUsedComponentsByOrder } from "@/utility/utility";
 
 export async function POST(request: Request) {
     //ensure logged in
@@ -76,58 +76,28 @@ export async function POST(request: Request) {
     if (seenWebsite.usedComponents === undefined) throw new Error("not seeing usedComponents")
 
 
-    const headerUsedComponents = getUsedComponentsInSameLocation({ type: "header" }, seenWebsite.usedComponents)
-    const footerUsedComponents = getUsedComponentsInSameLocation({ type: "header" }, seenWebsite.usedComponents)
-    const headerAndFooterUsedComponents: usedComponent[] = [...headerUsedComponents, ...footerUsedComponents]
+
 
     //make layout.tsx
-    const usedComponentsImportsText = getUsedComponentsImportString(headerAndFooterUsedComponents)
+    const layoutFilePath = path.join(baseFolderPath, "layout.tsx")
 
-    function makeUsedComponentsImplementationString(seenUsedComponents: usedComponent[], originalList: usedComponent[]): string {
-        return seenUsedComponents.map(eachUsedComponent => {
-            const seenImplementationName = getUsedComponentsImportName(eachUsedComponent)
+    //get base usedComponents in location header and footer
+    const headerUsedComponents = getUsedComponentsInSameLocation({ type: "header" }, seenWebsite.usedComponents)
+    const footerUsedComponents = getUsedComponentsInSameLocation({ type: "footer" }, seenWebsite.usedComponents)
 
-            const seenChildren = getChildrenUsedComponents(eachUsedComponent.id, originalList)
+    //order the components
+    const headerUsedComponentsOrdered = sortUsedComponentsByOrder(headerUsedComponents)
+    const footerUsedComponentsOrdered = sortUsedComponentsByOrder(footerUsedComponents)
 
-            let seenPropData = eachUsedComponent.data
-            let writablePropData = ""
+    //then get all their descendants for proper import
+    const allUsedComponentsUsed: usedComponent[] = getDescendedUsedComponents([...headerUsedComponentsOrdered, ...footerUsedComponentsOrdered].map(e => e.id), seenWebsite.usedComponents)
 
-            //cant write text to the file
-            //need to write a string representing the Component
+    //get all the needed import statements
+    const usedComponentsImportsText = getUsedComponentsImportString(allUsedComponentsUsed)
 
-            //replace children with this implementation
-            if (Object.hasOwn(seenPropData, "children")) {
-                //remove the children key value on the object
-                // @ts-expect-error type
-                const propsWithoutChildren = delete seenPropData["children"]
-
-                //stringify it
-                writablePropData = `
-                ${JSON.stringify(propsWithoutChildren, null, 2)}
-                `
-
-                //add on the key value pair children and the component implamentation
-                const seenChildrenImplementation = (`\n ${makeUsedComponentsImplementationString(seenChildren, originalList)}`)
-                writablePropData.replace(/}(\s*)$/, `children: (\n<>${seenChildrenImplementation}</>\n)` + " }");
-
-            } else {
-                //can handle normally
-                writablePropData = JSON.stringify(seenPropData, null, 2)
-            }
-
-            const componentImplementation = `<${seenImplementationName}
-data={${writablePropData}}
-/>
-            `
-            return componentImplementation
-        }).join("\n\n\n")
-    }
-
-    const headerUsedComponentsText = ``
-    const footerUsedComponentsText = ``
-
-    //get all the needed import statements for a page file
-    //need to get usedComponents in this location
+    //get usedComponents in this location
+    const headerUsedComponentsText = makeUsedComponentsImplementationString(headerUsedComponentsOrdered, seenWebsite.usedComponents)
+    const footerUsedComponentsText = makeUsedComponentsImplementationString(footerUsedComponentsOrdered, seenWebsite.usedComponents)
 
     const layoutTsxFileString =
         `import type { Metadata } from "next";
@@ -144,7 +114,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
 
 export const metadata: Metadata = {
   title: "new website",
@@ -171,6 +140,10 @@ export default function RootLayout({
   );
 }
 `
+    await fs.writeFile(layoutFilePath, layoutTsxFileString);
+
+
+
 
     //make page.tsx
 

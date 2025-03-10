@@ -140,11 +140,19 @@ export function sortUsedComponentsByOrder(seenUsedComponents: usedComponent[]) {
 
 
 export function getUsedComponentsImportString(seenUsedComponents: usedComponent[]) {
-    return seenUsedComponents.map(eachUsedComponent => {
+    const templatesIdsUsedAlready: usedComponent["templateId"][] = []
+
+    const seenResults: (string | null)[] = seenUsedComponents.map(eachUsedComponent => {
+        //ensure no duplicates
+        if (templatesIdsUsedAlready.includes(eachUsedComponent.templateId)) return null
+        templatesIdsUsedAlready.push(eachUsedComponent.templateId)
+
         const componentName = getUsedComponentsImportName(eachUsedComponent)
 
         return `import ${componentName} from "@/components/${eachUsedComponent.templateId}/page";`
-    }).join("\n")
+    }).filter(e => e !== null)
+
+    return seenResults.join("\n")
 }
 
 export function getUsedComponentsImportName(seenUsedComponent: usedComponent) {
@@ -160,4 +168,44 @@ export function getUsedComponentsImportName(seenUsedComponent: usedComponent) {
     componentName = componentName.replace(/\s+/g, "")
 
     return componentName
+}
+
+export function makeUsedComponentsImplementationString(seenUsedComponents: usedComponent[], originalList: usedComponent[]): string {
+    return seenUsedComponents.map(eachUsedComponent => {
+        const seenImplementationName = getUsedComponentsImportName(eachUsedComponent)
+
+        let seenPropData = eachUsedComponent.data
+        let writablePropData = ""
+
+        //replace children with this implementation
+        if (Object.hasOwn(seenPropData, "children")) {
+            //get the children
+            const seenChildren = getChildrenUsedComponents(eachUsedComponent.id, originalList)
+
+            //remove the children key value on the object
+            // @ts-expect-error type
+            delete seenPropData["children"]
+
+            const propsWithoutChildren = seenPropData
+
+            //stringify it
+            writablePropData = JSON.stringify(propsWithoutChildren, null, 2)
+
+            //add on the key value pair children and the component implamentation
+            const seenChildrenImplementation = makeUsedComponentsImplementationString(seenChildren, originalList)
+
+            //write the new values to the string
+            writablePropData = writablePropData.replace(/}(\s*)$/, `,\n "children": (\n<>${seenChildrenImplementation}</>\n)` + " }");
+
+        } else {
+            //can handle normally
+            writablePropData = JSON.stringify(seenPropData, null, 2)
+        }
+
+        const componentImplementation = `<${seenImplementationName} ${seenPropData.mainElProps.id !== undefined ? `id={"${seenPropData.mainElProps.id}"}` : ""} ${seenPropData.mainElProps.className !== undefined ? `className={"${seenPropData.mainElProps.className}"}` : ""} 
+data={${writablePropData}}
+/>`
+
+        return componentImplementation
+    }).join("\n\n\n")
 }
