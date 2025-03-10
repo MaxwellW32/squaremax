@@ -4,14 +4,14 @@ import Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 from "@/components/76a62d0d
 export default function Page() {
   return (
     <>
-        <Container1_33fd6f2a_a453_4f4d_9a47_9b2b07996a0e   
+        <Container1_33fd6f2a_a453_4f4d_9a47_9b2b07996a0e 
 data={{
   "category": "containers",
   "mainElProps": {},
   "styleId": "____ec5a1664-f72d-4a16-8825-047275a35f98",
  "children": (
 <>
-<Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4   
+<Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
   "category": "navbars",
   "mainElProps": {},
@@ -36,7 +36,7 @@ data={{
 />
 
 
-<Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4   
+<Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
   "category": "navbars",
   "mainElProps": {},
@@ -61,7 +61,7 @@ data={{
 />
 
 
-<Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4   
+<Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
   "category": "navbars",
   "mainElProps": {},

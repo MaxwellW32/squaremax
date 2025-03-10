@@ -29,9 +29,6 @@ export const newGithubRepoSchema = z.object({
 })
 export type newGithubRepoType = z.infer<typeof newGithubRepoSchema> & {}
 
-export const fontsSchema = z.array(z.enum(["poppins", "arial"]))
-export type fontsType = z.infer<typeof fontsSchema>
-
 export type sizeOptionType = {
     name: string,
     width: number,
@@ -261,11 +258,20 @@ export type updateUser = z.infer<typeof updateUserSchema>
 
 
 
+export const fontsSchema = z.object({
+    importName: z.string().min(1),
+    cssVariableName: z.string().min(1),
+    subsets: z.array(z.string().min(1))
+})
+export type fontsType = z.infer<typeof fontsSchema>
+
 export const websiteSchema = z.object({
     id: z.string().min(1),
     userId: z.string().min(1),
     name: z.string().min(1),
-    fonts: fontsSchema,
+    title: z.string().min(1),
+    description: z.string(),
+    fonts: z.array(fontsSchema),
     globalCss: z.string(),
     userUploadedImages: userUploadedImagesSchema,
 })
@@ -274,7 +280,7 @@ export type website = z.infer<typeof websiteSchema> & {
     pages?: page[],
     usedComponents?: usedComponent[],
 }
-export const newWebsiteSchema = websiteSchema.pick({ name: true })
+export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true })
 export type newWebsite = z.infer<typeof newWebsiteSchema>
 
 export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, })

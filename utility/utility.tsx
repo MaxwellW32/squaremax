@@ -1,4 +1,4 @@
-import { usedComponent, usedComponentLocationType } from "@/types"
+import { fontsType, usedComponent, usedComponentLocationType } from "@/types"
 
 export function deepClone(object: unknown) {
     return JSON.parse(JSON.stringify(object))
@@ -215,10 +215,85 @@ export function makeUsedComponentsImplementationString(seenUsedComponents: usedC
             writablePropData = JSON.stringify(seenPropData, null, 2)
         }
 
-        const componentImplementation = `<${seenImplementationName} ${seenPropData.mainElProps.id !== undefined ? `id={"${seenPropData.mainElProps.id}"}` : ""} ${seenPropData.mainElProps.className !== undefined ? `className={"${seenPropData.mainElProps.className}"}` : ""} 
+        const componentImplementation = `<${seenImplementationName} 
 data={${writablePropData}}
 />`
 
         return componentImplementation
     }).join("\n\n\n")
+}
+
+export function getFontImportStrings(seenFonts: fontsType[]) {
+    //handle font imports
+    const importListString = seenFonts.map(eachFont => {
+        return eachFont.importName
+    }).join(", ")
+    const importString = `import { ${importListString} } from "next/font/google";`
+
+    //handle font variable
+    const variableImplementationString = seenFonts.map(eachFont => {
+        //make lower case first letter
+        //remove any underscores
+        const newName = eachFont.importName.replace(/_/g, '')
+            .replace(/^\w/, (c) => c.toLowerCase());
+
+        const subsetsString = eachFont.subsets.map(eachSubSet => `"${eachSubSet}"`).join(", ")
+
+        return `
+const ${newName} = ${eachFont.importName}({
+    variable: "${eachFont.cssVariableName}",
+    subsets: [${subsetsString}],
+});`
+    }).join("\n\n")
+
+    //handle className
+    const classNameImplementationString = seenFonts.map(eachFont => {
+        //make lower case first letter
+        //remove any underscores
+        const newName = eachFont.importName.replace(/_/g, '')
+            .replace(/^\w/, (c) => c.toLowerCase());
+
+        const subsetsString = eachFont.subsets.map(eachSubSet => `"${eachSubSet}"`).join(", ")
+
+        return `
+const ${newName} = ${eachFont.importName}({
+    variable: "${eachFont.cssVariableName}",
+    subsets: [${subsetsString}],
+});`
+    }).join("\n\n")
+
+    const seenString = `
+    import { Geist, Geist_Mono } from "next/font/google";
+
+    const geistSans = Geist({
+        variable: "--font-geist-sans",
+        subsets: ["latin"],
+      });
+      
+      const geistMono = Geist_Mono({
+        variable: "--font-geist-mono",
+        subsets: ["latin"],
+      });
+      
+      export const metadata: Metadata = {
+        title: "\${seenWebsite.title}",
+        description: "\${seenWebsite.description}",
+      };
+      
+      export default function RootLayout({
+        children,
+      }: Readonly<{
+        children: React.ReactNode;
+      }>) {
+        return (
+          <html lang="en">
+            <body
+                className={\`\${geistSans.variable} \${geistMono.variable} antialiased\`}
+            >`
+
+    return {
+        fontImportStr: importString,
+        variableImplementationStr: variableImplementationString,
+        classNameImplementationStr: "",
+    }
 }

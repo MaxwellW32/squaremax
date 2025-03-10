@@ -876,6 +876,15 @@ function RenderComponentTree({
                     }
                 }
 
+                //modify id and className of mainElProps render
+                if (eachUsedComponent.data.mainElProps.className !== undefined && !eachUsedComponent.data.mainElProps.className.includes(eachUsedComponent.websiteId)) {
+                    eachUsedComponent.data.mainElProps.className = `${eachUsedComponent.data.mainElProps.className}____${eachUsedComponent.websiteId}`
+                }
+
+                if (eachUsedComponent.data.mainElProps.id !== undefined && !eachUsedComponent.data.mainElProps.id.includes(eachUsedComponent.websiteId)) {
+                    eachUsedComponent.data.mainElProps.id = `${eachUsedComponent.data.mainElProps.id}____${eachUsedComponent.websiteId}`
+                }
+
                 return (
                     <React.Fragment key={eachUsedComponent.id}>
                         <style>{scopedCss}</style>
