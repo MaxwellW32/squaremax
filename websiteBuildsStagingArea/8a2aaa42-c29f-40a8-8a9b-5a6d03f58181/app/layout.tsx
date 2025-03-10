@@ -1,4 +1,4 @@
-import { Tangerine, Roboto, Open_Sans, Lato, Poppins, Inter, Raleway, Nunito, Source_Sans_3, Montserrat, Playfair_Display, Merriweather, Oswald, Ubuntu, Fira_Sans } from "next/font/google";
+import { Tangerine, Roboto, Open_Sans, Poppins, Fira_Sans } from "next/font/google";
 import "./globals.css";
 import type { Metadata } from "next";
 import Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 from "@/components/76a62d0d-2f49-4a3b-88e5-ba248caa79a4/page";
@@ -21,76 +21,16 @@ subsets: ["latin"],
 
 });
 
-const lato = Lato({
-variable: "--font-lato",
-subsets: ["latin"],
-weight: ["300", "400", "700", "900"],
-});
-
 const poppins = Poppins({
 variable: "--font-poppins",
 subsets: ["latin"],
-weight: ["400", "500", "600", "700", "800", "900"],
-});
-
-const inter = Inter({
-variable: "--font-inter",
-subsets: ["latin"],
-
-});
-
-const raleway = Raleway({
-variable: "--font-raleway",
-subsets: ["latin"],
-
-});
-
-const nunito = Nunito({
-variable: "--font-nunito",
-subsets: ["latin"],
-
-});
-
-const sourceSans3 = Source_Sans_3({
-variable: "--font-sourceSans3",
-subsets: ["latin"],
-
-});
-
-const montserrat = Montserrat({
-variable: "--font-montserrat",
-subsets: ["latin"],
-
-});
-
-const playfairDisplay = Playfair_Display({
-variable: "--font-playfairDisplay",
-subsets: ["latin"],
-
-});
-
-const merriweather = Merriweather({
-variable: "--font-merriweather",
-subsets: ["latin"],
-weight: ["300", "400", "700", "900"],
-});
-
-const oswald = Oswald({
-variable: "--font-oswald",
-subsets: ["latin"],
-
-});
-
-const ubuntu = Ubuntu({
-variable: "--font-ubuntu",
-subsets: ["latin"],
-weight: ["300", "400", "500", "700"],
+weight: ["300", "400", "500"],
 });
 
 const firaSans = Fira_Sans({
 variable: "--font-firaSans",
 subsets: ["latin"],
-weight: ["300", "400", "500", "600", "700", "800", "900"],
+weight: ["300", "400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -106,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${tangerine.variable} ${roboto.variable} ${openSans.variable} ${lato.variable} ${poppins.variable} ${inter.variable} ${raleway.variable} ${nunito.variable} ${sourceSans3.variable} ${montserrat.variable} ${playfairDisplay.variable} ${merriweather.variable} ${oswald.variable} ${ubuntu.variable} ${firaSans.variable} antialiased`}
+        className={`${tangerine.variable} ${roboto.variable} ${openSans.variable} ${poppins.variable} ${firaSans.variable} antialiased`}
       >
         <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{

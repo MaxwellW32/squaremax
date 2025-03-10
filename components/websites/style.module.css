@@ -201,3 +201,20 @@
     align-content: flex-start;
     gap: .5rem;
 }
+
+.fontsCont {
+    display: flex !important;
+    overflow-x: auto;
+    margin-top: 2rem;
+}
+
+.fontCont {
+    display: grid;
+    align-content: flex-start;
+}
+
+.fontCont>div {
+    display: grid;
+    align-content: flex-start;
+    gap: .5rem;
+}
