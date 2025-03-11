@@ -13,7 +13,7 @@ export default async function Page({ params }: { params: { websiteId: string } }
     if (seenWebsite.userId !== session.user.id) return <p>not authorised to view this website</p>
 
     return (
-        <ViewWebsite websiteFromServer={seenWebsite} />
+        <ViewWebsite websiteFromServer={seenWebsite} seenSession={session} />
     )
 }
 

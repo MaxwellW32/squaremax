@@ -8,14 +8,18 @@ export default function Home() {
         <Container1_33fd6f2a_a453_4f4d_9a47_9b2b07996a0e 
 data={{
   "category": "containers",
-  "mainElProps": {},
+  "mainElProps": {
+    "className": "barriecitoFont"
+  },
   "styleId": "____3717e81c-6063-4ac1-bf78-cce19b9b89dd",
  "children": (
 <>
 <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
   "category": "navbars",
-  "mainElProps": {},
+  "mainElProps": {
+    "className": "pink"
+  },
   "styleId": "____cad39b18-af04-4bf5-b171-3bd90cc89591",
   "menu": [
     {
@@ -40,7 +44,10 @@ data={{
 <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
   "category": "navbars",
-  "mainElProps": {},
+  "mainElProps": {
+    "className": "scale",
+    "id": "blue"
+  },
   "styleId": "____ea092261-1588-4bd0-b6b1-faabbc655084",
   "menu": [
     {
@@ -69,7 +76,9 @@ data={{
 <Container2_f973417e_1649_4d06_a081_c76c7e5808d3 
 data={{
   "category": "containers",
-  "mainElProps": {},
+  "mainElProps": {
+    "className": "barriecitoFont"
+  },
   "styleId": "____50bfc3bd-63ab-4956-9660-a19d7b4d5176",
  "children": (
 <>

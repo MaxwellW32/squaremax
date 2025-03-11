@@ -73,6 +73,7 @@ export type handleManageUpdateUsedComponentsOptions =
 
 export const requestDownloadWebsiteBodySchema = z.object({
     websiteId: z.string().min(1),
+    downloadOption: z.enum(["github", "zip"])
 });
 export type requestDownloadWebsiteBodyType = z.infer<typeof requestDownloadWebsiteBodySchema>
 
@@ -230,17 +231,26 @@ export type templateDataType = z.infer<typeof templateDataSchema>
 
 
 //database types
+export const githubTokenSchema = z.object({
+    id: z.string().min(1),
+    username: z.string().min(1),
+    token: z.string().min(1),
+    active: z.boolean(),
+})
+export type githubTokenType = z.infer<typeof githubTokenSchema>
+
+export const newGithubTokenSchema = githubTokenSchema.omit({ id: true, username: true })
+export type newGithubTokenType = z.infer<typeof newGithubTokenSchema>
+
+export const updateGithubTokenSchema = githubTokenSchema.omit({ id: true })
+export type updateGithubTokenType = z.infer<typeof updateGithubTokenSchema>
+
 //keep synced with db schema
 export const userRoleSchema = z.enum(["admin"])
 
 export const userSchema = z.object({
     id: z.string().min(1),
-    userGithubTokens: z.array(z.object({
-        id: z.string().min(1),
-        username: z.string().min(1),
-        token: z.string().min(1),
-        active: z.boolean(),
-    })),
+    userGithubTokens: z.array(githubTokenSchema),
     role: userRoleSchema.nullable(),
     name: z.string().nullable(),
     image: z.string().min(1).nullable(),

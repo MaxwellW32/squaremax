@@ -8,6 +8,7 @@ import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
 import { addScopeToCSS, getDescendedUsedComponents, getFontImportStrings, getUsedComponentsImportString, getUsedComponentsInSameLocation, makeUsedComponentsImplementationString, makeValidPageLinkName as makeValidPageLinkName, sortUsedComponentsByOrder } from "@/utility/utility";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   //ensure logged in
@@ -259,34 +260,39 @@ export default function ${onHomePage ? "Home" : "Page"}() {
 
 
 
+  if (requestDownloadWebsiteBody.downloadOption === "zip") {
+    //zip the folder
+    const zip = new JSZip();
+    // Function to recursively add files and directories to the zip object
+    const addFolderToZip = async (folderPath: string, relativePath: string) => {
+      const files = await fs.readdir(folderPath);
 
-  //zip the folder
-  const zip = new JSZip();
-  // Function to recursively add files and directories to the zip object
-  const addFolderToZip = async (folderPath: string, relativePath: string) => {
-    const files = await fs.readdir(folderPath);
+      for (const file of files) {
+        const filePath = path.join(folderPath, file);
+        const relativeFilePath = path.join(relativePath, file);
+        const stats = await fs.stat(filePath);
 
-    for (const file of files) {
-      const filePath = path.join(folderPath, file);
-      const relativeFilePath = path.join(relativePath, file);
-      const stats = await fs.stat(filePath);
+        if (stats.isDirectory()) {
+          await addFolderToZip(filePath, relativeFilePath); // Recursively add subdirectories
 
-      if (stats.isDirectory()) {
-        await addFolderToZip(filePath, relativeFilePath); // Recursively add subdirectories
-
-      } else {
-        const fileData = await fs.readFile(filePath);
-        zip.file(relativeFilePath, fileData); // Add file to zip
+        } else {
+          const fileData = await fs.readFile(filePath);
+          zip.file(relativeFilePath, fileData); // Add file to zip
+        }
       }
-    }
-  };
+    };
 
-  // Add the entire temp folder to the zip object
-  await addFolderToZip(baseFolderPath, "");
-  const archive = await zip.generateAsync({ type: "blob" });
+    // Add the entire temp folder to the zip object
+    await addFolderToZip(baseFolderPath, "");
+    const archive = await zip.generateAsync({ type: "blob" });
 
-  //send zipped file to client
-  return new Response(archive);
+    //send zipped file to client
+    return new Response(archive);
+
+  } else if (requestDownloadWebsiteBody.downloadOption === "github") {
+    //donothing if github
+    return NextResponse.json({ message: "all good" })
+  }
 }
 
 

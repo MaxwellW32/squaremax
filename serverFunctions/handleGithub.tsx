@@ -1,11 +1,12 @@
 "use server"
-import { githubRepo, githubUser, newGithubRepoType, user } from "@/types";
+import { githubContentData, githubRepo, githubTokenType, githubUser, newGithubRepoType, user, website, websiteSchema } from "@/types";
 // import { githubContentData, githubRepo, githubUser, newGithubRepoType, website, websiteSchema, usedComponent, user } from "@/types";
 import { Octokit } from "octokit";
 import fs from "fs/promises";
 import path from "path";
+import { websiteBuildsStagingAreaDir } from "@/lib/websiteTemplateLib";
 
-export async function getGithubRepos(token: user["userGithubTokens"][number]["token"]): Promise<githubRepo[]> {
+export async function getGithubRepos(token: githubTokenType["token"]): Promise<githubRepo[]> {
     // Make the raw fetch request to GitHub API using the provided access token
     // const response = await fetch('https://api.github.com/user/repos', {
     //     method: 'GET',
@@ -23,7 +24,7 @@ export async function getGithubRepos(token: user["userGithubTokens"][number]["to
     return githubRepos
 }
 
-export async function getUserFromToken(token: user["userGithubTokens"][number]["token"]): Promise<githubUser> {
+export async function getGithubUserFromToken(token: user["userGithubTokens"][number]["token"]): Promise<githubUser> {
     // const response = await fetch('https://api.github.com/user', {
     //     method: 'GET',
     //     headers: {
@@ -49,87 +50,82 @@ export async function addGithubRepo(token: user["userGithubTokens"][number]["tok
     });
 }
 
-// export async function pushToGithubRepo(
-//     token: user["userGithubTokens"][number],
-//     githubUrl: string,
-//     projectIdObj: Pick<website, "id">,
-//     projectsToTemplatesIdObj: Pick<pagesToComponent, "id">,
-//     repoName: string
-// ) {
-//     const octokit = new Octokit({ auth: token.token });
+export async function pushToGithubRepo(
+    token: githubTokenType,
+    websiteId: website["id"],
+    repoName: string
+) {
+    const octokit = new Octokit({ auth: token.token });
 
-//     // Validate inputs
-//     websiteSchema.pick({ id: true }).parse(projectIdObj);
-//     pagesToComponentsSchema.pick({ id: true }).parse(projectsToTemplatesIdObj);
+    // Validate inputs
+    websiteSchema.shape.id.parse(websiteId);
 
-//     // Generate website files (path to the folder containing files)
-//     const websiteFilesDirPath = await createWebsiteFiles(githubUrl, { id: projectIdObj.id }, { id: projectsToTemplatesIdObj.id });
+    // Generate website files (path to the folder containing files)
+    const websiteFilesDirPath = path.join(process.cwd(), websiteBuildsStagingAreaDir, websiteId)
 
-//     // Hold previous repo data
-//     const repoDataObj: { [key: string]: githubContentData | undefined } = {};
+    // Hold previous repo data
+    const repoDataObj: { [key: string]: githubContentData | undefined } = {};
 
-//     // Add files to GitHub
-//     const addFolderToGithub = async (folderPath: string, relativePath: string) => {
-//         const files = await fs.readdir(folderPath);
+    // Add files to GitHub
+    const addFolderToGithub = async (folderPath: string, relativePath: string) => {
+        const files = await fs.readdir(folderPath);
 
-//         // Get previous data if exists
-//         try {
-//             const prevRepoData = await octokit.rest.repos.getContent({
-//                 owner: token.username,
-//                 repo: repoName,
-//                 path: relativePath.replace(/\\/g, "/"),
-//             });
+        // Get previous data if exists
+        try {
+            const prevRepoData = await octokit.rest.repos.getContent({
+                owner: token.username,
+                repo: repoName,
+                path: relativePath.replace(/\\/g, "/"),
+            });
 
-//             if (Array.isArray(prevRepoData.data)) {
-//                 prevRepoData.data.forEach((eachRepoData) => {
-//                     repoDataObj[eachRepoData.path.replace(/\\/g, "/")] = eachRepoData;
-//                 });
-//             }
-//         } catch (error) {
-//             console.log(`Error in previous data check`, error);
-//         }
+            if (Array.isArray(prevRepoData.data)) {
+                prevRepoData.data.forEach((eachRepoData) => {
+                    repoDataObj[eachRepoData.path.replace(/\\/g, "/")] = eachRepoData;
+                });
+            }
+        } catch (error) {
+            console.log(`Error in previous data check`, error);
+        }
 
-//         async function checkOnFile(file: string) {
-//             const filePath = path.join(folderPath, file);
-//             const relativeFilePath = path.join(relativePath, file);
-//             const forwardRelativeFilePath = relativeFilePath.replace(/\\/g, "/"); // Use for GitHub
-//             const stats = await fs.stat(filePath);
+        async function checkOnFile(file: string) {
+            const filePath = path.join(folderPath, file);
+            const relativeFilePath = path.join(relativePath, file);
+            const forwardRelativeFilePath = relativeFilePath.replace(/\\/g, "/"); // Use for GitHub
+            const stats = await fs.stat(filePath);
 
-//             if (stats.isDirectory()) {
-//                 await addFolderToGithub(filePath, relativeFilePath);
+            if (stats.isDirectory()) {
+                await addFolderToGithub(filePath, relativeFilePath);
 
-//             } else {
-//                 // Check for problematic paths
-//                 if (!isValidPath(relativeFilePath)) {
-//                     console.warn(`Skipping invalid path: ${relativeFilePath}`);
-//                     return;
-//                 }
+            } else {
+                // Check for problematic paths
+                if (!isValidPath(relativeFilePath)) {
+                    console.warn(`Skipping invalid path: ${relativeFilePath}`);
+                    return;
+                }
 
-//                 const fileData = await fs.readFile(filePath, { encoding: "base64" });
+                const fileData = await fs.readFile(filePath, { encoding: "base64" });
 
-//                 const seenDataObj = repoDataObj[forwardRelativeFilePath];
+                const seenDataObj = repoDataObj[forwardRelativeFilePath];
 
-//                 await octokit.rest.repos.createOrUpdateFileContents({
-//                     owner: token.username,
-//                     repo: repoName,
-//                     path: forwardRelativeFilePath,
-//                     sha: seenDataObj !== undefined ? seenDataObj.sha : undefined,
-//                     message: `Squaremaxtech ${new Date().toISOString()}`,
-//                     content: fileData,
-//                 });
+                await octokit.rest.repos.createOrUpdateFileContents({
+                    owner: token.username,
+                    repo: repoName,
+                    path: forwardRelativeFilePath,
+                    sha: seenDataObj !== undefined ? seenDataObj.sha : undefined,
+                    message: `Squaremaxtech ${new Date().toISOString()}`,
+                    content: fileData,
+                });
 
-//                 console.log(`$added to github repo`, forwardRelativeFilePath);
-//             }
-//         }
+                console.log(`$added to github repo`, forwardRelativeFilePath);
+            }
+        }
 
-//         // Use looper to process files in batches
-//         await promiseLimiter(files, (file) => checkOnFile(file), 0, 50);
-//     }
-//     await addFolderToGithub(websiteFilesDirPath, "");
+        // Use looper to process files in batches
+        await promiseLimiter(files, (file) => checkOnFile(file), 0, 50);
+    }
 
-//     // Delete temp directory when finished
-//     await fs.rm(websiteFilesDirPath, { force: true, recursive: true });
-// }
+    await addFolderToGithub(websiteFilesDirPath, "");
+}
 
 // Helper function to validate paths
 function isValidPath(filePath: string): boolean {

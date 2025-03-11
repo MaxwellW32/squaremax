@@ -2,7 +2,7 @@
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -18,11 +18,18 @@ import UsedComponentOrderSelector from '../usedComponents/usedComponentOrderSele
 import AddEditWebsite from './AddEditWebsite'
 import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
+import { Session } from 'next-auth'
+import DownloadOptions from '../downloadOptions/DownloadOptions'
 
-export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
+//form to add github user token
+//get and display repos from token
+//show all repos - upload option to one 
+
+export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
     const [editOptions, editOptionsSet] = useState(false)
+    const [viewingDownloadOptions, viewingDownloadOptionsSet] = useState(false)
 
     const [sizeOptions, sizeOptionsSet] = useState<sizeOptionType[]>([
         {
@@ -402,42 +409,6 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         return updatedUsedComponents
     }
 
-    async function handleWebsiteDownload() {
-        try {
-            //build site
-            //zip it
-            //download it
-            //offer upload to github - sort out settings
-            const newrequestDownloadWebsiteBody: requestDownloadWebsiteBodyType = {
-                websiteId: websiteObj.id
-            }
-
-            //validation
-            requestDownloadWebsiteBodySchema.parse(newrequestDownloadWebsiteBody)
-
-            const response = await fetch(`/api/downloadWebsite`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newrequestDownloadWebsiteBody),
-            })
-
-            //download action
-            const responseBlob = await response.blob()
-            const url = window.URL.createObjectURL(responseBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${websiteObj.name}.zip`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-
-
-        } catch (error) {
-            consoleAndToastError(error)
-        }
-    }
 
     //load up fonts dynamically
     useEffect(() => {
@@ -654,7 +625,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
 
                                 <button
-                                    onClick={handleWebsiteDownload}
+                                    onClick={() => { viewingDownloadOptionsSet(true) }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
                                 </button>
@@ -845,6 +816,8 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
                                 </>
                             )}
                         </div>
+
+                        <DownloadOptions style={{ display: viewingDownloadOptions ? "" : "none" }} seenSession={seenSession} seenWebsite={websiteObj} seenGithubTokens={seenSession.user.userGithubTokens} viewingDownloadOptionsSet={viewingDownloadOptionsSet} />
                     </div>
                 </div>
 
