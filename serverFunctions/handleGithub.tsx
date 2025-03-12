@@ -102,11 +102,9 @@ export async function pushToGithubRepo(
                     repo: repoName,
                     path: forwardRelativeFilePath,
                     sha: seenDataObj !== undefined ? seenDataObj.sha : undefined,
-                    message: `Squaremaxtech ${new Date().toISOString()}`,
+                    message: `Squaremaxtech ${new Date().toUTCString()}`,
                     content: fileData,
                 });
-
-                console.log(`$added to github repo`, forwardRelativeFilePath);
             }
         }
 
