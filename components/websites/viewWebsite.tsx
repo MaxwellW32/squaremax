@@ -925,7 +925,8 @@ function RenderComponentTree({
 
                 //modify id and className of mainElProps render
                 if (eachUsedComponent.data.mainElProps.className !== undefined) {
-                    seenElementClassNames = `${eachUsedComponent.data.mainElProps.className}____${eachUsedComponent.websiteId}`
+                    const seenClasses = eachUsedComponent.data.mainElProps.className.split(" ")
+                    seenElementClassNames = seenClasses.map(eachClass => `${eachClass}____${eachUsedComponent.websiteId}`).join(" ")
                 }
 
                 if (eachUsedComponent.data.mainElProps.id !== undefined) {
