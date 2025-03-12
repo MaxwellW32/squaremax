@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import styles from "./styles.module.css"
 
 export default function ShowMore({ label, content, svgColor, startShowing }: { label: string, content: JSX.Element, svgColor?: string, startShowing?: boolean }) {

@@ -55,7 +55,7 @@ data={{
       "link": "/",
       "subMenu": [
         {
-          "label": "sub menu item 1",
+          "label": "flawless",
           "link": "/"
         }
       ]

@@ -21,11 +21,6 @@ import styles from "./style.module.css"
 import { Session } from 'next-auth'
 import DownloadOptions from '../downloadOptions/DownloadOptions'
 
-//form to add github user token
-//get and display repos from token
-//show all repos - upload option to one 
-//build full form component
-
 export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
@@ -678,7 +673,32 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                         content={
                                             <>
                                                 <ShowMore
-                                                    label='Element Css'
+                                                    label='id & class'
+                                                    content={
+                                                        <>
+                                                            <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
+                                                                onChange={(e) => {
+                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                    newActiveComp.data.mainElProps.id = e.target.value
+
+                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                }}
+                                                            />
+
+                                                            <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "1rem" }}
+                                                                onChange={(e) => {
+                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                    newActiveComp.data.mainElProps.className = e.target.value
+
+                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                }}
+                                                            />
+                                                        </>
+                                                    }
+                                                />
+
+                                                <ShowMore
+                                                    label='Css'
                                                     startShowing={true}
                                                     content={
                                                         <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
@@ -698,36 +718,12 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                     }
                                                 />
 
-                                                <ShowMore
-                                                    label='add id & class'
-                                                    content={
-                                                        <>
-                                                            <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
-                                                                onChange={(e) => {
-                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                    newActiveComp.data.mainElProps.id = e.target.value
-
-                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
-                                                                }}
-                                                            />
-
-                                                            <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names to this element' style={{ marginTop: "1rem" }}
-                                                                onChange={(e) => {
-                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                    newActiveComp.data.mainElProps.className = e.target.value
-
-                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
-                                                                }}
-                                                            />
-                                                        </>
-                                                    }
-                                                />
                                             </>
                                         }
                                     />
 
                                     <ShowMore
-                                        label="edit data"
+                                        label="data"
                                         content={
                                             <TemplateDataSwitch location={activeLocation} activeUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} handlePropsChange={handlePropsChange} />
                                         }

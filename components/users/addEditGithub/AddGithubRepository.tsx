@@ -1,13 +1,12 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import TextInput from '@/components/textInput/TextInput'
 import TextArea from '@/components/textArea/TextArea'
-import { addUserGithubToken, updateUserGithubToken } from '@/serverFunctions/handleUser'
-import { githubRepo, githubTokenType, newGithubRepoSchema, newGithubRepoType } from '@/types'
+import { githubTokenType, newGithubRepoSchema, newGithubRepoType } from '@/types'
 import { addGithubRepo } from '@/serverFunctions/handleGithub'
 
 export default function AddGithubRepository({ seenGithubToken, functionSubmit }: { seenGithubToken: githubTokenType, functionSubmit?: () => void }) {
