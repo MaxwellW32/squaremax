@@ -175,29 +175,22 @@ export async function updateUserGithubToken(githubTokenId: githubTokenType["id"]
     return updatedUser.userGithubTokens
 }
 
-export async function deleteUserGithubTokens(userObj: Pick<user, "id" | "userGithubTokens">) {
+export async function deleteUserGithubTokens(userId: user["id"], githubTokenToDelete: githubTokenType) {
     // Ensure sent right object
-    userSchema.pick({ id: true, userGithubTokens: true }).parse(userObj);
+    userSchema.shape.id.parse(userId);
+    githubTokenSchema.parse(githubTokenToDelete);
 
     // Get latest server userGithubTokens
-    let latestUserGithubTokens = await getUserGithubTokens({ id: userObj.id });
+    let latestGithubTokens = await getUserGithubTokens({ id: userId });
 
     // Filter out the tokens to delete
-    latestUserGithubTokens = latestUserGithubTokens.filter(eachLatestUserGithubTokensFilter => {
-        // If token found in userObj.userGithubTokens, remove it from the list
-        if (userObj.userGithubTokens.findIndex(eachUserGithubTokensFind => eachUserGithubTokensFind.id === eachLatestUserGithubTokensFilter.id) > 0) {//then its found 
-            return false
-
-        } else {
-            return true
-        }
-    });
+    latestGithubTokens = latestGithubTokens.filter(eachGithubToken => eachGithubToken.id !== githubTokenToDelete.id);
 
     // Update user on server with the remaining tokens
     await updateTheUser({
-        id: userObj.id,
-        userGithubTokens: latestUserGithubTokens
+        id: userId,
+        userGithubTokens: latestGithubTokens
     });
 
-    return latestUserGithubTokens
+    return latestGithubTokens
 }

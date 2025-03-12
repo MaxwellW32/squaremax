@@ -24,6 +24,7 @@ import DownloadOptions from '../downloadOptions/DownloadOptions'
 //form to add github user token
 //get and display repos from token
 //show all repos - upload option to one 
+//build full form component
 
 export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const [showingSideBar, showingSideBarSet] = useState(true)

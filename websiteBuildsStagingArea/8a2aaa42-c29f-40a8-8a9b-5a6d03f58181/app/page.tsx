@@ -9,7 +9,7 @@ export default function Home() {
 data={{
   "category": "containers",
   "mainElProps": {
-    "className": "barriecitoFont"
+    "className": ""
   },
   "styleId": "____3717e81c-6063-4ac1-bf78-cce19b9b89dd",
  "children": (
@@ -77,7 +77,7 @@ data={{
 data={{
   "category": "containers",
   "mainElProps": {
-    "className": "barriecitoFont"
+    "className": ""
   },
   "styleId": "____50bfc3bd-63ab-4956-9660-a19d7b4d5176",
  "children": (
@@ -85,7 +85,9 @@ data={{
 <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
   "category": "navbars",
-  "mainElProps": {},
+  "mainElProps": {
+    "className": "barriecitoFont"
+  },
   "styleId": "____f96703f6-2c97-411c-84f3-fef0ead57dcc",
   "menu": [
     {

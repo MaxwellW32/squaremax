@@ -4,22 +4,24 @@ import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
-import { newGithubTokenSchema, newGithubTokenType, githubTokenSchema, githubTokenType, updateGithubTokenSchema } from '@/types'
 import TextInput from '@/components/textInput/TextInput'
 import TextArea from '@/components/textArea/TextArea'
 import { addUserGithubToken, updateUserGithubToken } from '@/serverFunctions/handleUser'
+import { githubRepo, githubTokenType, newGithubRepoSchema, newGithubRepoType } from '@/types'
+import { addGithubRepo } from '@/serverFunctions/handleGithub'
 
-export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sentGithubToken?: githubTokenType, functionSubmit?: () => void }) {
-    const initialFormObj: newGithubTokenType = {
-        active: false,
-        token: "",
+export default function AddGithubRepository({ seenGithubToken, functionSubmit }: { seenGithubToken: githubTokenType, functionSubmit?: () => void }) {
+    const initialFormObj: newGithubRepoType = {
+        name: "",
+        description: "",
+        private: false
     }
 
-    const [formObj, formObjSet] = useState<Partial<githubTokenType>>(deepClone(sentGithubToken === undefined ? initialFormObj : githubTokenSchema.parse(sentGithubToken)))
-    type userGithubTokenKeys = keyof Partial<githubTokenType>
+    const [formObj, formObjSet] = useState<newGithubRepoType>(deepClone(initialFormObj))
+    type newGithubRepoKeys = keyof newGithubRepoType
 
     type moreFormInfoType = Partial<{
-        [key in userGithubTokenKeys]: {
+        [key in newGithubRepoKeys]: {
             label?: string,
             placeHolder?: string,
             type?: string,
@@ -29,23 +31,28 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
     }>
 
     const [moreFormInfo,] = useState<moreFormInfoType>({
-        "token": {
-            label: "token",
+        "name": {
+            label: "name",
             inputType: "input",
-            placeHolder: "Enter your github token",
+            placeHolder: "Enter the new repository name",
         },
-        "active": {
-            label: "active",
+        "description": {
+            label: "description",
             inputType: "input",
-            placeHolder: "Enter whether token active",
+            placeHolder: "Enter repository description",
         },
+        "private": {
+            label: "visibility",
+            inputType: "input",
+            placeHolder: "set whether public or private.",
+        }
     });
 
     const [formErrors, formErrorsSet] = useState<Partial<{
-        [key in userGithubTokenKeys]: string
+        [key in newGithubRepoKeys]: string
     }>>({})
 
-    function checkIfValid(seenFormObj: Partial<githubTokenType>, seenName: keyof Partial<githubTokenType>, schema: typeof githubTokenSchema) {
+    function checkIfValid(seenFormObj: newGithubRepoType, seenName: keyof newGithubRepoType, schema: typeof newGithubRepoSchema) {
         //@ts-expect-error type
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 
@@ -76,24 +83,16 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
 
     async function handleSubmit() {
         try {
-            if (sentGithubToken === undefined) {
-                //validate each
-                const validatedGithubToken = newGithubTokenSchema.parse(formObj)
+            //validate each
+            const validatedNewGithubRepo = newGithubRepoSchema.parse(formObj)
 
-                const addedGithubToken = await addUserGithubToken(validatedGithubToken)
+            await addGithubRepo(seenGithubToken.token, validatedNewGithubRepo)
 
-                //notify
-                toast.success(`Created github token for ${addedGithubToken.username}!`)
-                formObjSet(deepClone(initialFormObj))
+            //notify
+            toast.success(`New repository created!`)
 
-            } else {
-                //validate each
-                const validatedUpdateGithubToken = updateGithubTokenSchema.parse(formObj)
-
-                await updateUserGithubToken(sentGithubToken.id, validatedUpdateGithubToken)
-
-                toast.success(`Updated github token token`)
-            }
+            //reset
+            formObjSet(deepClone(initialFormObj))
 
             if (functionSubmit !== undefined) {
                 functionSubmit()
@@ -104,37 +103,30 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
         }
     }
 
-    //respond to changes above
-    useEffect(() => {
-        if (sentGithubToken === undefined) return
-        formObjSet(githubTokenSchema.parse(sentGithubToken))
-
-    }, [sentGithubToken])
-
     return (
         <form className={styles.form} action={() => { }}>
             <React.Fragment>
                 {Object.entries(formObj).map(eachEntry => {
-                    const eachKey = eachEntry[0] as userGithubTokenKeys
+                    const eachKey = eachEntry[0] as newGithubRepoKeys
 
                     if (moreFormInfo[eachKey] === undefined) return null
 
-                    if (eachKey === "active" && formObj.active !== undefined) {
+                    if (eachKey === "private" && formObj.private !== undefined) {
                         return (
                             <React.Fragment key={eachKey}>
-                                <button className='mainButton' style={{ backgroundColor: formObj.active ? "rgb(var(--color1))" : "" }}
+                                <button className='mainButton'
                                     onClick={() => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = deepClone(prevFormObj)
-                                            if (newFormObj.active === undefined) return prevFormObj
+                                            if (newFormObj.private === undefined) return prevFormObj
 
-                                            const seenVal = newFormObj.active
-                                            newFormObj.active = !seenVal
+                                            const seenVal = newFormObj.private
+                                            newFormObj.private = !seenVal
 
                                             return newFormObj
                                         })
                                     }}
-                                >toggle active</button>
+                                >visiblity {formObj.private ? "private" : "public"}</button>
                             </React.Fragment>
                         )
                     }
@@ -151,13 +143,13 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
-                                            if (eachKey === "active") return prevFormObj
+                                            if (eachKey === "private") return prevFormObj
 
                                             newFormObj[eachKey] = e.target.value
                                             return newFormObj
                                         })
                                     }}
-                                    onBlur={() => { checkIfValid(formObj, eachKey, githubTokenSchema) }}
+                                    onBlur={() => { checkIfValid(formObj, eachKey, newGithubRepoSchema) }}
                                     errors={formErrors[eachKey]}
                                 />
                             ) : moreFormInfo[eachKey].inputType === "textarea" ? (
@@ -169,14 +161,14 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
                                     onInput={(e) => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
-                                            if (eachKey === "active") return prevFormObj
+                                            if (eachKey === "private") return prevFormObj
 
                                             //@ts-expect-error type
                                             newFormObj[eachKey] = e.target.value
                                             return newFormObj
                                         })
                                     }}
-                                    onBlur={() => { checkIfValid(formObj, eachKey, githubTokenSchema) }} errors={formErrors[eachKey]}
+                                    onBlur={() => { checkIfValid(formObj, eachKey, newGithubRepoSchema) }} errors={formErrors[eachKey]}
                                 />
                             ) : null}
                         </React.Fragment>

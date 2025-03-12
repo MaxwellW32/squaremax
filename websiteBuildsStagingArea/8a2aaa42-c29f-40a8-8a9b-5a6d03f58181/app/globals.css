@@ -17,6 +17,102 @@
 
 
 
+.nav____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+.navMenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    position: relative;
+    margin-right: 2rem;
+}
+
+.navLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover {
+    color: #38bdf8;
+}
+
+/* Submenu Styles */
+.navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover .navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.submenuItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    padding: 0.5rem 1.5rem;
+}
+
+.submenuLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.submenuLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover {
+    color: #38bdf8;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+        flex-direction: column;
+    }
+
+    .navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
+        position: static;
+        box-shadow: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
+
+
+
+
+
+
 .nav____36876f1a-4b60-492b-a41a-b99840b738ed {
     background-color: #1e293b;
     padding: 1rem 2rem;
@@ -209,102 +305,6 @@
 
 
 
-.nav____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    background-color: #1e293b;
-    padding: 1rem 2rem;
-    font-family: 'Arial', sans-serif;
-    color: #ffffff;
-}
-
-.navMenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    position: relative;
-    margin-right: 2rem;
-}
-
-.navLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.navLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover {
-    color: #38bdf8;
-}
-
-/* Submenu Styles */
-.navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    position: absolute;
-    top: 2.5rem;
-    left: 0;
-    list-style: none;
-    background-color: #334155;
-    padding: 0.5rem 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover .navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.submenuItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    padding: 0.5rem 1.5rem;
-}
-
-.submenuLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-}
-
-.submenuLink____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd:hover {
-    color: #38bdf8;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .navMenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-        flex-direction: column;
-    }
-
-    .navItem____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-        margin-right: 0;
-        margin-bottom: 1rem;
-    }
-
-    .navSubmenu____df61c4ea-d958-4ed8-89c6-4c8ac8c770cd {
-        position: static;
-        box-shadow: none;
-        transform: none;
-        opacity: 1;
-        visibility: visible;
-    }
-}
-
-
-
-
-
-
-
-
-
 .container____6b797084-a472-4116-a1fc-62f28778faec {
     border: 2px solid #ddd;
     border-radius: 10px;
@@ -340,54 +340,6 @@
 }
 
 .container-footer____6b797084-a472-4116-a1fc-62f28778faec {
-    text-align: center;
-    font-size: 1rem;
-    color: #555;
-    margin-top: 1rem;
-}
-
-
-
-
-
-
-
-
-
-.container____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background-color: aliceblue;
-}
-
-.container-header____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
-    color: #333;
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.container-grid____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.container-grid-item____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.container-children____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
-    margin-bottom: 1rem;
-}
-
-.container-footer____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
     text-align: center;
     font-size: 1rem;
     color: #555;
@@ -446,92 +398,44 @@
 
 
 
-.nav____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    background-color: #1e293b;
-    padding: 1rem 2rem;
-    font-family: 'Arial', sans-serif;
-    color: #ffffff;
-}
-
-.navMenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    position: relative;
-    margin-right: 2rem;
-}
-
-.navLink____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.navLink____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover {
-    color: #38bdf8;
-}
-
-/* Submenu Styles */
-.navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    position: absolute;
-    top: 2.5rem;
-    left: 0;
-    list-style: none;
-    background-color: #334155;
-    padding: 0.5rem 0;
+.container____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    background-color: aliceblue;
 }
 
-.navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover .navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+.container-header____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
 }
 
-.submenuItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    padding: 0.5rem 1.5rem;
+.container-grid____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
 }
 
-.submenuLink____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
+.container-grid-item____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.submenuLink____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover {
-    color: #38bdf8;
+.container-children____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
+    margin-bottom: 1rem;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .navMenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-        flex-direction: column;
-    }
-
-    .navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-        margin-right: 0;
-        margin-bottom: 1rem;
-    }
-
-    .navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
-        position: static;
-        box-shadow: none;
-        transform: none;
-        opacity: 1;
-        visibility: visible;
-    }
+.container-footer____50bfc3bd-63ab-4956-9660-a19d7b4d5176 {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: 1rem;
 }
 
 
@@ -831,7 +735,7 @@
 
 
 .nav____ea092261-1588-4bd0-b6b1-faabbc655084 {
-    background-color: red;
+    background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
@@ -915,25 +819,106 @@
 
 
 
+.nav____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    color: #ffffff;
+}
+.navMenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    position: relative;
+    margin-right: 2rem;
+}
+.navLink____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+.navLink____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover {
+    color: #38bdf8;
+}
+/* Submenu Styles */
+.navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    list-style: none;
+    background-color: #334155;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover .navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.submenuItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    padding: 0.5rem 1.5rem;
+}
+.submenuLink____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+.submenuLink____f96703f6-2c97-411c-84f3-fef0ead57dcc:hover {
+    color: #38bdf8;
+}
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navMenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    flex-direction: column;
+}
+.navItem____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    margin-right: 0;
+    margin-bottom: 1rem;
+}
+.navSubmenu____f96703f6-2c97-411c-84f3-fef0ead57dcc {
+    position: static;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+}
+}
+
+
+
+
+
+
+
+
+
+
 .nav____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     background-color: #1e293b;
     padding: 1rem 2rem;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
-
 .navMenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
-
 .navItem____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     position: relative;
     margin-right: 2rem;
 }
-
 .navLink____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     text-decoration: none;
     color: #ffffff;
@@ -941,11 +926,9 @@
     font-weight: bold;
     transition: color 0.3s ease;
 }
-
 .navLink____cad39b18-af04-4bf5-b171-3bd90cc89591:hover {
     color: #38bdf8;
 }
-
 /* Submenu Styles */
 .navSubmenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     position: absolute;
@@ -961,47 +944,41 @@
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
-
 .navItem____cad39b18-af04-4bf5-b171-3bd90cc89591:hover .navSubmenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
-
 .submenuItem____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     padding: 0.5rem 1.5rem;
 }
-
 .submenuLink____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     text-decoration: none;
     color: #ffffff;
     font-size: 0.9rem;
     transition: color 0.3s ease;
 }
-
 .submenuLink____cad39b18-af04-4bf5-b171-3bd90cc89591:hover {
     color: #38bdf8;
 }
-
 /* Responsive Styles */
 @media (max-width: 768px) {
     .navMenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
-        flex-direction: column;
-    }
-
-    .navItem____cad39b18-af04-4bf5-b171-3bd90cc89591 {
-        margin-right: 0;
-        margin-bottom: 1rem;
-    }
-
-    .navSubmenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
-        position: static;
-        box-shadow: none;
-        transform: none;
-        opacity: 1;
-        visibility: visible;
-    }
+    flex-direction: column;
 }
+.navItem____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    margin-right: 0;
+    margin-bottom: 1rem;
+}
+.navSubmenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {
+    position: static;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+}
+}
+
 
 
 

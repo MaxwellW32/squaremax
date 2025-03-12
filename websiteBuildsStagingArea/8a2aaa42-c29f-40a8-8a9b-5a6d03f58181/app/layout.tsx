@@ -10,8 +10,8 @@ weight: ["400"],
 });
 
 export const metadata: Metadata = {
-  title: "first website",
-  description: "the best website ever",
+  title: "Nail Salon",
+  description: "Made by Squaremax",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ data={{
   "styleId": "____36876f1a-4b60-492b-a41a-b99840b738ed",
   "menu": [
     {
-      "label": "menu item 1",
+      "label": "nav",
       "link": "/",
       "subMenu": [
         {
@@ -57,7 +57,7 @@ data={{
   "styleId": "____717840fa-6d13-4d0f-978a-b055a22100ea",
   "menu": [
     {
-      "label": "menu item 1",
+      "label": "footer",
       "link": "/",
       "subMenu": [
         {
