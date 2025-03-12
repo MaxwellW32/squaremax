@@ -11,8 +11,8 @@ import { addUserGithubToken, updateUserGithubToken } from '@/serverFunctions/han
 
 export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sentGithubToken?: githubTokenType, functionSubmit?: () => void }) {
     const initialFormObj: newGithubTokenType = {
-        active: false,
         token: "",
+        active: true,
     }
 
     const [formObj, formObjSet] = useState<Partial<githubTokenType>>(deepClone(sentGithubToken === undefined ? initialFormObj : githubTokenSchema.parse(sentGithubToken)))
@@ -134,7 +134,7 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
                                             return newFormObj
                                         })
                                     }}
-                                >toggle active</button>
+                                >{formObj.active ? "using this token" : "inactive"}</button>
                             </React.Fragment>
                         )
                     }

@@ -8,10 +8,26 @@ import { websiteBuildsStagingAreaDir } from "@/lib/websiteTemplateLib";
 
 export async function getGithubRepos(token: githubTokenType["token"]): Promise<githubRepo[]> {
     const octokit = new Octokit({ auth: token });
-    const { data } = await octokit.rest.repos.listForAuthenticatedUser();
+    const { data } = await octokit.rest.repos.listForAuthenticatedUser({
+        per_page: 30
+    });
 
     const githubRepos: githubRepo[] = data as unknown as githubRepo[]
     return githubRepos
+}
+
+export async function searchGithubReposByName(
+    token: githubTokenType,
+    repoName: string
+): Promise<githubRepo[]> {
+    const octokit = new Octokit({ auth: token.token });
+
+    const { data } = await octokit.rest.search.repos({
+        q: `${repoName} user:${token.username}`,
+        per_page: 10,
+    });
+
+    return data.items as unknown as githubRepo[];
 }
 
 export async function getGithubUserFromToken(token: githubTokenType["token"]): Promise<githubUser> {

@@ -1,4 +1,4 @@
-import { getGithubRepos, pushToGithubRepo } from '@/serverFunctions/handleGithub'
+import { getGithubRepos, pushToGithubRepo, searchGithubReposByName } from '@/serverFunctions/handleGithub'
 import { githubRepo, githubTokenType, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import React, { HTMLAttributes, useEffect, useMemo, useState } from 'react'
@@ -186,7 +186,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                                         )
                                     })}
 
-                                    <ShowMore label='add token'
+                                    <ShowMore label='add github token'
                                         content={
                                             <AddEditGithub
                                                 functionSubmit={() => {
@@ -233,6 +233,30 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                                         onClick={handleRepoSearch}
                                     >refresh</button>
                                 </div>
+
+                                {search !== "" && (
+                                    <>
+                                        <button className='mainButton' style={{ justifySelf: "flex-end" }}
+                                            onClick={async () => {
+                                                toast.success("searching")
+                                                const serverRepos = await searchGithubReposByName(activeGithubToken, search)
+
+                                                repositoriesSet(prevLocalRepos => {
+                                                    const localRepoIds = new Set(prevLocalRepos.map(repo => repo.id));
+                                                    const uniqueNewRepos = serverRepos.filter(repo => !localRepoIds.has(repo.id));
+
+                                                    if (uniqueNewRepos.length > 0) {
+                                                        toast.success("searched")
+                                                    }
+
+                                                    const newArray: githubRepo[] = [...prevLocalRepos, ...uniqueNewRepos];
+                                                    return newArray
+                                                })
+                                            }}
+                                        >search on github
+                                        </button>
+                                    </>
+                                )}
 
                                 <ShowMore label='add github repo'
                                     content={(
