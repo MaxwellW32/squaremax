@@ -15,7 +15,6 @@ import TemplateDataSwitch from '../templates/templateData/TemplateDataSwitch'
 import TemplateSelector from '../templates/TemplateSelector'
 import UsedComponentLocationSelector from '../usedComponents/usedComponentLocationSelector/UsedComponentLocationSelector'
 import UsedComponentOrderSelector from '../usedComponents/usedComponentOrderSelector/UsedComponentOrderSelector'
-import AddEditWebsite from './AddEditWebsite'
 import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
 import { Session } from 'next-auth'
