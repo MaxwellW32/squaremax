@@ -9,8 +9,8 @@ import { z } from 'zod'
 //better labels
 //placeholder when array blank
 
-export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArrayStarterItems, seenSchema, updater }: { seenForm: { [key: string]: unknown }, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarterItems: recursiveFormArrayStarterItems, seenSchema: z.Schema, updater: (newObject: unknown) => void }) {
-    const [form, formSet] = useState<{ [key: string]: unknown }>(seenForm)
+export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArrayStarterItems, seenSchema, updater }: { seenForm: object, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarterItems: recursiveFormArrayStarterItems, seenSchema: z.Schema, updater: (newObject: unknown) => void }) {
+    const [form, formSet] = useState<object>(seenForm)
     const [formErrors, formErrorsSet] = useState<{ [key: string]: string }>({})
     const changeFromAbove = useRef(false)
 
@@ -57,7 +57,7 @@ export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArraySta
     )
 }
 
-function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterItems, sentKeys, parentIsArray, seenFormErrors, ...elProps }: { seenForm: {}, seenFormSet: React.Dispatch<React.SetStateAction<{ [key: string]: unknown; }>>, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarterItems: recursiveFormArrayStarterItems, sentKeys: string, parentIsArray?: boolean, seenFormErrors: { [key: string]: string } } & React.HTMLAttributes<HTMLDivElement>) {
+function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterItems, sentKeys, parentIsArray, seenFormErrors, ...elProps }: { seenForm: object, seenFormSet: React.Dispatch<React.SetStateAction<object>>, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarterItems: recursiveFormArrayStarterItems, sentKeys: string, parentIsArray?: boolean, seenFormErrors: { [key: string]: string } } & React.HTMLAttributes<HTMLDivElement>) {
 
     return (
         <div {...elProps} style={{ display: "grid", ...(parentIsArray ? { gap: "1rem", gridAutoColumns: "90%", gridAutoFlow: "column" } : { alignContent: "flex-start" }), overflow: "auto", ...elProps?.style }} className={`${parentIsArray ? "snap" : ""} ${elProps?.className ?? ""}`}>
@@ -74,8 +74,6 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                 const newForm = { ...prevForm }
                                 const keyArray = seenKeys.split('/')
 
-                                console.log(`$keyArray`, keyArray);
-
                                 let tempForm = newForm
                                 const indexToDelete = parseInt(keyArray[keyArray.length - 1])
 
@@ -83,11 +81,11 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                     const subKey = keyArray[i]
 
                                     if (i === keyArray.length - 2) {
-                                        // @ts-ignore type
+                                        // @ts-expect-error type
                                         tempForm[subKey] = tempForm[subKey].filter((each, eachIndex) => eachIndex !== indexToDelete)
 
                                     } else {
-                                        // @ts-ignore type
+                                        // @ts-expect-error type
                                         tempForm = tempForm[subKey]
                                     }
                                 }
@@ -118,11 +116,11 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                     const subKey = keyArray[i]
 
                                                     if (i === keyArray.length - 1) {
+                                                        // @ts-expect-error type
                                                         tempForm[subKey] = new Date(e.target.value)
-                                                        console.log(`$keyArray`, keyArray);
 
                                                     } else {
-                                                        // @ts-ignore type
+                                                        // @ts-expect-error type
                                                         tempForm = tempForm[subKey]
                                                     }
                                                 }
@@ -157,10 +155,10 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                     const subKey = keyArray[i]
 
                                                     if (i === keyArray.length - 1) {
-                                                        // @ts-ignore type
+                                                        // @ts-expect-error type
                                                         tempForm[subKey] = [...tempForm[subKey], seenArrayStarterItems[seenKeysForFormInfo]]
                                                     } else {
-                                                        // @ts-ignore type
+                                                        // @ts-expect-error type
                                                         tempForm = tempForm[subKey]
                                                     }
                                                 }
@@ -231,10 +229,11 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                                     }
                                                                 }
 
+                                                                // @ts-expect-error type
                                                                 tempForm[subKey] = inputVal
 
                                                             } else {
-                                                                // @ts-ignore type
+                                                                // @ts-expect-error type
                                                                 tempForm = tempForm[subKey]
                                                             }
                                                         }
@@ -260,12 +259,13 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                             const subKey = keyArray[i]
 
                                                             if (i === keyArray.length - 1) {
-                                                                let inputVal: string = e.target.value
+                                                                const inputVal: string = e.target.value
 
+                                                                // @ts-expect-error type
                                                                 tempForm[subKey] = inputVal
 
                                                             } else {
-                                                                // @ts-ignore type
+                                                                // @ts-expect-error type
                                                                 tempForm = tempForm[subKey]
                                                             }
                                                         }
@@ -293,11 +293,12 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                             const subKey = keyArray[i]
 
                                                             if (i === keyArray.length - 1) {
-                                                                let inputVal: string | number = e.target.value
+                                                                const inputVal: string | number = e.target.value
+                                                                // @ts-expect-error type
                                                                 tempForm[subKey] = inputVal
 
                                                             } else {
-                                                                // @ts-ignore type
+                                                                // @ts-expect-error type
                                                                 tempForm = tempForm[subKey]
                                                             }
                                                         }
@@ -329,11 +330,12 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                             const subKey = keyArray[i]
 
                                                             if (i === keyArray.length - 1) {
-                                                                let inputVal: string | number = e.target.value
+                                                                const inputVal: string | number = e.target.value
+                                                                // @ts-expect-error type
                                                                 tempForm[subKey] = inputVal
 
                                                             } else {
-                                                                // @ts-ignore type
+                                                                // @ts-expect-error type
                                                                 tempForm = tempForm[subKey]
                                                             }
                                                         }
@@ -361,10 +363,11 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                     const subKey = keyArray[i]
 
                                                     if (i === keyArray.length - 1) {
+                                                        // @ts-expect-error type
                                                         tempForm[subKey] = !tempForm[subKey]
 
                                                     } else {
-                                                        // @ts-ignore type
+                                                        // @ts-expect-error type
                                                         tempForm = tempForm[subKey]
                                                     }
                                                 }

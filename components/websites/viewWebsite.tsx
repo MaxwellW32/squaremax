@@ -2,7 +2,7 @@
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
