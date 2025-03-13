@@ -77,8 +77,32 @@ export const requestDownloadWebsiteBodySchema = z.object({
 });
 export type requestDownloadWebsiteBodyType = z.infer<typeof requestDownloadWebsiteBodySchema>
 
-
-
+//recursive form
+//basically controlling the look of an element and the data validation
+export type recursiveFormMoreFormInfoElementType =
+    {
+        type: "input",
+        isNumeric?: true,
+        isFloat?: true,
+    } | {
+        type: "textarea",
+    } | {
+        type: "color",
+    } | {
+        type: "file"
+    } | {
+        type: "image",
+    }
+export type recursiveFormMoreInfo = {
+    [key: string]: {
+        label?: string,
+        placeholder?: string,
+        element?: recursiveFormMoreFormInfoElementType
+    }
+}
+export type recursiveFormArrayStarterItems = {
+    [key: string]: unknown
+}
 
 
 

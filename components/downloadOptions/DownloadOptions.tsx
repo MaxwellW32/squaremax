@@ -16,7 +16,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
     seenSession: Session, seenWebsite: website, seenGithubTokens: githubTokenType[], viewingDownloadOptionsSet?: React.Dispatch<React.SetStateAction<boolean>>
 } & HTMLAttributes<HTMLDivElement>) {
     const [githubTokens, githubTokensSet] = useState<githubTokenType[]>(seenGithubTokens)
-    const [downloadOption, downloadOptionSet] = useState<"zip" | "github">("zip")
+    const [downloadOption, downloadOptionSet] = useState<"zip" | "github">(githubTokens.length > 0 ? "github" : "zip")
 
     const activeGithubToken = githubTokens.find(eachGithubToken => eachGithubToken.active)
 

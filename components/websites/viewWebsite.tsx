@@ -2,7 +2,7 @@
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -525,6 +525,32 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                 <ShowMore
                                     label='Edit Website'
                                     content={
+                                        // <RecursiveForm
+                                        //     seenForm={updateWebsiteSchema.parse(websiteObj)}
+                                        //     seenMoreFormInfo={{
+                                        //         "globalCss": {
+                                        //             element: {
+                                        //                 type: "textarea",
+                                        //             }
+                                        //         }
+                                        //     }}
+                                        //     seenArrayStarterItems={{
+                                        //         "fonts": {
+                                        //             importName: "",
+                                        //             subsets: [],
+                                        //             weights: [],
+                                        //         },
+                                        //         "fonts/0/subsets": "",
+                                        //         "fonts/0/weights": "",
+
+                                        //     }}
+                                        //     seenSchema={updateWebsiteSchema}
+                                        //     updater={(seenForm) => {
+                                        //         const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
+                                        //         console.log(`$newFullWebsite`, newFullWebsite);
+                                        //         handleWebsiteUpdate(newFullWebsite)
+                                        //     }}
+                                        // />
                                         <AddEditWebsite sentWebsite={websiteObj} />
                                     }
                                 />
