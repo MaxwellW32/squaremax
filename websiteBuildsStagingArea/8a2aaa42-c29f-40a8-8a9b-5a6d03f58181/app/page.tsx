@@ -18,7 +18,7 @@ data={{
 data={{
   "category": "navbars",
   "mainElProps": {
-    "className": "pink"
+    "className": "pink barriecitoFont "
   },
   "styleId": "____cad39b18-af04-4bf5-b171-3bd90cc89591",
   "menu": [
@@ -45,7 +45,7 @@ data={{
 data={{
   "category": "navbars",
   "mainElProps": {
-    "className": "scale",
+    "className": "scale meowScript",
     "id": "blue"
   },
   "styleId": "____ea092261-1588-4bd0-b6b1-faabbc655084",

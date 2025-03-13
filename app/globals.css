@@ -111,6 +111,13 @@ textarea:focus {
     outline: none;
 }
 
+::-webkit-input-placeholder,
+::-moz-placeholder {
+    white-space: pre-line;
+    position: relative;
+    top: -7px;
+}
+
 h1 {
     font-weight: bold;
     text-transform: capitalize;

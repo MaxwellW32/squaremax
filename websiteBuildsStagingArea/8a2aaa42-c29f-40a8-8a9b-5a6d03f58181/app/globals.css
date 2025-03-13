@@ -12,6 +12,9 @@
 .barriecitoFont {
     font-family: var(--font-barriecito);
 }
+.meowScript {
+    font-family: var(--font-meowScript);
+}
 
 
 
@@ -737,7 +740,6 @@
 .nav____ea092261-1588-4bd0-b6b1-faabbc655084 {
     background-color: #1e293b;
     padding: 1rem 2rem;
-    font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 .navMenu____ea092261-1588-4bd0-b6b1-faabbc655084 {
@@ -906,7 +908,6 @@
 .nav____cad39b18-af04-4bf5-b171-3bd90cc89591 {
     background-color: #1e293b;
     padding: 1rem 2rem;
-    font-family: 'Arial', sans-serif;
     color: #ffffff;
 }
 .navMenu____cad39b18-af04-4bf5-b171-3bd90cc89591 {

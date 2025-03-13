@@ -1,15 +1,16 @@
 "use client"
-import { recursiveFormArrayStarterItems, recursiveFormMoreInfo, recursiveFormMoreFormInfoElementType } from '@/types'
+import { recursiveFormArrayStarterItems, recursiveFormMoreInfo, recursiveFormMoreFormInfoElementType, nullishStarters } from '@/types'
 import Image from 'next/image'
 import React, { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { z } from 'zod'
+import RecursiveShowMore from './RecursiveShowMore'
 
 //fix the add function
 //better labels
 //placeholder when array blank
 
-export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArrayStarterItems, seenSchema, updater }: { seenForm: object, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarterItems: recursiveFormArrayStarterItems, seenSchema: z.Schema, updater: (newObject: unknown) => void }) {
+export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArrayStarters, seenNullishStarters, seenSchema, updater }: { seenForm: object, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarters: recursiveFormArrayStarterItems, seenNullishStarters: nullishStarters, seenSchema: z.Schema, updater: (newObject: unknown) => void }) {
     const [form, formSet] = useState<object>(seenForm)
     const [formErrors, formErrorsSet] = useState<{ [key: string]: string }>({})
     const changeFromAbove = useRef(false)
@@ -53,14 +54,14 @@ export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArraySta
     }, [form])
 
     return (
-        <RenderForm seenForm={form} seenFormSet={formSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarterItems={seenArrayStarterItems} sentKeys={""} seenFormErrors={formErrors} />
+        <RenderForm seenForm={form} seenFormSet={formSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} sentKeys={""} seenFormErrors={formErrors} />
     )
 }
 
-function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterItems, sentKeys, parentIsArray, seenFormErrors, ...elProps }: { seenForm: object, seenFormSet: React.Dispatch<React.SetStateAction<object>>, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarterItems: recursiveFormArrayStarterItems, sentKeys: string, parentIsArray?: boolean, seenFormErrors: { [key: string]: string } } & React.HTMLAttributes<HTMLDivElement>) {
+function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters, seenNullishStarters, sentKeys, seenFormErrors, parentArrayName, ...elProps }: { seenForm: object, seenFormSet: React.Dispatch<React.SetStateAction<object>>, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarters: recursiveFormArrayStarterItems, seenNullishStarters: nullishStarters, sentKeys: string, seenFormErrors: { [key: string]: string }, parentArrayName?: string } & React.HTMLAttributes<HTMLDivElement>) {
 
     return (
-        <div {...elProps} style={{ display: "grid", ...(parentIsArray ? { gap: "1rem", gridAutoColumns: "90%", gridAutoFlow: "column" } : { alignContent: "flex-start" }), overflow: "auto", ...elProps?.style }} className={`${parentIsArray ? "snap" : ""} ${elProps?.className ?? ""}`}>
+        <div {...elProps} style={{ display: "grid", ...(parentArrayName ? { gap: "1rem", gridAutoColumns: "90%", gridAutoFlow: "column" } : { alignContent: "flex-start" }), overflow: "auto", ...elProps?.style }} className={`${parentArrayName ? "snap" : ""} ${elProps?.className ?? ""}`}>
             {Object.entries(seenForm).map(eachEntry => {
                 const eachKey = eachEntry[0]
                 const eachValue = eachEntry[1]
@@ -68,10 +69,10 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                 const seenKeysForFormInfo = seenKeys.replace(/\d+/g, '0')
 
                 const arrayRemoveButton = (
-                    <button className='mainButton' style={{ alignSelf: "flex-start" }}
+                    <button className='secondaryButton' style={{ alignSelf: "flex-start", justifySelf: "flex-end" }}
                         onClick={() => {
                             seenFormSet(prevForm => {
-                                const newForm = { ...prevForm }
+                                const newForm: object = JSON.parse(JSON.stringify(prevForm))
                                 const keyArray = seenKeys.split('/')
 
                                 let tempForm = newForm
@@ -96,106 +97,184 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                     >remove</button>
                 )
 
+                //replace camelcase key names with spaces and capitalize first letter
+                const niceKeyName = eachKey.replace(/([A-Z])/g, ' $1').replace(/^./, function (str) { return str.toUpperCase(); })
+                let label = niceKeyName
+
+                const parsedNumberKey = parseInt(eachKey)
+                if (!isNaN(parsedNumberKey) && parentArrayName !== undefined) {
+                    label = `${parentArrayName.replace(/([A-Z])/g, ' $1').replace(/^./, function (str) { return str.toUpperCase(); })} ${parsedNumberKey + 1}`
+                }
+
+                let placeHolder = `please enter a value for ${label}`
+
+                let element: recursiveFormMoreFormInfoElementType = { type: 'input' }
+                let returnToNull = undefined
+                let returnToUndefined = undefined
+
+                if (seenMoreFormInfo[seenKeysForFormInfo] !== undefined) {
+                    if (seenMoreFormInfo[seenKeysForFormInfo].label !== undefined) {
+                        label = seenMoreFormInfo[seenKeysForFormInfo].label
+                    }
+                    if (seenMoreFormInfo[seenKeysForFormInfo].placeholder !== undefined) {
+                        placeHolder = seenMoreFormInfo[seenKeysForFormInfo].placeholder
+                    }
+                    if (seenMoreFormInfo[seenKeysForFormInfo].element !== undefined) {
+                        element = seenMoreFormInfo[seenKeysForFormInfo].element
+                    }
+                    if (seenMoreFormInfo[seenKeysForFormInfo].returnToNull !== undefined) {
+                        returnToNull = seenMoreFormInfo[seenKeysForFormInfo].returnToNull
+                    }
+                    if (seenMoreFormInfo[seenKeysForFormInfo].returnToUndefined !== undefined) {
+                        returnToUndefined = seenMoreFormInfo[seenKeysForFormInfo].returnToUndefined
+                    }
+                }
+
                 if (typeof eachValue === 'object' && eachValue !== null) {
                     const isArray = Array.isArray(eachValue)
+
                     return (
                         <div key={eachKey} style={{ display: "grid", alignContent: "flex-start", }}>
-                            <label>{eachKey}</label>
+                            <RecursiveShowMore
+                                label={label}
+                                content={(
+                                    <>
+                                        {eachValue instanceof Date ? (
+                                            <>
+                                                <input type="date" value={eachValue.toISOString().split('T')[0]}
+                                                    onChange={(e) => {
+                                                        seenFormSet(prevForm => {
+                                                            const newForm = { ...prevForm }
+                                                            const keyArray = seenKeys.split('/')
 
-                            {eachValue instanceof Date && (
-                                <>
-                                    <input type="date" value={eachValue.toISOString().split('T')[0]}
-                                        onChange={(e) => {
-                                            seenFormSet(prevForm => {
-                                                const newForm = { ...prevForm }
-                                                const keyArray = seenKeys.split('/')
+                                                            let tempForm = newForm
 
-                                                let tempForm = newForm
+                                                            for (let i = 0; i < keyArray.length; i++) {
+                                                                const subKey = keyArray[i]
 
-                                                for (let i = 0; i < keyArray.length; i++) {
-                                                    const subKey = keyArray[i]
+                                                                if (i === keyArray.length - 1) {
+                                                                    // @ts-expect-error type
+                                                                    tempForm[subKey] = new Date(e.target.value)
 
-                                                    if (i === keyArray.length - 1) {
-                                                        // @ts-expect-error type
-                                                        tempForm[subKey] = new Date(e.target.value)
+                                                                } else {
+                                                                    // @ts-expect-error type
+                                                                    tempForm = tempForm[subKey]
+                                                                }
+                                                            }
 
-                                                    } else {
-                                                        // @ts-expect-error type
-                                                        tempForm = tempForm[subKey]
-                                                    }
-                                                }
+                                                            return newForm
+                                                        })
+                                                    }}
+                                                />
+                                            </>
+                                        ) : (
+                                            <>
+                                                {parentArrayName && (
+                                                    arrayRemoveButton
+                                                )}
 
-                                                return newForm
-                                            })
-                                        }}
-                                    />
-                                </>
-                            )}
+                                                {isArray && (
+                                                    <>
+                                                        <button className='mainButton' style={{ alignSelf: "flex-start" }}
+                                                            onClick={() => {
+                                                                if (seenArrayStarters[seenKeysForFormInfo] === undefined) {
+                                                                    toast.error('Array starter for this item not found')
+                                                                    return
+                                                                }
 
-                            {parentIsArray && (
-                                arrayRemoveButton
-                            )}
+                                                                seenFormSet(prevForm => {
+                                                                    const newForm: object = JSON.parse(JSON.stringify(prevForm))
+                                                                    const keyArray = seenKeys.split('/')
 
-                            {isArray && (
-                                <>
-                                    <button className='mainButton' style={{ alignSelf: "flex-start" }}
-                                        onClick={() => {
-                                            if (seenArrayStarterItems[seenKeysForFormInfo] === undefined) {
-                                                toast.error('Array starter for this item not found')
-                                                return
-                                            }
+                                                                    let tempForm = newForm
 
-                                            seenFormSet(prevForm => {
-                                                const newForm = { ...prevForm }
-                                                const keyArray = seenKeys.split('/')
+                                                                    for (let i = 0; i < keyArray.length; i++) {
+                                                                        const subKey = keyArray[i]
 
-                                                let tempForm = newForm
+                                                                        if (i === keyArray.length - 1) {
+                                                                            // @ts-expect-error type
+                                                                            tempForm[subKey] = [...tempForm[subKey], seenArrayStarters[seenKeysForFormInfo]]
+                                                                        } else {
+                                                                            // @ts-expect-error type
+                                                                            tempForm = tempForm[subKey]
+                                                                        }
+                                                                    }
 
-                                                for (let i = 0; i < keyArray.length; i++) {
-                                                    const subKey = keyArray[i]
+                                                                    return newForm
+                                                                })
+                                                            }}
+                                                        >add</button>
 
-                                                    if (i === keyArray.length - 1) {
-                                                        // @ts-expect-error type
-                                                        tempForm[subKey] = [...tempForm[subKey], seenArrayStarterItems[seenKeysForFormInfo]]
-                                                    } else {
-                                                        // @ts-expect-error type
-                                                        tempForm = tempForm[subKey]
-                                                    }
-                                                }
+                                                        {returnToNull && eachValue.length === 0 && (
+                                                            <button className='mainButton'
+                                                                onClick={() => {
+                                                                    seenFormSet(prevForm => {
+                                                                        const newForm = { ...prevForm }
+                                                                        const keyArray = seenKeys.split('/')
 
-                                                return newForm
-                                            })
-                                        }}
-                                    >add</button>
-                                </>
-                            )}
+                                                                        let tempForm = newForm
 
-                            <RenderForm seenForm={eachValue} seenFormSet={seenFormSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarterItems={seenArrayStarterItems} sentKeys={seenKeys} style={{ marginLeft: "1rem" }} parentIsArray={isArray ? true : undefined} seenFormErrors={seenFormErrors} />
+                                                                        for (let i = 0; i < keyArray.length; i++) {
+                                                                            const subKey = keyArray[i]
+
+                                                                            if (i === keyArray.length - 1) {
+                                                                                // @ts-expect-error type
+                                                                                tempForm[subKey] = null
+                                                                            } else {
+                                                                                // @ts-expect-error type
+                                                                                tempForm = tempForm[subKey]
+                                                                            }
+                                                                        }
+
+                                                                        return newForm
+                                                                    })
+                                                                }}
+                                                            >make null</button>
+                                                        )}
+
+                                                        {returnToUndefined && eachValue.length === 0 && (
+                                                            <button className='mainButton'
+                                                                onClick={() => {
+                                                                    seenFormSet(prevForm => {
+                                                                        const newForm = { ...prevForm }
+                                                                        const keyArray = seenKeys.split('/')
+
+                                                                        let tempForm = newForm
+
+                                                                        for (let i = 0; i < keyArray.length; i++) {
+                                                                            const subKey = keyArray[i]
+
+                                                                            if (i === keyArray.length - 1) {
+                                                                                // @ts-expect-error type
+                                                                                tempForm[subKey] = undefined
+                                                                            } else {
+                                                                                // @ts-expect-error type
+                                                                                tempForm = tempForm[subKey]
+                                                                            }
+                                                                        }
+
+                                                                        return newForm
+                                                                    })
+                                                                }}
+                                                            >make undefined</button>
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                <RenderForm seenForm={eachValue} seenFormSet={seenFormSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} sentKeys={seenKeys} style={{ marginLeft: "1rem" }} seenFormErrors={seenFormErrors} parentArrayName={isArray ? eachKey : undefined} />
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            />
                         </div>
                     )
 
                 } else {
-                    //replace camelcase key names with spaces and capitalize first letter
-                    const niceKeyName = eachKey.replace(/([A-Z])/g, ' $1').replace(/^./, function (str) { return str.toUpperCase(); })
-                    let label = niceKeyName
-                    let placeHolder = `please enter a value for ${eachKey}`
-                    let element: recursiveFormMoreFormInfoElementType = { type: 'input' }
-
-                    if (seenMoreFormInfo[seenKeysForFormInfo] !== undefined) {
-                        if (seenMoreFormInfo[seenKeysForFormInfo].label !== undefined) {
-                            label = seenMoreFormInfo[seenKeysForFormInfo].label
-                        }
-                        if (seenMoreFormInfo[seenKeysForFormInfo].placeholder !== undefined) {
-                            placeHolder = seenMoreFormInfo[seenKeysForFormInfo].placeholder
-                        }
-                        if (seenMoreFormInfo[seenKeysForFormInfo].element !== undefined) {
-                            element = seenMoreFormInfo[seenKeysForFormInfo].element
-                        }
-                    }
 
                     return (
                         <div key={seenKeys} style={{ display: "grid", alignContent: "flex-start", gap: "1rem", width: "100%" }}>
-                            {parentIsArray && arrayRemoveButton}
+                            {parentArrayName && arrayRemoveButton}
 
                             <label htmlFor={seenKeys}>{label}</label>
 
@@ -215,7 +294,7 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                             const subKey = keyArray[i]
 
                                                             if (i === keyArray.length - 1) {
-                                                                let inputVal: string | number = e.target.value
+                                                                let inputVal: string | number | null | undefined = e.target.value
 
                                                                 if (element.isNumeric) {
                                                                     inputVal = parseInt(e.target.value)
@@ -227,6 +306,15 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                                     if (isNaN(inputVal)) {
                                                                         inputVal = 0
                                                                     }
+                                                                }
+
+                                                                //if return to null
+                                                                if (returnToNull && e.target.value === "") {
+                                                                    inputVal = null
+                                                                }
+                                                                //if return to null or undefined handle that
+                                                                if (returnToUndefined && e.target.value === "") {
+                                                                    inputVal = undefined
                                                                 }
 
                                                                 // @ts-expect-error type
@@ -259,7 +347,17 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                                             const subKey = keyArray[i]
 
                                                             if (i === keyArray.length - 1) {
-                                                                const inputVal: string = e.target.value
+                                                                let inputVal: string | number | null | undefined = e.target.value
+
+                                                                //if return to null
+                                                                if (returnToNull && e.target.value === "") {
+                                                                    inputVal = null
+                                                                }
+
+                                                                //if return to null or undefined handle that
+                                                                if (returnToUndefined && e.target.value === "") {
+                                                                    inputVal = undefined
+                                                                }
 
                                                                 // @ts-expect-error type
                                                                 tempForm[subKey] = inputVal
@@ -379,15 +477,73 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarterI
                                 </>
                             )}
 
-                            {typeof eachValue === 'object' && eachValue === null && (
+                            {eachValue === null && (
                                 <>
-                                    <p>null</p>
+                                    <button className='mainButton'
+                                        onClick={() => {
+                                            seenFormSet(prevForm => {
+                                                const newForm = { ...prevForm }
+                                                const keyArray = seenKeys.split('/')
+
+                                                //check nullish starters
+                                                if (returnToNull && seenNullishStarters[seenKeys] === undefined) {
+                                                    toast.error("not seeing nullish starter")
+                                                    return prevForm
+                                                }
+
+                                                let tempForm = newForm
+
+                                                for (let i = 0; i < keyArray.length; i++) {
+                                                    const subKey = keyArray[i]
+
+                                                    if (i === keyArray.length - 1) {
+                                                        // @ts-expect-error type
+                                                        tempForm[subKey] = seenNullishStarters[seenKeys]
+                                                    } else {
+                                                        // @ts-expect-error type
+                                                        tempForm = tempForm[subKey]
+                                                    }
+                                                }
+
+                                                return newForm
+                                            })
+                                        }}
+                                    >null</button>
                                 </>
                             )}
 
-                            {typeof eachValue === 'undefined' && (
+                            {eachValue === 'undefined' && (
                                 <>
-                                    <p>undefined</p>
+                                    <button className='mainButton'
+                                        onClick={() => {
+                                            seenFormSet(prevForm => {
+                                                const newForm = { ...prevForm }
+                                                const keyArray = seenKeys.split('/')
+
+                                                //check nullish starters
+                                                if (returnToUndefined && seenNullishStarters[seenKeys] === undefined) {
+                                                    toast.error("not seeing nullish starter")
+                                                    return prevForm
+                                                }
+
+                                                let tempForm = newForm
+
+                                                for (let i = 0; i < keyArray.length; i++) {
+                                                    const subKey = keyArray[i]
+
+                                                    if (i === keyArray.length - 1) {
+                                                        // @ts-expect-error type
+                                                        tempForm[subKey] = seenNullishStarters[seenKeys]
+                                                    } else {
+                                                        // @ts-expect-error type
+                                                        tempForm = tempForm[subKey]
+                                                    }
+                                                }
+
+                                                return newForm
+                                            })
+                                        }}
+                                    >undefined</button>
                                 </>
                             )}
 

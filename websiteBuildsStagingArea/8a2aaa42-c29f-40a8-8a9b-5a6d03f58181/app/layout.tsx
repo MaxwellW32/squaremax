@@ -1,4 +1,4 @@
-import { Barriecito } from "next/font/google";
+import { Barriecito, Meow_Script } from "next/font/google";
 import "./globals.css";
 import type { Metadata } from "next";
 import Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 from "@/components/76a62d0d-2f49-4a3b-88e5-ba248caa79a4/page";
@@ -9,9 +9,15 @@ subsets: ["latin"],
 weight: ["400"],
 });
 
+const meowScript = Meow_Script({
+variable: "--font-meowScript",
+subsets: ["latin"],
+weight: ["400"],
+});
+
 export const metadata: Metadata = {
-  title: "Nail Salon",
-  description: "Made by Squaremax",
+  title: "Nail Salon 2",
+  description: "Made by Squaremax 123",
 };
 
 export default function RootLayout({
@@ -22,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${barriecito.variable} antialiased`}
+        className={`${barriecito.variable} ${meowScript.variable} antialiased`}
       >
         <Firstnav_76a62d0d_2f49_4a3b_88e5_ba248caa79a4 
 data={{
@@ -31,7 +37,7 @@ data={{
   "styleId": "____36876f1a-4b60-492b-a41a-b99840b738ed",
   "menu": [
     {
-      "label": "nav",
+      "label": "home",
       "link": "/",
       "subMenu": [
         {
@@ -41,8 +47,12 @@ data={{
       ]
     },
     {
-      "label": "menu item 2",
-      "link": "/"
+      "label": "about",
+      "link": "about"
+    },
+    {
+      "label": "contact",
+      "link": "contact"
     }
   ]
 }}

@@ -20,6 +20,7 @@ import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
 import { Session } from 'next-auth'
 import DownloadOptions from '../downloadOptions/DownloadOptions'
+import RecursiveForm from '../recursiveForm/RecursiveForm'
 
 export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
@@ -411,15 +412,20 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         const linkElements = websiteObj.fonts.map(eachFont => {
             const link = document.createElement('link')
 
+            //replace underscores with + for google fonts api
+            const fontApiImportName = eachFont.importName.replace(/_/g, '+')
+
             link.rel = 'stylesheet'
-            link.href = `https://fonts.googleapis.com/css?family=${eachFont.importName}&subset=${eachFont.subsets.join(", ")}`
+            link.href = `https://fonts.googleapis.com/css?family=${fontApiImportName}&subset=${eachFont.subsets.join(", ")}`
+            console.log(`$usedImportName`, fontApiImportName);
+
             document.head.appendChild(link);
 
-            const validName = makeValidVariableName(eachFont.importName)
+            const validFontVariableName = makeValidVariableName(eachFont.importName)
 
             link.onload = () => {
                 // Set the font family as a CSS variable
-                document.documentElement.style.setProperty(`--font-${validName}`, `${eachFont.importName}`);
+                document.documentElement.style.setProperty(`--font-${validFontVariableName}`, `${eachFont.importName.replace(/_/g, ' ')}`);
                 // href="https://fonts.googleapis.com/css?family=Tangerine">
             };
 
@@ -525,33 +531,42 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                 <ShowMore
                                     label='Edit Website'
                                     content={
-                                        // <RecursiveForm
-                                        //     seenForm={updateWebsiteSchema.parse(websiteObj)}
-                                        //     seenMoreFormInfo={{
-                                        //         "globalCss": {
-                                        //             element: {
-                                        //                 type: "textarea",
-                                        //             }
-                                        //         }
-                                        //     }}
-                                        //     seenArrayStarterItems={{
-                                        //         "fonts": {
-                                        //             importName: "",
-                                        //             subsets: [],
-                                        //             weights: [],
-                                        //         },
-                                        //         "fonts/0/subsets": "",
-                                        //         "fonts/0/weights": "",
+                                        <RecursiveForm
+                                            seenForm={updateWebsiteSchema.parse(websiteObj)}
+                                            seenMoreFormInfo={{
+                                                "globalCss": {
+                                                    element: {
+                                                        type: "textarea",
+                                                    }
+                                                },
+                                                "fonts/0/weights": {
+                                                    returnToNull: true,
+                                                },
+                                                "fonts/0/importName": {
+                                                    placeholder: "capitalize the starting letter, use underscores for spaces",
+                                                },
+                                            }}
+                                            seenArrayStarters={{
+                                                "fonts": {
+                                                    importName: "",
+                                                    subsets: [],
+                                                    weights: [],
+                                                },
+                                                "fonts/0/subsets": "",
+                                                "fonts/0/weights": "",
 
-                                        //     }}
-                                        //     seenSchema={updateWebsiteSchema}
-                                        //     updater={(seenForm) => {
-                                        //         const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
-                                        //         console.log(`$newFullWebsite`, newFullWebsite);
-                                        //         handleWebsiteUpdate(newFullWebsite)
-                                        //     }}
-                                        // />
-                                        <AddEditWebsite sentWebsite={websiteObj} />
+                                            }}
+                                            seenNullishStarters={{
+                                                "fonts/0/weights": [],
+                                            }}
+                                            seenSchema={updateWebsiteSchema}
+                                            updater={(seenForm) => {
+                                                const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
+                                                console.log(`$newFullWebsite`, newFullWebsite);
+                                                handleWebsiteUpdate(newFullWebsite)
+                                            }}
+                                        />
+                                        // <AddEditWebsite sentWebsite={websiteObj} />
                                     }
                                 />
 

@@ -97,54 +97,17 @@ export type recursiveFormMoreInfo = {
     [key: string]: {
         label?: string,
         placeholder?: string,
-        element?: recursiveFormMoreFormInfoElementType
+        element?: recursiveFormMoreFormInfoElementType,
+        returnToNull?: true,
+        returnToUndefined?: true,
     }
 }
 export type recursiveFormArrayStarterItems = {
     [key: string]: unknown
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//form validation types
-export type formInputInputType = {
-    label?: string,
-    placeHolder?: string,
-    type?: "text" | "number",
-    required?: boolean,
-
-    inputType: "input"
+export type nullishStarters = {
+    [key: string]: unknown
 }
-export type formInputTextareaType = {
-    label?: string,
-    placeHolder?: string,
-    required?: boolean,
-    inputType: "textarea"
-}
-export type formInputImageType = {
-    label?: string,
-    placeHolder?: string,
-    required?: boolean,
-
-    inputType: "image"
-}
-export type formInputType = formInputInputType | formInputTextareaType | formInputImageType
-
-
-
 
 
 
@@ -293,8 +256,8 @@ export type updateUser = z.infer<typeof updateUserSchema>
 
 export const fontsSchema = z.object({
     importName: z.string().min(1),
-    subsets: z.array(z.string().min(1)),
-    weights: z.array(z.string().min(1)).nullable()
+    subsets: z.array(z.string().min(1, "need subsets: e.g latin")),
+    weights: z.array(z.string().min(1, "please add a number or make the array null")).nullable()
 })
 export type fontsType = z.infer<typeof fontsSchema>
 
