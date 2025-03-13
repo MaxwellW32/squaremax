@@ -5,10 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { z } from 'zod'
 import RecursiveShowMore from './RecursiveShowMore'
-
-//fix the add function
-//better labels
-//placeholder when array blank
+import RecursiveConfirmationBox from './RecursiveConfirmationBox'
 
 export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArrayStarters, seenNullishStarters, seenSchema, updater }: { seenForm: object, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarters: recursiveFormArrayStarterItems, seenNullishStarters: nullishStarters, seenSchema: z.Schema, updater: (newObject: unknown) => void }) {
     const [form, formSet] = useState<object>(seenForm)
@@ -50,7 +47,6 @@ export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArraySta
                 return newFormErrors
             })
         }
-
     }, [form])
 
     return (
@@ -69,8 +65,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                 const seenKeysForFormInfo = seenKeys.replace(/\d+/g, '0')
 
                 const arrayRemoveButton = (
-                    <button className='secondaryButton' style={{ alignSelf: "flex-start", justifySelf: "flex-end" }}
-                        onClick={() => {
+                    <RecursiveConfirmationBox text='remove' confirmationText='are you sure you want to remove?' successMessage='remove!' float={true}
+                        runAction={async () => {
                             seenFormSet(prevForm => {
                                 const newForm: object = JSON.parse(JSON.stringify(prevForm))
                                 const keyArray = seenKeys.split('/')
@@ -94,7 +90,7 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                 return newForm
                             })
                         }}
-                    >remove</button>
+                    />
                 )
 
                 //replace camelcase key names with spaces and capitalize first letter

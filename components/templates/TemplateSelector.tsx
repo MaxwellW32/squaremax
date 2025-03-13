@@ -2,15 +2,16 @@
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getTemplates } from '@/serverFunctions/handleTemplates'
 import { addUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website } from '@/types'
+import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
+import { ensureChildCanBeAddedToParent, getUsedComponentsInSameLocation } from '@/utility/utility'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function TemplateSelector({ websiteId, location, handleManageUsedComponents, viewerTemplateSet
+export default function TemplateSelector({ websiteId, location, handleManageUsedComponents, viewerTemplateSet, seenUsedComponents
 }: {
-    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>
+    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, seenUsedComponents: usedComponent[]
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
 
@@ -93,11 +94,29 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
                                                             data: eachTemplate.defaultData,
                                                         }
 
+                                                        //maintain db recursive constraint with child used component
+                                                        if (newUsedComponent.location.type === "child") {
+                                                            ensureChildCanBeAddedToParent(newUsedComponent.location.parentId, seenUsedComponents)
+                                                        }
+
+                                                        //match other usedComponents in same location
+                                                        const usedComponentsInSameLocation = getUsedComponentsInSameLocation(newUsedComponent.location, seenUsedComponents)
+
+                                                        //ensure the ordering always adds to the last in the array
+                                                        let largestOrderNumberSeen = -1
+                                                        usedComponentsInSameLocation.forEach(eachUsedComponentInSameLocation => {
+                                                            if (eachUsedComponentInSameLocation.order > largestOrderNumberSeen) {
+                                                                largestOrderNumberSeen = eachUsedComponentInSameLocation.order
+                                                            }
+                                                        })
+                                                        newUsedComponent.order = largestOrderNumberSeen + 1
+
+                                                        //validate
                                                         const validatedNewUsedComponent = newUsedComponentSchema.parse(newUsedComponent)
 
                                                         const newAddedUsedComponent = await addUsedComponent(validatedNewUsedComponent)
 
-                                                        //the add to page
+                                                        //then add to page
                                                         handleManageUsedComponents({ option: "create", seenAddedUsedComponent: newAddedUsedComponent })
 
                                                     } else {

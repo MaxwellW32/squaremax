@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm"
 import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentLocationType, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
-import { getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByOrder } from "@/utility/utility"
+import { ensureChildCanBeAddedToParent, getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByOrder } from "@/utility/utility"
 
 export async function getSpecificUsedComponent(usedComponentId: usedComponent["id"]): Promise<usedComponent | undefined> {
     //validation
@@ -63,33 +63,10 @@ export async function addUsedComponent(newUsedComponent: newUsedComponent): Prom
         ...newUsedComponent,
     }
 
-    //security
-    //get latest usedComponents on server
-    let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: fullNewUsedComponent.websiteId } })
-
     //validation
     usedComponentSchema.parse(fullNewUsedComponent)
 
-    //maintain db recusrive constraint with child used component
-    //ensure child can be added to wanted parent
-    if (fullNewUsedComponent.location.type === "child") {
-        await ensureChildCanBeAddedToParent(fullNewUsedComponent.location.parentId, { option: "reuse", sentUsedComponent: latestUsedComponents })
-    }
-
-    //match other usedComponents in same location
-    const usedComponentsInSameLocation = getUsedComponentsInSameLocation(fullNewUsedComponent.location, latestUsedComponents)
-
-    //ensure the ordering always adds to the last in the array
-    let largestOrderNumberSeen = -1
-    usedComponentsInSameLocation.forEach(eachUsedComponentInSameLocation => {
-        if (eachUsedComponentInSameLocation.order > largestOrderNumberSeen) {
-            largestOrderNumberSeen = eachUsedComponentInSameLocation.order
-        }
-    })
-    fullNewUsedComponent.order = largestOrderNumberSeen + 1
-
     const [result] = await db.insert(usedComponents).values(fullNewUsedComponent).returning()
-
     return result
 }
 
@@ -190,7 +167,7 @@ export async function changeUsedComponentLocation(seenUsedComponent: usedCompone
 
     //if adding as a child of another element ensure parentEl is valid
     if (newLocation.type === "child") {
-        ensureChildCanBeAddedToParent(newLocation.parentId, { option: "reuse", sentUsedComponent: latestUsedComponents })
+        ensureChildCanBeAddedToParent(newLocation.parentId, latestUsedComponents)
     }
 
     //get used components in same location
@@ -209,20 +186,3 @@ export async function changeUsedComponentLocation(seenUsedComponent: usedCompone
     await updateTheUsedComponent(seenUsedComponent.websiteId, seenUsedComponent.id, { order: largestOrderNumberSeen + 1, location: newLocation })
 }
 
-//ensure parentEl can actually take children elements
-export async function ensureChildCanBeAddedToParent(parentId: usedComponent["id"], otherData: { option: "reuse", sentUsedComponent: usedComponent[] } | { option: "fetch", websiteId: website["id"] }) {
-    let latestUsedComponents: usedComponent[] = []
-
-    if (otherData.option === "reuse") {
-        latestUsedComponents = otherData.sentUsedComponent
-    } else if (otherData.option === "fetch") {
-        latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: otherData.websiteId } })
-    }
-
-    //ensure parent exists in array
-    const foundParentUsedComponent = latestUsedComponents.find(eachSentUsedComponent => eachSentUsedComponent.id === parentId)
-    if (foundParentUsedComponent === undefined) throw new Error("not seeing parent used component")
-
-    //ensure parent can take children
-    if (!Object.hasOwn(foundParentUsedComponent.data, "children")) throw new Error("This component can't take child elements")
-}

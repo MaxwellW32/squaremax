@@ -12,12 +12,11 @@ weight: ["400"],
 const meowScript = Meow_Script({
 variable: "--font-meowScript",
 subsets: ["latin"],
-weight: ["400"],
 });
 
 export const metadata: Metadata = {
-  title: "Nail Salon 2",
-  description: "Made by Squaremax 123",
+  title: "Nail Salon",
+  description: "Made by Squaremax",
 };
 
 export default function RootLayout({

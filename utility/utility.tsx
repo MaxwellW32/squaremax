@@ -137,6 +137,15 @@ export function formatCSS(cssString: string) {
         .replace(/\n\s*\n/g, '\n');      // Remove extra empty lines
 }
 
+//ensure parentEl can actually take children elements
+export function ensureChildCanBeAddedToParent(parentId: usedComponent["id"], seenUsedComponents: usedComponent[]) {
+    //ensure parent exists in array
+    const foundParentUsedComponent = seenUsedComponents.find(eachSentUsedComponent => eachSentUsedComponent.id === parentId)
+    if (foundParentUsedComponent === undefined) throw new Error("not seeing parent used component")
+
+    //ensure parent can take children
+    if (!Object.hasOwn(foundParentUsedComponent.data, "children")) throw new Error("This component can't take child elements")
+}
 
 
 
@@ -233,7 +242,7 @@ data={${writablePropData}}
 export function getFontImportStrings(seenFonts: fontsType[]) {
     //handle font imports
     const importListString = seenFonts.map(eachFont => {
-        return eachFont.importName
+        return eachFont.importName.replace(/ /g, '_')
     }).join(", ")
     const importString = `import { ${importListString} } from "next/font/google";`
 
@@ -253,10 +262,9 @@ export function getFontImportStrings(seenFonts: fontsType[]) {
         const subsetsString = eachFont.subsets.map(eachSubSet => `"${eachSubSet}"`).join(", ")
         const weightsString = eachFont.weights !== null ? eachFont.weights.map(eachWeight => `"${eachWeight}"`).join(", ") : ""
 
-        return `const ${newName} = ${eachFont.importName}({
+        return `const ${newName} = ${eachFont.importName.replace(/ /g, '_')}({
 variable: "--font-${newName}",
-subsets: [${subsetsString}],
-${eachFont.weights !== null ? `weight: [${weightsString}],` : ``}
+subsets: [${subsetsString}],${eachFont.weights !== null ? `\nweight: [${weightsString}],` : ``}
 });`
     }).join("\n\n")
 
@@ -273,6 +281,7 @@ ${eachFont.weights !== null ? `weight: [${weightsString}],` : ``}
 }
 
 export function makeValidVariableName(seenString: string) {
-    return seenString.replace(/_/g, '')
-        .replace(/^\w/, (c) => c.toLowerCase());
+    return seenString
+        .replace(/\s+(.)/g, (_, c) => c.toUpperCase()) // Remove spaces and capitalize the next letter
+        .replace(/^\w/, (c) => c.toLowerCase()); // Ensure the first character is lowercase
 }

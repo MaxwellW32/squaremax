@@ -2,7 +2,7 @@
 import { deletePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -19,7 +19,7 @@ import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
 import { Session } from 'next-auth'
 import DownloadOptions from '../downloadOptions/DownloadOptions'
-import RecursiveForm from '../recursiveForm/RecursiveForm'
+import AddEditWebsite from './AddEditWebsite'
 
 export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
@@ -143,6 +143,39 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 //replace original
                 if (websiteFromServer.usedComponents !== undefined) {
                     websiteFromServer.usedComponents = await renderUsedComponentsInUse(websiteFromServer.usedComponents, activePage?.id)
+
+                    //run check for any broken used components - remove them
+                    //used component is broken if pageId doesnt exist in pages and if parentId not in other used components
+                    const brokenUsedComponents = websiteFromServer.usedComponents.filter(eachUsedComponent => {
+                        const seenLocation = eachUsedComponent.location
+
+                        //make sure the page it belongs to exits
+                        if (seenLocation.type === "page") {
+                            if (websiteFromServer.pages === undefined) return false
+
+                            return websiteFromServer.pages.find(eachPage => eachPage.id === seenLocation.pageId) === undefined
+
+                            //make sure its parent used component exists
+                        } else if (seenLocation.type === "child") {
+                            if (websiteFromServer.usedComponents === undefined) return false
+
+                            return websiteFromServer.usedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === seenLocation.parentId) === undefined
+                        }
+
+                        return false
+                    })
+
+                    if (brokenUsedComponents.length > 0) {
+                        //delete on server
+                        Promise.all(brokenUsedComponents.map(async eachBrokenUsedComponent => {
+                            return await deleteUsedComponent(eachBrokenUsedComponent.websiteId, eachBrokenUsedComponent.id)
+
+                        })).then(() => {
+                            console.log(`$deleted broken usedComponents`)
+
+                            refreshWebsitePath({ id: websiteFromServer.id })
+                        })
+                    }
                 }
 
                 //update obj locally with changes
@@ -405,26 +438,23 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         return updatedUsedComponents
     }
 
-
     //load up fonts dynamically
     useEffect(() => {
         const linkElements = websiteObj.fonts.map(eachFont => {
             const link = document.createElement('link')
 
             //replace underscores with + for google fonts api
-            const fontApiImportName = eachFont.importName.replace(/_/g, '+')
+            const fontImportNameForApi = eachFont.importName.replace(/ /g, '+')
 
             link.rel = 'stylesheet'
-            link.href = `https://fonts.googleapis.com/css?family=${fontApiImportName}&subset=${eachFont.subsets.join(", ")}`
-            console.log(`$usedImportName`, fontApiImportName);
+            link.href = `https://fonts.googleapis.com/css?family=${fontImportNameForApi}&subset=${eachFont.subsets.join(", ")}`
 
             document.head.appendChild(link);
-
-            const validFontVariableName = makeValidVariableName(eachFont.importName)
+            const camelCaseName = makeValidVariableName(eachFont.importName)
 
             link.onload = () => {
                 // Set the font family as a CSS variable
-                document.documentElement.style.setProperty(`--font-${validFontVariableName}`, `${eachFont.importName.replace(/_/g, ' ')}`);
+                document.documentElement.style.setProperty(`--font-${camelCaseName}`, `${eachFont.importName}`);
                 // href="https://fonts.googleapis.com/css?family=Tangerine">
             };
 
@@ -432,15 +462,86 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         })
 
         return () => {
-
             linkElements.map(eachLinkEl => {
                 document.head.removeChild(eachLinkEl);
             })
         };
     }, [websiteObj.fonts])
 
+    const wsRef = useRef<WebSocket | null>(null);
+    const [webSocketsConnected, webSocketsConnectedSet] = useState(false)
+
+    useEffect(() => {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const ws = new WebSocket(`${protocol}//${window.location.host}/api/ws`);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            webSocketsConnectedSet(true);
+
+            const newJoinMessage: webSocketMessageJoinType = {
+                type: "join",
+                websiteId: websiteObj.id
+            }
+
+            webSocketMessageJoinSchema.parse(newJoinMessage)
+
+            ws.send(JSON.stringify(newJoinMessage));
+        };
+
+        ws.onclose = () => {
+            webSocketsConnectedSet(false);
+        };
+
+        ws.onmessage = (event) => {
+            const seenMessage = webSocketStandardMessageSchema.parse(JSON.parse(event.data.toString()))
+            console.log(`seenMessage on client - updated: `, seenMessage.data.updated);
+        };
+
+        const pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                const newPingMessage: webSocketMessagePingType = {
+                    type: "ping"
+                }
+
+                ws.send(JSON.stringify(newPingMessage));
+            }
+        }, 29000);
+
+        return () => {
+            clearInterval(pingInterval);
+
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+        };
+    }, [])
+
+    const sendUpdate = (updateOption: webSocketStandardMessageType["data"]["updated"]) => {
+        const newWebSocketsMessage: webSocketStandardMessageType = {
+            type: "standard",
+            data: {
+                websiteId: websiteObj.id,
+                updated: updateOption
+            }
+        }
+
+        webSocketStandardMessageSchema.parse(newWebSocketsMessage)
+
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify(newWebSocketsMessage));
+        }
+    }
+
     return (
         <main className={styles.main}>
+            <button className='mainButton'
+                onClick={() => {
+                    sendUpdate("website")
+                }}
+
+            >{webSocketsConnected ? "connected " : ""}send</button>
+
             <div className={styles.topSettingsCont}>
                 <div>
                     {saveState === "saving" ? (
@@ -530,42 +631,35 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                 <ShowMore
                                     label='Edit Website'
                                     content={
-                                        <RecursiveForm
-                                            seenForm={updateWebsiteSchema.parse(websiteObj)}
-                                            seenMoreFormInfo={{
-                                                "globalCss": {
-                                                    element: {
-                                                        type: "textarea",
-                                                    }
-                                                },
-                                                "fonts/0/weights": {
-                                                    returnToNull: true,
-                                                },
-                                                "fonts/0/importName": {
-                                                    placeholder: "capitalize the starting letter, use underscores for spaces",
-                                                },
-                                            }}
-                                            seenArrayStarters={{
-                                                "fonts": {
-                                                    importName: "",
-                                                    subsets: [],
-                                                    weights: [],
-                                                },
-                                                "fonts/0/subsets": "",
-                                                "fonts/0/weights": "",
-
-                                            }}
-                                            seenNullishStarters={{
-                                                "fonts/0/weights": [],
-                                            }}
-                                            seenSchema={updateWebsiteSchema}
-                                            updater={(seenForm) => {
-                                                const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
-                                                console.log(`$newFullWebsite`, newFullWebsite);
-                                                handleWebsiteUpdate(newFullWebsite)
-                                            }}
-                                        />
-                                        // <AddEditWebsite sentWebsite={websiteObj} />
+                                        // <RecursiveForm
+                                        //     seenForm={updateWebsiteSchema.omit({ globalCss: true }).parse(websiteObj)}
+                                        //     seenMoreFormInfo={{
+                                        //         "fonts/0/weights": {
+                                        //             returnToNull: true,
+                                        //         },
+                                        //         "fonts/0/importName": {
+                                        //             placeholder: "copy same name from google fonts - case sensitive",
+                                        //         },
+                                        //     }}
+                                        //     seenArrayStarters={{
+                                        //         "fonts": {
+                                        //             importName: "",
+                                        //             subsets: [],
+                                        //             weights: [],
+                                        //         },
+                                        //         "fonts/0/subsets": "",
+                                        //         "fonts/0/weights": "",
+                                        //     }}
+                                        //     seenNullishStarters={{
+                                        //         "fonts/0/weights": [],
+                                        //     }}
+                                        //     seenSchema={updateWebsiteSchema.omit({ globalCss: true })}
+                                        //     updater={(seenForm) => {
+                                        //         const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
+                                        //         handleWebsiteUpdate(newFullWebsite as website)
+                                        //     }}
+                                        // />
+                                        <AddEditWebsite sentWebsite={websiteObj} />
                                     }
                                 />
 
@@ -667,7 +761,9 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                 </button>
                             </div>
 
-                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} />
+                            {websiteObj.usedComponents !== undefined && (
+                                <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} seenUsedComponents={websiteObj.usedComponents} />
+                            )}
 
                             <ShowMore
                                 label='Edit global styles'
@@ -790,7 +886,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                 {/* show options for active */}
                                                 {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
                                                     <>
-                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} location={activeUsedComponent.location} />
+                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} location={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
 
                                                         {viewerTemplate.template !== null && (
                                                             <button className='mainButton'

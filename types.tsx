@@ -109,8 +109,28 @@ export type nullishStarters = {
     [key: string]: unknown
 }
 
+export const webSocketStandardMessageSchema = z.object({
+    type: z.literal("standard"),
+    data: z.object({
+        websiteId: z.string(),
+        updated: z.enum(["website", "page", "usedComponent"])
+    })
+});
+export type webSocketStandardMessageType = z.infer<typeof webSocketStandardMessageSchema>
 
+export const webSocketMessageJoinSchema = z.object({
+    type: z.literal("join"),
+    websiteId: z.string(),
+});
+export type webSocketMessageJoinType = z.infer<typeof webSocketMessageJoinSchema>
 
+export const webSocketMessagePingSchema = z.object({
+    type: z.literal("ping"),
+});
+export type webSocketMessagePingType = z.infer<typeof webSocketMessagePingSchema>
+
+export const webSocketMessageSchema = z.union([webSocketStandardMessageSchema, webSocketMessageJoinSchema, webSocketMessagePingSchema])
+export type webSocketMessageType = z.infer<typeof webSocketMessageSchema>
 
 
 
