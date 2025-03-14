@@ -284,6 +284,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         };
 
         ws.onmessage = (event) => {
+
             const seenMessage = webSocketStandardMessageSchema.parse(JSON.parse(event.data.toString()))
             console.log(`received message on client - section updated type: `, seenMessage.data.updated.type);
 

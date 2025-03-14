@@ -46,15 +46,15 @@ nextApp.prepare().then(() => {
                 }
 
                 if (receivedMessage.type === "standard") {
-                    if (rooms.get(receivedMessage.data.websiteId) === undefined) {
-                        console.log(`$didnt see a room for this website Id`, receivedMessage.data.websiteId);
-                        return
-                    }
+                    // if (rooms.get(receivedMessage.data.websiteId) === undefined) {
+                    //     console.log(`$didnt see a room for this website Id`, receivedMessage.data.websiteId);
+                    //     return
+                    // }
 
                     console.log(`Message received from website with id: ${receivedMessage.data.websiteId}`);
 
                     // Broadcast ONLY to users in the same room
-                    rooms.get(receivedMessage.data.websiteId)!.forEach((client) => {
+                    rooms.get!(receivedMessage.data.websiteId)!.forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify(receivedMessage), { binary: isBinary });
                         }
