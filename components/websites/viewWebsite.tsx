@@ -1,6 +1,6 @@
 "use client"
-import { deletePage, getSpecificPage } from '@/serverFunctions/handlePages'
-import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
+import { deletePage, getPagesFromWebsite, getSpecificPage } from '@/serverFunctions/handlePages'
+import { deleteUsedComponent, getSpecificUsedComponent, getUsedComponents, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
@@ -285,12 +285,12 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
         ws.onmessage = (event) => {
             const seenMessage = webSocketStandardMessageSchema.parse(JSON.parse(event.data.toString()))
-            console.log(`received message on client - section updated: `, seenMessage.data.updated);
+            console.log(`received message on client - section updated type: `, seenMessage.data.updated.type);
 
             if (seenMessage.type === "standard") {
-                const seenMessageData = seenMessage.data.updated
+                const seenMessageObj = seenMessage.data.updated
 
-                if (seenMessageData.type === "website") {
+                if (seenMessageObj.type === "website") {
                     const searchWebsite = async () => {
                         const latestWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteObj.id } }, true)
                         if (latestWebsite === undefined) return
@@ -306,25 +306,39 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     }
                     searchWebsite()
 
-                } else if (seenMessageData.type === "page") {
+                } else if (seenMessageObj.type === "page") {
                     //get latest page
                     const searchPage = async () => {
-                        if (seenMessageData.refreshPages) {
-                            const checkIfEditing = () => {
-                                //if not editing page
-                                //reload all pages
+                        if (seenMessageObj.refreshPages) {
+                            const checkIfEditing = async () => {
+                                //reload all pages if not editing
                                 if (!editingContent.current.pages) {
-                                    //run reload
+                                    //get all pages
+                                    const latestPages = await getPagesFromWebsite(websiteObj.id)
 
+                                    //set latest
+                                    websiteObjSet((prevWebsiteObj) => {
+                                        const newWebsiteObj = { ...prevWebsiteObj }
+                                        if (newWebsiteObj.pages === undefined) return prevWebsiteObj
 
+                                        newWebsiteObj.pages = latestPages
+
+                                        return newWebsiteObj
+                                    })
+
+                                } else {
+                                    // editing check back later
+
+                                    setTimeout(() => {
+                                        checkIfEditing()
+                                    }, 10_000);
                                 }
-
                             }
                             checkIfEditing()
 
                         } else {
                             //update /add specific page
-                            const latestPage = await getSpecificPage(seenMessageData.pageId)
+                            const latestPage = await getSpecificPage(seenMessageObj.pageId)
                             if (latestPage === undefined) return
 
                             //set latest
@@ -357,16 +371,39 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     }
                     searchPage()
 
-                } else if (seenMessageData.type === "usedComponent") {
+                } else if (seenMessageObj.type === "usedComponent") {
                     //get latest usedComponent
                     const searchUsedComponent = async () => {
-                        if (seenMessageData.refreshUsedComponents) {
-                            //if not editing usedComponent
-                            //reload all usedComponents
+                        if (seenMessageObj.refreshUsedComponents) {
+                            const checkIfEditing = async () => {
+                                //reload all usedComponents if not editing
+                                if (!editingContent.current.usedComponents) {
+                                    //get all usedComponents
+                                    const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: websiteObj.id } })
+
+                                    //set latest
+                                    websiteObjSet((prevWebsiteObj) => {
+                                        const newWebsiteObj = { ...prevWebsiteObj }
+                                        if (newWebsiteObj.usedComponents === undefined) return prevWebsiteObj
+
+                                        newWebsiteObj.usedComponents = latestUsedComponents
+
+                                        return newWebsiteObj
+                                    })
+
+                                } else {
+                                    // editing check back later
+
+                                    setTimeout(() => {
+                                        checkIfEditing()
+                                    }, 10_000);
+                                }
+                            }
+                            checkIfEditing()
 
                         } else {
                             //update /add specific page
-                            const latestUsedComponent = await getSpecificUsedComponent(seenMessageData.usedComponentId)
+                            const latestUsedComponent = await getSpecificUsedComponent(seenMessageObj.usedComponentId)
                             if (latestUsedComponent === undefined) return
 
                             //set latest
@@ -516,7 +553,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 sendWebsocketUpdate({
                     type: "page",
                     pageId: options.seenAddedPage.id,
-                    refreshPages: true
+                    refreshPages: false
                 })
             } else if (options.option === "update") {
 
@@ -566,7 +603,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 sendWebsocketUpdate({
                     type: "usedComponent",
                     usedComponentId: builtUsedComponent.id,
-                    refreshUsedComponents: true
+                    refreshUsedComponents: false
                 })
 
             } else if (options.option === "update") {
@@ -696,6 +733,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     return (
         <main className={styles.main}>
+            <p>{webSocketsConnected.toString()}</p>
             <div className={styles.topSettingsCont}>
                 <div>
                     {saveState === "saving" ? (

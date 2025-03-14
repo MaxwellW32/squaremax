@@ -63,7 +63,6 @@ import { createServer, Server, IncomingMessage, ServerResponse } from "node:http
 import next from "next";
 import { WebSocket, WebSocketServer } from "ws";
 import { Socket } from "node:net";
-const { webSocketMessageSchema } = require('./types');
 
 const nextApp = next({ dev: process.env.NODE_ENV !== "production" });
 const handle = nextApp.getRequestHandler();
@@ -83,7 +82,7 @@ nextApp.prepare().then(() => {
 
     ws.on("message", (message: Buffer, isBinary: boolean) => {
       try {
-        const receivedMessage = webSocketMessageSchema.parse(JSON.parse(message.toString()))
+        const receivedMessage = JSON.parse(message.toString())
 
         if (receivedMessage.type === "join") {
           console.log(`wants to join website room id: ${receivedMessage.websiteId}`);
