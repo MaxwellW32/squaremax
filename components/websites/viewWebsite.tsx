@@ -448,6 +448,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                 //keep connection alive
                 ws.send(JSON.stringify(newPingMessage));
+                console.log(`$sent ping`);
             }
         }, 29000);
 
@@ -455,7 +456,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
             clearInterval(pingInterval);
 
             if (wsRef.current) {
-                wsRef.current.close();
+                // wsRef.current.close();
             }
         };
     }, [])
