@@ -267,6 +267,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
         ws.onopen = () => {
             webSocketsConnectedSet(true);
+            console.log(`$ws connected`);
 
             const newJoinMessage: webSocketMessageJoinType = {
                 type: "join",
@@ -733,7 +734,6 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     return (
         <main className={styles.main}>
-            <p>{webSocketsConnected.toString()}</p>
             <div className={styles.topSettingsCont}>
                 <div>
                     {saveState === "saving" ? (

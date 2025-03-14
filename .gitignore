@@ -38,5 +38,5 @@ next-env.d.ts
 # user image upload folder
 /userUploadedData
 
-# temp build area for websites
+# temp build area for website
 /websiteBuildsStagingArea
