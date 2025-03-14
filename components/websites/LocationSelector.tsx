@@ -54,37 +54,33 @@ export default function LocationSelector({ location, activeLocationSet, activePa
 
 
     return (
-        <label style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-            location
+        <select value={location.type}
+            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+                const eachLocationOption = event.target.value
 
-            <select value={location.type}
-                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-                    const eachLocationOption = event.target.value
+                if (eachLocationOption === "footer") {
+                    activeLocationSet({ type: "footer" })
 
-                    if (eachLocationOption === "footer") {
-                        activeLocationSet({ type: "footer" })
+                } else if (eachLocationOption === "header") {
+                    activeLocationSet({ type: "header" })
 
-                    } else if (eachLocationOption === "header") {
-                        activeLocationSet({ type: "header" })
+                } else if (eachLocationOption === "page") {
+                    if (activePage === undefined) return
 
-                    } else if (eachLocationOption === "page") {
-                        if (activePage === undefined) return
+                    activeLocationSet({ type: "page", pageId: activePage.id })
+                }
+            }}
+        >
+            {locationSelectionOptions.map(eachLocationOption => {
+                if (eachLocationOption === "page" && activePage === undefined) return null
+                if (eachLocationOption === "child" && !activeUsedComponentCanHaveChild) return null
 
-                        activeLocationSet({ type: "page", pageId: activePage.id })
-                    }
-                }}
-            >
-                {locationSelectionOptions.map(eachLocationOption => {
-                    if (eachLocationOption === "page" && activePage === undefined) return null
-                    if (eachLocationOption === "child" && !activeUsedComponentCanHaveChild) return null
+                return (
+                    <option key={eachLocationOption} value={eachLocationOption}
 
-                    return (
-                        <option key={eachLocationOption} value={eachLocationOption}
-
-                        >Add to {eachLocationOption}</option>
-                    )
-                })}
-            </select>
-        </label>
+                    >Add to {eachLocationOption}</option>
+                )
+            })}
+        </select>
     )
 }

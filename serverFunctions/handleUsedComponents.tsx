@@ -13,9 +13,7 @@ export async function getSpecificUsedComponent(usedComponentId: usedComponent["i
     usedComponentSchema.shape.id.parse(usedComponentId)
 
     const result = await db.query.usedComponents.findFirst({
-        where: eq(usedComponents.id, usedComponentId),
-        with: {
-        }
+        where: eq(usedComponents.id, usedComponentId)
     });
 
     return result

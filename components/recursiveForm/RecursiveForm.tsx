@@ -57,7 +57,7 @@ export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArraySta
 function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters, seenNullishStarters, sentKeys, seenFormErrors, parentArrayName, ...elProps }: { seenForm: object, seenFormSet: React.Dispatch<React.SetStateAction<object>>, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarters: recursiveFormArrayStarterItems, seenNullishStarters: nullishStarters, sentKeys: string, seenFormErrors: { [key: string]: string }, parentArrayName?: string } & React.HTMLAttributes<HTMLDivElement>) {
 
     return (
-        <div {...elProps} style={{ display: "grid", ...(parentArrayName ? { gap: "1rem", gridAutoColumns: "90%", gridAutoFlow: "column" } : { alignContent: "flex-start" }), overflow: "auto", ...elProps?.style }} className={`${parentArrayName ? "snap" : ""} ${elProps?.className ?? ""}`}>
+        <div {...elProps} style={{ display: "grid", gap: "1rem", ...(parentArrayName ? { gridAutoColumns: "90%", gridAutoFlow: "column" } : { alignContent: "flex-start" }), overflow: "auto", ...elProps?.style }} className={`${parentArrayName ? "snap" : ""} ${elProps?.className ?? ""}`}>
             {Object.entries(seenForm).map(eachEntry => {
                 const eachKey = eachEntry[0]
                 const eachValue = eachEntry[1]
@@ -269,7 +269,7 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                 } else {
 
                     return (
-                        <div key={seenKeys} style={{ display: "grid", alignContent: "flex-start", gap: "1rem", width: "100%" }}>
+                        <div key={seenKeys} style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", width: "100%" }}>
                             {parentArrayName && arrayRemoveButton}
 
                             <label htmlFor={seenKeys}>{label}</label>

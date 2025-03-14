@@ -63,24 +63,7 @@ import { createServer, Server, IncomingMessage, ServerResponse } from "node:http
 import next from "next";
 import { WebSocket, WebSocketServer } from "ws";
 import { Socket } from "node:net";
-import { z } from "zod"
-
-const webSocketStandardMessageSchema = z.object({
-  type: z.literal("standard"),
-  data: z.object({
-    websiteId: z.string(),
-    updated: z.enum(["website", "page", "usedComponent"])
-  })
-});
-const webSocketMessageJoinSchema = z.object({
-  type: z.literal("join"),
-  websiteId: z.string(),
-});
-const webSocketMessagePingSchema = z.object({
-  type: z.literal("ping"),
-});
-
-const webSocketMessageSchema = z.union([webSocketStandardMessageSchema, webSocketMessageJoinSchema, webSocketMessagePingSchema])
+const { webSocketMessageSchema } = require('./types');
 
 const nextApp = next({ dev: process.env.NODE_ENV !== "production" });
 const handle = nextApp.getRequestHandler();
@@ -103,33 +86,36 @@ nextApp.prepare().then(() => {
         const receivedMessage = webSocketMessageSchema.parse(JSON.parse(message.toString()))
 
         if (receivedMessage.type === "join") {
-          console.log(`Message received to join website room: ${receivedMessage.websiteId}`);
+          console.log(`wants to join website room id: ${receivedMessage.websiteId}`);
 
           // If user isn't already in the correct room, add them
           if (!rooms.has(receivedMessage.websiteId)) {
             rooms.set(receivedMessage.websiteId, new Set());
-          }
 
-          // Store this WebSocket in the correct room
-          rooms.get(receivedMessage.websiteId)!.add(ws);
-          userWebsiteId = receivedMessage.websiteId; // Track which room this client is in
+            // Store this WebSocket in the correct room
+            rooms.get(receivedMessage.websiteId)!.add(ws);
+
+            // Track which room this client is in
+            userWebsiteId = receivedMessage.websiteId;
+          }
         }
 
         if (receivedMessage.type === "standard") {
           if (rooms.get(receivedMessage.data.websiteId) === undefined) {
-            console.log(`$didnt see room for this websiteId`);
+            console.log(`$didnt see a room for this website Id`, receivedMessage.data.websiteId);
             return
           }
-          console.log(`Message received for website: ${receivedMessage.data.websiteId}`);
+
+          console.log(`Message received from website with id: ${receivedMessage.data.websiteId}`);
 
           // Broadcast ONLY to users in the same room
           rooms.get(receivedMessage.data.websiteId)!.forEach((client) => {
             if (client !== ws && client.readyState === WebSocket.OPEN) {
-
               client.send(JSON.stringify(receivedMessage), { binary: isBinary });
             }
           });
         }
+
       } catch (error) {
         console.error("WebSocket message error:", error);
       }
@@ -138,10 +124,14 @@ nextApp.prepare().then(() => {
     ws.on("close", () => {
       if (userWebsiteId && rooms.has(userWebsiteId)) {
         rooms.get(userWebsiteId)!.delete(ws);
+
         if (rooms.get(userWebsiteId)!.size === 0) {
-          rooms.delete(userWebsiteId); // Cleanup if no clients remain
+
+          // Cleanup room if no clients remain
+          rooms.delete(userWebsiteId);
         }
       }
+
       console.log("Client disconnected");
     });
   });

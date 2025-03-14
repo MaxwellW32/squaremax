@@ -35,7 +35,7 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
     }, [])
 
     return (
-        <div>
+        <div style={{ display: "grid", alignContent: "flex-start", backgroundColor: "rgb(var(--shade2))" }}>
             <button className='mainButton'
                 onClick={() => {
                     userInteractingSet(prev => !prev)

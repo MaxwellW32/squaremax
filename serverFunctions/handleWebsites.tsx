@@ -59,7 +59,7 @@ export async function deleteWebsite(websiteObj: Pick<website, "id">) {
     await db.delete(websites).where(eq(websites.id, websiteObj.id));
 }
 
-export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<website, "id"> } | { option: "name", data: Pick<website, "name"> }): Promise<website | undefined> {
+export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<website, "id"> } | { option: "name", data: Pick<website, "name"> }, websiteOnly?: boolean): Promise<website | undefined> {
     const seenSession = await sessionCheckWithError()
 
     if (websiteObj.option === "id") {
@@ -67,7 +67,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
 
         const result = await db.query.websites.findFirst({
             where: eq(websites.id, websiteObj.data.id),
-            with: {
+            with: websiteOnly ? undefined : {
                 pages: true,
                 usedComponents: {
                     with: {
@@ -89,7 +89,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
 
         const result = await db.query.websites.findFirst({
             where: eq(websites.name, websiteObj.data.name),
-            with: {
+            with: websiteOnly ? undefined : {
                 pages: true,
                 usedComponents: {
                     with: {

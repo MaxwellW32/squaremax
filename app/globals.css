@@ -178,6 +178,14 @@ section {
     scale: 1.01;
 }
 
+.tertiaryButton {
+    background-color: rgb(var(--shade1));
+    color: rgb(var(--shade2));
+    text-transform: capitalize;
+    font-weight: bold;
+    padding: .5rem;
+}
+
 .tag {
     background-color: rgb(var(--color1));
     color: rgb(var(--shade2));
@@ -201,13 +209,14 @@ section {
     border: 1px solid rgb(var(--shade1));
     padding: .5rem;
     position: fixed;
-    top: 0;
-    left: 50%;
-    translate: -50% 0;
+    /* top: 0; */
+    /* left: 50%; */
+    translate: var(--translate, 0 -100%);
     margin: 1rem;
     opacity: 0;
     pointer-events: none;
     user-select: none;
+    white-space: nowrap;
     transition: opacity 400ms;
     font-size: var(--fontSizeS);
     z-index: 99999;

@@ -61,28 +61,56 @@
 }
 
 
-.sideBar {
+.sideBarHolder {
     display: grid;
     align-content: flex-start;
-    grid-template-rows: auto 1fr;
-
+    pointer-events: none;
+    z-index: 10;
     position: absolute;
     bottom: 0;
     right: 0;
     height: 100%;
-    width: min(500px, 100%);
-    overflow-y: auto;
+    overflow: auto;
+    height: 100%;
 }
 
-/* mobile */
-/* .sideBarButtons {
+.sideBar {
+    pointer-events: initial;
+    display: grid;
+    align-content: flex-start;
+    grid-template-rows: auto auto 1fr;
+    overflow: auto;
+    background-color: rgb(var(--shade2));
+}
+
+.topSideBar {
+    display: grid;
+    align-content: flex-start;
+    grid-template-columns: 1fr 1fr;
+}
+
+.selectionOptionsCont {
     display: flex;
-    justify-content: flex-end;
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
-} */
+    overflow: auto;
+    padding-right: 1rem;
+}
+
+.selectionContent {
+    display: grid;
+    align-content: flex-start;
+    overflow: auto;
+}
+
+.addOnMenu {
+    display: grid;
+    align-content: flex-start;
+    pointer-events: initial;
+    justify-items: flex-end;
+    width: min-content;
+    position: fixed;
+    bottom: 0;
+    translate: -100% 0;
+}
 
 /* desktop */
 .sideBarButtons {
@@ -142,12 +170,11 @@
 }
 
 @media only screen and (max-width: 600px) {
-    .sideBar {
+    .sideBarHolder {
         position: absolute;
         bottom: 0;
         left: 0;
         right: 0;
-        width: 100%;
         height: 60%;
     }
 }

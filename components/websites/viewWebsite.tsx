@@ -1,7 +1,7 @@
 "use client"
-import { deletePage } from '@/serverFunctions/handlePages'
-import { deleteUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
+import { deletePage, getSpecificPage } from '@/serverFunctions/handlePages'
+import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
+import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
@@ -19,13 +19,23 @@ import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
 import { Session } from 'next-auth'
 import DownloadOptions from '../downloadOptions/DownloadOptions'
-import AddEditWebsite from './AddEditWebsite'
+import RecursiveForm from '../recursiveForm/RecursiveForm'
 
 export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
-    const [editOptions, editOptionsSet] = useState(false)
     const [viewingDownloadOptions, viewingDownloadOptionsSet] = useState(false)
+
+    type editingContentType = {
+        website: boolean,
+        pages: boolean,
+        usedComponents: boolean,
+    }
+    const editingContent = useRef<editingContentType>({
+        website: false,
+        pages: false,
+        usedComponents: false,
+    })
 
     const [sizeOptions, sizeOptionsSet] = useState<sizeOptionType[]>([
         {
@@ -80,6 +90,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     const tempActiveUsedComponentId = useRef<usedComponent["id"]>("")
     const [activeUsedComponentId, activeUsedComponentIdSet] = useState<usedComponent["id"]>("")
+    const [selectionOption, selectionOptionSet] = useState<"website" | "page" | "component" | undefined>()
 
     const activeUsedComponent = useMemo<usedComponent | undefined>(() => {
         if (websiteObj.usedComponents === undefined) return undefined
@@ -100,6 +111,8 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
     const [viewerTemplate, viewerTemplateSet] = useState<viewerTemplateType | null>(null)
+    const wsRef = useRef<WebSocket | null>(null);
+    const [webSocketsConnected, webSocketsConnectedSet] = useState(false)
 
     //get usedComponents on the active page
     const pageUsedComponents = useMemo(() => {
@@ -216,6 +229,199 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         }
     }, [tempActiveUsedComponentId])
 
+    //load up fonts dynamically
+    useEffect(() => {
+        const linkElements = websiteObj.fonts.map(eachFont => {
+            const link = document.createElement('link')
+
+            //replace underscores with + for google fonts api
+            const fontImportNameForApi = eachFont.importName.replace(/ /g, '+')
+
+            link.rel = 'stylesheet'
+            link.href = `https://fonts.googleapis.com/css?family=${fontImportNameForApi}&subset=${eachFont.subsets.join(", ")}`
+
+            document.head.appendChild(link);
+            const camelCaseName = makeValidVariableName(eachFont.importName)
+
+            link.onload = () => {
+                // Set the font family as a CSS variable
+                document.documentElement.style.setProperty(`--font-${camelCaseName}`, `${eachFont.importName}`);
+                // href="https://fonts.googleapis.com/css?family=Tangerine">
+            };
+
+            return link
+        })
+
+        return () => {
+            linkElements.map(eachLinkEl => {
+                document.head.removeChild(eachLinkEl);
+            })
+        };
+    }, [websiteObj.fonts])
+
+    //handle websockets
+    useEffect(() => {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const ws = new WebSocket(`${protocol}//${window.location.host}/api/ws`);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            webSocketsConnectedSet(true);
+
+            const newJoinMessage: webSocketMessageJoinType = {
+                type: "join",
+                websiteId: websiteObj.id
+            }
+
+            webSocketMessageJoinSchema.parse(newJoinMessage)
+
+            //send request to join a website id room
+            ws.send(JSON.stringify(newJoinMessage));
+        };
+
+        ws.onclose = () => {
+            webSocketsConnectedSet(false);
+        };
+
+        ws.onmessage = (event) => {
+            const seenMessage = webSocketStandardMessageSchema.parse(JSON.parse(event.data.toString()))
+            console.log(`received message on client - section updated: `, seenMessage.data.updated);
+
+            if (seenMessage.type === "standard") {
+                const seenMessageData = seenMessage.data.updated
+
+                if (seenMessageData.type === "website") {
+                    const searchWebsite = async () => {
+                        const latestWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteObj.id } }, true)
+                        if (latestWebsite === undefined) return
+
+                        console.log(`$latestWebsite`, latestWebsite);
+
+                        //set latest
+                        websiteObjSet((prevWebsiteObj) => {
+                            const newWebsiteObj = { ...prevWebsiteObj, ...latestWebsite }
+
+                            return newWebsiteObj
+                        })
+                    }
+                    searchWebsite()
+
+                } else if (seenMessageData.type === "page") {
+                    //get latest page
+                    const searchPage = async () => {
+                        if (seenMessageData.refreshPages) {
+                            const checkIfEditing = () => {
+                                //if not editing page
+                                //reload all pages
+                                if (!editingContent.current.pages) {
+                                    //run reload
+
+
+                                }
+
+                            }
+                            checkIfEditing()
+
+                        } else {
+                            //update /add specific page
+                            const latestPage = await getSpecificPage(seenMessageData.pageId)
+                            if (latestPage === undefined) return
+
+                            //set latest
+                            websiteObjSet((prevWebsiteObj) => {
+                                const newWebsiteObj = { ...prevWebsiteObj }
+
+                                if (newWebsiteObj.pages === undefined) return prevWebsiteObj
+
+                                const pageFoundInArray = newWebsiteObj.pages.find(eachPageFind => eachPageFind.id === latestPage.id) !== undefined
+
+                                if (pageFoundInArray) {
+                                    //update
+                                    newWebsiteObj.pages = newWebsiteObj.pages.map(eachPage => {
+                                        if (eachPage.id === latestPage.id) {
+                                            return latestPage
+                                        }
+
+                                        return eachPage
+                                    })
+
+                                } else {
+                                    //add
+                                    newWebsiteObj.pages = [...newWebsiteObj.pages, latestPage]
+                                }
+
+                                return newWebsiteObj
+                            })
+                        }
+
+                    }
+                    searchPage()
+
+                } else if (seenMessageData.type === "usedComponent") {
+                    //get latest usedComponent
+                    const searchUsedComponent = async () => {
+                        if (seenMessageData.refreshUsedComponents) {
+                            //if not editing usedComponent
+                            //reload all usedComponents
+
+                        } else {
+                            //update /add specific page
+                            const latestUsedComponent = await getSpecificUsedComponent(seenMessageData.usedComponentId)
+                            if (latestUsedComponent === undefined) return
+
+                            //set latest
+                            websiteObjSet((prevWebsiteObj) => {
+                                const newWebsiteObj = { ...prevWebsiteObj }
+
+                                if (newWebsiteObj.usedComponents === undefined) return prevWebsiteObj
+
+                                const usedComponentFoundInArray = newWebsiteObj.usedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === latestUsedComponent.id) !== undefined
+
+                                if (usedComponentFoundInArray) {
+                                    //update
+                                    newWebsiteObj.usedComponents = newWebsiteObj.usedComponents.map(eachUsedComponent => {
+                                        if (eachUsedComponent.id === latestUsedComponent.id) {
+                                            return latestUsedComponent
+                                        }
+
+                                        return eachUsedComponent
+                                    })
+
+                                } else {
+                                    //add
+                                    newWebsiteObj.usedComponents = [...newWebsiteObj.usedComponents, latestUsedComponent]
+                                }
+
+                                return newWebsiteObj
+                            })
+                        }
+
+                    }
+                    searchUsedComponent()
+                }
+            };
+        }
+
+        const pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                const newPingMessage: webSocketMessagePingType = {
+                    type: "ping"
+                }
+
+                //keep connection alive
+                ws.send(JSON.stringify(newPingMessage));
+            }
+        }, 29000);
+
+        return () => {
+            clearInterval(pingInterval);
+
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+        };
+    }, [])
+
     function centerCanvas() {
         if (canvasContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
 
@@ -273,6 +479,11 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                 console.log(`$saved website to db`);
                 saveStateSet("saved")
+
+                //update websocket
+                sendWebsocketUpdate({
+                    type: "website"
+                })
             }, 3000);
 
         } catch (error) {
@@ -301,6 +512,12 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     return newWebsite
                 })
 
+                //update websocket
+                sendWebsocketUpdate({
+                    type: "page",
+                    pageId: options.seenAddedPage.id,
+                    refreshPages: true
+                })
             } else if (options.option === "update") {
 
                 //update locally
@@ -315,6 +532,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     newWebsite.pages[indexToAddAt] = options.seenUpdatedPage
 
                     return newWebsite
+                })
+
+                //update websocket
+                sendWebsocketUpdate({
+                    type: "page",
+                    pageId: options.seenUpdatedPage.id,
+                    refreshPages: false
                 })
             }
 
@@ -336,6 +560,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     newWebsite.usedComponents = [...newWebsite.usedComponents, builtUsedComponent]
 
                     return newWebsite
+                })
+
+                //update websocket
+                sendWebsocketUpdate({
+                    type: "usedComponent",
+                    usedComponentId: builtUsedComponent.id,
+                    refreshUsedComponents: true
                 })
 
             } else if (options.option === "update") {
@@ -379,6 +610,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                     console.log(`$saved usedComponent to db`);
                     saveStateSet("saved")
+
+                    //update websocket
+                    sendWebsocketUpdate({
+                        type: "usedComponent",
+                        usedComponentId: options.seenUpdatedUsedComponent.id,
+                        refreshUsedComponents: false
+                    })
                 }, 3000);
             }
 
@@ -408,6 +646,8 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         if (tempActiveUsedComponentId.current === "") return
 
         activeUsedComponentIdSet(tempActiveUsedComponentId.current)
+
+        selectionOptionSet("component")
     }
 
     async function renderUsedComponentsInUse(seenUsedComponents: usedComponent[], seenActivePageId?: page["id"]) {
@@ -438,86 +678,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         return updatedUsedComponents
     }
 
-    //load up fonts dynamically
-    useEffect(() => {
-        const linkElements = websiteObj.fonts.map(eachFont => {
-            const link = document.createElement('link')
-
-            //replace underscores with + for google fonts api
-            const fontImportNameForApi = eachFont.importName.replace(/ /g, '+')
-
-            link.rel = 'stylesheet'
-            link.href = `https://fonts.googleapis.com/css?family=${fontImportNameForApi}&subset=${eachFont.subsets.join(", ")}`
-
-            document.head.appendChild(link);
-            const camelCaseName = makeValidVariableName(eachFont.importName)
-
-            link.onload = () => {
-                // Set the font family as a CSS variable
-                document.documentElement.style.setProperty(`--font-${camelCaseName}`, `${eachFont.importName}`);
-                // href="https://fonts.googleapis.com/css?family=Tangerine">
-            };
-
-            return link
-        })
-
-        return () => {
-            linkElements.map(eachLinkEl => {
-                document.head.removeChild(eachLinkEl);
-            })
-        };
-    }, [websiteObj.fonts])
-
-    const wsRef = useRef<WebSocket | null>(null);
-    const [webSocketsConnected, webSocketsConnectedSet] = useState(false)
-
-    useEffect(() => {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const ws = new WebSocket(`${protocol}//${window.location.host}/api/ws`);
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-            webSocketsConnectedSet(true);
-
-            const newJoinMessage: webSocketMessageJoinType = {
-                type: "join",
-                websiteId: websiteObj.id
-            }
-
-            webSocketMessageJoinSchema.parse(newJoinMessage)
-
-            ws.send(JSON.stringify(newJoinMessage));
-        };
-
-        ws.onclose = () => {
-            webSocketsConnectedSet(false);
-        };
-
-        ws.onmessage = (event) => {
-            const seenMessage = webSocketStandardMessageSchema.parse(JSON.parse(event.data.toString()))
-            console.log(`seenMessage on client - updated: `, seenMessage.data.updated);
-        };
-
-        const pingInterval = setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-                const newPingMessage: webSocketMessagePingType = {
-                    type: "ping"
-                }
-
-                ws.send(JSON.stringify(newPingMessage));
-            }
-        }, 29000);
-
-        return () => {
-            clearInterval(pingInterval);
-
-            if (wsRef.current) {
-                wsRef.current.close();
-            }
-        };
-    }, [])
-
-    const sendUpdate = (updateOption: webSocketStandardMessageType["data"]["updated"]) => {
+    function sendWebsocketUpdate(updateOption: webSocketStandardMessageType["data"]["updated"]) {
         const newWebSocketsMessage: webSocketStandardMessageType = {
             type: "standard",
             data: {
@@ -535,13 +696,6 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     return (
         <main className={styles.main}>
-            <button className='mainButton'
-                onClick={() => {
-                    sendUpdate("website")
-                }}
-
-            >{webSocketsConnected ? "connected " : ""}send</button>
-
             <div className={styles.topSettingsCont}>
                 <div>
                     {saveState === "saving" ? (
@@ -549,7 +703,6 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     ) : (
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z" /></svg>
                     )}
-
                 </div>
 
                 <div className={styles.mainSettingsContMiddle}>
@@ -618,350 +771,376 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     <div ref={spacerRef} className={styles.spacer}></div>
                 </div>
 
-                <div className={styles.sideBar} style={{ display: showingSideBar ? "" : "none" }}                >
-                    <div className={styles.sideBarButtons} style={{ backgroundColor: dimSideBar ? "" : "rgb(var(--color3))" }}>
-                        <div style={{ display: "grid", alignContent: "flex-start", }}>
-                            <button className='secondaryButton'
-                                onClick={() => {
-                                    editOptionsSet(prev => !prev)
+                <div className={styles.sideBarHolder} style={{ width: showingSideBar ? "min(500px, 100%)" : "" }}>
+                    <div className={styles.sideBar} style={{ display: showingSideBar && !dimSideBar ? "" : "none" }}>
+                        <div className={styles.topSideBar}>
+                            <select value={activePageId}
+                                onChange={async (event: React.ChangeEvent<HTMLSelectElement>) => {
+                                    if (websiteObj.usedComponents === undefined) return
+
+                                    const eachPageId = event.target.value
+
+
+                                    //whenever page id changes hold off on showing results
+                                    activePageIdSet(eachPageId)
+
+                                    //render components for new page
+                                    const seenUsedComponents = await renderUsedComponentsInUse(websiteObj.usedComponents, eachPageId)
+
+                                    //add onto website obj
+                                    websiteObjSet(prevWebsiteObj => {
+                                        const newWebsiteObj = { ...prevWebsiteObj }
+
+                                        newWebsiteObj.usedComponents = seenUsedComponents
+
+                                        return newWebsiteObj
+                                    })
                                 }}
-                            >{editOptions ? "stop editing" : "edit"}</button>
-
-                            <div style={{ display: editOptions ? "grid" : "none", position: "absolute", top: "100%", right: 0, backgroundColor: "rgb(var(--color3))", padding: "1rem", width: "min(500px, 90vw)" }}>
-                                <ShowMore
-                                    label='Edit Website'
-                                    content={
-                                        // <RecursiveForm
-                                        //     seenForm={updateWebsiteSchema.omit({ globalCss: true }).parse(websiteObj)}
-                                        //     seenMoreFormInfo={{
-                                        //         "fonts/0/weights": {
-                                        //             returnToNull: true,
-                                        //         },
-                                        //         "fonts/0/importName": {
-                                        //             placeholder: "copy same name from google fonts - case sensitive",
-                                        //         },
-                                        //     }}
-                                        //     seenArrayStarters={{
-                                        //         "fonts": {
-                                        //             importName: "",
-                                        //             subsets: [],
-                                        //             weights: [],
-                                        //         },
-                                        //         "fonts/0/subsets": "",
-                                        //         "fonts/0/weights": "",
-                                        //     }}
-                                        //     seenNullishStarters={{
-                                        //         "fonts/0/weights": [],
-                                        //     }}
-                                        //     seenSchema={updateWebsiteSchema.omit({ globalCss: true })}
-                                        //     updater={(seenForm) => {
-                                        //         const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
-                                        //         handleWebsiteUpdate(newFullWebsite as website)
-                                        //     }}
-                                        // />
-                                        <AddEditWebsite sentWebsite={websiteObj} />
-                                    }
-                                />
-
-                                {activePage !== undefined && (
-                                    <ShowMore
-                                        label='Edit Page'
-                                        content={
-                                            <AddEditPage key={activePage.id} sentPage={activePage} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
-                                        }
-                                    />
-                                )}
-                            </div>
-                        </div>
-
-                        <button className='secondaryButton'
-                            onClick={() => {
-                                showingSideBarSet(false)
-                            }}
-                        >close</button>
-
-                        <button className='secondaryButton' style={{ filter: dimSideBar ? "brightness(.4)" : "" }}
-                            onClick={() => {
-                                dimSideBarSet(prev => !prev)
-                            }}
-                        >dim</button>
-                    </div>
-
-                    <div className={styles.sideBarContent} style={{ display: showingSideBar ? "" : "none", opacity: dimSideBar ? 0 : "" }}>
-                        <div className={styles.sideBarTopContent}>
-                            <ul className={styles.pageButtonsCont}>
+                            >
                                 {websiteObj.pages !== undefined && websiteObj.pages.map(eachPage => {
 
                                     return (
-                                        <button key={eachPage.id} className='mainButton' style={{ backgroundColor: activePage !== undefined && eachPage.id === activePage.id ? "rgb(var(--color1))" : "rgb(var(--shade1))", textTransform: "none" }}
-                                            onClick={async () => {
-                                                if (websiteObj.usedComponents === undefined) return
+                                        <option key={eachPage.id} value={eachPage.id}
 
-                                                //whenever page id changes hold off on showing results
-                                                activePageIdSet(eachPage.id)
-
-                                                //render components for new page
-                                                const seenUsedComponents = await renderUsedComponentsInUse(websiteObj.usedComponents, eachPage.id)
-
-                                                //add onto website obj
-                                                websiteObjSet(prevWebsiteObj => {
-                                                    const newWebsiteObj = { ...prevWebsiteObj }
-
-                                                    newWebsiteObj.usedComponents = seenUsedComponents
-
-                                                    return newWebsiteObj
-                                                })
-                                            }}
-                                        >{eachPage.link === "/" ? "home" : eachPage.link}</button>
+                                        >{eachPage.link === "/" ? "home" : eachPage.link}</option>
                                     )
                                 })}
+                            </select>
 
-                                <button className='mainButton'
-                                    onClick={() => {
-                                        addingPageSet(prev => !prev)
-                                    }}
-                                >{addingPage ? (
-                                    <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z" /></svg>
-                                ) : (
-                                    <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z" /></svg>
-                                )}</button>
-
-                                {activePage !== undefined && (
-                                    <ConfirmationBox text='' confirmationText='are you sure you want to delete the page?' successMessage='page deleted!' float={true}
-                                        icon={
-                                            <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
-                                        }
-                                        runAction={async () => {
-                                            await deletePage(websiteObj.id, activePage.id)
-
-                                            //ensure page is no longer selected
-                                            activePageIdSet(undefined)
-
-                                            await refreshWebsitePath({ id: websiteObj.id })
-                                        }}
-                                    />
-                                )}
-                            </ul>
-
-                            <AddEditPage style={{ display: addingPage ? "" : "none" }} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage}
-                                submissionAction={() => {
-                                    addingPageSet(false)
-                                }}
-                            />
+                            <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
                         </div>
 
-                        <div className={styles.sideBarOtherContent}>
-                            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
-                                <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
+                        <div className={styles.selectionOptionsCont}>
+                            {["website", "page", "component"].map(eachOption => {
+                                return (
+                                    <button key={eachOption} style={{ backgroundColor: eachOption === selectionOption ? "rgb(var(--color1))" : "", justifySelf: "flex-start" }} className='tertiaryButton'
+                                        onClick={() => {
+                                            selectionOptionSet(eachOption as "page" | "website" | "component")
+                                        }}
+                                    >{eachOption}</button>
+                                )
+                            })}
 
-                                <button
-                                    onClick={() => { viewingDownloadOptionsSet(true) }}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
-                                </button>
+                            <button style={{ marginLeft: "auto", "--translate": "-100% 0" } as React.CSSProperties} className='toolTip' data-tooltip={"download website"}
+                                onClick={() => { viewingDownloadOptionsSet(true) }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
+                            </button>
+                        </div>
+
+                        <div className={styles.selectionContent}>
+                            <div style={{ display: selectionOption === "website" ? "grid" : "none", paddingInline: "1rem" }}>
+                                <ShowMore
+                                    label='Edit global styles'
+                                    content={
+                                        <textarea rows={10} value={websiteObj.globalCss} className={styles.styleEditor}
+                                            onChange={(e) => {
+                                                const newWebsite = { ...websiteObj }
+                                                newWebsite.globalCss = e.target.value
+
+                                                handleWebsiteUpdate(newWebsite)
+                                            }}
+                                            onBlur={() => {
+                                                const newWebsite = { ...websiteObj }
+                                                newWebsite.globalCss = formatCSS(newWebsite.globalCss)
+
+                                                handleWebsiteUpdate(newWebsite)
+                                            }}
+                                        />
+                                    }
+                                />
+
+                                <RecursiveForm
+                                    seenForm={updateWebsiteSchema.omit({ globalCss: true }).parse(websiteObj)}
+                                    seenMoreFormInfo={{
+                                        "fonts/0/weights": {
+                                            returnToNull: true,
+                                        },
+                                        "fonts/0/importName": {
+                                            placeholder: "copy same name from google fonts - case sensitive",
+                                        },
+                                    }}
+                                    seenArrayStarters={{
+                                        "fonts": {
+                                            importName: "",
+                                            subsets: [],
+                                            weights: [],
+                                        },
+                                        "fonts/0/subsets": "",
+                                        "fonts/0/weights": "",
+                                    }}
+                                    seenNullishStarters={{
+                                        "fonts/0/weights": [],
+                                    }}
+                                    seenSchema={updateWebsiteSchema.omit({ globalCss: true })}
+                                    updater={(seenForm) => {
+                                        const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
+                                        handleWebsiteUpdate(newFullWebsite as website)
+                                    }}
+                                />
                             </div>
 
-                            {websiteObj.usedComponents !== undefined && (
-                                <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} seenUsedComponents={websiteObj.usedComponents} />
+                            {websiteObj.pages !== undefined && (
+                                <div style={{ display: selectionOption === "page" ? "grid" : "none", padding: "1rem" }}>
+                                    <button className='mainButton' style={{ justifySelf: "flex-end" }}
+                                        onClick={() => {
+                                            addingPageSet(prev => !prev)
+                                        }}
+                                    >{addingPage ? (
+                                        <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z" /></svg>
+                                    ) : (
+                                        <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z" /></svg>
+                                    )}</button>
+
+                                    {addingPage && (
+                                        <AddEditPage sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
+                                    )}
+
+                                    {websiteObj.pages.length > 0 && (
+                                        <>
+                                            <label>Edit Pages</label>
+
+                                            <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+                                                {websiteObj.pages.map(eachPage => {
+                                                    return (
+                                                        <div key={eachPage.id} style={{ border: "1px solid rgb(var(--shade1))" }}>
+                                                            <AddEditPage sentPage={eachPage} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
+
+                                                            <ConfirmationBox text='' confirmationText='are you sure you want to delete the page?' successMessage='page deleted!' float={true}
+                                                                icon={
+                                                                    <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
+                                                                }
+                                                                runAction={async () => {
+                                                                    await deletePage(websiteObj.id, eachPage.id)
+
+                                                                    //ensure page is no longer selected
+                                                                    activePageIdSet(undefined)
+
+                                                                    await refreshWebsitePath({ id: websiteObj.id })
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             )}
 
-                            <ShowMore
-                                label='Edit global styles'
-                                content={
-                                    <textarea rows={5} value={websiteObj.globalCss} className={styles.styleEditor}
-                                        onChange={(e) => {
-                                            const newWebsite = { ...websiteObj }
-                                            newWebsite.globalCss = e.target.value
-
-                                            handleWebsiteUpdate(newWebsite)
-                                        }}
-                                        onBlur={() => {
-                                            const newWebsite = { ...websiteObj }
-                                            newWebsite.globalCss = formatCSS(newWebsite.globalCss)
-
-                                            handleWebsiteUpdate(newWebsite)
-                                        }}
-                                    />
-                                }
-                            />
-
-                            {activeUsedComponent !== undefined && websiteObj.usedComponents !== undefined && (
+                            {activeUsedComponent !== undefined ? (
                                 <>
-                                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: 'center', justifyContent: "space-between" }}>
-                                        <label>{activeUsedComponent.data.category} template</label>
+                                    {websiteObj.usedComponents !== undefined &&
+                                        (
+                                            <div style={{ display: selectionOption === "component" ? "grid" : "none" }}>
+                                                <>
+                                                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: 'center', justifyContent: "space-between", padding: "1rem" }}>
+                                                        <label>{activeUsedComponent.data.category} template</label>
 
-                                        {Object.hasOwn(activeUsedComponent.data, "children") && (
-                                            <button style={{ zIndex: 1 }}
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(activeUsedComponent.id);
+                                                        {Object.hasOwn(activeUsedComponent.data, "children") && (
+                                                            <button style={{ zIndex: 1 }}
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(activeUsedComponent.id);
 
-                                                    toast.success("parent id copied to cliboard")
-                                                }}
-                                            >
-                                                <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <ShowMore
-                                        label='Styling'
-                                        startShowing={true}
-                                        content={
-                                            <>
-                                                <ShowMore
-                                                    label='id & class'
-                                                    content={
-                                                        <>
-                                                            <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
-                                                                onChange={(e) => {
-                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                    newActiveComp.data.mainElProps.id = e.target.value
-
-                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                    toast.success("parent id copied to cliboard")
                                                                 }}
-                                                            />
-
-                                                            <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "1rem" }}
-                                                                onChange={(e) => {
-                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                    newActiveComp.data.mainElProps.className = e.target.value
-
-                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
-                                                                }}
-                                                            />
-                                                        </>
-                                                    }
-                                                />
-
-                                                <ShowMore
-                                                    label='Css'
-                                                    startShowing={true}
-                                                    content={
-                                                        <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
-                                                            onChange={(e) => {
-                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                newActiveComp.css = e.target.value
-
-                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
-                                                            }}
-                                                            onBlur={() => {
-                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                newActiveComp.css = formatCSS(newActiveComp.css)
-
-                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
-                                                            }}
-                                                        />
-                                                    }
-                                                />
-
-                                            </>
-                                        }
-                                    />
-
-                                    <ShowMore
-                                        label="data"
-                                        content={
-                                            <TemplateDataSwitch location={activeLocation} activeUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} handlePropsChange={handlePropsChange} />
-                                        }
-                                    />
-
-                                    <ShowMore
-                                        label='replace'
-                                        content={
-                                            <>
-                                                {viewerTemplate === null ? (
-                                                    <button className='mainButton'
-                                                        onClick={() => {
-                                                            viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtUsedComponent: null })
-                                                        }}
-                                                    >enable viewer node</button>
-                                                ) : (
-                                                    <button className='mainButton'
-                                                        onClick={() => {
-                                                            viewerTemplateSet(null)
-                                                        }}
-                                                    >cancel viewer node</button>
-                                                )}
-
-                                                {/* show options for active */}
-                                                {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
-                                                    <>
-                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} location={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
-
-                                                        {viewerTemplate.template !== null && (
-                                                            <button className='mainButton'
-                                                                onClick={async () => {
-                                                                    try {
-                                                                        //replace the used component with this selection
-
-                                                                        //ensure the component info is there
-                                                                        if (viewerTemplate.template === null) return
-
-                                                                        //if usedComponents are the same type can reuse data
-                                                                        const reusingUsedComponentData = activeUsedComponent.data.category === viewerTemplate.template.categoryId
-
-                                                                        //replace everything except id, pageid, compid, children
-                                                                        const newReplacedUsedComponent: usedComponent = { ...activeUsedComponent, templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData, }
-
-                                                                        //send to update 
-                                                                        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
-
-                                                                        viewerTemplateSet(null)
-
-                                                                        toast.success("swapped component")
-
-                                                                    } catch (error) {
-                                                                        consoleAndToastError(error)
-                                                                    }
-                                                                }}
-                                                            >replace with this component</button>
+                                                            >
+                                                                <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
+                                                            </button>
                                                         )}
-                                                    </>
-                                                )}
-                                            </>
-                                        }
-                                    />
+                                                    </div>
 
-                                    <ShowMore
-                                        label='order'
-                                        content={
-                                            <UsedComponentOrderSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
-                                        }
-                                    />
+                                                    <ShowMore
+                                                        label='Styling'
+                                                        startShowing={true}
+                                                        content={
+                                                            <>
+                                                                <ShowMore
+                                                                    label='Css'
+                                                                    startShowing={true}
+                                                                    content={
+                                                                        <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
+                                                                            onChange={(e) => {
+                                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                                newActiveComp.css = e.target.value
 
-                                    <ShowMore
-                                        label='change location'
-                                        content={
-                                            <UsedComponentLocationSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenPages={websiteObj.pages !== undefined ? websiteObj.pages : []} />
-                                        }
-                                    />
+                                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                            }}
+                                                                            onBlur={() => {
+                                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                                newActiveComp.css = formatCSS(newActiveComp.css)
 
-                                    <ShowMore
-                                        label='Delete Component'
-                                        content={
-                                            <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
-                                                await deleteUsedComponent(websiteObj.id, activeUsedComponent.id)
+                                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                            }}
+                                                                        />
+                                                                    }
+                                                                />
 
-                                                await refreshWebsitePath({ id: websiteObj.id })
-                                            }} />
-                                        }
-                                    />
+                                                                <ShowMore
+                                                                    label='set id, class'
+                                                                    content={
+                                                                        <>
+                                                                            <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
+                                                                                onChange={(e) => {
+                                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                                    newActiveComp.data.mainElProps.id = e.target.value
+
+                                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                                }}
+                                                                            />
+
+                                                                            <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "1rem" }}
+                                                                                onChange={(e) => {
+                                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                                    newActiveComp.data.mainElProps.className = e.target.value
+
+                                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                                }}
+                                                                            />
+                                                                        </>
+                                                                    }
+                                                                />
+                                                            </>
+                                                        }
+                                                    />
+
+                                                    <ShowMore
+                                                        label="data"
+                                                        content={
+                                                            <TemplateDataSwitch location={activeLocation} activeUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} handlePropsChange={handlePropsChange} />
+                                                        }
+                                                    />
+
+                                                    <ShowMore
+                                                        label='replace'
+                                                        content={
+                                                            <>
+                                                                {viewerTemplate === null ? (
+                                                                    <button className='mainButton'
+                                                                        onClick={() => {
+                                                                            viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtUsedComponent: null })
+                                                                        }}
+                                                                    >enable viewer node</button>
+                                                                ) : (
+                                                                    <button className='mainButton'
+                                                                        onClick={() => {
+                                                                            viewerTemplateSet(null)
+                                                                        }}
+                                                                    >cancel viewer node</button>
+                                                                )}
+
+                                                                {/* show options for active */}
+                                                                {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
+                                                                    <>
+                                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} location={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
+
+                                                                        {viewerTemplate.template !== null && (
+                                                                            <button className='mainButton'
+                                                                                onClick={async () => {
+                                                                                    try {
+                                                                                        //replace the used component with this selection
+
+                                                                                        //ensure the component info is there
+                                                                                        if (viewerTemplate.template === null) return
+
+                                                                                        //if usedComponents are the same type can reuse data
+                                                                                        const reusingUsedComponentData = activeUsedComponent.data.category === viewerTemplate.template.categoryId
+
+                                                                                        //replace everything except id, pageid, compid, children
+                                                                                        const newReplacedUsedComponent: usedComponent = { ...activeUsedComponent, templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData, }
+
+                                                                                        //send to update 
+                                                                                        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
+
+                                                                                        viewerTemplateSet(null)
+
+                                                                                        toast.success("swapped component")
+
+                                                                                    } catch (error) {
+                                                                                        consoleAndToastError(error)
+                                                                                    }
+                                                                                }}
+                                                                            >replace with this component</button>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        }
+                                                    />
+
+                                                    <ShowMore
+                                                        label='order'
+                                                        content={
+                                                            <UsedComponentOrderSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
+                                                        }
+                                                    />
+
+                                                    <ShowMore
+                                                        label='change location'
+                                                        content={
+                                                            <UsedComponentLocationSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenPages={websiteObj.pages !== undefined ? websiteObj.pages : []} />
+                                                        }
+                                                    />
+
+                                                    <ShowMore
+                                                        label='Delete Component'
+                                                        content={
+                                                            <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
+                                                                await deleteUsedComponent(websiteObj.id, activeUsedComponent.id)
+
+                                                                await refreshWebsitePath({ id: websiteObj.id })
+                                                            }} />
+                                                        }
+                                                    />
+                                                </>
+                                            </div>
+                                        )
+                                    }
                                 </>
+                            ) : (
+                                <label>Please select a component</label>
                             )}
                         </div>
+                    </div>
 
-                        <DownloadOptions style={{ display: viewingDownloadOptions ? "" : "none" }} seenSession={seenSession} seenWebsite={websiteObj} seenGithubTokens={seenSession.user.userGithubTokens} viewingDownloadOptionsSet={viewingDownloadOptionsSet} />
+                    <div className={styles.addOnMenu}>
+                        {websiteObj.usedComponents !== undefined && (
+                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} seenUsedComponents={websiteObj.usedComponents} />
+                        )}
+
+                        {showingSideBar && (
+                            <>
+                                <button className='secondaryButton toolTip' data-tooltip={"dim"} style={{ filter: dimSideBar ? "brightness(.4)" : "" }}
+                                    onClick={() => {
+                                        dimSideBarSet(prev => !prev)
+                                    }}
+                                >
+                                    <svg style={{ fill: "rgb(var(--shade2))", width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c0 0 0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0c19.8 27.1 39.7 54.4 49.2 86.2l160 0zM192 512c44.2 0 80-35.8 80-80l0-16-160 0 0 16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z" /></svg>
+                                </button>
+                            </>
+                        )}
+
+                        <button className='secondaryButton toolTip' data-tooltip={`${showingSideBar ? "close" : "open"} side bar`}
+                            onClick={() => {
+                                showingSideBarSet(prev => {
+                                    const newBool = !prev
+
+                                    if (newBool) {
+                                        dimSideBarSet(false)
+                                    }
+
+                                    return newBool
+                                })
+                            }}
+                        >{showingSideBar ? (
+                            <svg style={{ fill: "rgb(var(--shade2))", width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z" /></svg>
+                        ) : (
+                            <svg style={{ fill: "rgb(var(--shade2))", width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z" /></svg>
+                        )}</button>
                     </div>
                 </div>
 
-                {!showingSideBar && (
-                    <button className='secondaryButton' style={{ position: "absolute", top: 0, right: 0 }}
-                        onClick={() => {
-                            showingSideBarSet(true)
-                            dimSideBarSet(false)
-                        }}
-                    >open</button>
-                )}
+                <DownloadOptions style={{ display: viewingDownloadOptions ? "" : "none" }} seenSession={seenSession} seenWebsite={websiteObj} seenGithubTokens={seenSession.user.userGithubTokens} viewingDownloadOptionsSet={viewingDownloadOptionsSet} />
             </div>
         </main>
     )
