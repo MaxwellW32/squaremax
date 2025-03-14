@@ -112,8 +112,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
     const [viewerTemplate, viewerTemplateSet] = useState<viewerTemplateType | null>(null)
     const wsRef = useRef<WebSocket | null>(null);
-    const [webSocketsConnected, webSocketsConnectedSet] = useState(false)
-
+    const [, webSocketsConnectedSet] = useState(false)
     //get usedComponents on the active page
     const pageUsedComponents = useMemo(() => {
         if (websiteObj.usedComponents === undefined || activePage === undefined) return []

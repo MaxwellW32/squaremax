@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Stop script on any error
+set -e
+
 # Fetch the latest code from GitHub
 git pull origin master
 
