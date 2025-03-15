@@ -2,7 +2,7 @@
 import { deletePage, getSpecificPage, updateThePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updatePageSchema, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, previewTemplateType, sizeOptionType, templateDataType, updatePageSchema, updateUsedComponent, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -104,6 +104,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
     const [viewerTemplate, viewerTemplateSet] = useState<viewerTemplateType | null>(null)
+    const [previewTemplate, previewTemplateSet] = useState<previewTemplateType | null>(null)
     const wsRef = useRef<WebSocket | null>(null);
     const [, webSocketsConnectedSet] = useState(false)
 
@@ -254,6 +255,8 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     //handle websockets
     useEffect(() => {
+        if (websiteObj.authorisedUsers.length < 1) return
+
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const ws = new WebSocket(`${protocol}//${window.location.host}/api/ws`);
         wsRef.current = ws;
@@ -426,11 +429,11 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         return () => {
             clearInterval(pingInterval);
 
-            if (wsRef.current) {
-                // wsRef.current.close();
+            if (wsRef.current !== null) {
+                wsRef.current.close();
             }
         };
-    }, [])
+    }, [websiteObj.authorisedUsers.length])
 
     function centerCanvas() {
         if (canvasContRef.current === null || spacerRef.current == null || activeSizeOption === undefined || canvasRef.current === null) return
@@ -607,12 +610,16 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 })
 
             } else if (options.option === "update") {
-                //add component info onto object
+                if (websiteObj.usedComponents === undefined) return
+
+                const foundUsedComponent = websiteObj.usedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === options.updatedUsedComponentId)
+                if (foundUsedComponent === undefined) return
+
+                const updatedUsedComponent: usedComponent = { ...foundUsedComponent, ...options.seenUpdatedUsedComponent }
+
                 if (options.rebuild) {
                     //ensure can be rendered
-                    await buildUsedComponents([options.seenUpdatedUsedComponent])
-
-                    options.seenUpdatedUsedComponent = options.seenUpdatedUsedComponent
+                    await buildUsedComponents([updatedUsedComponent])
                 }
 
                 //update locally
@@ -621,8 +628,8 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     if (newWebsite.usedComponents === undefined) return prevWebsite
 
                     newWebsite.usedComponents = newWebsite.usedComponents.map(eachUsedComponent => {
-                        if (eachUsedComponent.id === options.seenUpdatedUsedComponent.id) {
-                            return options.seenUpdatedUsedComponent
+                        if (eachUsedComponent.id === options.updatedUsedComponentId) {
+                            return updatedUsedComponent
                         }
 
                         return eachUsedComponent
@@ -632,17 +639,17 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 })
 
                 //update on server after delay
-                if (updateUsedComponentDebounce.current[options.seenUpdatedUsedComponent.id]) clearTimeout(updateUsedComponentDebounce.current[options.seenUpdatedUsedComponent.id])
+                if (updateUsedComponentDebounce.current[updatedUsedComponent.id]) clearTimeout(updateUsedComponentDebounce.current[updatedUsedComponent.id])
 
                 //make new website schema
-                updateUsedComponentDebounce.current[options.seenUpdatedUsedComponent.id] = setTimeout(async () => {
+                updateUsedComponentDebounce.current[updatedUsedComponent.id] = setTimeout(async () => {
                     //ensure only certain fields can be updated
-                    const sanitizedUpdateComponent = sanitizeUsedComponentData(options.seenUpdatedUsedComponent)
+                    const sanitizedUpdateComponent = sanitizeUsedComponentData(updatedUsedComponent)
 
                     const validatedUpdatedUsedComponent = updateUsedComponentSchema.parse(sanitizedUpdateComponent)
 
                     saveStateSet("saving")
-                    await updateTheUsedComponent(options.seenUpdatedUsedComponent.websiteId, options.seenUpdatedUsedComponent.id, validatedUpdatedUsedComponent)
+                    await updateTheUsedComponent(updatedUsedComponent.websiteId, updatedUsedComponent.id, validatedUpdatedUsedComponent)
 
                     console.log(`$saved usedComponent to db`);
                     saveStateSet("saved")
@@ -650,7 +657,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     //update websocket
                     sendWebsocketUpdate({
                         type: "usedComponent",
-                        usedComponentId: options.seenUpdatedUsedComponent.id,
+                        usedComponentId: updatedUsedComponent.id,
                         refresh: false
                     })
                 }, 3000);
@@ -665,7 +672,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         //update the data
         sentUsedComponent.data = newPropsObj
 
-        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: sentUsedComponent })
+        handleManageUsedComponents({ option: "update", updatedUsedComponentId: sentUsedComponent.id, seenUpdatedUsedComponent: sentUsedComponent })
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -866,7 +873,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                         <div className={styles.selectionContent}>
                             <div style={{ display: selectionOption === "website" ? "grid" : "none", paddingInline: "1rem" }}>
-                                <ShowMore
+                                <ShowMore startShowing={true}
                                     label='Edit global styles'
                                     content={
                                         <textarea rows={10} value={websiteObj.globalCss} className={styles.styleEditor}
@@ -937,7 +944,11 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                     )}</button>
 
                                     {addingPage && (
-                                        <AddEditPage sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
+                                        <AddEditPage sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage}
+                                            submissionAction={() => {
+                                                addingPageSet(false)
+                                            }}
+                                        />
                                     )}
 
                                     {websiteObj.pages.length > 0 && (
@@ -1015,13 +1026,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                                 const newActiveComp: usedComponent = { ...activeUsedComponent }
                                                                                 newActiveComp.css = e.target.value
 
-                                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                                handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
                                                                             }}
                                                                             onBlur={() => {
                                                                                 const newActiveComp: usedComponent = { ...activeUsedComponent }
                                                                                 newActiveComp.css = formatCSS(newActiveComp.css)
 
-                                                                                handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                                handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
                                                                             }}
                                                                         />
                                                                     }
@@ -1036,7 +1047,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                                     const newActiveComp: usedComponent = { ...activeUsedComponent }
                                                                                     newActiveComp.data.mainElProps.id = e.target.value
 
-                                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                                    handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
                                                                                 }}
                                                                             />
 
@@ -1045,7 +1056,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                                     const newActiveComp: usedComponent = { ...activeUsedComponent }
                                                                                     newActiveComp.data.mainElProps.className = e.target.value
 
-                                                                                    handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newActiveComp })
+                                                                                    handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
                                                                                 }}
                                                                             />
                                                                         </>
@@ -1069,7 +1080,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                 {viewerTemplate === null ? (
                                                                     <button className='mainButton'
                                                                         onClick={() => {
-                                                                            viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtUsedComponent: null })
+                                                                            viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtTemplate: null })
                                                                         }}
                                                                     >enable viewer node</button>
                                                                 ) : (
@@ -1083,14 +1094,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                 {/* show options for active */}
                                                                 {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
                                                                     <>
-                                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} location={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
+                                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplateSet={previewTemplateSet} location={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
 
                                                                         {viewerTemplate.template !== null && (
                                                                             <button className='mainButton'
                                                                                 onClick={async () => {
                                                                                     try {
                                                                                         //replace the used component with this selection
-
                                                                                         //ensure the component info is there
                                                                                         if (viewerTemplate.template === null) return
 
@@ -1098,10 +1108,10 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                                         const reusingUsedComponentData = activeUsedComponent.data.category === viewerTemplate.template.categoryId
 
                                                                                         //replace everything except id, pageid, compid, children
-                                                                                        const newReplacedUsedComponent: usedComponent = { ...activeUsedComponent, templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData, }
+                                                                                        const newReplacedUsedComponent: Partial<updateUsedComponent> = { templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData }
 
                                                                                         //send to update 
-                                                                                        handleManageUsedComponents({ option: "update", seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
+                                                                                        handleManageUsedComponents({ option: "update", updatedUsedComponentId: activeUsedComponent.id, seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
 
                                                                                         viewerTemplateSet(null)
 
@@ -1163,7 +1173,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                     <div className={styles.addOnMenu}>
                         {websiteObj.usedComponents !== undefined && (
-                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} seenUsedComponents={websiteObj.usedComponents} />
+                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} previewTemplateSet={previewTemplateSet} seenUsedComponents={websiteObj.usedComponents} />
                         )}
 
                         {showingSideBar && (
@@ -1215,13 +1225,13 @@ function RenderComponentTree({
             {seenUsedComponents.map(eachUsedComponent => {
                 let usingViewerTemplate = false
 
-                let SeenViewerUsedComponent: React.ComponentType<{ data: templateDataType }> | null = null
+                let SeenViewerBuiltTemplate: React.ComponentType<{ data: templateDataType }> | null = null
                 let seenViewerTemplateData: templateDataType | null = null
 
                 //assign new chosen component if using the viewer node
-                if (viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === eachUsedComponent.id && viewerTemplate.template !== null && viewerTemplate.builtUsedComponent !== null) {
+                if (viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === eachUsedComponent.id && viewerTemplate.template !== null && viewerTemplate.builtTemplate !== null) {
                     usingViewerTemplate = true
-                    SeenViewerUsedComponent = viewerTemplate.builtUsedComponent
+                    SeenViewerBuiltTemplate = viewerTemplate.builtTemplate
                     seenViewerTemplateData = viewerTemplate.template.defaultData
                 }
 
@@ -1312,8 +1322,8 @@ function RenderComponentTree({
 
                         {usingViewerTemplate ? (
                             <>
-                                {SeenViewerUsedComponent !== null && seenViewerTemplateData !== null && (
-                                    <SeenViewerUsedComponent data={seenViewerTemplateData} />
+                                {SeenViewerBuiltTemplate !== null && seenViewerTemplateData !== null && (
+                                    <SeenViewerBuiltTemplate data={seenViewerTemplateData} />
                                 )}
                             </>
                         ) : (

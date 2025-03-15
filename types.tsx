@@ -43,9 +43,12 @@ export type collection = z.infer<typeof collectionSchema>
 export type viewerTemplateType = {
     usedComponentIdToSwap: usedComponent["id"],
     template: template | null,
-    builtUsedComponent: React.ComponentType<{
-        data: templateDataType;
-    }> | null
+    builtTemplate: React.ComponentType<{ data: templateDataType }> | null
+}
+
+export type previewTemplateType = {
+    orderPosition: number,
+    builtTemplate: React.ComponentType<{ data: templateDataType }>
 }
 
 export type handleManagePageOptions =
@@ -65,7 +68,8 @@ export type handleManageUpdateUsedComponentsOptions =
 
     } | {
         option: "update",
-        seenUpdatedUsedComponent: usedComponent,
+        seenUpdatedUsedComponent: Partial<updateUsedComponent>,
+        updatedUsedComponentId: usedComponent["id"],
         rebuild?: boolean
     }
 
@@ -158,7 +162,9 @@ export type EditingContentType = {
     usedComponents: boolean;
 };
 
-
+export const otherSelctionOptionsArr = ["name", "family", "id", "recentlyViewed"] as const
+export type otherSelctionOptionsType = typeof otherSelctionOptionsArr[number]
+export type activeSelectionType = category["name"] | otherSelctionOptionsType
 
 
 

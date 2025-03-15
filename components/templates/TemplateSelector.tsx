@@ -1,30 +1,74 @@
 "use client"
 import { getAllCategories } from '@/serverFunctions/handleCategories'
-import { getTemplates } from '@/serverFunctions/handleTemplates'
+import { getSpecificTemplate, getTemplatesByCategory, getTemplatesByName } from '@/serverFunctions/handleTemplates'
 import { addUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent } from '@/types'
+import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent, previewTemplateType, activeSelectionType, otherSelctionOptionsArr, otherSelctionOptionsType } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { ensureChildCanBeAddedToParent, getUsedComponentsInSameLocation } from '@/utility/utility'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function TemplateSelector({ websiteId, location, handleManageUsedComponents, viewerTemplateSet, seenUsedComponents
+export default function TemplateSelector({ websiteId, location, handleManageUsedComponents, viewerTemplateSet, previewTemplateSet, seenUsedComponents
 }: {
-    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, seenUsedComponents: usedComponent[]
+    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenUsedComponents: usedComponent[]
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
+    const [otherData, otherDataSet] = useState("")
 
-    const [allCategories, allCategoriesSet] = useState<category[]>([])
-    const [activeCategory, activeCategorySet] = useState<category | null>(null)
+    const [categories, categoriesSet] = useState<category[]>([])
 
-    const [seenTemplates, seenTemplatesSet] = useState<template[]>([])
+    const [activeSelection, activeSelectionSet] = useState<activeSelectionType>("navbars")
+    const [allSelectionOptions, allSelectionOptionsSet] = useState<activeSelectionType[]>([])
 
-    //get categories on launch
+    const filterOptions = ["all", "popular", "mostLiked"] as const
+    type filterOptionType = typeof filterOptions[number]
+
+    const [filter, filterSet] = useState<filterOptionType>("all")
+
+    const [seenTemplates, seenTemplatesSet] = useState<{ [key in activeSelectionType]: template[] }>({
+        "navbars": [],//operate by pagination
+        "heros": [],
+        "containers": [],
+        "family": [],
+        "id": [],
+        "recentlyViewed": [],
+        "name": [],
+    })
+    const [activeIndex, activeIndexSet] = useState<{ [key in activeSelectionType]: number }>({
+        "navbars": 0,
+        "heros": 0,
+        "containers": 0,
+        "family": 0,
+        "id": 0,
+        "recentlyViewed": 0,
+        "name": 0,
+    })
+    const filteredTemplates = useMemo<template[]>(() => {
+        if (filter === "all") {
+            return seenTemplates[activeSelection]
+
+        } else if (filter === "popular") {
+            // ranked by uses
+            return seenTemplates[activeSelection]
+
+        } else if (filter === "mostLiked") {
+            // ranked by likes
+            return seenTemplates[activeSelection]
+        } else {
+            return []
+        }
+
+    }, [activeSelection, filter, seenTemplates])
+
+    //get all template categories on launch
     useEffect(() => {
         const search = async () => {
             try {
-                allCategoriesSet(await getAllCategories())
+                const seenCategories = await getAllCategories()
+                categoriesSet(seenCategories)
+
+                allSelectionOptionsSet([...seenCategories.map(eachCategory => eachCategory.name), ...otherSelctionOptionsArr])
 
             } catch (error) {
                 consoleAndToastError(error)
@@ -34,6 +78,11 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
         search()
     }, [])
 
+    const readyToAddOtherData = otherSelctionOptionsArr.includes(activeSelection as otherSelctionOptionsType)
+
+    //two lists
+    //one with category names
+    //the other requiring more info
     return (
         <div style={{ display: "grid", alignContent: "flex-start", backgroundColor: "rgb(var(--shade2))" }}>
             <button className='mainButton'
@@ -43,30 +92,104 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
             >{userInteracting ? "close" : viewerTemplateSet ? "Choose a template" : "Add a template"}</button>
 
             <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid rgb(var(--shade1))" }}>
-                {allCategories.length > 0 && (
-                    <ul style={{ display: "flex" }}>
-                        {allCategories.map(eachCategory => {
-                            return (
-                                <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: eachCategory.name === activeCategory?.name ? "rgb(var(--color1))" : "" }}
-                                    onClick={async () => {
-                                        try {
-                                            //update active selection
-                                            activeCategorySet(eachCategory)
+                <ul style={{ display: "flex" }}>
+                    {categories.map(eachCategory => {
+                        return (
+                            <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: eachCategory.name === activeSelection ? "rgb(var(--color1))" : "" }}
+                                onClick={async () => {
+                                    try {
+                                        //update active selection
+                                        activeSelectionSet(eachCategory.name)
 
-                                            //search for template
-                                            const searchedTemplates = await getTemplates({ option: "categoryId", data: { categoryId: eachCategory.name } })
-                                            seenTemplatesSet(searchedTemplates)
+                                        //search for template name
+                                        const searchedTemplates = await getTemplatesByCategory(eachCategory.name)
 
-                                            toast.success(`searched ${eachCategory.name} templates`)
+                                        //add templates to list
+                                        seenTemplatesSet(prevTemplates => {
+                                            const newTemplates = { ...prevTemplates }
 
-                                        } catch (error) {
-                                            consoleAndToastError(error)
+                                            newTemplates[eachCategory.name] = searchedTemplates
+
+                                            return newTemplates
+                                        })
+
+                                        toast.success(`searched templates`)
+
+                                    } catch (error) {
+                                        consoleAndToastError(error)
+                                    }
+                                }}
+                            >{eachCategory.name}</button>
+                        )
+                    })}
+
+                    {otherSelctionOptionsArr.map(eachOtherSelectionOption => {
+                        return (
+                            <button key={eachOtherSelectionOption} className='mainButton' style={{ backgroundColor: eachOtherSelectionOption === activeSelection ? "rgb(var(--color1))" : "" }}
+                                onClick={async () => {
+                                    try {
+                                        //update active selection
+                                        activeSelectionSet(eachOtherSelectionOption)
+
+                                        if (eachOtherSelectionOption === "recentlyViewed") {
+                                            //get recent template ids stored in browser storage 
+
+                                            toast.success(`searched templates`)
+                                            return
                                         }
-                                    }}
-                                >{eachCategory.name}</button>
-                            )
-                        })}
-                    </ul>
+
+                                        //ensure data is present
+                                        if (otherData === "") return
+
+                                        if (eachOtherSelectionOption === "id") {
+                                            //search for template by id
+                                            const searchedTemplate = await getSpecificTemplate({ id: otherData })
+                                            if (!searchedTemplate) return
+
+                                            //add templates to list
+                                            seenTemplatesSet(prevTemplates => {
+                                                const newTemplates = { ...prevTemplates }
+
+                                                newTemplates[eachOtherSelectionOption] = [searchedTemplate]
+
+                                                return newTemplates
+                                            })
+
+                                        } else if (eachOtherSelectionOption === "name") {
+                                            //search for template name
+                                            const searchedTemplates = await getTemplatesByName(otherData)
+
+                                            //add templates to list
+                                            seenTemplatesSet(prevTemplates => {
+                                                const newTemplates = { ...prevTemplates }
+
+                                                newTemplates[eachOtherSelectionOption] = searchedTemplates
+
+                                                return newTemplates
+                                            })
+
+                                        } else if (eachOtherSelectionOption === "family") {
+
+                                        }
+
+
+                                        toast.success(`searched templates`)
+
+                                    } catch (error) {
+                                        consoleAndToastError(error)
+                                    }
+                                }}
+                            >{eachOtherSelectionOption}</button>
+                        )
+                    })}
+                </ul>
+
+                {readyToAddOtherData && activeSelection !== "recentlyViewed" && (
+                    <input type='text' value={otherData} placeholder={`Enter the ${activeSelection === "name" ? "name" : activeSelection === "id" ? "id" : ""} of the template`}
+                        onChange={(e) => {
+                            otherDataSet(e.target.value)
+                        }}
+                    />
                 )}
 
                 {seenTemplates.length > 0 && (
@@ -133,7 +256,7 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
                                                             const newViewerTemplate = { ...prevViewerTemplate }
 
                                                             newViewerTemplate.template = eachTemplate
-                                                            newViewerTemplate.builtUsedComponent = seenResponse()
+                                                            newViewerTemplate.builtTemplate = seenResponse()
 
                                                             return newViewerTemplate
                                                         })

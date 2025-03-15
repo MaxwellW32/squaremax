@@ -110,7 +110,9 @@ export const templates = pgTable("templates", {
     categoryId: varchar("categoryId", { length: 255 }).notNull().references(() => categories.name),
     defaultCss: text("defaultCss").notNull(),
     defaultData: json("defaultData").$type<templateDataType>().notNull(),
-})
+}, (t) => ({
+    templateNameIndex: index("templateNameIndex").on(t.name),
+}))
 export const templatesRelations = relations(templates, ({ one, many }) => ({
     templatesToStyles: many(templatesToStyles),
     usedComponents: many(usedComponents),

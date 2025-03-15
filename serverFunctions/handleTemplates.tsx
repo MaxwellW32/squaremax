@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { templates } from "@/db/schema"
-import { collection, template, templatesSchema, newTemplate, newTemplateSchema } from "@/types"
+import { collection, template, templatesSchema, newTemplate, newTemplateSchema, activeSelectionType, category } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq, like } from "drizzle-orm"
 import { deleteDirectory } from "./handleServerFiles"
@@ -23,35 +23,44 @@ export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): 
     return result
 }
 
-export async function getTemplates(selectionObj: { option: "name", data: Pick<template, "name"> } | { option: "categoryId", data: Pick<template, "categoryId"> }): Promise<template[]> {
-    if (selectionObj.option === "name") {
-        templatesSchema.pick({ name: true }).parse(selectionObj.data)
+export async function getTemplatesByCategory(seenCategoryName: category["name"]): Promise<template[]> {
+    //get by category name
+    templatesSchema.shape.name.parse(seenCategoryName)
 
-        const result = await db.query.templates.findMany({
-            where: like(templates.name, `%${selectionObj.data}%`),
-            with: {
-                category: true,
-            }
-        });
+    const results = await db.query.templates.findMany({
+        where: eq(templates.categoryId, seenCategoryName),
+        with: {
+            category: true,
+        }
+    });
 
-        return result
-
-    } else if (selectionObj.option === "categoryId") {
-        templatesSchema.pick({ categoryId: true }).parse(selectionObj.data)
-
-        const result = await db.query.templates.findMany({
-            where: eq(templates.categoryId, selectionObj.data.categoryId),
-            with: {
-                category: true,
-            }
-        });
-
-        return result
-
-    } else {
-        throw new Error("not seeing selectionObj")
-    }
+    return results
 }
+
+export async function getTemplatesByName(seenName: string): Promise<template[]> {
+    templatesSchema.shape.name.parse(seenName)
+
+    const results = await db.query.templates.findMany({
+        where: like(templates.name, `%${seenName}%`),
+        with: {
+            category: true,
+        }
+    });
+
+    return results
+}
+// export async function getTemplatesByFamily(seenTemplateFamily: template["family"]): Promise<template[]> {
+//     templatesSchema.shape.name.parse(seenName)
+
+//     const results = await db.query.templates.findMany({
+//         where: like(templates.name, `%${seenName}%`),
+//         with: {
+//             category: true,
+//         }
+//     });
+
+//     return results
+// }
 
 export async function addTemplate(seenNewTemplate: newTemplate, collectionsArr: collection[]): Promise<template> {
     const session = await sessionCheckWithError()
