@@ -74,7 +74,7 @@ function RenderForm({ seenForm, seenFormSet, userInteractedSet, seenMoreFormInfo
                 const seenKeysForFormInfo = seenKeys.replace(/\d+/g, '0')
 
                 const arrayRemoveButton = (
-                    <RecursiveConfirmationBox text='remove' confirmationText='are you sure you want to remove?' successMessage='remove!' float={true}
+                    <RecursiveConfirmationBox text='remove' confirmationText='are you sure you want to remove?' successMessage='removed!' float={true}
                         runAction={async () => {
                             seenFormSet(prevForm => {
                                 runSameOnAll()
