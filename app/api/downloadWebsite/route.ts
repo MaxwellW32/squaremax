@@ -2,8 +2,7 @@ import JSZip from "jszip";
 import path from "path";
 import fs from "fs/promises";
 import { requestDownloadWebsiteBodySchema, usedComponent } from "@/types";
-import { auth } from "@/auth/auth";
-import { ensureUserCanAccess } from "@/usefulFunctions/sessionCheck";
+import { ensureUserCanAccessWebsite } from "@/usefulFunctions/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";
@@ -11,10 +10,6 @@ import { addScopeToCSS, getDescendedUsedComponents, getFontImportStrings, getUse
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  //ensure logged in
-  const session = await auth()
-  if (session === null) throw new Error("not authorised to download")
-
   //parse body
   const requestDownloadWebsiteBody = requestDownloadWebsiteBodySchema.parse(await request.json())
 
@@ -23,7 +18,7 @@ export async function POST(request: Request) {
   if (seenWebsite === undefined) throw new Error("not seeing website")
 
   //security check - ensure authed to download site
-  await ensureUserCanAccess(session, seenWebsite.userId)
+  await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
   const baseFolderPath = path.join(process.cwd(), websiteBuildsStagingAreaDir, seenWebsite.id)
 

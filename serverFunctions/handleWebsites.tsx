@@ -2,7 +2,7 @@
 import { db } from "@/db"
 import { websites } from "@/db/schema"
 import { newWebsite, newWebsiteSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema } from "@/types"
-import { ensureUserCanAccess, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
+import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
@@ -20,12 +20,12 @@ export async function addWebsite(seenNewWebsite: newWebsite): Promise<website> {
 }
 
 export async function updateTheWebsite(websiteId: website["id"], websiteObj: Partial<updateWebsite>) {
-    const seenSession = await sessionCheckWithError()
-
     //security check - ensures only admin or author can update
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
+
+    //security
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
     const validatedNewWebsite = updateWebsiteSchema.partial().parse(websiteObj)
     if (websiteId === undefined) throw new Error("need id")
@@ -46,22 +46,19 @@ export async function refreshWebsitePath(websiteIdObj: Pick<website, "id">) {
 }
 
 export async function deleteWebsite(websiteObj: Pick<website, "id">) {
-    const seenSession = await sessionCheckWithError()
-
     //validation
     websiteSchema.pick({ id: true }).parse(websiteObj)
 
     //security check
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteObj.id } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
+
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
     await db.delete(websites).where(eq(websites.id, websiteObj.id));
 }
 
 export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<website, "id"> } | { option: "name", data: Pick<website, "name"> }, websiteOnly?: boolean): Promise<website | undefined> {
-    const seenSession = await sessionCheckWithError()
-
     if (websiteObj.option === "id") {
         websiteSchema.pick({ id: true }).parse(websiteObj.data)
 
@@ -79,7 +76,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
 
         if (result !== undefined) {
             //security check
-            await ensureUserCanAccess(seenSession, result.userId)
+            await ensureUserCanAccessWebsite(result.userId, result.authorisedUsers)
         }
 
         return result
@@ -101,7 +98,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
 
         if (result !== undefined) {
             //security check
-            await ensureUserCanAccess(seenSession, result.userId)
+            await ensureUserCanAccessWebsite(result.userId, result.authorisedUsers)
         }
 
         return result

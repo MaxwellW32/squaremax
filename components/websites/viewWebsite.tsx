@@ -286,7 +286,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         ws.onmessage = (event) => {
 
             const seenMessage = webSocketStandardMessageSchema.parse(JSON.parse(event.data.toString()))
-            console.log(`received message on client - section updated type: `, seenMessage.data.updated.type);
+            console.log(`${seenSession.user.name} received message on client - section updated type: `, seenMessage.data.updated.type);
 
             if (seenMessage.type === "standard") {
                 const seenMessageObj = seenMessage.data.updated
@@ -906,7 +906,10 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                             weights: [],
                                         },
                                         "fonts/0/subsets": "",
-                                        "fonts/0/weights": "",
+                                        "authorisedUsers": {
+                                            userId: "",
+                                            accessLevel: "view"
+                                        },
                                     }}
                                     seenNullishStarters={{
                                         "fonts/0/weights": [],

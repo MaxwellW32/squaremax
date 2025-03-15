@@ -2,22 +2,20 @@
 import { db } from "@/db"
 import { pages } from "@/db/schema"
 import { newPage, newPageSchema, page, pageSchema, updatePage, updatePageSchema, website, websiteSchema } from "@/types"
-import { ensureUserCanAccess, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
+import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
 import { deleteUsedComponent, getUsedComponents } from "./handleUsedComponents"
 
 export async function addPage(seenNewPage: newPage): Promise<page> {
-    const seenSession = await sessionCheckWithError()
-
     //validation
     newPageSchema.parse(seenNewPage)
 
     //security check 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": seenNewPage.websiteId } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
     const fullNewPage: page = {
         ...seenNewPage,
@@ -33,15 +31,13 @@ export async function addPage(seenNewPage: newPage): Promise<page> {
 }
 
 export async function updateThePage(pageId: page["id"], websiteId: website["id"], updatePageObj: Partial<updatePage>): Promise<page> {
-    const seenSession = await sessionCheckWithError()
-
     //validation
     updatePageSchema.partial().parse(updatePageObj)
 
     //security check 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
     const [result] = await db.update(pages)
         .set({
@@ -53,8 +49,6 @@ export async function updateThePage(pageId: page["id"], websiteId: website["id"]
 }
 
 export async function deletePage(websiteId: website["id"], pageId: page["id"], deleteRelatedUsedComponents = true) {
-    const seenSession = await sessionCheckWithError()
-
     //validate
     websiteSchema.shape.id.parse(websiteId)
     pageSchema.shape.id.parse(pageId)
@@ -62,8 +56,7 @@ export async function deletePage(websiteId: website["id"], pageId: page["id"], d
     //security check 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
-
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
     if (deleteRelatedUsedComponents) {
         const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: websiteId } })
@@ -82,8 +75,6 @@ export async function deletePage(websiteId: website["id"], pageId: page["id"], d
 }
 
 export async function getSpecificPage(pageId: page["id"]): Promise<page | undefined> {
-    const seenSession = await sessionCheckWithError()
-
     //validation
     pageSchema.shape.id.parse(pageId)
 
@@ -95,22 +86,20 @@ export async function getSpecificPage(pageId: page["id"]): Promise<page | undefi
         //security check 
         const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": result.websiteId } })
         if (seenWebsite === undefined) throw new Error("not seeing website")
-        await ensureUserCanAccess(seenSession, seenWebsite.userId)
+        await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers)
     }
 
     return result
 }
 
 export async function getPagesFromWebsite(websiteId: website["id"]): Promise<page[]> {
-    const seenSession = await sessionCheckWithError()
-
     //validation
     websiteSchema.shape.id.parse(websiteId)
 
     //security check 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers)
 
     const results = await db.query.pages.findMany({
         where: eq(pages.websiteId, websiteId)

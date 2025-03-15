@@ -264,7 +264,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     formObjSet(prevFormObj => {
                                         const newFormObj = { ...prevFormObj }
-                                        if (eachKey === "fonts") return prevFormObj
+                                        if (eachKey === "fonts" || eachKey === "authorisedUsers") return prevFormObj
 
                                         newFormObj[eachKey] = e.target.value
                                         return newFormObj
@@ -282,6 +282,8 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                                 onInput={(e) => {
                                     formObjSet(prevFormObj => {
                                         const newFormObj = { ...prevFormObj }
+                                        if (eachKey === "authorisedUsers") return prevFormObj
+
                                         //@ts-expect-error type
                                         newFormObj[eachKey] = e.target.value
                                         return newFormObj

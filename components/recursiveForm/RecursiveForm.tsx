@@ -9,6 +9,7 @@ import RecursiveConfirmationBox from './RecursiveConfirmationBox'
 
 export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArrayStarters, seenNullishStarters, seenSchema, updater }: { seenForm: object, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarters: recursiveFormArrayStarterItems, seenNullishStarters: nullishStarters, seenSchema: z.Schema, updater: (newObject: unknown) => void }) {
     const [form, formSet] = useState<object>(seenForm)
+    const [userInteracted, userInteractedSet] = useState(false)
     const [formErrors, formErrorsSet] = useState<{ [key: string]: string }>({})
     const changeFromAbove = useRef(false)
 
@@ -24,6 +25,10 @@ export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArraySta
         //dont send changes if this component changed the form
         if (changeFromAbove.current) {
             changeFromAbove.current = false
+            return
+        }
+
+        if (!userInteracted) {
             return
         }
 
@@ -47,14 +52,18 @@ export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArraySta
                 return newFormErrors
             })
         }
-    }, [form])
+    }, [form, userInteracted])
 
     return (
-        <RenderForm seenForm={form} seenFormSet={formSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} sentKeys={""} seenFormErrors={formErrors} />
+        <RenderForm seenForm={form} seenFormSet={formSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} userInteractedSet={userInteractedSet} sentKeys={""} seenFormErrors={formErrors} />
     )
 }
 
-function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters, seenNullishStarters, sentKeys, seenFormErrors, parentArrayName, ...elProps }: { seenForm: object, seenFormSet: React.Dispatch<React.SetStateAction<object>>, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarters: recursiveFormArrayStarterItems, seenNullishStarters: nullishStarters, sentKeys: string, seenFormErrors: { [key: string]: string }, parentArrayName?: string } & React.HTMLAttributes<HTMLDivElement>) {
+function RenderForm({ seenForm, seenFormSet, userInteractedSet, seenMoreFormInfo, seenArrayStarters, seenNullishStarters, sentKeys, seenFormErrors, parentArrayName, ...elProps }: { seenForm: object, seenFormSet: React.Dispatch<React.SetStateAction<object>>, userInteractedSet: React.Dispatch<React.SetStateAction<boolean>>, seenMoreFormInfo: recursiveFormMoreInfo, seenArrayStarters: recursiveFormArrayStarterItems, seenNullishStarters: nullishStarters, sentKeys: string, seenFormErrors: { [key: string]: string }, parentArrayName?: string } & React.HTMLAttributes<HTMLDivElement>) {
+
+    function runSameOnAll() {
+        userInteractedSet(true)
+    }
 
     return (
         <div {...elProps} style={{ display: "grid", gap: "1rem", ...(parentArrayName ? { gridAutoColumns: "90%", gridAutoFlow: "column" } : { alignContent: "flex-start" }), overflow: "auto", ...elProps?.style }} className={`${parentArrayName ? "snap" : ""} ${elProps?.className ?? ""}`}>
@@ -68,6 +77,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                     <RecursiveConfirmationBox text='remove' confirmationText='are you sure you want to remove?' successMessage='remove!' float={true}
                         runAction={async () => {
                             seenFormSet(prevForm => {
+                                runSameOnAll()
+
                                 const newForm: object = JSON.parse(JSON.stringify(prevForm))
                                 const keyArray = seenKeys.split('/')
 
@@ -140,6 +151,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                                 <input type="date" value={eachValue.toISOString().split('T')[0]}
                                                     onChange={(e) => {
                                                         seenFormSet(prevForm => {
+                                                            runSameOnAll()
+
                                                             const newForm = { ...prevForm }
                                                             const keyArray = seenKeys.split('/')
 
@@ -179,6 +192,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                                                 }
 
                                                                 seenFormSet(prevForm => {
+                                                                    runSameOnAll()
+
                                                                     const newForm: object = JSON.parse(JSON.stringify(prevForm))
                                                                     const keyArray = seenKeys.split('/')
 
@@ -205,6 +220,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                                             <button className='mainButton'
                                                                 onClick={() => {
                                                                     seenFormSet(prevForm => {
+                                                                        runSameOnAll()
+
                                                                         const newForm = { ...prevForm }
                                                                         const keyArray = seenKeys.split('/')
 
@@ -232,6 +249,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                                             <button className='mainButton'
                                                                 onClick={() => {
                                                                     seenFormSet(prevForm => {
+                                                                        runSameOnAll()
+
                                                                         const newForm = { ...prevForm }
                                                                         const keyArray = seenKeys.split('/')
 
@@ -257,7 +276,7 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                                     </>
                                                 )}
 
-                                                <RenderForm seenForm={eachValue} seenFormSet={seenFormSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} sentKeys={seenKeys} style={{ marginLeft: "1rem" }} seenFormErrors={seenFormErrors} parentArrayName={isArray ? eachKey : undefined} />
+                                                <RenderForm seenForm={eachValue} seenFormSet={seenFormSet} userInteractedSet={userInteractedSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} sentKeys={seenKeys} style={{ marginLeft: "1rem" }} seenFormErrors={seenFormErrors} parentArrayName={isArray ? eachKey : undefined} />
                                             </>
                                         )}
                                     </>
@@ -281,6 +300,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                             <input id={seenKeys} type={element.isNumeric ? "number" : "text"} value={eachValue} placeholder={placeHolder}
                                                 onChange={(e) => {
                                                     seenFormSet(prevForm => {
+                                                        runSameOnAll()
+
                                                         const newForm = { ...prevForm }
                                                         const keyArray = seenKeys.split('/')
 
@@ -334,6 +355,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                             <textarea id={seenKeys} rows={5} value={eachValue} placeholder={placeHolder}
                                                 onChange={(e) => {
                                                     seenFormSet(prevForm => {
+                                                        runSameOnAll()
+
                                                         const newForm = { ...prevForm }
                                                         const keyArray = seenKeys.split('/')
 
@@ -378,6 +401,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                             <input id={seenKeys} type={"text"} value={eachValue} placeholder={placeHolder}
                                                 onChange={(e) => {
                                                     seenFormSet(prevForm => {
+                                                        runSameOnAll()
+
                                                         const newForm = { ...prevForm }
                                                         const keyArray = seenKeys.split('/')
 
@@ -415,6 +440,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                             <input id={seenKeys} type={"color"} value={eachValue} style={{ width: "50px", height: "50px" }}
                                                 onChange={(e) => {
                                                     seenFormSet(prevForm => {
+                                                        runSameOnAll()
+
                                                         const newForm = { ...prevForm }
                                                         const keyArray = seenKeys.split('/')
 
@@ -448,6 +475,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                     <button className='mainButton' style={{ backgroundColor: eachValue ? "rgb(var(--color1))" : "" }}
                                         onClick={() => {
                                             seenFormSet(prevForm => {
+                                                runSameOnAll()
+
                                                 const newForm = { ...prevForm }
                                                 const keyArray = seenKeys.split('/')
 
@@ -478,6 +507,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                     <button className='mainButton'
                                         onClick={() => {
                                             seenFormSet(prevForm => {
+                                                runSameOnAll()
+
                                                 const newForm = { ...prevForm }
                                                 const keyArray = seenKeys.split('/')
 
@@ -513,6 +544,8 @@ function RenderForm({ seenForm, seenFormSet, seenMoreFormInfo, seenArrayStarters
                                     <button className='mainButton'
                                         onClick={() => {
                                             seenFormSet(prevForm => {
+                                                runSameOnAll()
+
                                                 const newForm = { ...prevForm }
                                                 const keyArray = seenKeys.split('/')
 

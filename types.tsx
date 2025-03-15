@@ -2,9 +2,6 @@ import { z } from "zod";
 import { Endpoints } from "@octokit/types";
 
 // regular types
-export const userUploadedImagesSchema = z.array(z.string())
-export type userUploadedImagesType = z.infer<typeof userUploadedImagesSchema>
-
 export type websiteDownloadOptionType = "file" | "github"
 
 export type githubRepo = Endpoints["GET /repos/{owner}/{repo}"]["response"]["data"]
@@ -310,6 +307,15 @@ export const fontsSchema = z.object({
 })
 export type fontsType = z.infer<typeof fontsSchema>
 
+export const userUploadedImagesSchema = z.array(z.string())
+export type userUploadedImagesType = z.infer<typeof userUploadedImagesSchema>
+
+export const authorisedUserSchema = z.object({
+    userId: z.string(),
+    accessLevel: z.enum(["view", "edit"])
+})
+export type authorisedUserType = z.infer<typeof authorisedUserSchema>
+
 export const websiteSchema = z.object({
     id: z.string().min(1),
     userId: z.string().min(1),
@@ -319,13 +325,14 @@ export const websiteSchema = z.object({
     fonts: z.array(fontsSchema),
     globalCss: z.string(),
     userUploadedImages: userUploadedImagesSchema,
+    authorisedUsers: z.array(authorisedUserSchema),
 })
 export type website = z.infer<typeof websiteSchema> & {
     fromUser?: user,
     pages?: page[],
     usedComponents?: usedComponent[],
 }
-export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true })
+export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true })
 export type newWebsite = z.infer<typeof newWebsiteSchema>
 
 export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, })

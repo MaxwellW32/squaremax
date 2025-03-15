@@ -1,4 +1,4 @@
-import { categoryName, templateDataType, fontsType, page, usedComponentLocationType, user, userUploadedImagesType, website } from "@/types";
+import { categoryName, templateDataType, fontsType, page, usedComponentLocationType, user, userUploadedImagesType, website, authorisedUserType } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -35,6 +35,7 @@ export const websites = pgTable("websites", {
     fonts: json("fonts").$type<fontsType[]>().default([]).notNull(),
     globalCss: text("globalCss").default("").notNull(),
     userUploadedImages: json("userUploadedImages").$type<userUploadedImagesType>().default([]).notNull(),
+    authorisedUsers: json("authorisedUsers").$type<authorisedUserType[]>().default([]).notNull(),
 },
     (table) => {
         return {

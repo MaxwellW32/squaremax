@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { usedComponents } from "@/db/schema"
-import { ensureUserCanAccess, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
+import { ensureUserCanAccessWebsite } from "@/usefulFunctions/sessionCheck"
 import { eq } from "drizzle-orm"
 import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentLocationType, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
@@ -20,8 +20,6 @@ export async function getSpecificUsedComponent(usedComponentId: usedComponent["i
 }
 
 export async function getUsedComponents(selectionObj: { option: "website", data: Pick<usedComponent, "websiteId"> } | { option: "template", data: Pick<usedComponent, "templateId"> }): Promise<usedComponent[]> {
-    const seenSession = await sessionCheckWithError()
-
     if (selectionObj.option === "website") {
         //validation
         usedComponentSchema.pick({ websiteId: true }).parse(selectionObj.data)
@@ -29,7 +27,7 @@ export async function getUsedComponents(selectionObj: { option: "website", data:
         //security check 
         const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": selectionObj.data.websiteId } })
         if (seenWebsite === undefined) throw new Error("not seeing website")
-        await ensureUserCanAccess(seenSession, seenWebsite.userId)
+        await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers)
 
         const results = await db.query.usedComponents.findMany({
             where: eq(usedComponents.websiteId, selectionObj.data.websiteId),
@@ -41,12 +39,12 @@ export async function getUsedComponents(selectionObj: { option: "website", data:
         //validation
         usedComponentSchema.pick({ templateId: true }).parse(selectionObj.data)
 
-        //security check
-        if (seenSession.user.role !== "admin") throw new Error("not authorised")
-
         const results = await db.query.usedComponents.findMany({
             where: eq(usedComponents.templateId, selectionObj.data.templateId),
         });
+
+        //security - admin only
+        await ensureUserCanAccessWebsite("", [])
 
         return results
 
@@ -69,8 +67,6 @@ export async function addUsedComponent(newUsedComponent: newUsedComponent): Prom
 }
 
 export async function updateTheUsedComponent(websiteId: website["id"], usedComponentId: usedComponent["id"], updatedUsedComponentObj: Partial<updateUsedComponent>, runSecurity = true): Promise<usedComponent> {
-    const seenSession = await sessionCheckWithError()
-
     //validation
     websiteSchema.shape.id.parse(websiteId)
     usedComponentSchema.shape.id.parse(usedComponentId)
@@ -80,7 +76,7 @@ export async function updateTheUsedComponent(websiteId: website["id"], usedCompo
         //security check 
         const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
         if (seenWebsite === undefined) throw new Error("not seeing website")
-        await ensureUserCanAccess(seenSession, seenWebsite.userId)
+        await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
     }
 
     const [result] = await db.update(usedComponents)
@@ -93,8 +89,6 @@ export async function updateTheUsedComponent(websiteId: website["id"], usedCompo
 }
 
 export async function deleteUsedComponent(websiteId: website["id"], usedComponentId: usedComponent["id"]) {
-    const seenSession = await sessionCheckWithError()
-
     //validation
     websiteSchema.shape.id.parse(websiteId)
     usedComponentSchema.shape.id.parse(usedComponentId)
@@ -102,7 +96,8 @@ export async function deleteUsedComponent(websiteId: website["id"], usedComponen
     //security check 
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
-    await ensureUserCanAccess(seenSession, seenWebsite.userId)
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
+
 
     //delete children used components recursively
     const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: websiteId } })
