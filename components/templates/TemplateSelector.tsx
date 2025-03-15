@@ -9,9 +9,9 @@ import { ensureChildCanBeAddedToParent, getUsedComponentsInSameLocation } from '
 import React, { useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export default function TemplateSelector({ websiteId, location, handleManageUsedComponents, viewerTemplateSet, previewTemplateSet, seenUsedComponents
+export default function TemplateSelector({ websiteId, location, handleManageUsedComponents, viewerTemplateSet, previewTemplate, previewTemplateSet, seenUsedComponents
 }: {
-    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenUsedComponents: usedComponent[]
+    websiteId: website["id"], location: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplate: previewTemplateType | null, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenUsedComponents: usedComponent[]
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
     const [otherData, otherDataSet] = useState("")
@@ -80,9 +80,61 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
 
     const readyToAddOtherData = otherSelctionOptionsArr.includes(activeSelection as otherSelctionOptionsType)
 
-    //two lists
-    //one with category names
-    //the other requiring more info
+    const newOrderNumber = useMemo(() => {
+        //get used components in same location
+        //put them in an array
+        const usedComponentsInSameLocation = getUsedComponentsInSameLocation(location, seenUsedComponents)
+
+        //ensure the ordering always adds to the last in the array
+        let largestOrderNumberSeen = -1
+        usedComponentsInSameLocation.forEach(eachUsedComponentInSameLocation => {
+            if (eachUsedComponentInSameLocation.order > largestOrderNumberSeen) {
+                largestOrderNumberSeen = eachUsedComponentInSameLocation.order
+            }
+        })
+
+        return largestOrderNumberSeen + 1
+    }, [location, seenUsedComponents])
+
+    function handleActiveIndex(option: "next" | "prev") {
+        if (option === "next") {
+            //go next
+            activeIndexSet(prevActiveIndex => {
+                const newActiveIndex = { ...prevActiveIndex }
+                const newIndex = activeIndex[activeSelection] + 1
+
+                if (newIndex > seenTemplates[activeSelection].length - 1) {
+                    newActiveIndex[activeSelection] = 0
+                }
+
+                return newActiveIndex
+            })
+
+        } else if (option === "prev") {
+            //go prev
+            activeIndexSet(prevActiveIndex => {
+                const newActiveIndex = { ...prevActiveIndex }
+                const newIndex = activeIndex[activeSelection] - 1
+
+                if (newIndex < 0) {
+                    newActiveIndex[activeSelection] = seenTemplates[activeSelection].length - 1
+                }
+
+                return newActiveIndex
+            })
+        }
+    }
+
+    async function sendTemplateUp(newIndex: number, seenFilteredTemplates: template[]) {
+        const newTemplateToBuild: template = seenFilteredTemplates[newIndex]
+
+        //build template
+        const seenResponse = await globalDynamicTemplates(newTemplateToBuild.id)
+        if (seenResponse === undefined) return
+
+        previewTemplateSet({ builtTemplate: seenResponse(), template: newTemplateToBuild, orderPosition: newOrderNumber })
+    }
+
     return (
         <div style={{ display: "grid", alignContent: "flex-start", backgroundColor: "rgb(var(--shade2))" }}>
             <button className='mainButton'
@@ -192,87 +244,114 @@ export default function TemplateSelector({ websiteId, location, handleManageUsed
                     />
                 )}
 
-                {seenTemplates.length > 0 && (
+                <ul style={{ display: "flex", flexWrap: "wrap" }}>
+                    {filterOptions.map(eachFilterOption => {
+                        return (
+                            <button key={eachFilterOption} className='secondaryButton' style={{ backgroundColor: eachFilterOption === filter ? "rgb(var(--color1))" : "" }}
+                                onClick={() => {
+                                    filterSet(eachFilterOption)
+                                }}
+                            >{eachFilterOption}</button>
+                        )
+                    })}
+                </ul>
+
+                <div style={{ display: "flex", flexWrap: "wrap" }}>
+                    <button className='mainButton'
+                        onClick={() => { handleActiveIndex("prev") }}
+                    >prev</button>
+
+                    <button className='mainButton'
+                        onClick={() => { handleActiveIndex("next") }}
+                    >next</button>
+                </div>
+
+                {previewTemplate !== null && }
+                <button
+                    onClick={async () => {
+                        try {
+                            //add template to page normally 
+                            if (viewerTemplateSet === undefined) {
+                                //add to server
+                                const newUsedComponent: newUsedComponent = {
+                                    websiteId: websiteId,
+                                    templateId: eachTemplate.id,
+                                    css: eachTemplate.defaultCss,
+                                    order: 0,
+                                    location: location,
+                                    data: eachTemplate.defaultData,
+                                }
+
+                                //maintain db recursive constraint with child used component
+                                if (newUsedComponent.location.type === "child") {
+                                    ensureChildCanBeAddedToParent(newUsedComponent.location.parentId, seenUsedComponents)
+                                }
+
+                                //match other usedComponents in same location
+                                const usedComponentsInSameLocation = getUsedComponentsInSameLocation(newUsedComponent.location, seenUsedComponents)
+
+                                //ensure the ordering always adds to the last in the array
+                                let largestOrderNumberSeen = -1
+                                usedComponentsInSameLocation.forEach(eachUsedComponentInSameLocation => {
+                                    if (eachUsedComponentInSameLocation.order > largestOrderNumberSeen) {
+                                        largestOrderNumberSeen = eachUsedComponentInSameLocation.order
+                                    }
+                                })
+                                newUsedComponent.order = largestOrderNumberSeen + 1
+
+                                //validate
+                                const validatedNewUsedComponent = newUsedComponentSchema.parse(newUsedComponent)
+
+                                const newAddedUsedComponent = await addUsedComponent(validatedNewUsedComponent)
+
+                                //then add to page
+                                handleManageUsedComponents({ option: "create", seenAddedUsedComponent: newAddedUsedComponent })
+
+                            } else {
+                                //only preview the template
+
+                                //build template
+                                const seenResponse = await globalDynamicTemplates(eachTemplate.id)
+                                if (seenResponse === undefined) return
+
+                                //locally build and show new template
+                                viewerTemplateSet(prevViewerTemplate => {
+                                    if (prevViewerTemplate === null) return prevViewerTemplate
+
+                                    const newViewerTemplate = { ...prevViewerTemplate }
+
+                                    newViewerTemplate.template = eachTemplate
+                                    newViewerTemplate.builtTemplate = seenResponse()
+
+                                    return newViewerTemplate
+                                })
+                            }
+
+                        } catch (error) {
+                            consoleAndToastError(error)
+                        }
+                    }}
+                >confirm</button>
+                {/* 
+                {filteredTemplates.length > 0 && (
                     <>
                         <h3>{viewerTemplateSet === undefined ? "Select" : "Swap"} your template</h3>
 
                         <div style={{ backgroundColor: "white", overflow: "auto", display: "grid", gridAutoFlow: "column", gridAutoColumns: "80%" }}>
-                            {seenTemplates.map(eachTemplate => {
+                            {filteredTemplates.map(eachTemplate => {
                                 return (
                                     <div key={eachTemplate.id} style={{ padding: "1rem", border: "1px solid rgb(var(--shade1))", display: "grid", justifyItems: "center", alignContent: "flex-start", gap: ".5rem" }}>
                                         <h3>{eachTemplate.name}</h3>
 
                                         <button className='mainButton'
-                                            onClick={async () => {
-                                                try {
-                                                    //add template to page normally 
-                                                    if (viewerTemplateSet === undefined) {
-                                                        //add to server
-                                                        const newUsedComponent: newUsedComponent = {
-                                                            websiteId: websiteId,
-                                                            templateId: eachTemplate.id,
-                                                            css: eachTemplate.defaultCss,
-                                                            order: 0,
-                                                            location: location,
-                                                            data: eachTemplate.defaultData,
-                                                        }
-
-                                                        //maintain db recursive constraint with child used component
-                                                        if (newUsedComponent.location.type === "child") {
-                                                            ensureChildCanBeAddedToParent(newUsedComponent.location.parentId, seenUsedComponents)
-                                                        }
-
-                                                        //match other usedComponents in same location
-                                                        const usedComponentsInSameLocation = getUsedComponentsInSameLocation(newUsedComponent.location, seenUsedComponents)
-
-                                                        //ensure the ordering always adds to the last in the array
-                                                        let largestOrderNumberSeen = -1
-                                                        usedComponentsInSameLocation.forEach(eachUsedComponentInSameLocation => {
-                                                            if (eachUsedComponentInSameLocation.order > largestOrderNumberSeen) {
-                                                                largestOrderNumberSeen = eachUsedComponentInSameLocation.order
-                                                            }
-                                                        })
-                                                        newUsedComponent.order = largestOrderNumberSeen + 1
-
-                                                        //validate
-                                                        const validatedNewUsedComponent = newUsedComponentSchema.parse(newUsedComponent)
-
-                                                        const newAddedUsedComponent = await addUsedComponent(validatedNewUsedComponent)
-
-                                                        //then add to page
-                                                        handleManageUsedComponents({ option: "create", seenAddedUsedComponent: newAddedUsedComponent })
-
-                                                    } else {
-                                                        //only preview the template
-
-                                                        //build template
-                                                        const seenResponse = await globalDynamicTemplates(eachTemplate.id)
-                                                        if (seenResponse === undefined) return
-
-                                                        //locally build and show new template
-                                                        viewerTemplateSet(prevViewerTemplate => {
-                                                            if (prevViewerTemplate === null) return prevViewerTemplate
-
-                                                            const newViewerTemplate = { ...prevViewerTemplate }
-
-                                                            newViewerTemplate.template = eachTemplate
-                                                            newViewerTemplate.builtTemplate = seenResponse()
-
-                                                            return newViewerTemplate
-                                                        })
-                                                    }
-
-                                                } catch (error) {
-                                                    consoleAndToastError(error)
-                                                }
-                                            }}
+                                            
                                         >select</button>
                                     </div>
                                 )
                             })}
                         </div>
                     </>
-                )}
+                )} */}
             </div>
         </div>
     )

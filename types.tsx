@@ -48,6 +48,7 @@ export type viewerTemplateType = {
 
 export type previewTemplateType = {
     orderPosition: number,
+    template: template,
     builtTemplate: React.ComponentType<{ data: templateDataType }>
 }
 
