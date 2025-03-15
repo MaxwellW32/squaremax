@@ -1,6 +1,6 @@
 "use client"
-import { deletePage, getPagesFromWebsite, getSpecificPage } from '@/serverFunctions/handlePages'
-import { deleteUsedComponent, getSpecificUsedComponent, getUsedComponents, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
+import { deletePage, getSpecificPage } from '@/serverFunctions/handlePages'
+import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
@@ -20,22 +20,14 @@ import styles from "./style.module.css"
 import { Session } from 'next-auth'
 import DownloadOptions from '../downloadOptions/DownloadOptions'
 import RecursiveForm from '../recursiveForm/RecursiveForm'
+import useEditingContent from './UseEditingContent'
 
 export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
+    const { editingContent, setEditing } = useEditingContent()
+
     const [showingSideBar, showingSideBarSet] = useState(true)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
     const [viewingDownloadOptions, viewingDownloadOptionsSet] = useState(false)
-
-    type editingContentType = {
-        website: boolean,
-        pages: boolean,
-        usedComponents: boolean,
-    }
-    const editingContent = useRef<editingContentType>({
-        website: false,
-        pages: false,
-        usedComponents: false,
-    })
 
     const [sizeOptions, sizeOptionsSet] = useState<sizeOptionType[]>([
         {
@@ -86,7 +78,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
     const [activeLocation, activeLocationSet] = useState<usedComponentLocationType>(activePage === undefined ? { type: "header" } : { type: "page", pageId: activePage.id })
 
     const [addingPage, addingPageSet] = useState(false)
-    const [usedComponentsBuilt, usedComponentBuiltSet] = useState(false)
+    const [usedComponentsBuilt, usedComponentsBuiltSet] = useState(false)
 
     const tempActiveUsedComponentId = useRef<usedComponent["id"]>("")
     const [activeUsedComponentId, activeUsedComponentIdSet] = useState<usedComponent["id"]>("")
@@ -100,7 +92,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
     }, [websiteObj.usedComponents, activeUsedComponentId])
 
-    const renderedComponentsObj = useRef<{
+    const renderedUsedComponentsObj = useRef<{
         [key: string]: React.ComponentType<{
             data: templateDataType;
         }>
@@ -113,6 +105,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
     const [viewerTemplate, viewerTemplateSet] = useState<viewerTemplateType | null>(null)
     const wsRef = useRef<WebSocket | null>(null);
     const [, webSocketsConnectedSet] = useState(false)
+
     //get usedComponents on the active page
     const pageUsedComponents = useMemo(() => {
         if (websiteObj.usedComponents === undefined || activePage === undefined) return []
@@ -154,10 +147,10 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
             try {
                 //replace original
                 if (websiteFromServer.usedComponents !== undefined) {
-                    websiteFromServer.usedComponents = await renderUsedComponentsInUse(websiteFromServer.usedComponents, activePage?.id)
+                    websiteFromServer.usedComponents = await renderUsedComponentsInUse(websiteFromServer.usedComponents, activePage !== undefined ? activePage.id : undefined)
 
                     //run check for any broken used components - remove them
-                    //used component is broken if pageId doesnt exist in pages and if parentId not in other used components
+                    ////used component is broken if pageId doesnt exist in pages and if parentId not in other used components
                     const brokenUsedComponents = websiteFromServer.usedComponents.filter(eachUsedComponent => {
                         const seenLocation = eachUsedComponent.location
 
@@ -284,9 +277,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         };
 
         ws.onmessage = (event) => {
-
             const seenMessage = webSocketStandardMessageSchema.parse(JSON.parse(event.data.toString()))
-            console.log(`${seenSession.user.name} received message on client - section updated type: `, seenMessage.data.updated.type);
 
             if (seenMessage.type === "standard") {
                 const seenMessageObj = seenMessage.data.updated
@@ -295,8 +286,6 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     const searchWebsite = async () => {
                         const latestWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteObj.id } }, true)
                         if (latestWebsite === undefined) return
-
-                        console.log(`$latestWebsite`, latestWebsite);
 
                         //set latest
                         websiteObjSet((prevWebsiteObj) => {
@@ -310,26 +299,16 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 } else if (seenMessageObj.type === "page") {
                     //get latest page
                     const searchPage = async () => {
-                        if (seenMessageObj.refreshPages) {
+                        if (seenMessageObj.refresh) {
                             const checkIfEditing = async () => {
-                                //reload all pages if not editing
+                                //reload all 
                                 if (!editingContent.current.pages) {
-                                    //get all pages
-                                    const latestPages = await getPagesFromWebsite(websiteObj.id)
-
-                                    //set latest
-                                    websiteObjSet((prevWebsiteObj) => {
-                                        const newWebsiteObj = { ...prevWebsiteObj }
-                                        if (newWebsiteObj.pages === undefined) return prevWebsiteObj
-
-                                        newWebsiteObj.pages = latestPages
-
-                                        return newWebsiteObj
-                                    })
+                                    refreshWebsitePath({ id: websiteObj.id })
 
                                 } else {
-                                    // editing check back later
+                                    console.log(`$update happened while you were editing will wait until finished to update pages`);
 
+                                    // editing check back later
                                     setTimeout(() => {
                                         checkIfEditing()
                                     }, 10_000);
@@ -338,14 +317,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                             checkIfEditing()
 
                         } else {
-                            //update /add specific page
+                            //add/update specific page
                             const latestPage = await getSpecificPage(seenMessageObj.pageId)
                             if (latestPage === undefined) return
 
                             //set latest
                             websiteObjSet((prevWebsiteObj) => {
                                 const newWebsiteObj = { ...prevWebsiteObj }
-
                                 if (newWebsiteObj.pages === undefined) return prevWebsiteObj
 
                                 const pageFoundInArray = newWebsiteObj.pages.find(eachPageFind => eachPageFind.id === latestPage.id) !== undefined
@@ -375,25 +353,15 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 } else if (seenMessageObj.type === "usedComponent") {
                     //get latest usedComponent
                     const searchUsedComponent = async () => {
-                        if (seenMessageObj.refreshUsedComponents) {
+                        if (seenMessageObj.refresh) {
                             const checkIfEditing = async () => {
-                                //reload all usedComponents if not editing
+                                //reload all 
                                 if (!editingContent.current.usedComponents) {
-                                    //get all usedComponents
-                                    const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: websiteObj.id } })
-
-                                    //set latest
-                                    websiteObjSet((prevWebsiteObj) => {
-                                        const newWebsiteObj = { ...prevWebsiteObj }
-                                        if (newWebsiteObj.usedComponents === undefined) return prevWebsiteObj
-
-                                        newWebsiteObj.usedComponents = latestUsedComponents
-
-                                        return newWebsiteObj
-                                    })
+                                    refreshWebsitePath({ id: websiteObj.id })
 
                                 } else {
                                     // editing check back later
+                                    console.log(`$update happened while you were editing will wait until finished to update usedComponents`);
 
                                     setTimeout(() => {
                                         checkIfEditing()
@@ -403,14 +371,16 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                             checkIfEditing()
 
                         } else {
-                            //update /add specific page
+                            //add/update specific usedComponent
                             const latestUsedComponent = await getSpecificUsedComponent(seenMessageObj.usedComponentId)
                             if (latestUsedComponent === undefined) return
+
+                            //ensure can be rendered
+                            await buildUsedComponents([latestUsedComponent])
 
                             //set latest
                             websiteObjSet((prevWebsiteObj) => {
                                 const newWebsiteObj = { ...prevWebsiteObj }
-
                                 if (newWebsiteObj.usedComponents === undefined) return prevWebsiteObj
 
                                 const usedComponentFoundInArray = newWebsiteObj.usedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === latestUsedComponent.id) !== undefined
@@ -471,35 +441,36 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? canvasContRef.current.clientWidth : activeSizeOption.width) / 2}px`
     }
 
-    async function buildUsedComponents(sentUsedComponents: usedComponent[]): Promise<usedComponent[]> {
-        usedComponentBuiltSet(false)
+    async function buildUsedComponents(sentUsedComponents: usedComponent[]) {
+        usedComponentsBuiltSet(false)
 
-        //build all templates
-        const builtUsedComponents = await Promise.all(
+        //ensure all can be rendered
+        await Promise.all(
             sentUsedComponents.map(async eachUsedComponent => {
                 //if doesnt exist in renderObj then render it
-                if (renderedComponentsObj.current[eachUsedComponent.templateId] === undefined) {
+                if (renderedUsedComponentsObj.current[eachUsedComponent.templateId] === undefined) {
                     const seenResponse = await globalDynamicTemplates(eachUsedComponent.templateId)
 
                     //assign builds to renderObj
                     if (seenResponse !== undefined) {
-                        renderedComponentsObj.current[eachUsedComponent.templateId] = seenResponse()
+                        renderedUsedComponentsObj.current[eachUsedComponent.templateId] = seenResponse()
 
                     } else {
                         //log component id not found
-                        console.log(`$element template id not found`, eachUsedComponent.templateId);
+                        console.log(`$usedComponent template id not found`, eachUsedComponent.templateId);
                     }
                 }
 
                 return eachUsedComponent
             }))
 
-        usedComponentBuiltSet(true)
-
-        return builtUsedComponents
+        usedComponentsBuiltSet(true)
     }
 
     async function handleWebsiteUpdate(newWebsite: website) {
+        //set is editing
+        setEditing("website")
+
         try {
             //when something updates website handle it on user interaction
             //update locally
@@ -530,6 +501,9 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
         }
     }
     async function handleManagePage(options: handleManagePageOptions) {
+        //set is editing
+        setEditing("pages")
+
         try {
             if (options.option === "create") {
                 //add locally
@@ -555,7 +529,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 sendWebsocketUpdate({
                     type: "page",
                     pageId: options.seenAddedPage.id,
-                    refreshPages: false
+                    refresh: false
                 })
             } else if (options.option === "update") {
 
@@ -577,7 +551,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 sendWebsocketUpdate({
                     type: "page",
                     pageId: options.seenUpdatedPage.id,
-                    refreshPages: false
+                    refresh: false
                 })
             }
 
@@ -587,16 +561,19 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
     }
     async function handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions) {
         try {
+            //set is editing
+            setEditing("usedComponents")
+
             if (options.option === "create") {
-                //build components
-                const [builtUsedComponent]: usedComponent[] = await buildUsedComponents([options.seenAddedUsedComponent])
+                //ensure can be rendered
+                await buildUsedComponents([options.seenAddedUsedComponent])
 
                 //add locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
                     if (newWebsite.usedComponents === undefined) return prevWebsite
 
-                    newWebsite.usedComponents = [...newWebsite.usedComponents, builtUsedComponent]
+                    newWebsite.usedComponents = [...newWebsite.usedComponents, options.seenAddedUsedComponent]
 
                     return newWebsite
                 })
@@ -604,18 +581,18 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                 //update websocket
                 sendWebsocketUpdate({
                     type: "usedComponent",
-                    usedComponentId: builtUsedComponent.id,
-                    refreshUsedComponents: false
+                    usedComponentId: options.seenAddedUsedComponent.id,
+                    refresh: false
                 })
 
             } else if (options.option === "update") {
                 //add component info onto object
 
                 if (options.rebuild) {
-                    //build components
-                    const [builtUsedComponent]: usedComponent[] = await buildUsedComponents([options.seenUpdatedUsedComponent])
+                    //ensure can be rendered
+                    await buildUsedComponents([options.seenUpdatedUsedComponent])
 
-                    options.seenUpdatedUsedComponent = builtUsedComponent
+                    options.seenUpdatedUsedComponent = options.seenUpdatedUsedComponent
                 }
 
                 //update locally
@@ -654,7 +631,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     sendWebsocketUpdate({
                         type: "usedComponent",
                         usedComponentId: options.seenUpdatedUsedComponent.id,
-                        refreshUsedComponents: false
+                        refresh: false
                     })
                 }, 3000);
             }
@@ -701,15 +678,15 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
         const totalUsedComponentsToRender = [...baseUsedComponentsInUse, ...baseUsedComponentsDecendants]
 
-        //build components
-        const builtUsedComponents: usedComponent[] = await buildUsedComponents(totalUsedComponentsToRender)
+        //ensure can be rendered
+        await buildUsedComponents(totalUsedComponentsToRender)
 
         //add back onto the original list
         const updatedUsedComponents = seenUsedComponents.map(eachUsedComponent => {
-            const seenUpdatedUsedComponent = builtUsedComponents.find(eachBuiltComponentFind => eachBuiltComponentFind.id === eachUsedComponent.id)
+            const seenUpdatedUsedComponent = totalUsedComponentsToRender.find(eachBuiltComponentFind => eachBuiltComponentFind.id === eachUsedComponent.id)
             if (seenUpdatedUsedComponent !== undefined) return seenUpdatedUsedComponent
 
-            //return riginal usedComponent
+            //return original usedComponent
             return eachUsedComponent
         })
 
@@ -797,11 +774,11 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                             {usedComponentsBuilt && websiteObj.usedComponents !== undefined && (
                                 <>
-                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
+                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
 
-                                    <RenderComponentTree seenUsedComponents={pageUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
+                                    <RenderComponentTree seenUsedComponents={pageUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
 
-                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
+                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
                                 </>
                             )}
                         </div>
@@ -948,7 +925,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                         <div key={eachPage.id} style={{ border: "1px solid rgb(var(--shade1))" }}>
                                                             <AddEditPage sentPage={eachPage} sentWebsiteId={websiteObj.id} handleManagePage={handleManagePage} />
 
-                                                            <ConfirmationBox text='' confirmationText='are you sure you want to delete the page?' successMessage='page deleted!' float={true}
+                                                            <ConfirmationBox text='' confirmationText='are you sure you want to delete the page?' successMessage='page deleted!'
                                                                 icon={
                                                                     <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                                                                 }
@@ -959,6 +936,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                     activePageIdSet(undefined)
 
                                                                     await refreshWebsitePath({ id: websiteObj.id })
+
+                                                                    //send update that any other clients needs to refresh their pages
+                                                                    sendWebsocketUpdate({
+                                                                        type: "page",
+                                                                        pageId: eachPage.id,
+                                                                        refresh: true
+                                                                    })
                                                                 }}
                                                             />
                                                         </div>
@@ -1131,6 +1115,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                 await deleteUsedComponent(websiteObj.id, activeUsedComponent.id)
 
                                                                 await refreshWebsitePath({ id: websiteObj.id })
+
+                                                                //send update that any other clients needs to refresh their usedComponents
+                                                                sendWebsocketUpdate({
+                                                                    type: "usedComponent",
+                                                                    usedComponentId: activeUsedComponent.id,
+                                                                    refresh: true
+                                                                })
                                                             }} />
                                                         }
                                                     />
@@ -1189,9 +1180,9 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 }
 
 function RenderComponentTree({
-    seenUsedComponents, originalUsedComponentsList, websiteObj, renderedComponentsObj, tempActiveUsedComponentId, viewerTemplate
+    seenUsedComponents, originalUsedComponentsList, websiteObj, renderedUsedComponentsObj, tempActiveUsedComponentId, viewerTemplate
 }: {
-    seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], websiteObj: website, renderedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, viewerTemplate: viewerTemplateType | null
+    seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], websiteObj: website, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, viewerTemplate: viewerTemplateType | null
 }) {
 
     return (
@@ -1209,11 +1200,11 @@ function RenderComponentTree({
                     seenViewerTemplateData = viewerTemplate.template.defaultData
                 }
 
-                const ComponentToRender = renderedComponentsObj.current[eachUsedComponent.templateId];
+                const ComponentToRender = renderedUsedComponentsObj.current[eachUsedComponent.templateId];
                 if (ComponentToRender === undefined) {
                     console.error(
                         `Component with ID ${eachUsedComponent.templateId} is not in renderedComponentsObj.`,
-                        renderedComponentsObj.current
+                        renderedUsedComponentsObj.current
                     );
                     return null;
                 }
@@ -1226,7 +1217,7 @@ function RenderComponentTree({
                 const seenOrderedChildren = sortUsedComponentsByOrder(seenChildren)
 
                 // Recursively render child components
-                const childJSX: React.JSX.Element | null = seenOrderedChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenOrderedChildren} originalUsedComponentsList={originalUsedComponentsList} websiteObj={websiteObj} renderedComponentsObj={renderedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} /> : null;
+                const childJSX: React.JSX.Element | null = seenOrderedChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenOrderedChildren} originalUsedComponentsList={originalUsedComponentsList} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} /> : null;
 
                 //apply scoped styling starter value
                 eachUsedComponent.data.styleId = `____${eachUsedComponent.id}`

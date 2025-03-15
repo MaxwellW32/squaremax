@@ -106,13 +106,6 @@ export type nullishStarters = {
     [key: string]: unknown
 }
 
-
-//add or removel
-//record the action to add remove then the id
-//update usedComponent - find id and update it
-
-//make lockedBySchema - website, page, usedComponent
-
 export const wsWebsiteUpdateSchema = z.object({
     type: z.literal("website"),
 });
@@ -121,14 +114,14 @@ export type wsWebsiteUpdateType = z.infer<typeof wsWebsiteUpdateSchema>
 export const wsPageUpdateSchema = z.object({
     type: z.literal("page"),
     pageId: z.string().min(1),
-    refreshPages: z.boolean()
+    refresh: z.boolean()
 });
 export type wsPageUpdateType = z.infer<typeof wsPageUpdateSchema>
 
 export const wsUsedComponentUpdateSchema = z.object({
     type: z.literal("usedComponent"),
     usedComponentId: z.string().min(1),
-    refreshUsedComponents: z.boolean() //wait till user not editing to refresh
+    refresh: z.boolean() //wait till user not editing to refresh
 });
 export type wsUsedComponentUpdateType = z.infer<typeof wsUsedComponentUpdateSchema>
 
@@ -158,7 +151,11 @@ export type webSocketMessagePingType = z.infer<typeof webSocketMessagePingSchema
 export const webSocketMessageSchema = z.union([webSocketStandardMessageSchema, webSocketMessageJoinSchema, webSocketMessagePingSchema])
 export type webSocketMessageType = z.infer<typeof webSocketMessageSchema>
 
-
+export type EditingContentType = {
+    website: boolean;
+    pages: boolean;
+    usedComponents: boolean;
+};
 
 
 

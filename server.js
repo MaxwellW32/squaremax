@@ -41,8 +41,6 @@ nextApp.prepare().then(() => {
                         return;
                     }
 
-                    console.log(`Broadcasting to room: ${websiteId}`);
-
                     rooms.get(websiteId).forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify(receivedMessage), { binary: isBinary });
