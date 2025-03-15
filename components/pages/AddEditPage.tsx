@@ -7,7 +7,7 @@ import TextArea from '../textArea/TextArea'
 import { deepClone, makeValidPageLinkName } from '@/utility/utility'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import toast from 'react-hot-toast'
-import { addPage, updateThePage } from '@/serverFunctions/handlePages'
+import { addPage } from '@/serverFunctions/handlePages'
 
 export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage, submissionAction, ...elProps }: { sentWebsiteId: website["id"], sentPage?: page, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
     const initialFormObj: newPage = {
@@ -97,11 +97,8 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
                 //validate
                 const validatedUpdatedPage = updatePageSchema.parse(formObj)
 
-                //update on server
-                const updatedPage = await updateThePage(sentPage.id, sentWebsiteId, validatedUpdatedPage)
-
                 //send up to client
-                handleManagePage({ option: "update", seenUpdatedPage: updatedPage })
+                handleManagePage({ option: "update", updatedPageId: sentPage.id, seenUpdatedPage: validatedUpdatedPage })
 
                 toast.success("page updated")
             }

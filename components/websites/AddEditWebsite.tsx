@@ -15,8 +15,6 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
 
     const initialFormObj: newWebsite = {
         name: "",
-        title: "",
-        description: "",
     }
 
     const [formObj, formObjSet] = useState<Partial<website>>(deepClone(sentWebsite === undefined ? initialFormObj : updateWebsiteSchema.parse(sentWebsite)))
@@ -45,7 +43,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
         },
         "description": {
             label: "description",
-            inputType: "input",
+            inputType: "textarea",
             placeHolder: "Enter website description",
         },
         "fonts": {

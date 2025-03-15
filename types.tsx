@@ -54,7 +54,8 @@ export type handleManagePageOptions =
         seenAddedPage: page,
     } | {
         option: "update",
-        seenUpdatedPage: page,
+        seenUpdatedPage: updatePage,
+        updatedPageId: page["id"],
     }
 
 export type handleManageUpdateUsedComponentsOptions =
@@ -329,7 +330,7 @@ export type website = z.infer<typeof websiteSchema> & {
     pages?: page[],
     usedComponents?: usedComponent[],
 }
-export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true })
+export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true, title: true, description: true })
 export type newWebsite = z.infer<typeof newWebsiteSchema>
 
 export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, })

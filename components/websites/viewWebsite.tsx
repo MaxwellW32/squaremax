@@ -1,8 +1,8 @@
 "use client"
-import { deletePage, getSpecificPage } from '@/serverFunctions/handlePages'
+import { deletePage, getSpecificPage, updateThePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updateUsedComponentSchema, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, sizeOptionType, templateDataType, updatePageSchema, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -99,6 +99,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
     }>({})
 
     const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
+    const updatePageDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
     const updateUsedComponentDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
 
     const [saveState, saveStateSet] = useState<"saving" | "saved">("saved")
@@ -531,8 +532,8 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     pageId: options.seenAddedPage.id,
                     refresh: false
                 })
-            } else if (options.option === "update") {
 
+            } else if (options.option === "update") {
                 //update locally
                 websiteObjSet(prevWebsite => {
                     const newWebsite = { ...prevWebsite }
@@ -540,19 +541,39 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                     //ensure pages seen
                     if (newWebsite.pages === undefined) return prevWebsite
 
-                    //set new page
-                    const indexToAddAt = newWebsite.pages.findIndex(eachPageFindIndex => eachPageFindIndex.id === options.seenUpdatedPage.id)
-                    newWebsite.pages[indexToAddAt] = options.seenUpdatedPage
+                    //update the page
+                    newWebsite.pages = newWebsite.pages.map(eachPage => {
+                        if (eachPage.id === options.updatedPageId) {
+                            return { ...eachPage, ...options.seenUpdatedPage }
+                        }
+
+                        return eachPage
+                    })
 
                     return newWebsite
                 })
 
-                //update websocket
-                sendWebsocketUpdate({
-                    type: "page",
-                    pageId: options.seenUpdatedPage.id,
-                    refresh: false
-                })
+                //update on server after delay
+                if (updatePageDebounce.current[options.updatedPageId]) clearTimeout(updatePageDebounce.current[options.updatedPageId])
+
+                //make new website schema
+                updatePageDebounce.current[options.updatedPageId] = setTimeout(async () => {
+                    //ensure only certain fields can be updated
+                    const validatedUpdatedPage = updatePageSchema.parse(options.seenUpdatedPage)
+
+                    saveStateSet("saving")
+                    await updateThePage(options.updatedPageId, websiteObj.id, validatedUpdatedPage)
+
+                    console.log(`$saved page to db`);
+                    saveStateSet("saved")
+
+                    //update websocket
+                    sendWebsocketUpdate({
+                        type: "page",
+                        pageId: options.updatedPageId,
+                        refresh: false
+                    })
+                }, 3000);
             }
 
         } catch (error) {
@@ -587,7 +608,6 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
             } else if (options.option === "update") {
                 //add component info onto object
-
                 if (options.rebuild) {
                     //ensure can be rendered
                     await buildUsedComponents([options.seenUpdatedUsedComponent])
@@ -869,6 +889,11 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                 <RecursiveForm
                                     seenForm={updateWebsiteSchema.omit({ globalCss: true }).parse(websiteObj)}
                                     seenMoreFormInfo={{
+                                        "description": {
+                                            element: {
+                                                type: "textarea"
+                                            }
+                                        },
                                         "fonts/0/weights": {
                                             returnToNull: true,
                                         },
@@ -893,8 +918,8 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                     }}
                                     seenSchema={updateWebsiteSchema.omit({ globalCss: true })}
                                     updater={(seenForm) => {
-                                        const newFullWebsite = { ...websiteObj, ...(seenForm as website) }
-                                        handleWebsiteUpdate(newFullWebsite as website)
+                                        const newFullWebsite: website = { ...websiteObj, ...(seenForm as updateWebsite) }
+                                        handleWebsiteUpdate(newFullWebsite)
                                     }}
                                 />
                             </div>

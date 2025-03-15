@@ -30,7 +30,7 @@ export async function addPage(seenNewPage: newPage): Promise<page> {
     return result
 }
 
-export async function updateThePage(pageId: page["id"], websiteId: website["id"], updatePageObj: Partial<updatePage>): Promise<page> {
+export async function updateThePage(pageId: page["id"], websiteId: website["id"], updatePageObj: Partial<updatePage>) {
     //validation
     updatePageSchema.partial().parse(updatePageObj)
 
@@ -39,13 +39,11 @@ export async function updateThePage(pageId: page["id"], websiteId: website["id"]
     if (seenWebsite === undefined) throw new Error("not seeing website")
     await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
-    const [result] = await db.update(pages)
+    await db.update(pages)
         .set({
             ...updatePageObj
         })
-        .where(eq(pages.id, pageId)).returning();
-
-    return result
+        .where(eq(pages.id, pageId))
 }
 
 export async function deletePage(websiteId: website["id"], pageId: page["id"], deleteRelatedUsedComponents = true) {
