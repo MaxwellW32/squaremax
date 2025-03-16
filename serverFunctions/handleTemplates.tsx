@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { templates } from "@/db/schema"
-import { collection, template, templatesSchema, newTemplate, newTemplateSchema, activeSelectionType, category, templateFilterOptionType, categoryNameSchema } from "@/types"
+import { collection, template, templatesSchema, newTemplate, newTemplateSchema, category, templateFilterOptionType, categoryNameSchema } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { desc, eq, like } from "drizzle-orm"
 import { deleteDirectory } from "./handleServerFiles"
