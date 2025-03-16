@@ -27,7 +27,7 @@ export default function ViewNavWebsites({ seenUserWebsites }: { seenUserWebsites
                     const foundInUrl = pathname.includes(eachWebsite.id)
 
                     return (
-                        <Link key={eachWebsite.id} href={`/websites/${eachWebsite.id}`} style={{ border: "1px solid rgb(var(--shade1))", padding: "1rem", color: foundInUrl ? "rgb(var(--color1))" : "" }}>
+                        <Link key={eachWebsite.id} href={`/websites/edit/${eachWebsite.id}`} style={{ border: "1px solid rgb(var(--shade1))", padding: "1rem", color: foundInUrl ? "rgb(var(--color1))" : "" }}>
                             <h3>{eachWebsite.name}</h3>
                         </Link>
                     )
