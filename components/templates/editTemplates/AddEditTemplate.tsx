@@ -121,14 +121,6 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
 
                 newCollection[eachIndex] = { ...newCollection[eachIndex], content: fileContent, relativePath: `${file.webkitRelativePath}/${file.name}` }
 
-                if (file.name === "page.css") {
-                    formObjSet(prevFormObj => {
-                        const newFormObj = { ...prevFormObj }
-                        newFormObj.defaultCss = fileContent
-                        return newFormObj
-                    })
-                }
-
                 return fileContent
             })
         )
@@ -150,6 +142,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
 
                 formObjSet(deepClone(initialForm))
 
+                selectedCategorySet(null)
 
                 toast.success("new template submitted")
 

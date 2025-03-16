@@ -992,183 +992,179 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                 </div>
                             )}
 
-                            {activeUsedComponent !== undefined ? (
-                                <>
-                                    {websiteObj.usedComponents !== undefined &&
-                                        (
-                                            <div style={{ display: selectionOption === "component" ? "grid" : "none" }}>
-                                                <>
-                                                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: 'center', justifyContent: "space-between", padding: "1rem" }}>
-                                                        <label>{activeUsedComponent.data.category} template</label>
+                            {websiteObj.usedComponents !== undefined && (
+                                <div style={{ display: selectionOption === "component" ? "grid" : "none" }}>
+                                    {activeUsedComponent !== undefined ? (
+                                        <>
+                                            <div style={{ display: "flex", flexWrap: "wrap", alignItems: 'center', justifyContent: "space-between", padding: "1rem" }}>
+                                                <label>{activeUsedComponent.data.category} template</label>
 
-                                                        {Object.hasOwn(activeUsedComponent.data, "children") && (
-                                                            <button style={{ zIndex: 1 }}
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(activeUsedComponent.id);
+                                                {Object.hasOwn(activeUsedComponent.data, "children") && (
+                                                    <button style={{ zIndex: 1 }}
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(activeUsedComponent.id);
 
-                                                                    toast.success("parent id copied to clipboard")
-                                                                }}
-                                                            >
-                                                                <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
-                                                            </button>
-                                                        )}
-                                                    </div>
-
-                                                    <ShowMore
-                                                        label='Styling'
-                                                        startShowing={true}
-                                                        content={
-                                                            <>
-                                                                <ShowMore
-                                                                    label='Css'
-                                                                    startShowing={true}
-                                                                    content={
-                                                                        <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
-                                                                            onChange={(e) => {
-                                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                                newActiveComp.css = e.target.value
-
-                                                                                handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
-                                                                            }}
-                                                                            onBlur={() => {
-                                                                                const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                                newActiveComp.css = formatCSS(newActiveComp.css)
-
-                                                                                handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
-                                                                            }}
-                                                                        />
-                                                                    }
-                                                                />
-
-                                                                <ShowMore
-                                                                    label='set id, class'
-                                                                    content={
-                                                                        <>
-                                                                            <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
-                                                                                onChange={(e) => {
-                                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                                    newActiveComp.data.mainElProps.id = e.target.value
-
-                                                                                    handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
-                                                                                }}
-                                                                            />
-
-                                                                            <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "1rem" }}
-                                                                                onChange={(e) => {
-                                                                                    const newActiveComp: usedComponent = { ...activeUsedComponent }
-                                                                                    newActiveComp.data.mainElProps.className = e.target.value
-
-                                                                                    handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
-                                                                                }}
-                                                                            />
-                                                                        </>
-                                                                    }
-                                                                />
-                                                            </>
-                                                        }
-                                                    />
-
-                                                    <ShowMore
-                                                        label="data"
-                                                        content={
-                                                            <TemplateDataSwitch location={activeLocation} activeUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} handlePropsChange={handlePropsChange} />
-                                                        }
-                                                    />
-
-                                                    <ShowMore
-                                                        label='replace'
-                                                        content={
-                                                            <>
-                                                                {viewerTemplate === null ? (
-                                                                    <button className='mainButton'
-                                                                        onClick={() => {
-                                                                            viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtTemplate: null })
-                                                                        }}
-                                                                    >enable viewer node</button>
-                                                                ) : (
-                                                                    <button className='mainButton'
-                                                                        onClick={() => {
-                                                                            viewerTemplateSet(null)
-                                                                        }}
-                                                                    >cancel viewer node</button>
-                                                                )}
-
-                                                                {/* show options for active */}
-                                                                {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
-                                                                    <>
-                                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenLocation={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
-
-                                                                        {viewerTemplate.template !== null && (
-                                                                            <button className='mainButton'
-                                                                                onClick={async () => {
-                                                                                    try {
-                                                                                        //replace the used component with this selection
-                                                                                        //ensure the component info is there
-                                                                                        if (viewerTemplate.template === null) return
-
-                                                                                        //if usedComponents are the same type can reuse data
-                                                                                        const reusingUsedComponentData = activeUsedComponent.data.category === viewerTemplate.template.categoryId
-
-                                                                                        //replace everything except id, pageid, compid, children
-                                                                                        const newReplacedUsedComponent: Partial<updateUsedComponent> = { templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData }
-
-                                                                                        //send to update 
-                                                                                        handleManageUsedComponents({ option: "update", updatedUsedComponentId: activeUsedComponent.id, seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
-
-                                                                                        viewerTemplateSet(null)
-
-                                                                                        toast.success("swapped component")
-
-                                                                                    } catch (error) {
-                                                                                        consoleAndToastError(error)
-                                                                                    }
-                                                                                }}
-                                                                            >replace with this component</button>
-                                                                        )}
-                                                                    </>
-                                                                )}
-                                                            </>
-                                                        }
-                                                    />
-
-                                                    <ShowMore
-                                                        label='order'
-                                                        content={
-                                                            <UsedComponentOrderSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
-                                                        }
-                                                    />
-
-                                                    <ShowMore
-                                                        label='change location'
-                                                        content={
-                                                            <UsedComponentLocationSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenPages={websiteObj.pages !== undefined ? websiteObj.pages : []} />
-                                                        }
-                                                    />
-
-                                                    <ShowMore
-                                                        label='Delete Component'
-                                                        content={
-                                                            <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
-                                                                await deleteUsedComponent(websiteObj.id, activeUsedComponent.id)
-
-                                                                await refreshWebsitePath({ id: websiteObj.id })
-
-                                                                //send update that any other clients needs to refresh their usedComponents
-                                                                sendWebsocketUpdate({
-                                                                    type: "usedComponent",
-                                                                    usedComponentId: activeUsedComponent.id,
-                                                                    refresh: true
-                                                                })
-                                                            }} />
-                                                        }
-                                                    />
-                                                </>
+                                                            toast.success("parent id copied to clipboard")
+                                                        }}
+                                                    >
+                                                        <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
+                                                    </button>
+                                                )}
                                             </div>
-                                        )
-                                    }
-                                </>
-                            ) : (
-                                <label>Please select a component</label>
+
+                                            <ShowMore
+                                                label='Styling'
+                                                startShowing={true}
+                                                content={
+                                                    <>
+                                                        <ShowMore
+                                                            label='Css'
+                                                            startShowing={true}
+                                                            content={
+                                                                <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
+                                                                    onChange={(e) => {
+                                                                        const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                        newActiveComp.css = e.target.value
+
+                                                                        handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
+                                                                    }}
+                                                                    onBlur={() => {
+                                                                        const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                        newActiveComp.css = formatCSS(newActiveComp.css)
+
+                                                                        handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
+                                                                    }}
+                                                                />
+                                                            }
+                                                        />
+
+                                                        <ShowMore
+                                                            label='set id, class'
+                                                            content={
+                                                                <>
+                                                                    <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
+                                                                        onChange={(e) => {
+                                                                            const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                            newActiveComp.data.mainElProps.id = e.target.value
+
+                                                                            handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
+                                                                        }}
+                                                                    />
+
+                                                                    <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "1rem" }}
+                                                                        onChange={(e) => {
+                                                                            const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                            newActiveComp.data.mainElProps.className = e.target.value
+
+                                                                            handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
+                                                                        }}
+                                                                    />
+                                                                </>
+                                                            }
+                                                        />
+                                                    </>
+                                                }
+                                            />
+
+                                            <ShowMore
+                                                label="data"
+                                                content={
+                                                    <TemplateDataSwitch location={activeLocation} activeUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} handlePropsChange={handlePropsChange} />
+                                                }
+                                            />
+
+                                            <ShowMore
+                                                label='replace'
+                                                content={
+                                                    <>
+                                                        {viewerTemplate === null ? (
+                                                            <button className='mainButton'
+                                                                onClick={() => {
+                                                                    viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtTemplate: null })
+                                                                }}
+                                                            >enable viewer node</button>
+                                                        ) : (
+                                                            <button className='mainButton'
+                                                                onClick={() => {
+                                                                    viewerTemplateSet(null)
+                                                                }}
+                                                            >cancel viewer node</button>
+                                                        )}
+
+                                                        {/* show options for active */}
+                                                        {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
+                                                            <>
+                                                                <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenLocation={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
+
+                                                                {viewerTemplate.template !== null && (
+                                                                    <button className='mainButton'
+                                                                        onClick={async () => {
+                                                                            try {
+                                                                                //replace the used component with this selection
+                                                                                //ensure the component info is there
+                                                                                if (viewerTemplate.template === null) return
+
+                                                                                //if usedComponents are the same type can reuse data
+                                                                                const reusingUsedComponentData = activeUsedComponent.data.category === viewerTemplate.template.categoryId
+
+                                                                                //replace everything except id, pageid, compid, children
+                                                                                const newReplacedUsedComponent: Partial<updateUsedComponent> = { templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData }
+
+                                                                                //send to update 
+                                                                                handleManageUsedComponents({ option: "update", updatedUsedComponentId: activeUsedComponent.id, seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
+
+                                                                                viewerTemplateSet(null)
+
+                                                                                toast.success("swapped component")
+
+                                                                            } catch (error) {
+                                                                                consoleAndToastError(error)
+                                                                            }
+                                                                        }}
+                                                                    >replace with this component</button>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </>
+                                                }
+                                            />
+
+                                            <ShowMore
+                                                label='order'
+                                                content={
+                                                    <UsedComponentOrderSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
+                                                }
+                                            />
+
+                                            <ShowMore
+                                                label='change location'
+                                                content={
+                                                    <UsedComponentLocationSelector websiteId={websiteObj.id} seenUsedComponent={activeUsedComponent} seenPages={websiteObj.pages !== undefined ? websiteObj.pages : []} />
+                                                }
+                                            />
+
+                                            <ShowMore
+                                                label='Delete Component'
+                                                content={
+                                                    <ConfirmationBox text='delete' confirmationText='are you sure you want to delete' successMessage='deleted!' runAction={async () => {
+                                                        await deleteUsedComponent(websiteObj.id, activeUsedComponent.id)
+
+                                                        await refreshWebsitePath({ id: websiteObj.id })
+
+                                                        //send update that any other clients needs to refresh their usedComponents
+                                                        sendWebsocketUpdate({
+                                                            type: "usedComponent",
+                                                            usedComponentId: activeUsedComponent.id,
+                                                            refresh: true
+                                                        })
+                                                    }} />
+                                                }
+                                            />
+                                        </>
+                                    ) : (
+                                        <label>Please select a component</label>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -1226,12 +1222,30 @@ function RenderComponentTree({
 
     let SeenPreviewBuiltTemplate: React.ComponentType<{ data: templateDataType }> | null = null
     let seenPreviewTemplateData: templateDataType | null = null
-    let scopedCssForPreview = null;
+    let previewScopedCss = null;
 
     let previewLocationMatches = false
+    let usedComponentToAttachFirstChild: usedComponent | null = null
 
     //check for location match
     if (previewTemplate !== null) {
+        //if preview template location wants to render for child location
+        //and seenUsedComponents contains an element (the parent) that has that id
+        //then only when renderLocation child is absent do we check if its found
+        //if it is provide match
+
+        //handles base used components find for children preview templates
+        if (previewTemplate.location.type === "child") {
+            const foundParent = seenUsedComponents.find(eachUsedComponentFind => previewTemplate.location.type === "child" && eachUsedComponentFind.id === previewTemplate.location.parentId)
+
+            //only search when child usedComponents empty
+            if (foundParent !== undefined && renderLocation.type !== "child") {
+                previewLocationMatches = true
+                usedComponentToAttachFirstChild = foundParent
+
+            }
+        }
+
         if (previewTemplate.location.type === "header" && renderLocation.type === "header") {
             previewLocationMatches = true
 
@@ -1249,18 +1263,25 @@ function RenderComponentTree({
             SeenPreviewBuiltTemplate = previewTemplate.builtTemplate
             seenPreviewTemplateData = previewTemplate.template.defaultData
 
-            scopedCssForPreview = addScopeToCSS(previewTemplate.template.defaultCss, previewTemplate.template.id)
+            previewScopedCss = addScopeToCSS(previewTemplate.template.defaultCss, previewTemplate.template.id)
             seenPreviewTemplateData.styleId = `____${previewTemplate.template.id}`
         }
     }
 
     const previewTemplateVar = SeenPreviewBuiltTemplate !== null && seenPreviewTemplateData !== null ? (
         <>
-            <style>{scopedCssForPreview}</style>
+            <style>{previewScopedCss}</style>
 
             <SeenPreviewBuiltTemplate data={seenPreviewTemplateData} />
         </>
     ) : null
+
+
+    if (usedComponentToAttachFirstChild !== null) {
+        if (usedComponentToAttachFirstChild.data.category === "containers") {
+            usedComponentToAttachFirstChild.data.children = previewTemplateVar
+        }
+    }
 
     if (seenUsedComponents.length === 0) {
         return previewTemplateVar
