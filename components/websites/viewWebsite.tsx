@@ -801,11 +801,13 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                             {usedComponentsBuilt && websiteObj.usedComponents !== undefined && (
                                 <>
-                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
+                                    <RenderComponentTree seenUsedComponents={headerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} previewTemplate={previewTemplate} viewerTemplate={viewerTemplate} renderLocation={{ type: "header" }} />
 
-                                    <RenderComponentTree seenUsedComponents={pageUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
+                                    {activePage !== undefined && (
+                                        <RenderComponentTree seenUsedComponents={pageUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} previewTemplate={previewTemplate} viewerTemplate={viewerTemplate} renderLocation={{ type: "page", pageId: activePage.id }} />
+                                    )}
 
-                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} />
+                                    <RenderComponentTree seenUsedComponents={footerUsedComponents} originalUsedComponentsList={websiteObj.usedComponents} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} previewTemplate={previewTemplate} viewerTemplate={viewerTemplate} renderLocation={{ type: "footer" }} />
                                 </>
                             )}
                         </div>
@@ -1094,7 +1096,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
                                                                 {/* show options for active */}
                                                                 {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
                                                                     <>
-                                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplateSet={previewTemplateSet} location={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
+                                                                        <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenLocation={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
 
                                                                         {viewerTemplate.template !== null && (
                                                                             <button className='mainButton'
@@ -1173,7 +1175,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                     <div className={styles.addOnMenu}>
                         {websiteObj.usedComponents !== undefined && (
-                            <TemplateSelector websiteId={websiteObj.id} location={activeLocation} handleManageUsedComponents={handleManageUsedComponents} previewTemplateSet={previewTemplateSet} seenUsedComponents={websiteObj.usedComponents} />
+                            <TemplateSelector websiteId={websiteObj.id} seenLocation={activeLocation} handleManageUsedComponents={handleManageUsedComponents} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenUsedComponents={websiteObj.usedComponents} />
                         )}
 
                         {showingSideBar && (
@@ -1215,10 +1217,54 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 }
 
 function RenderComponentTree({
-    seenUsedComponents, originalUsedComponentsList, websiteObj, renderedUsedComponentsObj, tempActiveUsedComponentId, viewerTemplate
+    seenUsedComponents, originalUsedComponentsList, websiteObj, renderedUsedComponentsObj, tempActiveUsedComponentId, previewTemplate, viewerTemplate, renderLocation
 }: {
-    seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], websiteObj: website, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, viewerTemplate: viewerTemplateType | null
+    seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], websiteObj: website, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, previewTemplate: previewTemplateType | null, viewerTemplate: viewerTemplateType | null, renderLocation: usedComponentLocationType
 }) {
+    //if render location matches render the preview template
+    //if position matches then render it there
+
+    let SeenPreviewBuiltTemplate: React.ComponentType<{ data: templateDataType }> | null = null
+    let seenPreviewTemplateData: templateDataType | null = null
+    let scopedCssForPreview = null;
+
+    let previewLocationMatches = false
+
+    //check for location match
+    if (previewTemplate !== null) {
+        if (previewTemplate.location.type === "header" && renderLocation.type === "header") {
+            previewLocationMatches = true
+
+        } else if (previewTemplate.location.type === "footer" && renderLocation.type === "footer") {
+            previewLocationMatches = true
+
+        } else if (previewTemplate.location.type === "page" && renderLocation.type === "page" && previewTemplate.location.pageId === renderLocation.pageId) {
+            previewLocationMatches = true
+
+        } else if (previewTemplate.location.type === "child" && renderLocation.type === "child" && previewTemplate.location.parentId === renderLocation.parentId) {
+            previewLocationMatches = true
+        }
+
+        if (previewLocationMatches) {
+            SeenPreviewBuiltTemplate = previewTemplate.builtTemplate
+            seenPreviewTemplateData = previewTemplate.template.defaultData
+
+            scopedCssForPreview = addScopeToCSS(previewTemplate.template.defaultCss, previewTemplate.template.id)
+            seenPreviewTemplateData.styleId = `____${previewTemplate.template.id}`
+        }
+    }
+
+    const previewTemplateVar = SeenPreviewBuiltTemplate !== null && seenPreviewTemplateData !== null ? (
+        <>
+            <style>{scopedCssForPreview}</style>
+
+            <SeenPreviewBuiltTemplate data={seenPreviewTemplateData} />
+        </>
+    ) : null
+
+    if (seenUsedComponents.length === 0) {
+        return previewTemplateVar
+    }
 
     return (
         <>
@@ -1252,7 +1298,7 @@ function RenderComponentTree({
                 const seenOrderedChildren = sortUsedComponentsByOrder(seenChildren)
 
                 // Recursively render child components
-                const childJSX: React.JSX.Element | null = seenOrderedChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenOrderedChildren} originalUsedComponentsList={originalUsedComponentsList} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} viewerTemplate={viewerTemplate} /> : null;
+                const childJSX: React.JSX.Element | null = seenOrderedChildren.length > 0 ? <RenderComponentTree seenUsedComponents={seenOrderedChildren} originalUsedComponentsList={originalUsedComponentsList} websiteObj={websiteObj} renderedUsedComponentsObj={renderedUsedComponentsObj} tempActiveUsedComponentId={tempActiveUsedComponentId} previewTemplate={previewTemplate} viewerTemplate={viewerTemplate} renderLocation={{ type: "child", parentId: eachUsedComponent.id }} /> : null;
 
                 //apply scoped styling starter value
                 eachUsedComponent.data.styleId = `____${eachUsedComponent.id}`
@@ -1330,6 +1376,12 @@ function RenderComponentTree({
                             <>
                                 {/* Render the main component with injected props */}
                                 <ComponentToRender data={{ ...eachUsedComponent.data, mainElProps: { ...eachUsedComponent.data.mainElProps, id: seenElementId, className: seenElementClassNames } }} />
+                            </>
+                        )}
+
+                        {previewTemplate !== null && previewTemplate.orderPosition === eachUsedComponent.order + 1 && (
+                            <>
+                                {previewTemplateVar}
                             </>
                         )}
                     </React.Fragment>
