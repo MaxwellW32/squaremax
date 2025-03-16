@@ -70,7 +70,7 @@ export default function Page({ params }: { params: { websiteId: string } }) {
     //start off size options
     useEffect(() => {
         //get from url
-        let seenSizeInUrl = searchParams.get("size")
+        const seenSizeInUrl = searchParams.get("size")
 
         sizeOptionsSet(prevSizeOptions => {
             const newSizeOptions = prevSizeOptions.map(eachSizeOption => {
