@@ -1229,24 +1229,16 @@ function RenderComponentTree({
 
     //check for location match
     if (previewTemplate !== null) {
-        //if preview template location wants to render for child location
-        //and seenUsedComponents contains an element (the parent) that has that id
-        //then only when renderLocation child is absent do we check if its found
-        //if it is provide match
-
-        //handles base used components find for children preview templates
-        if (previewTemplate.location.type === "child") {
+        if (previewTemplate.location.type === "child" && renderLocation.type !== "child") {
+            //attach template preview to first time parent
             const foundParent = seenUsedComponents.find(eachUsedComponentFind => previewTemplate.location.type === "child" && eachUsedComponentFind.id === previewTemplate.location.parentId)
 
             //only search when child usedComponents empty
-            if (foundParent !== undefined && renderLocation.type !== "child") {
+            if (foundParent !== undefined) {
                 previewLocationMatches = true
                 usedComponentToAttachFirstChild = foundParent
-
             }
-        }
-
-        if (previewTemplate.location.type === "header" && renderLocation.type === "header") {
+        } else if (previewTemplate.location.type === "header" && renderLocation.type === "header") {
             previewLocationMatches = true
 
         } else if (previewTemplate.location.type === "footer" && renderLocation.type === "footer") {
@@ -1276,7 +1268,7 @@ function RenderComponentTree({
         </>
     ) : null
 
-
+    //attached preview template onto usedComponents with no children yet
     if (usedComponentToAttachFirstChild !== null) {
         if (usedComponentToAttachFirstChild.data.category === "containers") {
             usedComponentToAttachFirstChild.data.children = previewTemplateVar
@@ -1326,6 +1318,7 @@ function RenderComponentTree({
 
                 // If the component is a container, pass children as a prop
                 //handle chuldren for different categories
+
                 if (childJSX !== null) {
                     if (eachUsedComponent.data.category === "containers") {
                         eachUsedComponent.data.children = childJSX
@@ -1400,7 +1393,7 @@ function RenderComponentTree({
                             </>
                         )}
 
-                        {previewTemplate !== null && previewTemplate.orderPosition === eachUsedComponent.order + 1 && (
+                        {previewTemplate !== null && previewTemplate.orderPosition === eachUsedComponent.order + 1 && usedComponentToAttachFirstChild === null && (
                             <>
                                 {previewTemplateVar}
                             </>
