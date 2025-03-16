@@ -5,14 +5,20 @@ import { page, templateDataType, usedComponent, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sortUsedComponentsByOrder, } from '@/utility/utility'
+import { useSearchParams } from 'next/navigation'
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
-    const activePage = useMemo(() => {
-        if (websiteFromServer.pages === undefined) return undefined
+    const searchParams = useSearchParams();
 
-        return websiteFromServer.pages.find(eachPage => eachPage.link === "/")
-    }, [])
+    const [activePageId, activePageIdSet] = useState<page["id"] | undefined>(undefined)
+    const activePage = useMemo<page | undefined>(() => {
+        if (websiteFromServer.pages === undefined || activePageId === undefined) return undefined
 
+        const foundPage = websiteFromServer.pages.find(eachPageFind => eachPageFind.id === activePageId)
+        if (foundPage === undefined) return undefined
+
+        return foundPage
+    }, [websiteFromServer.pages, activePageId])
     const renderedUsedComponentsObj = useRef<{
         [key: string]: React.ComponentType<{
             data: templateDataType;
@@ -73,7 +79,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
         }
 
         start()
-    }, [websiteFromServer])
+    }, [websiteFromServer, activePage])
 
     //load up fonts dynamically
     useEffect(() => {
@@ -104,6 +110,20 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
             })
         };
     }, [websiteFromServer.fonts])
+
+    //load up page selection on page load
+    useEffect(() => {
+        if (websiteFromServer.pages === undefined) return
+
+        const seenPageName = searchParams.get("page")
+        if (seenPageName === null) return
+
+        const seenPage = websiteFromServer.pages.find(eachPage => eachPage.link === seenPageName)
+        if (seenPage === undefined) return
+
+        activePageIdSet(seenPage.id)
+    }, [])
+
 
     async function buildUsedComponents(sentUsedComponents: usedComponent[]) {
         usedComponentsBuiltSet(false)
