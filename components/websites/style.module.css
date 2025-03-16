@@ -110,6 +110,11 @@
     position: fixed;
     bottom: 0;
     translate: -100% 0;
+    pointer-events: none;
+}
+
+.addOnMenu>* {
+    pointer-events: initial;
 }
 
 /* desktop */

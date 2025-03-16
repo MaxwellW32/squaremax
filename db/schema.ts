@@ -1,6 +1,6 @@
-import { categoryName, templateDataType, fontsType, page, usedComponentLocationType, user, userUploadedImagesType, website, authorisedUserType } from "@/types";
+import { categoryName, templateDataType, fontsType, usedComponentLocationType, user, userUploadedImagesType, authorisedUserType } from "@/types";
 import { relations } from "drizzle-orm";
-import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
+import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 // typeof users.$inferSelect;
 // typeof users.$inferInsert 
@@ -107,11 +107,15 @@ export const usedComponentsRelations = relations(usedComponents, ({ one }) => ({
 export const templates = pgTable("templates", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//where you find it
     name: varchar("name", { length: 255 }).notNull().unique(),
+    uses: integer("uses").default(0).notNull(),
+    likes: integer("likes").default(0).notNull(),
     categoryId: varchar("categoryId", { length: 255 }).notNull().references(() => categories.name),
     defaultCss: text("defaultCss").notNull(),
     defaultData: json("defaultData").$type<templateDataType>().notNull(),
 }, (t) => ({
     templateNameIndex: index("templateNameIndex").on(t.name),
+    templateUsesIndex: index("templateUsesIndex").on(t.uses),
+    templateLikesIndex: index("templateLikesIndex").on(t.likes),
 }))
 export const templatesRelations = relations(templates, ({ one, many }) => ({
     templatesToStyles: many(templatesToStyles),

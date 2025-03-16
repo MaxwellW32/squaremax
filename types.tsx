@@ -168,6 +168,9 @@ export const otherSelctionOptionsArr = ["name", "family", "id", "recentlyViewed"
 export type otherSelctionOptionsType = typeof otherSelctionOptionsArr[number]
 export type activeSelectionType = category["name"] | otherSelctionOptionsType
 
+export const templateFilterOptions = ["popular", "mostLiked"] as const
+export type templateFilterOptionType = typeof templateFilterOptions[number]
+
 
 
 
@@ -422,6 +425,8 @@ export type updateUsedComponent = z.infer<typeof updateUsedComponentSchema>
 export const templatesSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
+    uses: z.number(),
+    likes: z.number(),
     categoryId: z.string().min(1),
     defaultCss: z.string(),
     defaultData: templateDataSchema,
@@ -431,7 +436,7 @@ export type template = z.infer<typeof templatesSchema> & {
     usedComponents?: usedComponent[],
     category?: category,
 }
-export const newTemplateSchema = templatesSchema.omit({ id: true })
+export const newTemplateSchema = templatesSchema.omit({ id: true, uses: true, likes: true })
 export type newTemplate = z.infer<typeof newTemplateSchema>
 
 

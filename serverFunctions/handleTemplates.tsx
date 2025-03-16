@@ -1,9 +1,9 @@
 "use server"
 import { db } from "@/db"
 import { templates } from "@/db/schema"
-import { collection, template, templatesSchema, newTemplate, newTemplateSchema, activeSelectionType, category } from "@/types"
+import { collection, template, templatesSchema, newTemplate, newTemplateSchema, activeSelectionType, category, templateFilterOptionType, categoryNameSchema } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
-import { eq, like } from "drizzle-orm"
+import { desc, eq, like } from "drizzle-orm"
 import { deleteDirectory } from "./handleServerFiles"
 import path from "path"
 import { globalTemplatesFilePath, websiteTemplatesDir } from "@/lib/websiteTemplateLib"
@@ -23,18 +23,36 @@ export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): 
     return result
 }
 
-export async function getTemplatesByCategory(seenCategoryName: category["name"]): Promise<template[]> {
-    //get by category name
-    templatesSchema.shape.name.parse(seenCategoryName)
+export async function getTemplatesByCategory(seenCategoryName: category["name"], filter: templateFilterOptionType, limit = 50, offset = 0): Promise<template[]> {
+    //validation
+    categoryNameSchema.parse(seenCategoryName)
 
     const results = await db.query.templates.findMany({
         where: eq(templates.categoryId, seenCategoryName),
+        limit: limit,
+        offset: offset,
+        orderBy: filter === "popular" ? desc(templates.uses) : desc(templates.likes),
         with: {
             category: true,
         }
     });
 
     return results
+}
+
+export async function getTemplatesByFamily(seenFamilyName: string): Promise<template[]> {
+    //validation
+    // categoryNameSchema.parse(seenCategoryName)
+
+    // const results = await db.query.templates.findMany({
+    //     where: eq(templates.categoryId, seenCategoryName),
+    //     orderBy: filter === "popular" ? desc(templates.uses) : desc(templates.likes),
+    //     with: {
+    //         category: true,
+    //     }
+    // });
+
+    return []
 }
 
 export async function getTemplatesByName(seenName: string): Promise<template[]> {
@@ -49,18 +67,6 @@ export async function getTemplatesByName(seenName: string): Promise<template[]> 
 
     return results
 }
-// export async function getTemplatesByFamily(seenTemplateFamily: template["family"]): Promise<template[]> {
-//     templatesSchema.shape.name.parse(seenName)
-
-//     const results = await db.query.templates.findMany({
-//         where: like(templates.name, `%${seenName}%`),
-//         with: {
-//             category: true,
-//         }
-//     });
-
-//     return results
-// }
 
 export async function addTemplate(seenNewTemplate: newTemplate, collectionsArr: collection[]): Promise<template> {
     const session = await sessionCheckWithError()
