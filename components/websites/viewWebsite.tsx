@@ -21,6 +21,7 @@ import { Session } from 'next-auth'
 import DownloadOptions from '../downloadOptions/DownloadOptions'
 import RecursiveForm from '../recursiveForm/RecursiveForm'
 import useEditingContent from './UseEditingContent'
+import Draggable from 'react-draggable';
 
 export default function ViewWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const { editingContent, setEditing } = useEditingContent()
@@ -62,6 +63,7 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
     const spacerRef = useRef<HTMLDivElement | null>(null)
     const canvasRef = useRef<HTMLDivElement | null>(null)
     const canvasContRef = useRef<HTMLDivElement | null>(null)
+    const draggableRef = useRef<HTMLDivElement | null>(null)
 
     const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
 
@@ -1171,7 +1173,18 @@ export default function ViewWebsite({ websiteFromServer, seenSession }: { websit
 
                     <div className={styles.addOnMenu}>
                         {websiteObj.usedComponents !== undefined && (
-                            <TemplateSelector websiteId={websiteObj.id} seenLocation={activeLocation} handleManageUsedComponents={handleManageUsedComponents} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenUsedComponents={websiteObj.usedComponents} />
+                            <Draggable
+                                nodeRef={draggableRef}
+                                cancel={Math.random() > 0.6 ? "true" : undefined}
+                            >
+                                <div style={{}} ref={draggableRef}>
+                                    <div style={{ backgroundColor: "rgb(var(--shade1))", cursor: "pointer", padding: ".5rem", display: "grid", alignItems: "center", justifyItems: "center" }}>
+                                        <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 288c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 288zm0-128c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 160z" /></svg>
+                                    </div>
+
+                                    <TemplateSelector websiteId={websiteObj.id} seenLocation={activeLocation} handleManageUsedComponents={handleManageUsedComponents} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenUsedComponents={websiteObj.usedComponents} />
+                                </div>
+                            </Draggable>
                         )}
 
                         {showingSideBar && (
@@ -1217,9 +1230,6 @@ function RenderComponentTree({
 }: {
     seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], websiteObj: website, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, previewTemplate: previewTemplateType | null, viewerTemplate: viewerTemplateType | null, renderLocation: usedComponentLocationType
 }) {
-    //if render location matches render the preview template
-    //if position matches then render it there
-
     let SeenPreviewBuiltTemplate: React.ComponentType<{ data: templateDataType }> | null = null
     let seenPreviewTemplateData: templateDataType | null = null
     let previewScopedCss = null;
