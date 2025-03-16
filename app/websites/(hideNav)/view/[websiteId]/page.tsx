@@ -1,17 +1,16 @@
 "use client"
 import { scaleToFit } from '@/utility/utility'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { page, website } from '@/types';
+import { page, sizeOptionsArr, sizeOptionType, website } from '@/types';
 import { getSpecificWebsite } from '@/serverFunctions/handleWebsites';
 import toast from 'react-hot-toast';
-
-const sizeOptionsArr = ["desktop", "tablet", "mobile"] as const
-type sizeOption = typeof sizeOptionsArr[number]
+import Draggable from 'react-draggable';
 
 export default function Page({ params }: { params: { websiteId: string } }) {
     const searchParams = useSearchParams();
     const [refresher, refresherSet] = useState(true)
+    const draggableRef = useRef<HTMLDivElement | null>(null)
 
     const [websiteObj, websiteObjSet] = useState<website | undefined>()
     const [screenDimensions, screenDimensionsSet] = useState<{ width: number, height: number } | null>(null)
@@ -26,23 +25,10 @@ export default function Page({ params }: { params: { websiteId: string } }) {
         return foundPage
     }, [websiteObj?.pages, activePageId])
 
-    const [seenSize, seenSizeSet] = useState<sizeOption | undefined>(undefined)
-
-    const displaySize: { width: number, height: number } | null = seenSize === "desktop" ? {
-        width: 1920,
-        height: 1080,
-
-    } : seenSize === "tablet" ? {
-        width: 768,
-        height: 1024,
-
-    } : seenSize === "mobile" ? {
-        width: 375,
-        height: 667,
-
-    } : null
-
-    console.log(`$displaySize`, displaySize);
+    const [sizeOptions, sizeOptionsSet] = useState<sizeOptionType[]>(sizeOptionsArr)
+    const activeSizeOption = useMemo(() => {
+        return sizeOptions.find(eachSizeOption => eachSizeOption.active)
+    }, [sizeOptions])
 
     //get website
     useEffect(() => {
@@ -52,7 +38,6 @@ export default function Page({ params }: { params: { websiteId: string } }) {
                 toast.error("not seeing website")
                 return
             }
-            console.log(`$seenWebsite`, seenWebsite);
 
             websiteObjSet(seenWebsite)
         }
@@ -82,17 +67,29 @@ export default function Page({ params }: { params: { websiteId: string } }) {
 
     }, [websiteObj])
 
-    //start off size
+    //start off size options
     useEffect(() => {
         //get from url
-        let seenSizeInUrl = searchParams.get("size") as unknown as sizeOption
+        let seenSizeInUrl = searchParams.get("size")
 
-        if (sizeOptionsArr.includes(seenSizeInUrl)) {
-            seenSizeSet(seenSizeInUrl)
+        sizeOptionsSet(prevSizeOptions => {
+            const newSizeOptions = prevSizeOptions.map(eachSizeOption => {
+                eachSizeOption.active = false
 
-        } else {
-            seenSizeSet("mobile")
-        }
+                if (eachSizeOption.name === seenSizeInUrl) {
+                    eachSizeOption.active = true
+                }
+
+                return eachSizeOption
+            })
+
+            const foundOneActive = newSizeOptions.find(eachSizeOptionFind => eachSizeOptionFind.active) !== undefined
+            if (!foundOneActive) {
+                newSizeOptions[0].active = true
+            }
+
+            return newSizeOptions
+        })
     }, [])
 
     function refreshThings() {
@@ -103,51 +100,73 @@ export default function Page({ params }: { params: { websiteId: string } }) {
         }, 300);
     }
 
-    const scale = screenDimensions !== null && displaySize !== null ? scaleToFit(screenDimensions.width, screenDimensions.height, displaySize.width, displaySize.height) : null
+    const scale = screenDimensions !== null && activeSizeOption !== undefined ? scaleToFit(screenDimensions.width, screenDimensions.height, activeSizeOption.width, activeSizeOption.height) : null
 
-    if (screenDimensions === null || scale === null || websiteObj === undefined || activePage === undefined || displaySize === null) return null
+    if (screenDimensions === null || scale === null || websiteObj === undefined || activePage === undefined || activeSizeOption === undefined) return null
 
     return (
         <>
             {refresher && (
-                <iframe src={`/websites/iframeView/${websiteObj.id}?page=${activePage.link}`} width={displaySize.width} height={displaySize.height} style={{ scale: scale, transformOrigin: "center", position: "absolute", top: "50%", left: "50%", translate: "-50% -50%" }} />
+                <iframe src={`/websites/iframeView/${websiteObj.id}?page=${activePage.link}`} width={activeSizeOption.width} height={activeSizeOption.height} style={{ scale: scale, transformOrigin: "center", position: "absolute", top: "50%", left: "50%", translate: "-50% -50%" }} />
             )}
 
-            <div>
-                <select value={activePageId}
-                    onChange={async (event: React.ChangeEvent<HTMLSelectElement>) => {
-                        if (websiteObj.usedComponents === undefined) return
+            <Draggable
+                nodeRef={draggableRef}
+            >
+                <div ref={draggableRef} style={{ display: "grid", alignContent: "flex-start", width: "min(200px, 60vw)" }}>
+                    <div className='toolTip' style={{ backgroundColor: "rgb(var(--shade1))", cursor: "pointer", padding: ".5rem", display: "grid", alignItems: "center", justifyItems: "center" }} data-tooltip={"drag"}>
+                        <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 288c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 288zm0-128c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 160z" /></svg>
+                    </div>
 
-                        const eachPageId = event.target.value
+                    <select value={activePageId}
+                        onChange={async (event: React.ChangeEvent<HTMLSelectElement>) => {
+                            if (websiteObj.usedComponents === undefined) return
 
-                        //whenever page id changes hold off on showing results
-                        activePageIdSet(eachPageId)
+                            const eachPageId = event.target.value
 
-                        refreshThings()
-                    }}
-                >
-                    {websiteObj.pages !== undefined && websiteObj.pages.map(eachPage => {
+                            //whenever page id changes hold off on showing results
+                            activePageIdSet(eachPageId)
 
-                        return (
-                            <option key={eachPage.id} value={eachPage.id}
+                            refreshThings()
+                        }}
+                    >
+                        {websiteObj.pages !== undefined && websiteObj.pages.map(eachPage => {
 
-                            >{eachPage.link === "/" ? "home" : eachPage.link}</option>
-                        )
-                    })}
-                </select>
+                            return (
+                                <option key={eachPage.id} value={eachPage.id}
 
-                <div>
-                    {sizeOptionsArr.map(eachSize => {
-                        return (
-                            <div key={eachSize}
-                                onClick={() => {
-                                    seenSizeSet(eachSize)
-                                }}
-                            >{eachSize}</div>
-                        )
-                    })}
+                                >{eachPage.link === "/" ? "home" : eachPage.link}</option>
+                            )
+                        })}
+                    </select>
+
+                    <div style={{ display: "flex", justifyContent: "center" }}>
+                        {sizeOptions.map(eachSizeOption => {
+                            return (
+                                <button key={eachSizeOption.name} className='mainButton svgChildFill' style={{ padding: ".5rem" }}
+                                    onClick={() => {
+                                        sizeOptionsSet(prevSizeOptions => {
+                                            const newSizeOptions = prevSizeOptions.map(eachSizeOptionMap => {
+                                                eachSizeOptionMap.active = false
+
+                                                if (eachSizeOptionMap.name === eachSizeOption.name) {
+                                                    eachSizeOptionMap.active = true
+                                                }
+
+                                                return eachSizeOptionMap
+                                            })
+
+                                            return newSizeOptions
+                                        })
+                                    }}
+                                >
+                                    {eachSizeOption.icon}
+                                </button>
+                            )
+                        })}
+                    </div>
                 </div>
-            </div>
+            </Draggable>
         </>
     )
 }
