@@ -87,6 +87,7 @@ export const usedComponents = pgTable('usedComponents', {
 
 }, (t) => ({
     websiteIdIndex: index("websiteIdIndex").on(t.websiteId),
+    templateIdIndex: index("templateIdIndex").on(t.templateId),
 }),
 );
 export const usedComponentsRelations = relations(usedComponents, ({ one }) => ({

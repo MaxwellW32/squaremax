@@ -12,7 +12,7 @@ export default function TemplateDataSwitch({ location, activeUsedComponent, seen
                 <EditNavbarsData data={activeUsedComponent.data} activeUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} />
             )}
 
-            {activeUsedComponent.data.category === "containers" && location.type === "child" && (
+            {activeUsedComponent.data.category === "containers" && (
                 <EditContainersData location={location} seenUsedComponents={seenUsedComponents} data={activeUsedComponent.data} seenUsedComponent={activeUsedComponent} handlePropsChange={handlePropsChange} />
             )}
         </>

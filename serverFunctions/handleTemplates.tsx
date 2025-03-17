@@ -9,6 +9,7 @@ import path from "path"
 import { globalTemplatesFilePath, websiteTemplatesDir } from "@/lib/websiteTemplateLib"
 import fs from "fs/promises"
 import { replaceBaseFolderNameInPath } from "@/usefulFunctions/usefulFunctions"
+import { deleteUsedComponent, getUsedComponents } from "./handleUsedComponents"
 
 export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): Promise<template | undefined> {
     templatesSchema.pick({ id: true }).parse(templateIdObj)
@@ -116,13 +117,19 @@ export async function updateTemplate(templateObj: Partial<template>, collections
         .where(eq(templates.id, templateObj.id));
 }
 
-export async function deleteTemplate(templateIdObj: Pick<template, "id">) {
+export async function deleteTemplate(templateId: template["id"]) {
     const session = await sessionCheckWithError()
     if (session.user.role !== "admin") throw new Error("not authorised to delete template")
 
-    templatesSchema.pick({ id: true }).parse(templateIdObj)
+    templatesSchema.shape.id.parse(templateId)
 
-    await db.delete(templates).where(eq(templates.id, templateIdObj.id));
+    //delete all related usedComponents
+    const seenUsedComponents = await getUsedComponents({ option: "template", data: { templateId: templateId } })
+    await Promise.all(seenUsedComponents.map(async eachUsedComponent => {
+        await deleteUsedComponent(eachUsedComponent.websiteId, eachUsedComponent.id)
+    }))
+
+    await db.delete(templates).where(eq(templates.id, templateId));
 }
 
 async function createTemplateFolder(seenTemplateId: template["id"], collection: collection[]) {

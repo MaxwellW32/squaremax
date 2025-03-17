@@ -231,7 +231,8 @@ function RenderComponentTree({
                 // If the component is a container, pass children as a prop
                 //handle chuldren for different categories
                 if (childJSX !== null) {
-                    if (eachUsedComponent.data.category === "containers") {
+                    if (Object.hasOwn(eachUsedComponent.data, "children")) {
+                        //@ts-expect-error types
                         eachUsedComponent.data.children = childJSX
                     }
                 }

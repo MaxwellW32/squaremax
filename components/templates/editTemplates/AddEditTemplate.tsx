@@ -10,13 +10,11 @@ import { addTemplate, deleteTemplate, removeEntryFromGlobalTemplatesFile, update
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import { deleteDirectory } from '@/serverFunctions/handleServerFiles'
 import { websiteTemplatesDir } from '@/lib/websiteTemplateLib'
-import { useRouter } from "next/navigation"
 import TextInput from '@/components/textInput/TextInput'
 import TextArea from '@/components/textArea/TextArea'
+import ConfirmationBox from '@/components/confirmationBox/ConfirmationBox'
 
 export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: template }) {
-    const router = useRouter()
-
     const [initialForm,] = useState<Partial<newTemplate>>({
         name: "",
         categoryId: "",
@@ -25,7 +23,6 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
     })
 
     const [formObj, formObjSet] = useState<Partial<newTemplate> | template>(oldTemplate !== undefined ? deepClone(oldTemplate) : deepClone(initialForm))
-    const [userWantsToDelete, userWantsToDeleteSet] = useState(false)
     const [categories, categoriesSet] = useState<category[]>([])
     const [selectedCategory, selectedCategorySet] = useState<category | null>(null)
     const [seenCollection, seenCollectionSet] = useState<collection[]>([])
@@ -163,25 +160,23 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
 
     async function handleDelete() {
         try {
+            if (oldTemplate === undefined) return
+
             toast.success("deleting...")
 
             //delete any tables with relations to the template
-            const validatedFullTemplate = templatesSchema.parse(formObj)
+            templatesSchema.shape.id.parse(oldTemplate.id)
 
             //remove template
-            await deleteTemplate({ id: validatedFullTemplate.id })
+            await deleteTemplate(oldTemplate.id)
 
             //delete the website template dir
-            await deleteDirectory(path.join(websiteTemplatesDir, validatedFullTemplate.id))
+            await deleteDirectory(path.join(websiteTemplatesDir, oldTemplate.id))
 
             //delete from global templates file
-            await removeEntryFromGlobalTemplatesFile(validatedFullTemplate.id)
+            await removeEntryFromGlobalTemplatesFile(oldTemplate.id)
 
             toast.success("deleted template")
-
-            setTimeout(() => {
-                router.push("/")
-            }, 3000);
         } catch (error) {
             consoleAndToastError(error)
         }
@@ -198,22 +193,9 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
 
                 {oldTemplate && (
                     <>
-                        {!userWantsToDelete ? (
-                            <button className='mainButton'
-                                onClick={() => {
-                                    userWantsToDeleteSet(true)
-                                }}
-                            >Delete Template</button>
-                        ) : (
-                            <div>
-                                <p>Confirm Deletion</p>
-
-                                <div style={{ display: "flex", alignItems: 'center', gap: ".5rem", marginTop: ".5rem" }}>
-                                    <button className='secondaryButton' style={{ backgroundColor: "var(rgb(--shade1))" }} onClick={() => (userWantsToDeleteSet(false))}>CANCEL</button>
-                                    <button className='secondaryButton' onClick={handleDelete}>CONFIRM</button>
-                                </div>
-                            </div>
-                        )}
+                        <ConfirmationBox text='delete template' confirmationText='are you sure you want to delete this template?' successMessage='template deleted!'
+                            runAction={handleDelete}
+                        />
                     </>
                 )}
             </section>

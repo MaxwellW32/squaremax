@@ -2,15 +2,17 @@
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getSpecificTemplate, getTemplatesByCategory, getTemplatesByFamily, getTemplatesByName } from '@/serverFunctions/handleTemplates'
 import { addUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent, previewTemplateType, activeSelectionType, otherSelctionOptionsArr, otherSelctionOptionsType, templateDataType, templateFilterOptionType, templateFilterOptions, categoryName, categoryNameSchema } from '@/types'
+import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent, previewTemplateType, activeSelectionType, otherSelctionOptionsArr, otherSelctionOptionsType, templateDataType, templateFilterOptionType, templateFilterOptions, categoryName, categoryNameSchema, page } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { ensureChildCanBeAddedToParent, getUsedComponentsInSameLocation } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
+import styles from "./styles.module.css"
+import LocationSelector from '../websites/LocationSelector'
 
-export default function TemplateSelector({ websiteId, seenLocation, handleManageUsedComponents, viewerTemplateSet, previewTemplate, previewTemplateSet, seenUsedComponents }: {
-    websiteId: website["id"], seenLocation: usedComponentLocationType, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplate: previewTemplateType | null, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenUsedComponents: usedComponent[]
+export default function TemplateSelector({ websiteId, seenLocation, activeLocationSet, seenPage, handleManageUsedComponents, viewerTemplateSet, previewTemplate, previewTemplateSet, seenActiveUsedComponent, seenUsedComponents, canFloat = false }: {
+    websiteId: website["id"], seenLocation: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, seenPage: page | undefined, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplate: previewTemplateType | null, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenActiveUsedComponent: usedComponent | undefined, seenUsedComponents: usedComponent[], canFloat?: boolean
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
     const [, refresherSet] = useState(false)
@@ -226,7 +228,7 @@ export default function TemplateSelector({ websiteId, seenLocation, handleManage
     }
 
     return (
-        <div style={{ display: "grid", alignContent: "flex-start", backgroundColor: "rgb(var(--shade2))", overflow: "auto" }}>
+        <div className={`${canFloat ? styles.templateSelectorCont : ""}`} style={{ display: "grid", alignContent: "flex-start", backgroundColor: "rgb(var(--shade2))", overflow: "auto" }}>
             <button className='mainButton' style={{ padding: ".5rem" }}
                 onClick={() => {
                     userInteractingSet(prev => !prev)
@@ -239,6 +241,8 @@ export default function TemplateSelector({ websiteId, seenLocation, handleManage
             )}</button>
 
             <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid rgb(var(--shade1))", overflow: "auto", width: "min(300px, 80vw)", justifyItems: "center", zIndex: 999 }}>
+                <LocationSelector location={seenLocation} activeLocationSet={activeLocationSet} activePage={seenPage} activeUsedComponent={seenActiveUsedComponent} style={{ justifySelf: "stretch" }} />
+
                 <ul style={{ display: "flex", overflowX: "auto", justifySelf: "stretch" }}>
                     {categories.map(eachCategory => {
                         return (

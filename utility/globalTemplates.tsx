@@ -11,11 +11,9 @@ export default async function globalDynamicTemplates(id: string) {
     if (!fileExists) return undefined
 
     const dynamicTemplate: { [key: string]: () => React.ComponentType<{ data: templateDataType }> } = {
-        "76a62d0d-2f49-4a3b-88e5-ba248caa79a4": () => dynamic(() => import(`@/websiteTemplates/${id}/page.tsx`), { ssr: false }),
 "33fd6f2a-a453-4f4d-9a47-9b2b07996a0e": () => dynamic(() => import(`@/websiteTemplates/${id}/page.tsx`), { ssr: false }),
 "f973417e-1649-4d06-a081-c76c7e5808d3": () => dynamic(() => import(`@/websiteTemplates/${id}/page.tsx`), { ssr: false }),
-"78249e6c-a214-4b81-810d-982e23a11b8d": () => dynamic(() => import(`@/websiteTemplates/${id}/page.tsx`), { ssr: false }),
-"9286fe5f-8788-4995-9aaa-562a664c2d84": () => dynamic(() => import(`@/websiteTemplates/${id}/page.tsx`), { ssr: false }),
+"40cbfba0-6a21-4092-b4d1-11e1856bfdf3": () => dynamic(() => import(`@/websiteTemplates/${id}/page.tsx`), { ssr: false }),
     }//<marker>
 
     const SeenComponent = dynamicTemplate[id];

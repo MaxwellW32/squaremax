@@ -1,7 +1,7 @@
 import { page, usedComponent, usedComponentLocationType } from '@/types'
 import React, { useEffect } from 'react'
 
-export default function LocationSelector({ location, activeLocationSet, activePage, activeUsedComponent }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePage: page | undefined, activeUsedComponent: usedComponent | undefined, }) {
+export default function LocationSelector({ location, activeLocationSet, activePage, activeUsedComponent, ...elProps }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePage: page | undefined, activeUsedComponent: usedComponent | undefined, } & React.HtmlHTMLAttributes<HTMLSelectElement>) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
     const activeUsedComponentCanHaveChild = activeUsedComponent !== undefined ? Object.hasOwn(activeUsedComponent.data, "children") : false
 
@@ -54,7 +54,7 @@ export default function LocationSelector({ location, activeLocationSet, activePa
 
 
     return (
-        <select value={location.type}
+        <select {...elProps} value={location.type}
             onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
                 const eachLocationOption = event.target.value
 

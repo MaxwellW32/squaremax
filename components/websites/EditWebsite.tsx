@@ -15,7 +15,6 @@ import TemplateDataSwitch from '../templates/templateData/TemplateDataSwitch'
 import TemplateSelector from '../templates/TemplateSelector'
 import UsedComponentLocationSelector from '../usedComponents/usedComponentLocationSelector/UsedComponentLocationSelector'
 import UsedComponentOrderSelector from '../usedComponents/usedComponentOrderSelector/UsedComponentOrderSelector'
-import LocationSelector from './LocationSelector'
 import styles from "./style.module.css"
 import { Session } from 'next-auth'
 import DownloadOptions from '../downloadOptions/DownloadOptions'
@@ -31,7 +30,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
     const pathname = usePathname();
     const { replace } = useRouter();
 
-    const [showingSideBar, showingSideBarSet] = useState(true)
+    const [showingSideBar, showingSideBarSet] = useState(false)
     const [dimSideBar, dimSideBarSet] = useState<boolean>(false)
     const [viewingDownloadOptions, viewingDownloadOptionsSet] = useState(false)
 
@@ -189,7 +188,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
 
         canvasScaleSet(newScale)
 
-    }, [activeSizeOption, canvasContRef])
+    }, [activeSizeOption])
 
     //center canvasView
     useEffect(() => {
@@ -690,6 +689,11 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
     function handleSelectUsedComponent() {
         if (tempActiveUsedComponentId.current === "") return
 
+        //on first click only show side bar
+        if (activeUsedComponentId === "") {
+            showingSideBarSet(true)
+        }
+
         activeUsedComponentIdSet(tempActiveUsedComponentId.current)
 
         selectionOptionSet("component")
@@ -831,7 +835,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                     <div ref={spacerRef} className={styles.spacer}></div>
                 </div>
 
-                <div className={styles.sideBarHolder} style={{ width: showingSideBar ? "min(500px, 100%)" : "" }}>
+                <div className={styles.sideBarHolder} style={{ width: showingSideBar ? "min(450px, 100%)" : "" }}>
                     <div className={styles.sideBar} style={{ display: showingSideBar && !dimSideBar ? "" : "none" }}>
                         <div className={styles.topSideBar}>
                             <select value={activePageId}
@@ -866,8 +870,6 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                     )
                                 })}
                             </select>
-
-                            <LocationSelector location={activeLocation} activeLocationSet={activeLocationSet} activePage={activePage} activeUsedComponent={activeUsedComponent} />
                         </div>
 
                         <div className={styles.selectionOptionsCont}>
@@ -1028,7 +1030,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                         onClick={() => {
                                                             navigator.clipboard.writeText(activeUsedComponent.id);
 
-                                                            toast.success("parent id copied to clipboard")
+                                                            toast.success("id copied to clipboard")
                                                         }}
                                                     >
                                                         <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z" /></svg>
@@ -1118,7 +1120,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                         {/* show options for active */}
                                                         {viewerTemplate !== null && viewerTemplate.usedComponentIdToSwap === activeUsedComponent.id && (
                                                             <>
-                                                                <TemplateSelector websiteId={websiteObj.id} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenLocation={activeUsedComponent.location} seenUsedComponents={websiteObj.usedComponents} />
+                                                                <TemplateSelector websiteId={websiteObj.id} seenPage={activePage} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenLocation={activeUsedComponent.location} activeLocationSet={activeLocationSet} seenActiveUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
 
                                                                 {viewerTemplate.template !== null && (
                                                                     <button className='mainButton'
@@ -1203,7 +1205,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                         <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 288c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 288zm0-128c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 160z" /></svg>
                                     </div>
 
-                                    <TemplateSelector websiteId={websiteObj.id} seenLocation={activeLocation} handleManageUsedComponents={handleManageUsedComponents} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenUsedComponents={websiteObj.usedComponents} />
+                                    <TemplateSelector websiteId={websiteObj.id} seenLocation={activeLocation} seenPage={activePage} activeLocationSet={activeLocationSet} handleManageUsedComponents={handleManageUsedComponents} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenActiveUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} canFloat={true} />
                                 </div>
                             </Draggable>
                         )}
@@ -1312,7 +1314,8 @@ function RenderComponentTree({
 
     //attached preview template onto usedComponents with no children yet
     if (usedComponentToAttachFirstChild !== null) {
-        if (usedComponentToAttachFirstChild.data.category === "containers") {
+        if (Object.hasOwn(usedComponentToAttachFirstChild.data, "children")) {
+            //@ts-expect-error types
             usedComponentToAttachFirstChild.data.children = previewTemplateVar
         }
     }
@@ -1362,7 +1365,8 @@ function RenderComponentTree({
                 //handle chuldren for different categories
 
                 if (childJSX !== null) {
-                    if (eachUsedComponent.data.category === "containers") {
+                    if (Object.hasOwn(eachUsedComponent.data, "children")) {
+                        //@ts-expect-error types
                         eachUsedComponent.data.children = childJSX
                     }
                 }
@@ -1391,9 +1395,8 @@ function RenderComponentTree({
 
                 //pass children to viewer component if valid
                 if (seenViewerTemplateData !== null) {
-                    if (seenViewerTemplateData.category === "containers") {
-
-                        //check for the children attribute
+                    if (Object.hasOwn(seenViewerTemplateData, "children")) {
+                        //@ts-expect-error types
                         seenViewerTemplateData.children = childJSX
                     }
 

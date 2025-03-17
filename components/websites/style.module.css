@@ -104,7 +104,6 @@
 .addOnMenu {
     display: grid;
     align-content: flex-start;
-    pointer-events: initial;
     justify-items: flex-end;
     width: min-content;
     position: fixed;
@@ -182,6 +181,18 @@
         right: 0;
         height: 60%;
     }
+
+    .addOnMenu {
+        display: flex;
+        position: fixed;
+
+        bottom: 0;
+        right: 0;
+        translate: 0 0;
+        pointer-events: none;
+        z-index: 99999;
+    }
+
 }
 
 @keyframes highlightComponent {
