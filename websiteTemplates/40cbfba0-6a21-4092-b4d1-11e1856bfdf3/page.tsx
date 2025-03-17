@@ -1,11 +1,11 @@
 "use client";
-import { navBarsType } from "@/types";
+import { navBarsDataType } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
 import React, { useState } from "react";
 import "@/app/globals.css";
 
-export default function Nav({ data }: { data: navBarsType }) {
+export default function Nav({ data }: { data: navBarsDataType }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (

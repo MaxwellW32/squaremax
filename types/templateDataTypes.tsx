@@ -1,7 +1,7 @@
 
 import { z } from "zod";
 
-//resuable data type start copy here
+//start copy here
 const reusableHtmlAttributesSchema = z.object({
     style: z.record(z.string()).optional(),
     className: z.string().optional(),
@@ -47,16 +47,30 @@ const reusableContactInfoSchema = z.object({//phone, address
 export type reusableContactInfoType = z.infer<typeof reusableContactInfoSchema>
 
 const reusableSocialMediaSchema = z.object({//whatsapp
-    title: z.string().min(1),
+    title: z.string().min(1).nullable(),
     link: reusableLinkSchema,
     image: reusableImageSchema,
 });
 export type reusableSocialMediaType = z.infer<typeof reusableSocialMediaSchema>
 
-//resuable data type end copy here
 
 
-//category data type start copy here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const categoryNameSchema = z.enum(["navbars", "heros", "containers"])
 export type categoryName = z.infer<typeof categoryNameSchema>
 
@@ -130,5 +144,5 @@ export type textElementsDataType = z.infer<typeof textElementsDataSchema>
 
 export const templateDataSchema = z.union([navBarsDataSchema, herosDataSchema, containersDataSchema, textElementsDataSchema])
 export type templateDataType = z.infer<typeof templateDataSchema>
-//category data type end copy here
+// end copy here
 
