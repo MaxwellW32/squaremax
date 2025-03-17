@@ -2,7 +2,7 @@
 import { deletePage, getSpecificPage, updateThePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, previewTemplateType, sizeOptionsArr, sizeOptionType, templateDataType, updatePageSchema, updateUsedComponent, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, previewTemplateType, sizeOptionsArr, sizeOptionType, updatePageSchema, updateUsedComponent, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, scaleToFit, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -23,6 +23,7 @@ import useEditingContent from './UseEditingContent'
 import Draggable from 'react-draggable';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { templateDataType } from '@/types/templateDataTypes'
 
 export default function EditWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
     const { editingContent, setEditing } = useEditingContent()

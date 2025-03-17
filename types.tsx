@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { Endpoints } from "@octokit/types";
-
-//change all containers 
+import { categoryNameSchema, templateDataSchema, templateDataType } from "./types/templateDataTypes";
 
 // regular types
 export type websiteDownloadOptionType = "file" | "github"
@@ -204,145 +203,6 @@ export const sizeOptionsArr = [
 
 
 
-//resuable data type start copy here
-const reusableHtmlAttributesSchema = z.object({
-    style: z.record(z.string()).optional(),
-    className: z.string().optional(),
-    id: z.string().optional(),
-});
-export type reusableHtmlAttributesType = z.infer<typeof reusableHtmlAttributesSchema>
-
-const reusableChildrenPropSchema = z.any()
-export type reusableChildrenPropType = z.infer<typeof reusableChildrenPropSchema>
-
-const reusableLinkSchema = z.object({
-    title: z.string().min(1).nullable(),
-    url: z.string().min(1),
-    target: z.string().min(1).nullable(),
-});
-export type reusableLinkType = z.infer<typeof reusableLinkSchema>
-
-const reusableImageSchema = z.object({
-    src: z.string().min(1), //display the image
-    alt: z.string().min(1),
-    priority: z.boolean().nullable(),
-    size: z.union([
-        z.object({
-            type: z.literal("noFill"),
-            width: z.number(),
-            height: z.number(),
-        }),
-        z.object({
-            type: z.literal("fill"),
-            fill: z.boolean(),
-            sizes: z.string(),
-        }),
-    ]),
-    link: reusableLinkSchema.nullable()
-});
-export type reusableImageType = z.infer<typeof reusableImageSchema>
-
-const reusableContactInfoSchema = z.object({//phone, address
-    title: z.string().min(1),
-    link: reusableLinkSchema.nullable(),
-    image: reusableImageSchema.nullable(),
-});
-export type reusableContactInfoType = z.infer<typeof reusableContactInfoSchema>
-
-const reusableSocialMediaSchema = z.object({//whatsapp
-    title: z.string().min(1),
-    link: reusableLinkSchema,
-    image: reusableImageSchema,
-});
-export type reusableSocialMediaType = z.infer<typeof reusableSocialMediaSchema>
-
-//resuable data type end copy here
-
-
-
-
-
-
-
-
-
-
-//category data type start copy here
-export const categoryNameSchema = z.enum(["navbars", "heros", "containers"])
-export type categoryName = z.infer<typeof categoryNameSchema>
-
-
-type navMenuBaseType = {
-    title: string,
-    link: reusableLinkType,
-    subMenu: navMenuBaseType
-}[]
-const navBarMenuSchema: z.ZodType<navMenuBaseType> = z.array(z.lazy(() => z.object({
-    title: z.string().min(1),
-    link: reusableLinkSchema,
-    subMenu: navBarMenuSchema,
-})))
-export type navBarMenuType = z.infer<typeof navBarMenuSchema>
-
-export const navBarsDataSchema = z.object({
-    category: z.literal(categoryNameSchema.enum.navbars),
-    mainElProps: reusableHtmlAttributesSchema,
-    menu: navBarMenuSchema,
-    styleId: z.string(),
-    logos: z.array(reusableImageSchema),
-    children: reusableChildrenPropSchema,
-    contactInfo: z.array(reusableContactInfoSchema),
-    socialMedia: z.array(reusableSocialMediaSchema),
-    supportingImages: z.array(reusableImageSchema),
-})
-export type navBarsDataType = z.infer<typeof navBarsDataSchema>
-
-export const updateNavBarsDataSchema = navBarsDataSchema.omit({ category: true, mainElProps: true, styleId: true, children: true, })
-export type updateNavBarsDataType = z.infer<typeof updateNavBarsDataSchema>
-
-
-
-
-
-export const herosDataSchema = z.object({
-    category: z.literal(categoryNameSchema.enum.heros),
-    mainElProps: reusableHtmlAttributesSchema,
-    styleId: z.string(),
-})
-export type herosDataType = z.infer<typeof herosDataSchema>
-
-
-
-
-
-export const containersDataSchema = z.object({
-    category: z.literal(categoryNameSchema.enum.containers),
-    mainElProps: reusableHtmlAttributesSchema,
-    styleId: z.string(),
-
-    children: reusableChildrenPropSchema, //react element
-})
-export type containersDataType = z.infer<typeof containersDataSchema>
-
-
-
-
-
-export const textElementsDataSchema = z.object({
-    category: z.literal("textElements"),
-    mainElProps: reusableHtmlAttributesSchema,
-    styleId: z.string(),
-})
-export type textElementsDataType = z.infer<typeof textElementsDataSchema>
-
-
-
-
-
-export const templateDataSchema = z.union([navBarsDataSchema, herosDataSchema, containersDataSchema, textElementsDataSchema])
-export type templateDataType = z.infer<typeof templateDataSchema>
-//category data type end copy here
-
 
 
 
@@ -459,7 +319,6 @@ export type updatePage = z.infer<typeof updatePageSchema>
 
 
 
-
 export const locationHeaderSchema = z.object({
     type: z.literal("header"),
 })
@@ -472,7 +331,7 @@ export type locationFooterSchemaType = z.infer<typeof locationFooterSchema>
 
 export const locationPageSchema = z.object({
     type: z.literal("page"),
-    pageId: z.string().min(1)
+    pageId: pageSchema.shape.id
 })
 export type locationPageSchemaType = z.infer<typeof locationPageSchema>
 
@@ -481,10 +340,6 @@ export const locationChildSchema = z.object({
     parentId: z.string().min(1)
 })
 export type locationChildSchemaType = z.infer<typeof locationChildSchema>
-
-
-
-
 
 export const usedComponentLocationSchema = z.union([locationHeaderSchema, locationFooterSchema, locationPageSchema, locationChildSchema])
 export type usedComponentLocationType = z.infer<typeof usedComponentLocationSchema>
@@ -532,9 +387,6 @@ export type newTemplate = z.infer<typeof newTemplateSchema>
 
 
 
-
-
-
 export const categoriesSchema = z.object({
     name: categoryNameSchema,
 })
@@ -545,14 +397,12 @@ export type category = z.infer<typeof categoriesSchema> & {
 
 
 
-
 export const stylesSchema = z.object({
     name: z.string().min(1),
 })
 export type style = z.infer<typeof stylesSchema> & {
     templatesToStyles?: templatesToStyles[]
 }
-
 
 
 

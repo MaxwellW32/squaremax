@@ -1,11 +1,12 @@
 "use client"
 import styles from "./style.module.css"
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { page, templateDataType, usedComponent, website } from '@/types'
+import { page, usedComponent, website } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sortUsedComponentsByOrder, } from '@/utility/utility'
 import { useSearchParams } from 'next/navigation'
+import { templateDataType } from "@/types/templateDataTypes"
 
 export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
     const searchParams = useSearchParams();

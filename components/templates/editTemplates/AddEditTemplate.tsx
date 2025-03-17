@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import path from "path"
 import styles from "./addTemplate.module.css"
 import { toast } from 'react-hot-toast'
-import { category, collection, template, templateDataSchema, templatesSchema, newTemplate, newTemplateSchema } from '@/types'
+import { category, collection, template, templatesSchema, newTemplate, newTemplateSchema } from '@/types'
 import { deepClone } from '@/utility/utility'
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { addTemplate, deleteTemplate, removeEntryFromGlobalTemplatesFile, updateTemplate } from '@/serverFunctions/handleTemplates'
@@ -13,6 +13,7 @@ import { websiteTemplatesDir } from '@/lib/websiteTemplateLib'
 import TextInput from '@/components/textInput/TextInput'
 import TextArea from '@/components/textArea/TextArea'
 import ConfirmationBox from '@/components/confirmationBox/ConfirmationBox'
+import { templateDataSchema } from '@/types/templateDataTypes'
 
 export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: template }) {
     const [initialForm,] = useState<Partial<newTemplate>>({

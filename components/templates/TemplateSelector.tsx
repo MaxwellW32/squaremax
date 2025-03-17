@@ -2,7 +2,7 @@
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getSpecificTemplate, getTemplatesByCategory, getTemplatesByFamily, getTemplatesByName } from '@/serverFunctions/handleTemplates'
 import { addUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent, previewTemplateType, activeSelectionType, otherSelctionOptionsArr, otherSelctionOptionsType, templateDataType, templateFilterOptionType, templateFilterOptions, categoryName, categoryNameSchema, page } from '@/types'
+import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent, previewTemplateType, activeSelectionType, otherSelctionOptionsArr, otherSelctionOptionsType, templateFilterOptionType, templateFilterOptions, page } from '@/types'
 import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { ensureChildCanBeAddedToParent, getUsedComponentsInSameLocation } from '@/utility/utility'
@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./styles.module.css"
 import LocationSelector from '../websites/LocationSelector'
+import { categoryName, categoryNameSchema, templateDataType } from '@/types/templateDataTypes'
 
 export default function TemplateSelector({ websiteId, seenLocation, activeLocationSet, seenPage, handleManageUsedComponents, viewerTemplateSet, previewTemplate, previewTemplateSet, seenActiveUsedComponent, seenUsedComponents, canFloat = false }: {
     websiteId: website["id"], seenLocation: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, seenPage: page | undefined, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplate: previewTemplateType | null, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenActiveUsedComponent: usedComponent | undefined, seenUsedComponents: usedComponent[], canFloat?: boolean

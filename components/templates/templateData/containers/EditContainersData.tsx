@@ -1,6 +1,7 @@
-import { templateDataType, containersDataType, usedComponent, usedComponentLocationType } from '@/types'
+import { usedComponent, usedComponentLocationType } from '@/types'
 import React from 'react'
 import { getChildrenUsedComponents } from '@/utility/utility'
+import { containersDataType, templateDataType } from '@/types/templateDataTypes'
 
 export default function EditContainersData({ location, seenUsedComponents }: { data: containersDataType, seenUsedComponent: usedComponent, location: usedComponentLocationType, seenUsedComponents: usedComponent[], handlePropsChange: (newPropsObj: templateDataType, sentUsedComponent: usedComponent) => void }) {
     const seenChildren: usedComponent[] = location.type === "child" ? getChildrenUsedComponents(location.parentId, seenUsedComponents) : []

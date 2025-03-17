@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { templates } from "@/db/schema"
-import { collection, template, templatesSchema, newTemplate, newTemplateSchema, category, templateFilterOptionType, categoryNameSchema } from "@/types"
+import { collection, template, templatesSchema, newTemplate, newTemplateSchema, category, templateFilterOptionType } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
 import { desc, eq, like } from "drizzle-orm"
 import { deleteDirectory } from "./handleServerFiles"
@@ -10,6 +10,7 @@ import { globalTemplatesFilePath, websiteTemplatesDir } from "@/lib/websiteTempl
 import fs from "fs/promises"
 import { replaceBaseFolderNameInPath } from "@/usefulFunctions/usefulFunctions"
 import { deleteUsedComponent, getUsedComponents } from "./handleUsedComponents"
+import { categoryNameSchema } from "@/types/templateDataTypes"
 
 export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): Promise<template | undefined> {
     templatesSchema.pick({ id: true }).parse(templateIdObj)

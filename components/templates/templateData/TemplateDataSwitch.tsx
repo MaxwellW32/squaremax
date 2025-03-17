@@ -1,7 +1,8 @@
-import { templateDataType, usedComponent, usedComponentLocationType } from '@/types'
+import { usedComponent, usedComponentLocationType } from '@/types'
 import React from 'react'
 import EditNavbarsData from './navbars/EditNavbarsData'
 import EditContainersData from './containers/EditContainersData'
+import { templateDataType } from '@/types/templateDataTypes'
 
 export default function TemplateDataSwitch({ location, activeUsedComponent, seenUsedComponents, handlePropsChange }: { location: usedComponentLocationType, seenUsedComponents: usedComponent[], activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: templateDataType, seenComponentInPage: usedComponent) => void }) {
     if (activeUsedComponent.data === null) return null

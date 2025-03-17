@@ -1,6 +1,7 @@
 "use client"
 import RecursiveForm from '@/components/recursiveForm/RecursiveForm'
-import { templateDataType, navBarsDataType, usedComponent, updateNavBarsDataSchema, updateNavBarsDataType } from '@/types'
+import { usedComponent } from '@/types'
+import { navBarsDataType, templateDataType, updateNavBarsDataSchema, updateNavBarsDataType } from '@/types/templateDataTypes'
 import React from 'react'
 
 export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsDataType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: templateDataType, sentUsedComponent: usedComponent) => void }) {
