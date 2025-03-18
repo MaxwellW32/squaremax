@@ -239,3 +239,31 @@ section {
     display: revert;
     box-sizing: border-box;
 }
+
+.hideNav {
+    display: none !important;
+}
+
+.hideNavButton {
+    transition: opacity 400ms ease;
+    animation: fadeOut 3s ease;
+    opacity: 0;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.hideNavButton:hover {
+    opacity: 1;
+}
+
+.svgChildFill>svg {
+    fill: var(--fill, rgb(var(--shade2)));
+}

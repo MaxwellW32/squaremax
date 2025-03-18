@@ -147,6 +147,15 @@ export function ensureChildCanBeAddedToParent(parentId: usedComponent["id"], see
     if (!Object.hasOwn(foundParentUsedComponent.data, "children")) throw new Error("This component can't take child elements")
 }
 
+export function scaleToFit(containerWidth: number, containerHeight: number, wantedWidth: number, wantedHeight: number) {
+    const widthDiff = containerWidth / wantedWidth
+    const heightDiff = containerHeight / wantedHeight
+
+    const newScale = widthDiff < heightDiff ? widthDiff : heightDiff
+
+    return newScale
+}
+
 
 
 

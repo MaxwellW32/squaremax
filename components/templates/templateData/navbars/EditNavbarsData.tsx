@@ -1,12 +1,111 @@
 "use client"
-import { templateDataType, navBarsType, usedComponent } from '@/types'
+import RecursiveForm from '@/components/recursiveForm/RecursiveForm'
+import { usedComponent } from '@/types'
+import { navBarsDataType, templateDataType, updateNavBarsDataSchema, updateNavBarsDataType } from '@/types/templateDataTypes'
 import React from 'react'
 
-export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: templateDataType, sentUsedComponent: usedComponent) => void }) {
+export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsDataType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: templateDataType, sentUsedComponent: usedComponent) => void }) {
 
+    //make components to edit the different types of reusable data
+    //make recusrive component to edit nav menus
     return (
         <form action={() => { }}>
-            <ul>
+            <RecursiveForm
+                seenForm={updateNavBarsDataSchema.parse(data)}
+                seenMoreFormInfo={{
+                    "menu/0/link/title": {
+                        returnToNull: true
+                    },
+                    "menu/0/link/target": {
+                        returnToNull: true
+                    },
+                    "menu/0/subMenu/0/link/title": {
+                        returnToNull: true
+                    },
+                    "menu/0/subMenu/0/link/target": {
+                        returnToNull: true
+                    },
+                }}
+                seenArrayStarters={{
+                    "menu": {
+                        title: "",
+                        link: {
+                            title: null,
+                            url: "",
+                            target: null,
+                        },
+                        subMenu: [],
+                    },
+                    "menu/0/subMenu": {
+                        title: "",
+                        link: {
+                            title: null,
+                            url: "",
+                            target: null,
+                        },
+                        subMenu: [],
+                    },
+                    "menu/0/subMenu/0/subMenu": {
+                        title: "",
+                        link: {
+                            title: null,
+                            url: "",
+                            target: null,
+                        },
+                        subMenu: [],
+                    },
+                    "logos": {
+                        src: "",
+                        alt: "",
+                        priority: null,
+                        size: {
+                            type: "noFill",
+                            width: 300,
+                            height: 300,
+                        },
+                        link: null
+                    },
+                    "contactInfo": {
+                        title: "",
+                        link: null,
+                        image: null,
+                    },
+                    "socialMedia": {
+                        title: "",
+                        link: null,
+                        image: null,
+                    },
+                    "supportingImages": {
+                        src: "",
+                        alt: "",
+                        priority: null,
+                        size: {
+                            type: "noFill",
+                            width: 300,
+                            height: 300,
+                        },
+                        link: null
+                    },
+                }}
+                seenNullishStarters={{
+                    "menu/0/link/title": "",
+                    "menu/0/link/target": "",
+                    "menu/0/subMenu/0/link/title": "",
+                    "menu/0/subMenu/0/link/target": "",
+                }}
+                seenSchema={updateNavBarsDataSchema}
+                updater={seenForm => {
+
+                    const newUpdatedNavBarData: navBarsDataType = {
+                        ...data,
+                        ...(seenForm as updateNavBarsDataType)
+                    }
+
+                    handlePropsChange(newUpdatedNavBarData, activeUsedComponent)
+                }}
+            />
+
+            {/* <ul>
                 {data.menu.map((eachMenuItem, eachMenuItemIndex) => {
                     return (
                         <li key={eachMenuItemIndex}>
@@ -55,7 +154,7 @@ export default function EditNavbarsData({ data, activeUsedComponent, handleProps
                                     onClick={() => {
                                         if (data.menu[eachMenuItemIndex].subMenu === undefined) return null
 
-                                        const newSubMenuItem: navBarsType["menu"][number]["subMenu"] = [{
+                                        const newSubMenuItem: navBarsDataType["menu"][number]["subMenu"] = [{
                                             label: "",
                                             link: "",
                                         }]
@@ -75,7 +174,7 @@ export default function EditNavbarsData({ data, activeUsedComponent, handleProps
 
             <button className='mainButton'
                 onClick={() => {
-                    const newMenuItem: navBarsType["menu"][number] = {
+                    const newMenuItem: navBarsDataType["menu"][number] = {
                         label: "",
                         link: "",
                     }
@@ -84,7 +183,7 @@ export default function EditNavbarsData({ data, activeUsedComponent, handleProps
 
                     handlePropsChange(data, activeUsedComponent)
                 }}
-            >Add Menu</button>
+            >Add Menu</button> */}
         </form>
     )
 }

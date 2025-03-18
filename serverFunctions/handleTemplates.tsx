@@ -1,14 +1,16 @@
 "use server"
 import { db } from "@/db"
 import { templates } from "@/db/schema"
-import { collection, template, templatesSchema, newTemplate, newTemplateSchema } from "@/types"
+import { collection, template, templatesSchema, newTemplate, newTemplateSchema, category, templateFilterOptionType } from "@/types"
 import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
-import { eq, like } from "drizzle-orm"
+import { desc, eq, like } from "drizzle-orm"
 import { deleteDirectory } from "./handleServerFiles"
 import path from "path"
 import { globalTemplatesFilePath, websiteTemplatesDir } from "@/lib/websiteTemplateLib"
 import fs from "fs/promises"
 import { replaceBaseFolderNameInPath } from "@/usefulFunctions/usefulFunctions"
+import { deleteUsedComponent, getUsedComponents } from "./handleUsedComponents"
+import { categoryNameSchema } from "@/types/templateDataTypes"
 
 export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): Promise<template | undefined> {
     templatesSchema.pick({ id: true }).parse(templateIdObj)
@@ -23,34 +25,49 @@ export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): 
     return result
 }
 
-export async function getTemplates(selectionObj: { option: "name", data: Pick<template, "name"> } | { option: "categoryId", data: Pick<template, "categoryId"> }): Promise<template[]> {
-    if (selectionObj.option === "name") {
-        templatesSchema.pick({ name: true }).parse(selectionObj.data)
+export async function getTemplatesByCategory(seenCategoryName: category["name"], filter: templateFilterOptionType, limit = 50, offset = 0): Promise<template[]> {
+    //validation
+    categoryNameSchema.parse(seenCategoryName)
 
-        const result = await db.query.templates.findMany({
-            where: like(templates.name, `%${selectionObj.data}%`),
-            with: {
-                category: true,
-            }
-        });
+    const results = await db.query.templates.findMany({
+        where: eq(templates.categoryId, seenCategoryName),
+        limit: limit,
+        offset: offset,
+        orderBy: filter === "popular" ? desc(templates.uses) : desc(templates.likes),
+        with: {
+            category: true,
+        }
+    });
 
-        return result
+    return results
+}
 
-    } else if (selectionObj.option === "categoryId") {
-        templatesSchema.pick({ categoryId: true }).parse(selectionObj.data)
+export async function getTemplatesByFamily(seenFamilyName: string): Promise<template[]> {
+    //validation
+    // categoryNameSchema.parse(seenCategoryName)
 
-        const result = await db.query.templates.findMany({
-            where: eq(templates.categoryId, selectionObj.data.categoryId),
-            with: {
-                category: true,
-            }
-        });
+    // const results = await db.query.templates.findMany({
+    //     where: eq(templates.categoryId, seenCategoryName),
+    //     orderBy: filter === "popular" ? desc(templates.uses) : desc(templates.likes),
+    //     with: {
+    //         category: true,
+    //     }
+    // });
 
-        return result
+    return []
+}
 
-    } else {
-        throw new Error("not seeing selectionObj")
-    }
+export async function getTemplatesByName(seenName: string): Promise<template[]> {
+    templatesSchema.shape.name.parse(seenName)
+
+    const results = await db.query.templates.findMany({
+        where: like(templates.name, `%${seenName}%`),
+        with: {
+            category: true,
+        }
+    });
+
+    return results
 }
 
 export async function addTemplate(seenNewTemplate: newTemplate, collectionsArr: collection[]): Promise<template> {
@@ -101,13 +118,19 @@ export async function updateTemplate(templateObj: Partial<template>, collections
         .where(eq(templates.id, templateObj.id));
 }
 
-export async function deleteTemplate(templateIdObj: Pick<template, "id">) {
+export async function deleteTemplate(templateId: template["id"]) {
     const session = await sessionCheckWithError()
     if (session.user.role !== "admin") throw new Error("not authorised to delete template")
 
-    templatesSchema.pick({ id: true }).parse(templateIdObj)
+    templatesSchema.shape.id.parse(templateId)
 
-    await db.delete(templates).where(eq(templates.id, templateIdObj.id));
+    //delete all related usedComponents
+    const seenUsedComponents = await getUsedComponents({ option: "template", data: { templateId: templateId } })
+    await Promise.all(seenUsedComponents.map(async eachUsedComponent => {
+        await deleteUsedComponent(eachUsedComponent.websiteId, eachUsedComponent.id)
+    }))
+
+    await db.delete(templates).where(eq(templates.id, templateId));
 }
 
 async function createTemplateFolder(seenTemplateId: template["id"], collection: collection[]) {

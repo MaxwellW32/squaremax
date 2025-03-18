@@ -99,8 +99,6 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
 
                 //send up to client
                 handleManagePage({ option: "update", updatedPageId: sentPage.id, seenUpdatedPage: validatedUpdatedPage })
-
-                toast.success("page updated")
             }
 
             if (submissionAction !== undefined) {
