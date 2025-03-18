@@ -13,7 +13,7 @@ npm install
 npm run build
 
 # Restart the PM2 process
-pm2 stop nextjs
-pm2 start nextjs
+pm2 stop squaremax
+pm2 start squaremax
 
 echo "Deployment complete."
