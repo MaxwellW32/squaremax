@@ -5,6 +5,20 @@ import Nav from "@/components/nav/Nav";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
+//to do
+//complete website setup so you and mom can make websites - new design
+//make custom forms for each edit data category type
+//make drop down lists no padding
+//
+//
+//
+//
+//
+//
+
+
+
+
 const geist = localFont({
   src: "./fonts/Geist.ttf",
   variable: "--geist",

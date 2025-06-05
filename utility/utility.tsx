@@ -35,7 +35,7 @@ export function sanitizeUsedComponentData(usedComponent: usedComponent): usedCom
 
     return deepClone(usedComponent)
 }
-//
+
 export function moveItemInArray<T>(arr: T[], fromIndex: number, toIndex: number): T[] {
     const newArr = [...arr]; // Clone to avoid mutation
 

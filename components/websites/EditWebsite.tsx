@@ -1066,7 +1066,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                         />
 
                                                         <ShowMore
-                                                            label='set id, class'
+                                                            label='set attributes'
                                                             content={
                                                                 <>
                                                                     <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
