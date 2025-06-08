@@ -7,8 +7,7 @@ export default function ShowMore({ label, content, svgColor, startShowing }: { l
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start" }}>
-            {/* label area */}
-            <div style={{ display: "flex", gap: ".5rem", alignItems: "center", cursor: "pointer", padding: "1rem" }}
+            <div style={{ display: "flex", gap: ".5rem", alignItems: "center", cursor: "pointer", paddingBlock: "1rem" }}
                 onClick={() => {
                     showingSet(prev => !prev)
                 }}
@@ -20,8 +19,7 @@ export default function ShowMore({ label, content, svgColor, startShowing }: { l
                 </div>
             </div>
 
-            {/* content */}
-            <div style={{ paddingLeft: '1rem', display: !showing ? "none" : "grid", alignContent: "flex-start", overflow: "clip" }}>
+            <div style={{ display: !showing ? "none" : "grid", alignContent: "flex-start", overflow: "clip" }}>
                 <div style={{ display: "grid", alignContent: "flex-start" }} className={`${showing ? styles.animateIn : ""}`}>
                     {content}
                 </div>

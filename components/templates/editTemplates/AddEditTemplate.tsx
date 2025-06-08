@@ -205,7 +205,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
                 <ul style={{ display: "flex", gap: ".5rem" }}>
                     {categories.map(eachCategory => {
                         return (
-                            <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: eachCategory.name === selectedCategory?.name ? "rgb(var(--color1))" : "" }}
+                            <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: eachCategory.name === selectedCategory?.name ? "var(--color1)" : "" }}
                                 onClick={() => {
                                     selectedCategorySet(eachCategory)
 

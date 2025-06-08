@@ -30,7 +30,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
             <div style={{ display: "flex", flexWrap: "wrap" }}>
                 {locationSelectionOptions.map(eachLocationSelectionOption => {
                     return (
-                        <button key={eachLocationSelectionOption} className='mainButton' style={{ backgroundColor: transferToLocation !== undefined && eachLocationSelectionOption === transferToLocation ? "rgb(var(--color1))" : "" }}
+                        <button key={eachLocationSelectionOption} className='mainButton' style={{ backgroundColor: transferToLocation !== undefined && eachLocationSelectionOption === transferToLocation ? "var(--color1)" : "" }}
                             onClick={() => {
                                 transferToLocationSet(eachLocationSelectionOption)
                             }}

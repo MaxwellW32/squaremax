@@ -122,7 +122,7 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
                     if (eachKey === "active" && formObj.active !== undefined) {
                         return (
                             <React.Fragment key={eachKey}>
-                                <button className='mainButton' style={{ backgroundColor: formObj.active ? "rgb(var(--color1))" : "" }}
+                                <button className='mainButton' style={{ backgroundColor: formObj.active ? "var(--color1)" : "" }}
                                     onClick={() => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = deepClone(prevFormObj)

@@ -14,7 +14,7 @@ export default function ViewNavWebsites({ seenUserWebsites }: { seenUserWebsites
                 onClick={() => { showingSet(prev => !prev) }}
             >{showing ? "hide" : "websites"}</button>
 
-            <div style={{ display: showing ? "grid" : "none", position: "absolute", right: 0, maxHeight: "60vh", overflowY: "auto", top: "100%", backgroundColor: "rgb(var(--shade2))", padding: "1rem", border: "1px solid rgb(var(--shade1))" }}
+            <div style={{ display: showing ? "grid" : "none", position: "absolute", right: 0, maxHeight: "60vh", overflowY: "auto", top: "100%", backgroundColor: "var(--shade2)", padding: "1rem", border: "1px solid var(--shade1)" }}
                 onClick={() => {
                     showingSet(false)
                 }}
@@ -27,7 +27,7 @@ export default function ViewNavWebsites({ seenUserWebsites }: { seenUserWebsites
                     const foundInUrl = pathname.includes(eachWebsite.id)
 
                     return (
-                        <Link key={eachWebsite.id} href={`/websites/edit/${eachWebsite.id}`} style={{ border: "1px solid rgb(var(--shade1))", padding: "1rem", color: foundInUrl ? "rgb(var(--color1))" : "" }}>
+                        <Link key={eachWebsite.id} href={`/websites/edit/${eachWebsite.id}`} style={{ border: "1px solid var(--shade1)", padding: "1rem", color: foundInUrl ? "var(--color1)" : "" }}>
                             <h3>{eachWebsite.name}</h3>
                         </Link>
                     )

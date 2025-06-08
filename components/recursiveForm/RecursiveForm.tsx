@@ -472,7 +472,7 @@ function RenderForm({ seenForm, seenFormSet, userInteractedSet, seenMoreFormInfo
 
                             {typeof eachValue === 'boolean' && (
                                 <>
-                                    <button className='mainButton' style={{ backgroundColor: eachValue ? "rgb(var(--color1))" : "" }}
+                                    <button className='mainButton' style={{ backgroundColor: eachValue ? "var(--color1)" : "" }}
                                         onClick={() => {
                                             seenFormSet(prevForm => {
                                                 runSameOnAll()

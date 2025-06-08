@@ -101,15 +101,15 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
 
 
     return (
-        <div {...elProps} style={{ display: "grid", alignContent: "flex-start", position: "fixed", top: "50%", left: "50%", translate: "-50% -50%", width: "min(500px, 95vw)", height: "80vh", backgroundColor: "rgb(var(--shade2))", zIndex: 10, overflowY: "auto", border: "1px solid rgb(var(--shade1))", ...elProps?.style }}>
+        <div {...elProps} style={{ display: "grid", alignContent: "flex-start", position: "fixed", top: "50%", left: "50%", translate: "-50% -50%", width: "min(500px, 95vw)", height: "80vh", backgroundColor: "var(--shade2)", zIndex: 10, overflowY: "auto", border: "1px solid var(--shade1)", ...elProps?.style }}>
             {/* download option selection */}
             <div style={{ display: "flex", overflowX: "auto" }}>
-                <button className='mainButton' style={{ backgroundColor: downloadOption === "github" ? "rgb(var(--color1))" : "" }}
+                <button className='mainButton' style={{ backgroundColor: downloadOption === "github" ? "var(--color1)" : "" }}
                     onClick={() => {
                         downloadOptionSet("github")
                     }}>github</button>
 
-                <button className='mainButton' style={{ backgroundColor: downloadOption === "zip" ? "rgb(var(--color1))" : "" }}
+                <button className='mainButton' style={{ backgroundColor: downloadOption === "zip" ? "var(--color1)" : "" }}
                     onClick={() => {
                         downloadOptionSet("zip")
                     }}>zip</button>
@@ -140,7 +140,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                 {downloadOption === "github" && (
                     <div style={{ display: "grid", alignContent: "flex-start", overflowY: "auto", }}>
                         {/* account selection */}
-                        <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem", padding: "1rem", border: "1px solid rgb(var(--shade1))" }}>
+                        <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem", padding: "1rem", border: "1px solid var(--shade1)" }}>
                             {activeGithubToken === undefined ? (
                                 <>
                                     {githubTokens.map(eachGithubToken => {
@@ -174,7 +174,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
 
                                                 <ConfirmationBox text='' confirmationText='are you sure you want to delete this github token?' successMessage='token deleted!'
                                                     icon={
-                                                        <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
+                                                        <svg style={{ fill: "var(--shade2)" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                                                     }
                                                     runAction={async () => {
                                                         const seenLatestTokens = await deleteUserGithubTokens(seenSession.user.id, eachGithubToken)
@@ -268,14 +268,14 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
 
                                 {filteredRepositories.map(eachFilteredRepository => {
                                     return (
-                                        <div key={eachFilteredRepository.id} style={{ padding: "1rem", display: "flex", alignItems: "center", gap: "1rem", overflowX: "auto", borderTop: "1px solid rgb(var(--shade1))", }}>
+                                        <div key={eachFilteredRepository.id} style={{ padding: "1rem", display: "flex", alignItems: "center", gap: "1rem", overflowX: "auto", borderTop: "1px solid var(--shade1)", }}>
                                             <label>{eachFilteredRepository.name}</label>
 
                                             <p style={{ flex: 1 }}><Moment fromNow>{eachFilteredRepository.updated_at}</Moment></p>
 
                                             <ConfirmationBox text='' confirmationText='are you sure you want to upload to this repo?' successMessage='uploading!' float={true}
                                                 icon={
-                                                    <svg style={{ fill: "rgb(var(--shade2))" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480l0-83.6c0-4 1.5-7.8 4.2-10.8L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z" /></svg>
+                                                    <svg style={{ fill: "var(--shade2)" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480l0-83.6c0-4 1.5-7.8 4.2-10.8L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z" /></svg>
                                                 }
                                                 runAction={async () => {
                                                     if (activeGithubToken == undefined) return
