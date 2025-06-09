@@ -19,7 +19,7 @@ export type serviceProcess = {
 
 export const servicesData: service[] = [
     {
-        image: "@/public/services/web.png",
+        image: "/services/web.png",
         name: "Website Development",
         shortSummary: "We Craft custom high performance websites tailored to the unique needs and branding of each client",
         link: "/services/websiteDevelopment",
@@ -60,7 +60,7 @@ export const servicesData: service[] = [
         ]
     },
     {
-        image: "@/public/services/phone.png",
+        image: "/services/phone.png",
         name: "Mobile App Development",
         shortSummary: "We designing and developing iOS and Android apps for a seamless user experiences.",
         link: "/services/mobileAppDevelopment",
@@ -101,7 +101,7 @@ export const servicesData: service[] = [
         ]
     },
     {
-        image: "@/public/services/ecommerce.png",
+        image: "/services/ecommerce.png",
         name: "E-commerce Solutions",
         shortSummary: "We build robust e-commerce platforms for businesses to sell products or services online.",
         link: "/services/eCommerceSolutions",
@@ -137,7 +137,7 @@ export const servicesData: service[] = [
         ]
     },
     {
-        image: "@/public/services/customdev.png",
+        image: "/services/customdev.png",
         name: "Custom Software Development",
         shortSummary: "We develop tailored software solutions to automate processes, improve efficiency, and address specific business challenges, from CRM systems to inventory management tools.",
         link: "/services/customSoftwareDevelopment",
@@ -173,7 +173,7 @@ export const servicesData: service[] = [
         ]
     },
     {
-        image: "@/public/services/seo.jpg",
+        image: "/services/seo.jpg",
         name: "SEO and Marketing",
         shortSummary: "Our SEO specialists optimize your website to work better with Google, enhancing visibility and driving traffic. We handle everything from registering your business with Google Analytics to Google analytics and growth strategies.",
         link: "/services/seoAndMarketing",
@@ -215,7 +215,7 @@ export const servicesData: service[] = [
         ]
     },
     {
-        image: "@/public/services/hosting.jpg",
+        image: "/services/hosting.jpg",
         name: "Managed Hosting",
         shortSummary: "With managed hosting we can handle your domain, business email, contact forms, and hosting to make setup a breeze. Or provide support to host your website with your preferred providers.",
         link: "/services/managedHosting",
