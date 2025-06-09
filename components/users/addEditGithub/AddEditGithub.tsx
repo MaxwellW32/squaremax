@@ -166,13 +166,13 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
                                     value={`${formObj[eachKey]}`}
                                     label={moreFormInfo[eachKey].label}
                                     placeHolder={moreFormInfo[eachKey].placeHolder}
-                                    onInput={(e) => {
+                                    onChange={(e) => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
                                             if (eachKey === "active") return prevFormObj
 
-                                            //@ts-expect-error type
-                                            newFormObj[eachKey] = e.target.value
+                                            newFormObj[eachKey] = (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
+
                                             return newFormObj
                                         })
                                     }}

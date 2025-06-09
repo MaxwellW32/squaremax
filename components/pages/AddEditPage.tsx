@@ -156,16 +156,16 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
                                 value={`${formObj[eachKey]}`}
                                 label={moreFormInfo[eachKey].label}
                                 placeHolder={moreFormInfo[eachKey].placeHolder}
-                                onInput={(e) => {
+                                onChange={(e) => {
                                     formObjSet(prevFormObj => {
                                         const newFormObj = { ...prevFormObj }
-                                        //@ts-expect-error type
-                                        newFormObj[eachKey] = e.target.value
+                                        const seenStr = (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
+
+                                        newFormObj[eachKey] = seenStr
 
                                         //link validation
                                         if (eachKey === "link") {
-                                            //@ts-expect-error type
-                                            const seenValidatedPageLink = makeValidPageLinkName(e.target.value)
+                                            const seenValidatedPageLink = makeValidPageLinkName(seenStr)
 
                                             if (seenValidatedPageLink === "") {
                                                 newFormObj[eachKey] = "/"

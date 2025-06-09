@@ -12,7 +12,6 @@ import { auth } from "@/auth/auth";
 //make custom forms for each edit data category type
 //templates can import fonts
 //
-//compile
 
 const rubik = localFont({
   src: "./fonts/Rubik.ttf",
