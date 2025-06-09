@@ -1,7 +1,6 @@
 "use server"
 import nodemailer from "nodemailer"
-
-require('dotenv').config()
+require('dotenv').config({ path: ".env.local" })
 
 const email = process.env.EMAIL
 const pass = process.env.EMAIL_PASS
@@ -24,8 +23,9 @@ export async function sendNodeEmail(input: {
     // const locationToTempaltes = path.join(basePath, "templates", "simple.html")
     // const htmlSource = await fs.readFile(locationToTempaltes, { encoding: "utf-8" })
     // const template = Handlebars.compile(htmlSource);
+    // console.log("Message sent: %s", info.messageId);
 
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
         from: email,
         to: input.sendTo,
         subject: input.subject,
@@ -59,6 +59,4 @@ export async function sendNodeEmail(input: {
         // }),
         replyTo: input.replyTo
     });
-
-    // console.log("Message sent: %s", info.messageId);
 }

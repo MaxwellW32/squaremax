@@ -22,7 +22,7 @@ export default function MoreNavOptions({ session }: { session: Session }) {
     useEffect(() => {
         try {
             const search = async () => {
-                seenUserWebsitesSet(await getWebsitesFromUser())
+                seenUserWebsitesSet(await getWebsitesFromUser({}, 5))
             }
             search()
 
@@ -41,8 +41,8 @@ export default function MoreNavOptions({ session }: { session: Session }) {
                 <ul className={styles.moreItemsMenu}
                     onClick={() => { showingNavSet(false) }}
                 >
-                    <Link href={`/websites/new`} style={{ justifySelf: "flex-end" }}>
-                        <button className='thirdButton' style={{ padding: ".5rem", }}>Add Website</button>
+                    <Link href={`/websites`} style={{ justifySelf: "flex-end" }}>
+                        <button className='button3'>manage websites</button>
                     </Link>
 
                     {seenUserWebsites !== undefined && (
@@ -58,7 +58,6 @@ export default function MoreNavOptions({ session }: { session: Session }) {
                                     </li>
                                 )
                             })}
-
                         </>
                     )}
 

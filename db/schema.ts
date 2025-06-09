@@ -37,6 +37,7 @@ export const websites = pgTable("websites", {
     globalCss: text("globalCss").default("").notNull(),
     userUploadedImages: json("userUploadedImages").$type<userUploadedImagesType>().default([]).notNull(),
     authorisedUsers: json("authorisedUsers").$type<authorisedUserType[]>().default([]).notNull(),
+    dateAdded: timestamp("dateAdded", { mode: "date" }).defaultNow().notNull(),
 },
     (table) => {
         return {

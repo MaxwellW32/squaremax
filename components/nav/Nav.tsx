@@ -7,9 +7,6 @@ import Logo from "@/components/logo/Logo"
 import { signIn } from 'next-auth/react'
 import { Session } from 'next-auth'
 import MoreNavOptions from '../moreNavOptions/MoreNavOptions'
-import { website } from '@/types'
-import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
-import { getWebsitesFromUser } from '@/serverFunctions/handleWebsites'
 
 type menuItem = {
     title: string,
@@ -29,22 +26,6 @@ type subSubMenuItem = {
 }
 
 export default function MainNav({ menuInfoArr, session }: { menuInfoArr: menuItem[], session: Session | null }) {
-    const [seenUserProjects, seenUserProjectsSet] = useState<website[] | undefined>(undefined)
-
-    //search
-    useEffect(() => {
-        try {
-            const search = async () => {
-                if (session === null) return
-
-                seenUserProjectsSet(await getWebsitesFromUser())
-            }
-            search()
-
-        } catch (error) {
-            consoleAndToastError(error)
-        }
-    }, [])
 
     return (
         <nav id='mainNav' className={styles.mainNav}>
@@ -57,7 +38,7 @@ export default function MainNav({ menuInfoArr, session }: { menuInfoArr: menuIte
             <div style={{ justifySelf: "flex-end", display: "grid", alignContent: "flex-start" }}>
                 {session === null ? (
                     <>
-                        <button className={`mainButton ${styles.navButton}`}
+                        <button className={`button1 ${styles.navButton}`}
                             onClick={() => signIn()}
                         >Login</button>
                     </>
@@ -67,7 +48,6 @@ export default function MainNav({ menuInfoArr, session }: { menuInfoArr: menuIte
                     </>
                 )}
             </div>
-
         </nav>
     )
 }

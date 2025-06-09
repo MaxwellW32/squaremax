@@ -9,7 +9,7 @@ export default function HowItWorks() {
                 <p className='supportingTitle2'>How It Works</p>
                 <h1>check Out Our <span className='highlight'>Work Process</span></h1>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: "1rem", marginBlock: "1rem", justifySelf: 'stretch' }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: "var(--spacingR)", marginBlock: "1rem", justifySelf: 'stretch' }}>
                     {[
                         {
                             title: "Initial Consultation",

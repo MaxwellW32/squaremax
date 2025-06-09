@@ -143,7 +143,7 @@ export default function Page({ params }: { params: { websiteId: string } }) {
                     <div style={{ display: "flex", justifyContent: "center" }}>
                         {sizeOptions.map(eachSizeOption => {
                             return (
-                                <button key={eachSizeOption.name} className='mainButton svgChildFill' style={{ padding: ".5rem" }}
+                                <button key={eachSizeOption.name} className='button1 svgChildFill' style={{ padding: ".5rem" }}
                                     onClick={() => {
                                         sizeOptionsSet(prevSizeOptions => {
                                             const newSizeOptions = prevSizeOptions.map(eachSizeOptionMap => {

@@ -1,18 +1,14 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
 import styles from "./page.module.css"
-import SpecificationsTextInput from '@/components/reusables/specificationsTextInput/SpecificationsInput'
-import SpecificationsTextAreaInput from '@/components/reusables/specificationsTextAreaInput/SpecificationsTextAreaInput'
 import { toast } from 'react-hot-toast'
 import { sendNodeEmail } from '@/serverFunctions/handleNodeEmails'
 import { clientSpecificationKeys, moreFormInfoType, pagesType, specificationsFormSchema, specificationsObjType } from '@/types'
 import Image from 'next/image'
 import { retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage'
-
-//add saving
-//check for save on load
-//as changes happen write them to storage
-//have checkedForSave indicator before writing
+import TextInput from '@/components/textInput/TextInput'
+import TextArea from '@/components/textArea/TextArea'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 
 export default function Page() {
     const [initialSpecificationsObj,] = useState<specificationsObjType>({
@@ -242,21 +238,19 @@ export default function Page() {
         //inputs
         if (moreFormInfo[id].inputType === undefined || moreFormInfo[id].inputType === "input") {
             return (
-                <SpecificationsTextInput
+                <TextInput
                     name={id}
                     value={`${specificationsObj[id]}`}
                     type={moreFormInfo[id].type}
                     label={moreFormInfo[id].label}
                     placeHolder={moreFormInfo[id].placeHolder}
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         specificationsObjSet(prevSpecifications => {
                             const newSpecifications = { ...prevSpecifications }
                             if (moreFormInfo[id].type === undefined || moreFormInfo[id].type === "text") {
-                                //@ts-expect-error type
                                 newSpecifications[id] = e.target.value
 
                             } else if (moreFormInfo[id].type === "number") {
-                                //@ts-expect-error type
                                 const parsedNum = parseFloat(e.target.value)
 
                                 //@ts-expect-error type
@@ -272,21 +266,21 @@ export default function Page() {
             )
         } else if (moreFormInfo[id].inputType === "textarea") {
             return (
-                <SpecificationsTextAreaInput
+                <TextArea
                     name={id}
                     value={`${specificationsObj[id]}`}
                     label={moreFormInfo[id].label}
                     placeHolder={moreFormInfo[id].placeHolder}
-                    onInput={(e) => {
+                    onChange={(e) => {
                         specificationsObjSet(prevSpecifications => {
                             const newSpecifications = { ...prevSpecifications }
+                            const seenStr = (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
+
                             if (moreFormInfo[id].type === undefined || moreFormInfo[id].type === "text") {
-                                //@ts-expect-error type
-                                newSpecifications[id] = e.target.value
+                                newSpecifications[id] = seenStr
 
                             } else if (moreFormInfo[id].type === "number") {
-                                //@ts-expect-error type
-                                const parsedNum = parseFloat(e.target.value)
+                                const parsedNum = parseFloat(seenStr)
 
                                 //@ts-expect-error type
                                 newSpecifications[id] = isNaN(parsedNum) ? 0 : parsedNum
@@ -312,35 +306,28 @@ export default function Page() {
                 sendTo: "squaremaxtech@gmail.com",
                 replyTo: specificationsObj["au"],
                 subject: `Customer Specifications for ${specificationsObj["aa"]}`,
-                text: (
-                    `
-                    ${Object.entries(pages).map(([, value]) => {
+                text: (`
+${Object.entries(pages).map(([, value]) => {
 
-                        return (
-                            `
-                            ${value.title !== undefined ? value.title : ""} \n
-        
-                            ${value.questions.map(eachQuestionId => {
-                                return (
-                                    `
-                                    ${moreFormInfo[eachQuestionId].label}
-                                    ${specificationsObj[eachQuestionId]} \n\n
-                                `
-                                )
-                            })}\n
-                        `
-                        )
-                    })}
-                `
-                )
+                    return (`
+${value.title !== undefined ? value.title : ""}\n
+
+${value.questions.map(eachQuestionId => {
+                        return (`
+${moreFormInfo[eachQuestionId].label}
+${specificationsObj[eachQuestionId]}
+        `)
+                    }).join("\n\n\n")}
+    `)
+                }).join("\n")}
+`)
             })
 
             toast.success("Sent!")
             specificationsObjSet({ ...initialSpecificationsObj })
 
         } catch (error) {
-            toast.error("Couldn't send")
-            console.log(`Couldn't send`, error);
+            consoleAndToastError(error)
         }
     }
 
@@ -390,7 +377,7 @@ export default function Page() {
         <main className={styles.main}>
             <div ref={formContRef} className={styles.formCont}>
                 {/* form navigation buttons */}
-                <div className='noScrollBar' style={{ display: "flex", overflowX: "auto", gap: "1rem" }}>
+                <div className='noScrollBar' style={{ display: "flex", overflowX: "auto", gap: "var(--spacingR)" }}>
                     {Object.entries(pages).map(([key,], pageButtonIndex) => {
                         return (
                             <button key={key} className={styles.formPageButton} style={{ backgroundColor: "", color: pageButtonIndex === currentPageIndex ? "#fff" : "#aaa", width: "8rem", paddingBlock: ".5rem", flexShrink: 0 }}
@@ -422,12 +409,12 @@ export default function Page() {
                                 )}
 
                                 {key === "0" && (
-                                    <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "1rem" }}>
+                                    <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "var(--spacingR)" }}>
                                         <div style={{ flex: "1 1 400px", position: "relative", height: "300px" }}>
                                             <Image alt='formArtDesign' src={"/cyberLady.png"} fill={true} style={{ objectFit: "cover" }} sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' />
                                         </div>
 
-                                        <div style={{ flex: "1 1 400px", display: "grid", gap: "1rem" }}>
+                                        <div style={{ flex: "1 1 400px", display: "grid", gap: "var(--spacingR)" }}>
                                             <div style={{ textAlign: "center" }}>
                                                 <h2>Customize Your Website</h2>
                                                 <p style={{ color: "", fontSize: "var(--fontSizeS)" }}>Required Inputs are outlined by a golden line</p>
@@ -435,7 +422,7 @@ export default function Page() {
 
                                             {filterQuestions(value.questions)}
 
-                                            <button style={{ justifySelf: "center" }} className='secondaryButton'
+                                            <button style={{ justifySelf: "center" }} className='button2'
                                                 onClick={() => {
                                                     scrollToForm()
 
@@ -454,7 +441,7 @@ export default function Page() {
                     {/* submit button */}
                     {currentPageIndex !== 0 && (
                         <div style={{ display: "flex", justifyContent: "center", gap: ".5rem" }}>
-                            <button className='secondaryButton'
+                            <button className='button2'
                                 onClick={() => {
                                     scrollToForm()
 
@@ -470,13 +457,13 @@ export default function Page() {
                                 }}
                             >prev</button>
 
-                            <button className='mainButton' disabled={!specificationsFormSchema.safeParse(specificationsObj).success} style={{ justifySelf: "center", paddingInline: "4rem" }}
+                            <button className='button1' disabled={!specificationsFormSchema.safeParse(specificationsObj).success} style={{ justifySelf: "center", paddingInline: "4rem" }}
                                 onClick={() => {
                                     handleSubmit(true)
                                 }}
                             >Submit</button>
 
-                            <button className='secondaryButton'
+                            <button className='button2'
                                 onClick={() => {
                                     scrollToForm()
 

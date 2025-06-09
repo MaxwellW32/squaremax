@@ -1,0 +1,19 @@
+.main {
+    display: grid;
+    align-content: flex-start;
+}
+
+.serviceCont {
+    display: grid;
+    align-content: flex-start;
+    padding: 1rem;
+}
+
+.serviceCont>h2 {
+    margin-top: 1rem;
+}
+
+.serviceCont>p {
+    padding-left: 1rem;
+    max-width: 50ch;
+}

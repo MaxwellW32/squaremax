@@ -5,7 +5,7 @@ import React from 'react'
 
 export default function DisplayProjects({ seenProjectData }: { seenProjectData: projectData[] }) {
     return (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%),1fr))", gap: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%),1fr))", gap: "var(--spacingR)" }}>
             {seenProjectData.map(eachProject => {
                 return (
                     <Link key={eachProject.slug} href={`/projects/${eachProject.slug}`} style={{ backgroundColor: "var(--bg1)", display: "grid", gridTemplateRows: "1fr auto", aspectRatio: "1/2" }}>
@@ -16,7 +16,7 @@ export default function DisplayProjects({ seenProjectData }: { seenProjectData: 
                         <div style={{ padding: "1rem", color: "#fff", display: "grid", gap: ".5rem", whiteSpace: "nowrap" }}>
                             <h3>{eachProject.name}</h3>
 
-                            <div className='noScrollBar' style={{ display: "flex", gap: "1rem", overflowX: "auto" }}>
+                            <div className='noScrollBar' style={{ display: "flex", gap: "var(--spacingR)", overflowX: "auto" }}>
                                 {eachProject.categoryStyles.map((eachCategoryStyle, eachCategoryStyleIndex) => {
                                     return (
                                         <div key={eachCategoryStyleIndex} style={{ borderRadius: "2rem", textTransform: "capitalize", fontSize: "var(--fontSizeS)", padding: ".5rem 1rem", backgroundColor: "var(--color3)" }}>
@@ -26,7 +26,7 @@ export default function DisplayProjects({ seenProjectData }: { seenProjectData: 
                                 })}
                             </div>
 
-                            <div className='noScrollBar' style={{ display: "flex", gap: "1rem", overflowX: "auto" }}>
+                            <div className='noScrollBar' style={{ display: "flex", gap: "var(--spacingR)", overflowX: "auto" }}>
                                 {eachProject.representingService.map((eachService, eachServiceIndex) => {
                                     return (
                                         <div key={eachServiceIndex} style={{ borderRadius: "2rem", textTransform: "capitalize", fontSize: "var(--fontSizeS)", padding: ".5rem 1rem", backgroundColor: "var(--color1)" }}>

@@ -3327,16 +3327,16 @@
 //     if (userGithubTokens === undefined) return null
 
 //     return (
-//         <div style={{ display: "grid", gap: "1rem", width: "min(600px, 100%)", padding: "1rem", alignContent: "flex-start", backgroundColor: "rgb(var(--shade2))", position: "absolute", top: 0, left: "50%", translate: "-50% 0", border: "2px solid rgb(var(--shade1))", height: "60%", overflowY: "auto", zIndex: 9999, ...elProps?.style }}
+//         <div style={{ display: "grid", gap: "var(--spacingR)", width: "min(600px, 100%)", padding: "1rem", alignContent: "flex-start", backgroundColor: "rgb(var(--shade2))", position: "absolute", top: 0, left: "50%", translate: "-50% 0", border: "2px solid rgb(var(--shade1))", height: "60%", overflowY: "auto", zIndex: 9999, ...elProps?.style }}
 //             onClick={(e) => {
 //                 e.stopPropagation()
 //             }}
 //         >
 //             {/* add git account - select account */}
-//             <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+//             <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
 //                 {/* view the selected one */}
 //                 {activeGithubToken !== undefined ? (
-//                     <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1rem" }}>
+//                     <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "var(--spacingR)" }}>
 //                         <ViewUserGithubToken userGithubToken={activeGithubToken} project={project} clientGetUserGithubTokens={clientGetUserGithubTokens}
 //                             onClick={async () => {
 //                                 try {
@@ -3351,7 +3351,7 @@
 //                         />
 
 //                         {/* close button */}
-//                         <button className='mainButton'
+//                         <button className='button1'
 //                             onClick={() => {
 //                                 showingGithubOptionsSet(false)
 //                             }}
@@ -3378,8 +3378,8 @@
 //                             )
 //                         })}
 
-//                         <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
-//                             <button className='mainButton' style={{ display: newUserGithubToken === undefined ? "" : "none" }}
+//                         <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
+//                             <button className='button1' style={{ display: newUserGithubToken === undefined ? "" : "none" }}
 //                                 onClick={() => {
 //                                     const newNewGithubToken: user["userGithubTokens"][number] = {
 //                                         active: false,
@@ -3412,7 +3412,7 @@
 //                                     <Link href={"https://github.com/settings/tokens/new?scopes=repo"} target='blank_'>Get your token</Link>
 
 //                                     {/* submit new newUserGithubToken */}
-//                                     <button className='mainButton'
+//                                     <button className='button1'
 //                                         onClick={async () => {
 //                                             try {
 //                                                 //send the newUserGithubToken up to server
@@ -3434,7 +3434,7 @@
 //                                     >submit</button>
 
 //                                     {/* cancel */}
-//                                     <button className='mainButton'
+//                                     <button className='button1'
 //                                         onClick={() => {
 //                                             newUserGithubTokenSet(undefined)
 //                                         }}
@@ -3448,11 +3448,11 @@
 
 //             {/* view repos in account - add repo */}
 //             {filteredRepos !== undefined && (
-//                 <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
-//                     <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+//                 <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
+//                     <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
 //                         {newGithubRepo === undefined && (
-//                             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-//                                 <button className='mainButton'
+//                             <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingR)" }}>
+//                                 <button className='button1'
 //                                     onClick={() => {
 //                                         const newNewGithubRepo: newGithubRepoType = {
 //                                             description: "",
@@ -3508,7 +3508,7 @@
 
 //                                 <label>repo status</label>
 
-//                                 <button className='mainButton'
+//                                 <button className='button1'
 //                                     onClick={() => {
 //                                         newGithubRepoSet(prevNewGithubRepo => {
 //                                             if (prevNewGithubRepo === undefined) return prevNewGithubRepo
@@ -3522,7 +3522,7 @@
 //                                     }}
 //                                 >{newGithubRepo.private ? "private" : "public"}</button>
 
-//                                 <button className='mainButton'
+//                                 <button className='button1'
 //                                     onClick={async () => {
 //                                         try {
 //                                             if (activeGithubToken === undefined) throw new Error("need active Github token")
@@ -3551,14 +3551,14 @@
 //                     {filteredRepos.map(eachRepo => {
 
 //                         return (
-//                             <div key={eachRepo.id} style={{ padding: "1rem", border: "1px solid rgb(var(--shade1))", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", gap: "1rem" }}>
-//                                 <div className='noScrollBar' style={{ flex: "1 1 auto", display: "flex", alignItems: "flex-start", gap: "1rem", overflowX: "auto", whiteSpace: "nowrap" }}>
+//                             <div key={eachRepo.id} style={{ padding: "1rem", border: "1px solid rgb(var(--shade1))", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", gap: "var(--spacingR)" }}>
+//                                 <div className='noScrollBar' style={{ flex: "1 1 auto", display: "flex", alignItems: "flex-start", gap: "var(--spacingR)", overflowX: "auto", whiteSpace: "nowrap" }}>
 //                                     <b>{eachRepo.name}</b>
 
 //                                     <Moment fromNow>{new Date(eachRepo.updated_at)}</Moment>
 //                                 </div>
 
-//                                 <button className='mainButton'
+//                                 <button className='button1'
 //                                     onClick={async () => {
 //                                         try {
 //                                             if (activeProjectToTemplate === undefined) throw new Error("not seeing activeProjectToTemplate")

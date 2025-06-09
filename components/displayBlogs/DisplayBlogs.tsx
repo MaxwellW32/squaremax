@@ -5,15 +5,15 @@ import React from 'react'
 
 export default function DisplayBlogs({ passedBlogData = blogData }: { passedBlogData?: BlogDataType[] }) {
     return (
-        <div className='snap' style={{ overflowX: "auto", display: "grid", gap: "1rem", gridAutoFlow: "column", gridAutoColumns: "min(400px, 100%)", padding: "1rem" }}>
+        <div className='snap' style={{ overflowX: "auto", display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridAutoColumns: "min(400px, 100%)", padding: "1rem" }}>
             {passedBlogData.map((eachBlog, eachBlogIndex) => {
                 return (
-                    <div key={eachBlogIndex} style={{ display: "flex", flexDirection: "column", gap: "1rem", position: "relative", backgroundColor: "#fff", boxShadow: "0px 0px 10px rgba(0,0,0,.1)" }}>
+                    <div key={eachBlogIndex} style={{ display: "flex", flexDirection: "column", gap: "var(--spacingR)", position: "relative", backgroundColor: "#fff", boxShadow: "0px 0px 10px rgba(0,0,0,.1)" }}>
                         <Link href={`/blog?category=${eachBlog.category}`} style={{ backgroundColor: "var(--color1)", position: "absolute", top: 0, left: 0, margin: "1rem", padding: ".5rem 1rem", borderRadius: ".2rem", color: "#fff", textTransform: "uppercase", fontSize: "var(--fontSizeS)" }}>{eachBlog.category}</Link>
 
                         <Image alt={`${eachBlog.title}'s image`} src={eachBlog.coverImage} height={400} width={400} style={{ objectFit: "cover", width: "100%" }} />
 
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "1rem", height: "100%" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacingR)", padding: "1rem", height: "100%" }}>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", fontSize: "var(--fontSizeS)", color: "var(--shade4)" }}>
                                 <p>SquareMax</p>
 

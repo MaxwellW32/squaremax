@@ -25,12 +25,12 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
     }
 
     return (
-        <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+        <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
             {/* location options list */}
             <div style={{ display: "flex", flexWrap: "wrap" }}>
                 {locationSelectionOptions.map(eachLocationSelectionOption => {
                     return (
-                        <button key={eachLocationSelectionOption} className='mainButton' style={{ backgroundColor: transferToLocation !== undefined && eachLocationSelectionOption === transferToLocation ? "var(--color1)" : "" }}
+                        <button key={eachLocationSelectionOption} className='button1' style={{ backgroundColor: transferToLocation !== undefined && eachLocationSelectionOption === transferToLocation ? "var(--color1)" : "" }}
                             onClick={() => {
                                 transferToLocationSet(eachLocationSelectionOption)
                             }}
@@ -45,7 +45,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
                     {/* server function that handles a location */}
                     {(transferToLocation === "header" || transferToLocation === "footer") && (
                         <>
-                            <button className='mainButton'
+                            <button className='button1'
                                 onClick={async () => {
                                     handleSubmission(seenUsedComponent, { type: transferToLocation })
                                 }}
@@ -58,7 +58,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
                             <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem" }}>
                                 {seenPages.map(eachPage => {
                                     return (
-                                        <button key={eachPage.id} className='mainButton'
+                                        <button key={eachPage.id} className='button1'
                                             onClick={async () => {
                                                 handleSubmission(seenUsedComponent, { type: "page", pageId: eachPage.id })
                                             }}
@@ -77,7 +77,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
                                 }}
                             />
 
-                            <button className='mainButton'
+                            <button className='button1'
                                 onClick={async () => {
                                     //ensure active selection
                                     if (activeParentId === "") {

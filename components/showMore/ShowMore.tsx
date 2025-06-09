@@ -16,7 +16,7 @@ export default function ShowMore({ label, content, svgColor, startShowing }: { l
             </div>
 
             <div style={{ padding: '1rem', display: !showing ? "none" : "grid", alignContent: "flex-start", overflow: "clip" }}>
-                <div className={`${showing ? styles.animateIn : ""}`} style={{}}>
+                <div className={`${showing ? styles.animateIn : ""}`} style={{ display: "grid", alignContent: "flex-start" }}>
                     {content}
                 </div>
             </div>

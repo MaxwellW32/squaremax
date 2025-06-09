@@ -185,7 +185,7 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
                 )
             })}
 
-            <button className='mainButton' style={{ justifySelf: "center" }}
+            <button className='button1' style={{ justifySelf: "center" }}
                 onClick={handleSubmit}
             >Submit</button>
         </form>

@@ -28,7 +28,7 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
 
             <h2>Technlogy used</h2>
 
-            <ul style={{ display: "flex", gap: "1rem", overflowX: "auto", padding: "1rem" }}>
+            <ul style={{ display: "flex", gap: "var(--spacingR)", overflowX: "auto", padding: "1rem" }}>
                 {service.technologyUsed.map((eachItem, eachItemIndex) => {
                     return (
                         <li key={eachItemIndex} style={{ padding: '.5rem 1rem', borderRadius: "2rem", backgroundColor: "var(--color1)", fontWeight: "bold", color: "#fff", whiteSpace: "nowrap" }}>{eachItem}</li>
@@ -37,6 +37,7 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
             </ul>
 
             <h2 style={{ textAlign: "center", background: "linear-gradient(to left, var(--color1), var(--color3))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 'var(--fontSizeEL)' }}>Our Process</h2>
+
             <ShowServiceProcess service={service} />
 
             {tesimonials.filter(eachTestimonial => eachTestimonial.forService.includes(service.name)).length > 0 && (
@@ -51,7 +52,7 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
             )}
 
             <Link href={"/contact"} style={{ justifySelf: "center", marginTop: "1rem" }}>
-                <button className='mainButton'>Get Started</button>
+                <button className='button1'>Get Started</button>
             </Link>
 
             {projectsData.filter(eachProject => eachProject.representingService.includes(service.name)).length > 0 && (

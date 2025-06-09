@@ -104,17 +104,17 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
         <div {...elProps} style={{ display: "grid", alignContent: "flex-start", position: "fixed", top: "50%", left: "50%", translate: "-50% -50%", width: "min(500px, 95vw)", height: "80vh", backgroundColor: "var(--shade2)", zIndex: 10, overflowY: "auto", border: "1px solid var(--shade1)", ...elProps?.style }}>
             {/* download option selection */}
             <div style={{ display: "flex", overflowX: "auto" }}>
-                <button className='mainButton' style={{ backgroundColor: downloadOption === "github" ? "var(--color1)" : "" }}
+                <button className='button1' style={{ backgroundColor: downloadOption === "github" ? "var(--color1)" : "" }}
                     onClick={() => {
                         downloadOptionSet("github")
                     }}>github</button>
 
-                <button className='mainButton' style={{ backgroundColor: downloadOption === "zip" ? "var(--color1)" : "" }}
+                <button className='button1' style={{ backgroundColor: downloadOption === "zip" ? "var(--color1)" : "" }}
                     onClick={() => {
                         downloadOptionSet("zip")
                     }}>zip</button>
 
-                <button className='secondaryButton' style={{ marginLeft: "auto" }}
+                <button className='button2' style={{ marginLeft: "auto" }}
                     onClick={() => {
                         if (viewingDownloadOptionsSet !== undefined) {
                             viewingDownloadOptionsSet(false)
@@ -129,7 +129,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                     <div style={{ display: "grid", alignContent: "flex-start", padding: "1rem" }}>
                         <h2>Download your website as a zip file</h2>
 
-                        <button className='mainButton'
+                        <button className='button1'
                             onClick={() => {
                                 handleWebsiteDownload({ option: "zip" })
                             }}
@@ -140,13 +140,13 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                 {downloadOption === "github" && (
                     <div style={{ display: "grid", alignContent: "flex-start", overflowY: "auto", }}>
                         {/* account selection */}
-                        <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem", padding: "1rem", border: "1px solid var(--shade1)" }}>
+                        <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)", padding: "1rem", border: "1px solid var(--shade1)" }}>
                             {activeGithubToken === undefined ? (
                                 <>
                                     {githubTokens.map(eachGithubToken => {
                                         return (
                                             <div key={eachGithubToken.id}>
-                                                <button className='mainButton'
+                                                <button className='button1'
                                                     onClick={() => {
                                                         githubTokensSet((prevGithubTokens => {
                                                             // set active on all to false
@@ -229,14 +229,14 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                                         }}
                                     />
 
-                                    <button className='secondaryButton'
+                                    <button className='button2'
                                         onClick={handleRepoSearch}
                                     >refresh</button>
                                 </div>
 
                                 {search !== "" && (
                                     <>
-                                        <button className='mainButton' style={{ justifySelf: "flex-end" }}
+                                        <button className='button1' style={{ justifySelf: "flex-end" }}
                                             onClick={async () => {
                                                 toast.success("searching")
                                                 const serverRepos = await searchGithubReposByName(activeGithubToken, search)
@@ -268,7 +268,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
 
                                 {filteredRepositories.map(eachFilteredRepository => {
                                     return (
-                                        <div key={eachFilteredRepository.id} style={{ padding: "1rem", display: "flex", alignItems: "center", gap: "1rem", overflowX: "auto", borderTop: "1px solid var(--shade1)", }}>
+                                        <div key={eachFilteredRepository.id} style={{ padding: "1rem", display: "flex", alignItems: "center", gap: "var(--spacingR)", overflowX: "auto", borderTop: "1px solid var(--shade1)", }}>
                                             <label>{eachFilteredRepository.name}</label>
 
                                             <p style={{ flex: 1 }}><Moment fromNow>{eachFilteredRepository.updated_at}</Moment></p>

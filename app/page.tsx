@@ -1576,7 +1576,7 @@ export default function Home() {
 
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6  )" }}></div>
 
-              <div style={{ display: "grid", gap: "1rem", position: "relative" }}>
+              <div style={{ display: "grid", gap: "var(--spacingR)", position: "relative" }}>
                 <p className='supportingTitle1 slideIn'>{eachItem.supportingTitle}</p>
 
 
@@ -1591,7 +1591,7 @@ export default function Home() {
 
                 <div className='slideInCont'>
                   <Link className='slideIn' href={eachItem.link} style={{ justifySelf: "flex-start", display: "inline-block", animationDelay: "600ms" }}>
-                    <button className='mainButton'>{eachItem.buttonText}</button>
+                    <button className='button1'>{eachItem.buttonText}</button>
                   </Link>
                 </div>
               </div>
@@ -1613,7 +1613,7 @@ export default function Home() {
       </section>
 
       <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: "1rem", flexWrap: 'wrap', maxWidth: "1000px", margin: "0 auto", color: "var(--color1)" }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: "var(--spacingR)", flexWrap: 'wrap', maxWidth: "1000px", margin: "0 auto", color: "var(--color1)" }}>
           <MyMetrics amount={100} amountAdd="+"
             icon={<span style={{ fontSize: "var(--iconSizeL)", }} className="material-symbols-outlined">partner_exchange</span>}
             text="Happy Clients" />
@@ -1648,12 +1648,12 @@ export default function Home() {
       </section>
 
       <section style={{ backgroundColor: "var(--bg1)", color: "#fff", paddingBlock: "5rem" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: 'center', maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingR)", alignItems: 'center', maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ flex: "1 1 300px" }}>
             <Image alt={`reasons to choose us image`} src="https://images.pexels.com/photos/3184423/pexels-photo-3184423.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" height={1000} width={1000} style={{ objectFit: "cover", height: '100%', maxHeight: "80vh" }} />
           </div>
 
-          <div style={{ flex: "2 1 300px", display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+          <div style={{ flex: "2 1 300px", display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
             <h1>Reasons To <span className='highlight'>Choose</span> SquareMax</h1>
 
             <p>We make your life easier, streamline the development process and build excellent web applications.</p>
@@ -1678,12 +1678,12 @@ export default function Home() {
               },
             ].map((eachItem, eachItemIndex) => {
               return (
-                <div key={eachItemIndex} style={{ display: "flex", gap: "1rem" }}>
+                <div key={eachItemIndex} style={{ display: "flex", gap: "var(--spacingR)" }}>
                   <div style={{ color: "var(--color1)" }}>
                     {eachItem.svg}
                   </div>
 
-                  <div style={{ flex: "1 1 300px", display: "grid", gap: "1rem" }}>
+                  <div style={{ flex: "1 1 300px", display: "grid", gap: "var(--spacingR)" }}>
                     <h3>{eachItem.title}</h3>
 
                     <p style={{ color: "var(--shade1)" }}>{eachItem.text}</p>
@@ -1696,12 +1696,12 @@ export default function Home() {
       </section>
 
       <section>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", maxWidth: "1000px", margin: "0 auto" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingR)", maxWidth: "1000px", margin: "0 auto" }}>
           <div style={{ flex: "1 1 400px" }}>
             <Image alt={`${1}'s image`} src="https://images.unsplash.com/photo-1535953472862-9cc610a70f8a?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" height={600} width={600} style={{ objectFit: "cover", maxHeight: "90vh" }} />
           </div>
 
-          <div style={{ flex: "2 1 400px", display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+          <div style={{ flex: "2 1 400px", display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
             <ContactForm />
           </div>
         </div>

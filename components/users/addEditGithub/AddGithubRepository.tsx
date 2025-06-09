@@ -113,7 +113,7 @@ export default function AddGithubRepository({ seenGithubToken, functionSubmit }:
                     if (eachKey === "private" && formObj.private !== undefined) {
                         return (
                             <React.Fragment key={eachKey}>
-                                <button className='mainButton'
+                                <button className='button1'
                                     onClick={() => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = deepClone(prevFormObj)
@@ -175,7 +175,7 @@ export default function AddGithubRepository({ seenGithubToken, functionSubmit }:
                 })}
             </React.Fragment>
 
-            <button className='mainButton' style={{ justifySelf: "center" }}
+            <button className='button1' style={{ justifySelf: "center" }}
                 onClick={handleSubmit}
             >Submit</button>
         </form>

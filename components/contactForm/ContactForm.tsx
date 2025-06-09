@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react'
 import styles from "./styles.module.css"
 import { toast } from 'react-hot-toast'
-import TextInput from '../reusables/textInput/TextInput'
-import TextAreaInput from '../reusables/textAreaInput/TextAreaInput'
 import { sendNodeEmail } from '@/serverFunctions/handleNodeEmails'
 import { userForm, userFormSchema } from '@/types'
 import { retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage'
+import TextInput from '../textInput/TextInput'
+import TextArea from '../textArea/TextArea'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 
 export default function ContactForm() {
 
@@ -91,38 +92,38 @@ export default function ContactForm() {
                 replyTo: formObj.email,
                 subject: `Customer Contact from ${formObj.name}`,
                 text: `
-                name: ${formObj.name}
-                company: ${formObj.company}
+name: ${formObj.name}
+company: ${formObj.company}
 
-                message: 
-                ${formObj.message}
-                `
+message: 
+${formObj.message}
+`
             })
 
             toast.success("Sent!")
+
             formObjSet({ ...initialForm })
+
         } catch (error) {
-            toast.error("Couldn't send")
-            console.log(`$seomething else happened`, error);
+            consoleAndToastError(error)
         }
     }
 
     return (
         <form action={() => { }} className={styles.formDiv} style={{ display: "grid", alignContent: "flex-start" }}>
-            <div style={{ textAlign: "center", display: "grid", gap: "1rem", marginBottom: "2rem" }}>
+            <div style={{ textAlign: "center", display: "grid", gap: "var(--spacingR)", marginBottom: "2rem" }}>
                 <h1>Request Free Consultation</h1>
 
                 <p>Get in touch and discover how we can help. We will be in touch with you as soon as possible.</p>
             </div>
 
-            <div className={styles.formColCont} style={{ display: "grid", gap: "1rem" }}>
+            <div className={styles.formColCont} style={{ display: "grid", gap: "var(--spacingR)" }}>
                 <TextInput
                     name={"name"}
                     value={formObj.name}
                     placeHolder='Your Name'
-                    onChange={e => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         formObjSet(prevObj => {
-                            // @ts-expect-error expected here
                             prevObj.name = e.target.value
 
                             return { ...prevObj }
@@ -138,9 +139,8 @@ export default function ContactForm() {
                     name='email'
                     value={formObj.email}
                     placeHolder='Your Email'
-                    onChange={e => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         formObjSet(prevObj => {
-                            // @ts-expect-error expected here
                             prevObj.email = e.target.value
 
                             return { ...prevObj }
@@ -156,9 +156,8 @@ export default function ContactForm() {
                     name={"company"}
                     value={formObj.company ?? ""}
                     placeHolder={"Your Company Name"}
-                    onChange={e => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         formObjSet(prevObj => {
-                            // @ts-expect-error expected here
                             prevObj.company = e.target.value
 
                             return { ...prevObj }
@@ -168,14 +167,14 @@ export default function ContactForm() {
                     errors={formErrors["company"]}
                 />
 
-                <TextAreaInput
-                    name={"message"}
+                <TextArea
+                    name={`message`}
                     value={formObj.message}
+                    label={"message"}
                     placeHolder={"Your Message"}
-                    onInput={e => {
+                    onChange={(e) => {
                         formObjSet(prevObj => {
-                            // @ts-expect-error expected here
-                            prevObj.message = e.target.value
+                            prevObj.message = (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
 
                             return { ...prevObj }
                         })
@@ -185,8 +184,7 @@ export default function ContactForm() {
                 />
             </div>
 
-
-            <button className='mainButton' disabled={!userFormSchema.safeParse(formObj).success} type='submit' style={{ justifySelf: "flex-end", marginTop: '1rem' }}
+            <button className='button1' disabled={!userFormSchema.safeParse(formObj).success} type='submit' style={{ justifySelf: "flex-end", marginTop: '1rem' }}
                 onClick={() => {
                     handleSubmit()
                 }}

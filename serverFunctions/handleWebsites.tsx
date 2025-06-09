@@ -1,9 +1,9 @@
 "use server"
 import { db } from "@/db"
 import { websites } from "@/db/schema"
-import { newWebsite, newWebsiteSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema } from "@/types"
+import { newWebsite, newWebsiteSchema, updateWebsite, updateWebsiteSchema, website, websiteFilterType, websiteSchema } from "@/types"
 import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
-import { eq } from "drizzle-orm"
+import { and, desc, eq, sql, SQLWrapper } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export async function addWebsite(seenNewWebsite: newWebsite): Promise<website> {
@@ -105,12 +105,60 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
     }
 }
 
-export async function getWebsitesFromUser(): Promise<website[]> {
+export async function getWebsitesFromUserOld(limit = 50, offset = 0): Promise<website[]> {
     const session = await sessionCheckWithError()
 
     const results = await db.query.websites.findMany({
-        where: eq(websites.userId, session.user.id)
+        where: eq(websites.userId, session.user.id),
+        limit: limit,
+        offset: offset,
     })
+
+    return results
+}
+export async function getWebsitesFromUser(filter: websiteFilterType, limit = 50, offset = 0, withProperty: { fromUser?: true, pages?: true, usedComponents?: true } = {}): Promise<website[]> {
+    const session = await sessionCheckWithError()
+
+    // Collect conditions dynamically
+    const whereClauses: SQLWrapper[] = []
+
+    //auth
+    whereClauses.push(eq(websites.userId, session.user.id))
+
+    if (filter.id !== undefined) {
+        whereClauses.push(eq(websites.id, filter.id))
+    }
+
+    if (filter.name !== undefined) {
+        whereClauses.push(
+            sql`LOWER(${websites.name}) LIKE LOWER(${`%${filter.name}%`})`
+        )
+    }
+
+    if (filter.title !== undefined) {
+        whereClauses.push(
+            sql`LOWER(${websites.title}) LIKE LOWER(${`%${filter.title}%`})`
+        )
+    }
+
+    if (filter.description !== undefined) {
+        whereClauses.push(
+            sql`LOWER(${websites.description}) LIKE LOWER(${`%${filter.description}%`})`
+        )
+    }
+
+    // Run the query
+    const results = await db.query.websites.findMany({
+        where: and(...whereClauses),
+        orderBy: [desc(websites.dateAdded)],
+        limit: limit,
+        offset: offset,
+        with: {
+            fromUser: withProperty.fromUser,
+            pages: withProperty.pages,
+            usedComponents: withProperty.usedComponents
+        }
+    });
 
     return results
 }

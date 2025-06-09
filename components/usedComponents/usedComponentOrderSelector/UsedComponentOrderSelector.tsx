@@ -57,7 +57,7 @@ export default function UsedComponentOrderSelector({ websiteId, seenUsedComponen
                 }}
             />
 
-            <button className='mainButton'
+            <button className='button1'
                 onClick={async () => {
                     try {
                         if (wantedIndex === null) throw new Error("prove the new position")

@@ -122,7 +122,7 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
                     if (eachKey === "active" && formObj.active !== undefined) {
                         return (
                             <React.Fragment key={eachKey}>
-                                <button className='mainButton' style={{ backgroundColor: formObj.active ? "var(--color1)" : "" }}
+                                <button className='button1' style={{ backgroundColor: formObj.active ? "var(--color1)" : "" }}
                                     onClick={() => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = deepClone(prevFormObj)
@@ -184,7 +184,7 @@ export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sen
                 })}
             </React.Fragment>
 
-            <button className='mainButton' style={{ justifySelf: "center" }}
+            <button className='button1' style={{ justifySelf: "center" }}
                 onClick={handleSubmit}
             >Submit</button>
         </form>

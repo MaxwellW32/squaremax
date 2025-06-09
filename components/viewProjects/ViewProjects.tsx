@@ -124,11 +124,11 @@ export default function ViewProjects({ children, ...elProps }: { children: React
 
                             <div className={styles.buttonCont} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: ".5rem" }}>
                                 <Link href={`/projects/${projectsData[prev()].slug}`}>
-                                    <button className="mainButton">Prev</button>
+                                    <button className="button1">Prev</button>
                                 </Link>
 
                                 <Link href={`/projects/${projectsData[next()].slug}`}>
-                                    <button className="mainButton">Next</button>
+                                    <button className="button1">Next</button>
                                 </Link>
                             </div>
                         </div>

@@ -14,8 +14,8 @@ export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }
 
     return (
         <ShowMore label='Project Images' content={(
-            <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
-                <button className='mainButton'>
+            <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
+                <button className='button1'>
                     <label htmlFor='fileUpload' style={{ cursor: "pointer" }}>
                         upload
                     </label>
@@ -60,7 +60,7 @@ export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }
                 />
 
                 {uploadedImages !== null && (
-                    <button className='mainButton'
+                    <button className='button1'
                         onClick={async () => {
                             try {
                                 const response = await fetch(`/api/userImages/add`, {

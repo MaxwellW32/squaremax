@@ -205,7 +205,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
                 <ul style={{ display: "flex", gap: ".5rem" }}>
                     {categories.map(eachCategory => {
                         return (
-                            <button key={eachCategory.name} className='mainButton' style={{ backgroundColor: eachCategory.name === selectedCategory?.name ? "var(--color1)" : "" }}
+                            <button key={eachCategory.name} className='button1' style={{ backgroundColor: eachCategory.name === selectedCategory?.name ? "var(--color1)" : "" }}
                                 onClick={() => {
                                     selectedCategorySet(eachCategory)
 
@@ -221,7 +221,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
                     })}
                 </ul>
 
-                <button className='secondaryButton' style={{ justifySelf: "flex-start" }}
+                <button className='button2' style={{ justifySelf: "flex-start" }}
                     onClick={handleGetCategories}
                 >refresh</button>
             </section>
@@ -310,7 +310,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
                     )
                 })}
 
-                <button className='mainButton' style={{ justifySelf: "center" }}
+                <button className='button1' style={{ justifySelf: "center" }}
                     onClick={() => { handleSubmit(true) }}
                 >Submit</button>
             </form>

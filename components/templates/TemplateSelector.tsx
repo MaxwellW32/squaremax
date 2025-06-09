@@ -242,13 +242,13 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
                 <svg style={{ fill: "var(--bg2)", width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160L0 416c0 53 43 96 96 96l256 0c53 0 96-43 96-96l0-96c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7-14.3 32-32 32L96 448c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 64z" /></svg>
             )}</button>
 
-            <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "1rem", border: "1px solid var(--shade1)", overflow: "auto", width: "min(300px, 80vw)", justifyItems: "center", zIndex: 999 }}>
+            <div style={{ display: userInteracting ? "grid" : "none", alignContent: "flex-start", padding: "1rem", gap: "var(--spacingR)", border: "1px solid var(--shade1)", overflow: "auto", width: "min(300px, 80vw)", justifyItems: "center", zIndex: 999 }}>
                 <LocationSelector location={seenLocation} activeLocationSet={activeLocationSet} activePage={seenPage} activeUsedComponent={seenActiveUsedComponent} style={{ justifySelf: "stretch" }} />
 
                 <ul style={{ display: "flex", overflowX: "auto", justifySelf: "stretch" }}>
                     {categories.map(eachCategory => {
                         return (
-                            <button key={eachCategory.name} className='secondaryButton' style={{ backgroundColor: eachCategory.name === activeSelection.current ? "var(--color1)" : "", padding: ".5rem" }}
+                            <button key={eachCategory.name} className='button2' style={{ backgroundColor: eachCategory.name === activeSelection.current ? "var(--color1)" : "", padding: ".5rem" }}
                                 onClick={() => {
                                     searchUnderCategory(eachCategory.name)
 
@@ -260,7 +260,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
 
                     {otherSelctionOptionsArr.map(eachOtherSelectionOption => {
                         return (
-                            <button key={eachOtherSelectionOption} className='secondaryButton' style={{ backgroundColor: eachOtherSelectionOption === activeSelection.current ? "var(--color1)" : "" }}
+                            <button key={eachOtherSelectionOption} className='button2' style={{ backgroundColor: eachOtherSelectionOption === activeSelection.current ? "var(--color1)" : "" }}
                                 onClick={async () => {
                                     try {
                                         //update active selection
@@ -296,7 +296,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
                             }}
                         />
 
-                        <button className='mainButton'
+                        <button className='button1'
                             onClick={async () => {
                                 if (activeSelection.current === undefined) return
 
@@ -340,7 +340,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
                     <ul style={{ display: "flex", flexWrap: "wrap", justifySelf: "flex-end" }}>
                         {templateFilterOptions.map(eachFilterOption => {
                             return (
-                                <button key={eachFilterOption} className='thirdButton' style={{ backgroundColor: eachFilterOption === filter ? "var(--color1)" : "", padding: ".5rem" }}
+                                <button key={eachFilterOption} className='button3' style={{ backgroundColor: eachFilterOption === filter ? "var(--color1)" : "" }}
                                     onClick={() => {
                                         filterSet(eachFilterOption)
 
@@ -361,17 +361,17 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
                 )}
 
                 <div style={{ display: "flex", justifySelf: "stretch", overflow: "auto" }}>
-                    <button className='secondaryButton'
+                    <button className='button2'
                         onClick={() => { handleActiveIndex("prev") }}
                     >prev</button>
 
-                    <button className='secondaryButton'
+                    <button className='button2'
                         onClick={() => { handleActiveIndex("next") }}
                     >next</button>
 
                     {previewTemplate !== null && (
                         <>
-                            <button className='mainButton' style={{ marginLeft: "1rem" }}
+                            <button className='button1' style={{ marginLeft: "1rem" }}
                                 onClick={async () => {
                                     try {
                                         //add template to page normally 
@@ -409,7 +409,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
                                 }}
                             >confirm</button>
 
-                            <button className='secondaryButton'
+                            <button className='button2'
                                 onClick={() => {
                                     previewTemplateSet(null)
                                     userInteractingSet(false)

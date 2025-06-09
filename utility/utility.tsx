@@ -294,3 +294,7 @@ export function makeValidVariableName(seenString: string) {
         .replace(/\s+(.)/g, (_, c) => c.toUpperCase()) // Remove spaces and capitalize the next letter
         .replace(/^\w/, (c) => c.toLowerCase()); // Ensure the first character is lowercase
 }
+
+export function spaceCamelCase(seenString: string) {
+    return seenString.replace(/([A-Z])/g, ' $1').replace(/^./, function (str) { return str.toUpperCase(); })
+}

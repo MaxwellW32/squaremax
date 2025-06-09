@@ -150,7 +150,7 @@ export default function EditNavbarsData({ data, activeUsedComponent, handleProps
                                     )
                                 })}
 
-                                <button className='mainButton'
+                                <button className='button1'
                                     onClick={() => {
                                         if (data.menu[eachMenuItemIndex].subMenu === undefined) return null
 
@@ -172,7 +172,7 @@ export default function EditNavbarsData({ data, activeUsedComponent, handleProps
                 })}
             </ul>
 
-            <button className='mainButton'
+            <button className='button1'
                 onClick={() => {
                     const newMenuItem: navBarsDataType["menu"][number] = {
                         label: "",

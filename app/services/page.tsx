@@ -1,15 +1,16 @@
 import ShowService from '@/components/services/ShowService'
 import { servicesData } from '@/lib/servicesData'
 import React from 'react'
+import styles from "./page.module.css"
 
 export default function Page() {
-    //show all services
 
     return (
-        <main>
+        <main className={styles.main}>
             <section>
                 <div style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
                     <p className='supportingTitle2'>Services</p>
+
                     <h1>What we provide</h1>
                 </div>
 

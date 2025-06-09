@@ -4,7 +4,7 @@ import React from 'react'
 export default function ThirdButton({ link, text, isHovering }: { link: string, text: string, isHovering?: boolean }) {
     return (
         <Link href={link} style={{ display: "grid" }}>
-            <button className={`thirdButton ${isHovering && "thirdButtonHovering"}`}>
+            <button className={`button3 ${isHovering && "button3Hovering"}`} style={{ padding: "0 0 0 1rem" }}>
                 <p>{text}</p>
 
                 <div style={{ height: '100%', display: "grid", alignItems: "center", justifyItems: "center", padding: "1rem 3rem 1rem 3rem", transform: "skew(-29deg)", translate: "1rem" }}>

@@ -12,6 +12,8 @@
     right: 0;
     width: min(300px, 100vw);
     background-color: var(--bg2);
+    max-height: 80vh;
+    overflow: auto;
 }
 
 .moreIntemsItem {

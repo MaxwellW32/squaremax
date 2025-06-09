@@ -9,14 +9,10 @@ import Footer from "@/components/footer/Footer";
 import { auth } from "@/auth/auth";
 
 //to do
-//complete website setup so you and mom can make websites - new design
 //make custom forms for each edit data category type
 //templates can import fonts
 //
-//
-//
-//
-//
+//compile
 
 const rubik = localFont({
   src: "./fonts/Rubik.ttf",
@@ -64,7 +60,7 @@ export default async function RootLayout({
                 subMenu: servicesData.map(eachService => {
                   return {
                     title: eachService.name,
-                    link: eachService.link
+                    link: `/services/${eachService.slug}`
                   }
                 })
               }, {

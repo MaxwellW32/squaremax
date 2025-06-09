@@ -245,8 +245,10 @@ export type pagesType = {
     }
 }
 
-
-
+export const dateSchma = z.preprocess((val) => {
+    if (typeof val === "string" || typeof val === "number") return new Date(val);
+    return val;
+}, z.date())
 
 export const userFormSchema = Z.object({
     name: Z.string().min(1),
@@ -257,6 +259,18 @@ export const userFormSchema = Z.object({
 
 export type userForm = Z.infer<typeof userFormSchema>
 
+export type websiteFilterType = { id?: website["id"], name?: website["name"], title?: website["title"], description?: website["description"] }
+export type otherFilterType = { id?: website["id"], name?: website["name"], title?: website["title"], description?: website["description"] }
+export type allFilterType = websiteFilterType | otherFilterType
+
+export type searchObj<T> = {
+    searchItems: T[],
+    loading?: true,
+    limit?: number, //how many
+    offset?: number, //increaser
+    incrementOffsetBy?: number, //how much to increase by
+    refreshAll?: boolean
+}
 
 
 
@@ -344,13 +358,14 @@ export const websiteSchema = z.object({
     globalCss: z.string(),
     userUploadedImages: userUploadedImagesSchema,
     authorisedUsers: z.array(authorisedUserSchema),
+    dateAdded: dateSchma,
 })
 export type website = z.infer<typeof websiteSchema> & {
     fromUser?: user,
     pages?: page[],
     usedComponents?: usedComponent[],
 }
-export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true, title: true, description: true })
+export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true, title: true, description: true, dateAdded: true })
 export type newWebsite = z.infer<typeof newWebsiteSchema>
 
 export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, })

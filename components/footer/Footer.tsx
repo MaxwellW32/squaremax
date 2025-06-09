@@ -10,7 +10,7 @@ import { servicesData } from '@/lib/servicesData'
 
 export default function Footer() {
     return (
-        <footer id='footerNav' style={{ padding: "2rem 1rem", backgroundColor: "var(--bg1)", color: "#fff", display: "grid", gap: "1rem" }}>
+        <footer id='footerNav' style={{ padding: "2rem 1rem", backgroundColor: "var(--bg1)", color: "#fff", display: "grid", gap: "var(--spacingR)" }}>
             <ul className={styles.footerUL}>
                 {[
                     {
@@ -18,7 +18,7 @@ export default function Footer() {
                         links: servicesData.map((eachService,) => {
                             return {
                                 name: eachService.name,
-                                link: eachService.link
+                                link: `/services/${eachService.slug}`
                             }
                         })
                     },
@@ -72,10 +72,10 @@ export default function Footer() {
                 })}
             </ul>
 
-            <div style={{ padding: "1rem", borderTop: "1px solid var(--shade2)", display: "flex", justifyContent: "center", gap: "1rem" }}>
+            <div style={{ padding: "1rem", borderTop: "1px solid var(--shade2)", display: "flex", justifyContent: "center", gap: "var(--spacingR)" }}>
                 <p>Copyright © SquareMax all rights reserved.</p>
 
-                {/* <ul style={{ display: "flex", flexWrap: 'wrap', gap: "1rem" }}>
+                {/* <ul style={{ display: "flex", flexWrap: 'wrap', gap: "var(--spacingR)" }}>
                     {[{
                         link: "/aboutUs",
                         name: "About Us"
@@ -104,8 +104,8 @@ export default function Footer() {
 
 
 
-// <div className={styles.listCont} style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))" }}>
-// <div style={{ display: "grid", gap: "1rem", alignContent: 'flex-start' }}>
+// <div className={styles.listCont} style={{ display: "grid", gap: "var(--spacingR)", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))" }}>
+// <div style={{ display: "grid", gap: "var(--spacingR)", alignContent: 'flex-start' }}>
 //     <Logo />
 
 //     <p>Here to fit all your needs</p>
@@ -116,7 +116,7 @@ export default function Footer() {
 // <div>
 //     <h2>Contact Information</h2>
 
-//     <div style={{ display: "grid", gap: "1rem" }}>
+//     <div style={{ display: "grid", gap: "var(--spacingR)" }}>
 //         <p><b>Adress: </b>{companyInfo.address}</p>
 //         <p><b>Phone: </b>{companyInfo.number}</p>
 //         <p><b>Email: </b>{companyInfo.email}</p>
@@ -126,14 +126,14 @@ export default function Footer() {
 // <div>
 //     <h2>Recent Posts</h2>
 
-//     <div style={{ display: "grid", gap: "1rem", }}>
+//     <div style={{ display: "grid", gap: "var(--spacingR)", }}>
 //         {blogData.sort((a, b) => (b.datePosted as any) - (a.datePosted as any)).slice(0, 2).map((eachBlog, eachBlogIndex) => {
 //             return (
-//                 <Link href={`/blog/${eachBlog.slug}`} key={eachBlogIndex} style={{ display: "flex", gap: "1rem" }}>
+//                 <Link href={`/blog/${eachBlog.slug}`} key={eachBlogIndex} style={{ display: "flex", gap: "var(--spacingR)" }}>
 //                     <Image alt={`${eachBlog.title}'s image`} src={eachBlog.coverImage} height={100} width={100} style={{ objectFit: "cover" }} />
 
 
-//                     <div style={{ flex: "1 1 300px", display: "grid", gap: "1rem" }}>
+//                     <div style={{ flex: "1 1 300px", display: "grid", gap: "var(--spacingR)" }}>
 //                         <h3 className='hoverHighlight'>{eachBlog.title}</h3>
 
 //                         <p>{eachBlog.datePosted.toLocaleDateString('en-US', {

@@ -3,12 +3,12 @@ import React from 'react'
 
 export default function AboutUs() {
     return (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingR)" }}>
             <div style={{ flex: "1 1 400px", aspectRatio: "16/9", position: "relative" }} >
                 <Image alt={`aboutus image`} src={"https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"} fill={true} style={{ objectFit: "cover", }} sizes="100vw" />
             </div>
 
-            <div style={{ flex: "1 1 400px", display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+            <div style={{ flex: "1 1 400px", display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
                 <p className='supportingTitle2'>About Us</p>
 
                 <h1>Elevate your operations with our premium solutions</h1>
@@ -19,7 +19,7 @@ export default function AboutUs() {
 
                 <p>Whether you require scalable applications, intuitive user interfaces, or robust backend systems, We provide end-to-end software solutions tailored to meet your unique needs. </p>
 
-                <div className='snap' style={{ overflowX: "auto", display: "grid", gap: "1rem", gridAutoFlow: "column", gridTemplateRows: "1fr 1fr", gridAutoColumns: "min(50ch, 100%)", paddingBlock: "1rem" }}>
+                <div className='snap' style={{ overflowX: "auto", display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridTemplateRows: "1fr 1fr", gridAutoColumns: "min(50ch, 100%)", paddingBlock: "1rem" }}>
                     {[
                         {
                             title: "Professional IT Services",
@@ -48,7 +48,7 @@ export default function AboutUs() {
                         },
                     ].map((eachItem, eachItemIndex) => {
                         return (
-                            <div key={eachItemIndex} style={{ display: "flex", gap: "1rem" }}>
+                            <div key={eachItemIndex} style={{ display: "flex", gap: "var(--spacingR)" }}>
                                 <div style={{ color: "var(--color1)" }}>
                                     {eachItem.icon}
                                 </div>

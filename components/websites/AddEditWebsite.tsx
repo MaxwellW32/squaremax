@@ -142,7 +142,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                                 {formObj.fonts.map((eachFont, eachFontIndex) => {
                                     return (
                                         <div className={styles.fontCont} key={eachFontIndex} >
-                                            <button className='secondaryButton'
+                                            <button className='button2'
                                                 onClick={() => {
                                                     formObjSet(prevFormObj => {
                                                         const newFormObj = { ...prevFormObj }
@@ -230,7 +230,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                                     )
                                 })}
 
-                                <button className='mainButton' style={{ alignSelf: "center" }}
+                                <button className='button1' style={{ alignSelf: "center" }}
                                     onClick={() => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = { ...prevFormObj }
@@ -262,7 +262,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     formObjSet(prevFormObj => {
                                         const newFormObj = { ...prevFormObj }
-                                        if (eachKey === "fonts" || eachKey === "authorisedUsers") return prevFormObj
+                                        if (eachKey === "fonts" || eachKey === "authorisedUsers" || eachKey === "dateAdded") return prevFormObj
 
                                         newFormObj[eachKey] = e.target.value
                                         return newFormObj
@@ -280,7 +280,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                                 onInput={(e) => {
                                     formObjSet(prevFormObj => {
                                         const newFormObj = { ...prevFormObj }
-                                        if (eachKey === "authorisedUsers") return prevFormObj
+                                        if (eachKey === "fonts" || eachKey === "authorisedUsers" || eachKey === "dateAdded") return prevFormObj
 
                                         //@ts-expect-error type
                                         newFormObj[eachKey] = e.target.value
@@ -295,7 +295,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
                 )
             })}
 
-            <button className='mainButton' style={{ justifySelf: "center" }}
+            <button className='button1' style={{ justifySelf: "center" }}
                 onClick={handleSubmit}
             >Submit</button>
         </form>

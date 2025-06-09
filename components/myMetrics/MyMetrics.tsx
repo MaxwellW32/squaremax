@@ -35,7 +35,7 @@ export default function MyMetrics({ icon, amount, amountAdd, text, animateTime =
     }, [inView])
 
     return (
-        <div ref={ref} style={{ display: "flex", flexWrap: "wrap", gap: "1rem", }}>
+        <div ref={ref} style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingR)", }}>
             {icon}
 
             <div style={{ flex: 1, color: "var(--color1)" }}>

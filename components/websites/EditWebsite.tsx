@@ -876,7 +876,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                         <div className={styles.selectionOptionsCont}>
                             {["website", "page", "component"].map(eachOption => {
                                 return (
-                                    <button key={eachOption} style={{ backgroundColor: eachOption === selectionOption ? "var(--color1)" : "", justifySelf: "flex-start", padding: ".5rem" }} className='thirdButton'
+                                    <button key={eachOption} style={{ backgroundColor: eachOption === selectionOption ? "var(--color1)" : "", justifySelf: "flex-start", padding: ".5rem" }} className='button3'
                                         onClick={() => {
                                             selectionOptionSet(eachOption as "page" | "website" | "component")
                                         }}
@@ -962,7 +962,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
 
                             {websiteObj.pages !== undefined && (
                                 <div style={{ display: selectionOption === "page" ? "grid" : "none", padding: "1rem" }}>
-                                    <button className='mainButton' style={{ justifySelf: "flex-end" }}
+                                    <button className='button1' style={{ justifySelf: "flex-end" }}
                                         onClick={() => {
                                             addingPageSet(prev => !prev)
                                         }}
@@ -984,7 +984,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                         <>
                                             <label>Edit Pages</label>
 
-                                            <div style={{ display: "grid", alignContent: "flex-start", gap: "1rem" }}>
+                                            <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
                                                 {websiteObj.pages.map(eachPage => {
                                                     return (
                                                         <div key={eachPage.id} style={{ border: "1px solid var(--shade1)" }}>
@@ -1105,13 +1105,13 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                 content={
                                                     <>
                                                         {viewerTemplate === null ? (
-                                                            <button className='mainButton'
+                                                            <button className='button1'
                                                                 onClick={() => {
                                                                     viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtTemplate: null })
                                                                 }}
                                                             >enable viewer node</button>
                                                         ) : (
-                                                            <button className='mainButton'
+                                                            <button className='button1'
                                                                 onClick={() => {
                                                                     viewerTemplateSet(null)
                                                                 }}
@@ -1124,7 +1124,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                                 <TemplateSelector websiteId={websiteObj.id} seenPage={activePage} handleManageUsedComponents={handleManageUsedComponents} viewerTemplateSet={viewerTemplateSet} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenLocation={activeUsedComponent.location} activeLocationSet={activeLocationSet} seenActiveUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} />
 
                                                                 {viewerTemplate.template !== null && (
-                                                                    <button className='mainButton'
+                                                                    <button className='button1'
                                                                         onClick={async () => {
                                                                             try {
                                                                                 //replace the used component with this selection
@@ -1246,7 +1246,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                 <DownloadOptions style={{ display: viewingDownloadOptions ? "" : "none" }} seenSession={seenSession} seenWebsite={websiteObj} seenGithubTokens={seenSession.user.userGithubTokens} viewingDownloadOptionsSet={viewingDownloadOptionsSet} />
             </div>
 
-            <button className="mainButton hideNavButton" style={{ position: "fixed", bottom: 0, left: 0, padding: ".5rem" }}
+            <button className="button1 hideNavButton" style={{ position: "fixed", bottom: 0, left: 0, padding: ".5rem" }}
                 onClick={() => {
                     const element = document.getElementById("mainNav");
                     if (element !== null) {

@@ -23,7 +23,7 @@ export default function ShowService({ service, startHovering }: { service: servi
 
                 <p style={{ flex: 1 }}>{service.shortSummary}</p>
 
-                <ThirdButton link={service.link} text='See More' isHovering={hovering} />
+                <ThirdButton link={`/services/${service.slug}`} text='See More' isHovering={hovering} />
             </div>
         </div>
     )
