@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="724" viewBox="0 0 1000 724">
+  <defs>
+    <style>
+      .cls-1 {
+        font-size: 40px;
+      }
+
+      .cls-1, .cls-2 {
+        fill: #bdbbbc;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        font-family: Rubik;
+        font-weight: 600;
+      }
+
+      .cls-2 {
+        font-size: 39.934px;
+      }
+
+      .cls-3 {
+        font-size: 83px;
+      }
+
+      .cls-3, .cls-4 {
+        fill: #0061a1;
+      }
+
+      .cls-4, .cls-5 {
+        fill-rule: evenodd;
+      }
+
+      .cls-5 {
+        fill: #dea80a;
+      }
+    </style>
+  </defs>
+  <text id="THE" class="cls-1" transform="translate(200 257.462) scale(1.084 1.102)">THE</text>
+  <text id="BUILDING_PROPERTY_SERVICES" data-name="BUILDING &amp; PROPERTY SERVICES" class="cls-2" transform="translate(232 455.462) scale(1.084 1.102)">BUILDING &amp; PROPERTY SERVICES</text>
+  <text id="SOURCE" class="cls-3" transform="translate(193 403.804) scale(1.998 1.996)">SOURCE</text>
+  <path class="cls-4" d="M647,222S498.911,9.153,259,121C82.255,204.7-4.35,502.906,256,664,29.589,571.436-.781,310.979,128,166,240.95,23.838,513.328-1.756,647,222Z"/>
+  <path class="cls-5" d="M210,191a280.644,280.644,0,0,0-61,134c-6.924,42.949-3.908,81.717,6,115,30.359,101.984,131.94,189.4,248.912,190.478C456.648,630.961,513.975,614.361,572,572,321.25,851.25-86,462,210,191Z"/>
+</svg>

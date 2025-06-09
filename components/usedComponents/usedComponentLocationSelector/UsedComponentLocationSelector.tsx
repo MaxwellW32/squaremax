@@ -1,7 +1,7 @@
 import { changeUsedComponentLocation } from '@/serverFunctions/handleUsedComponents';
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites';
 import { page, usedComponent, usedComponentLocationType, website } from '@/types'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast';
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast';
 import { sanitizeUsedComponentData } from '@/utility/utility';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';

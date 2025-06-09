@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone, makeValidVariableName } from '@/utility/utility'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 
 export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website }) {
     const router = useRouter()

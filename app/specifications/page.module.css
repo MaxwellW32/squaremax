@@ -1,0 +1,66 @@
+.main {
+    padding-block: 2rem;
+    background: linear-gradient(45deg, #000, #130F40);
+}
+
+.formCont {
+    width: min(1000px, 100%);
+    margin: 0 auto;
+}
+
+.form {
+    background-color: #1a202a;
+    display: grid;
+    padding-block: 1rem;
+}
+
+.formPage {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+    color: #76808b;
+}
+
+.formPage h2 {
+    color: #fff;
+}
+
+.formPage>div {
+    display: grid;
+    gap: .5rem;
+}
+
+.formPage input,
+.formPage textarea {
+    background-color: #1b1f2a;
+    border-color: #232c38;
+    color: #fff;
+}
+
+.formPage input::placeholder,
+.formPage textarea::placeholder {
+    color: #fff;
+}
+
+
+
+
+
+
+
+
+.formPageButton {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    background-color: #1a202a;
+}
+
+.requiredInputsCont {
+    border-right: 3px solid orange;
+    border-bottom: 3px solid orange;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+}

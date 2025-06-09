@@ -1,0 +1,31 @@
+.background {
+    display: grid;
+    align-content: flex-start;
+    grid-template-rows: repeat(var(--numOfTiles), 1fr);
+    grid-template-columns: 1fr;
+    background-color: var(--initialColor);
+    animation: changeBackground 0s var(--changeBGDelay) forwards;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    z-index: 0;
+    overflow: hidden;
+}
+
+
+.transitionTile {
+    --scaleFrom: 0 1;
+    transform-origin: left;
+    background-color: var(--endColor);
+}
+
+
+
+@keyframes changeBackground {
+    to {
+        background-color: var(--endColor);
+    }
+}

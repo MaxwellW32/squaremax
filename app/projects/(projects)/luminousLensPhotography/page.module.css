@@ -1,0 +1,127 @@
+.main {
+    --extraLargeFontSize: 35px;
+    --fontSizeL: 2rem;
+    --fontSizeM: 20px;
+    --fontSizeR: 1rem;
+    --fontSizeS: .7rem;
+    --extraSmallFontSize: 8px;
+
+    --mediumIconSize: 2rem;
+
+    --color1: #9c5451;
+    --color2: #181414;
+    --color3: #181414;
+    --bg1: #181414;
+    --gray1: #ddd;
+    --gray2: hsl(0, 7%, 17%);
+
+
+    /* styling */
+    background-color: var(--bg1);
+    font-family: var(--JosefinSans);
+    position: relative;
+    color: #fff;
+}
+
+.main h1 {
+    font-family: var(--JuliusSansOne);
+    font-size: var(--extraLargeFontSize);
+    font-weight: normal;
+}
+
+.main h2 {
+    color: var(--color1);
+    text-transform: capitalize;
+    font-size: var(--fontSizeR);
+    font-weight: normal;
+}
+
+.main p {
+    font-weight: 300;
+    max-width: 50ch;
+}
+
+.main svg {
+    aspect-ratio: 1/1;
+    fill: #fff;
+    width: 1rem;
+}
+
+.main section {
+    padding: 2rem 1rem;
+}
+
+.heroCont {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+}
+
+.socialsCont {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    position: absolute;
+    left: 1rem;
+    bottom: 0;
+    rotate: -90deg;
+    transform-origin: top left;
+}
+
+.socials {
+    transition: color 200ms;
+    font-family: var(--JosefinSans);
+    font-weight: 300;
+    font-size: var(--fontSizeS);
+    text-transform: capitalize;
+}
+
+.socials:hover {
+    color: var(--color1);
+
+}
+
+.slideShowCont {
+    grid-column: 2;
+}
+
+@media only screen and (max-width: 800px) {
+    .heroCont {
+        grid-template-columns: none;
+        gap: .5rem;
+    }
+
+    .slideShowCont {
+        grid-column: 1;
+    }
+
+    .socialsCont {
+        position: relative;
+        left: 0;
+        bottom: 0;
+        rotate: 0deg;
+        padding-inline: 1rem;
+    }
+}
+
+.highlight {
+    color: var(--color1);
+    fill: var(--color1)
+}
+
+.backdrop {
+    position: relative;
+    z-index: 1;
+}
+
+.backdrop::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color1);
+    translate: 1rem 1rem;
+    z-index: -1;
+}

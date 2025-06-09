@@ -3,8 +3,8 @@ import fs from "fs/promises";
 import { v4 as uuidV4 } from "uuid"
 import { NextResponse } from "next/server";
 import { maxImageUploadSize, userUploadedImagesDirectory } from "@/types/userUploadedTypes";
-import { convertBtyes } from "@/usefulFunctions/usefulFunctions";
-import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
+import { convertBtyes } from "@/useful/usefulFunctions";
+import { sessionCheckWithError } from "@/useful/sessionCheck";
 import { ensureDirectoryExists } from "@/utility/manageFiles";
 
 export async function POST(request: Request) {

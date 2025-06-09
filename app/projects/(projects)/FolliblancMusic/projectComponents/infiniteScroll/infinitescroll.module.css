@@ -1,0 +1,25 @@
+.track {
+    animation: scroll var(--timeToLoop) infinite linear both;
+}
+
+.train {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+}
+
+.trackHover:hover {
+    animation-play-state: paused;
+}
+
+
+@keyframes scroll {
+    0% {
+        translate: 0 0;
+    }
+
+
+    100% {
+        translate: -50% 0;
+    }
+}

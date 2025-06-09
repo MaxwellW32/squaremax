@@ -1,0 +1,7 @@
+.social svg {
+    transition: fill 400ms;
+}
+
+.social:hover svg {
+    fill: var(--color1);
+}

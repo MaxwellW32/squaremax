@@ -1,0 +1,6 @@
+//start styles
+import styles from "./styles.module.css"
+
+
+//image
+<Image alt={`${1}'s image`} src={""} height={400} width={400} style={{ objectFit: "contain" }} />

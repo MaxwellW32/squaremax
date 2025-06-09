@@ -5,7 +5,7 @@ import { handleManagePageOptions, newPage, newPageSchema, page, pageSchema, upda
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone, makeValidPageLinkName } from '@/utility/utility'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import toast from 'react-hot-toast'
 import { addPage } from '@/serverFunctions/handlePages'
 

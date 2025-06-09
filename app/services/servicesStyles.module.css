@@ -1,0 +1,12 @@
+.mainDiv {
+    overflow-x: hidden;
+}
+
+.mainDiv>h2 {
+    margin-top: 1rem;
+}
+
+.mainDiv>p {
+    padding-left: 1rem;
+    max-width: 50ch;
+}

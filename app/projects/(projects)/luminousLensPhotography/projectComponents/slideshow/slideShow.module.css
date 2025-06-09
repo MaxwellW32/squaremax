@@ -1,0 +1,50 @@
+.largeText {
+    font-family: var(--JuliusSansOne);
+}
+
+.buttonCont>button {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: border 400ms, color 400ms;
+    padding: .5rem;
+}
+
+
+.buttonCont>button:hover {
+    border: 1px solid var(--color1);
+    color: var(--color1)
+}
+
+.opacity {
+    opacity: 0;
+}
+
+.slideUp {
+    animation: slideUp 1s both;
+}
+
+.fadeIn {
+    animation: fadeIn 1s both;
+}
+
+@keyframes slideUp {
+    0% {
+        opacity: 0;
+        translate: 0 100px;
+    }
+
+    100% {
+        opacity: 1;
+        translate: 0 0%;
+    }
+
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}

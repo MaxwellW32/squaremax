@@ -1,0 +1,59 @@
+.slideUp>* {
+    animation: slideUp var(--duration) both paused;
+}
+
+@keyframes slideUp {
+    0% {
+        opacity: 0;
+        translate: 0 100vw;
+    }
+
+
+    100% {
+        opacity: 1;
+        translate: 0 0vw;
+    }
+}
+
+
+
+
+
+
+.slideLeft>* {
+    animation: slideLeft var(--duration) both paused;
+}
+
+@keyframes slideLeft {
+    0% {
+        opacity: 0;
+        translate: 100vw 0;
+    }
+
+
+    100% {
+        opacity: 1;
+        translate: 0vw 0;
+    }
+}
+
+
+
+
+
+
+
+.fadeIn>* {
+    animation: fadeIn var(--duration) both paused;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+
+    100% {
+        opacity: 1;
+    }
+}

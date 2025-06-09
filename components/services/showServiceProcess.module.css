@@ -1,0 +1,38 @@
+.process {
+    --indentPercentage: 3%;
+    width: fit-content;
+    min-height: 100px;
+    padding-block: 1rem;
+    clip-path: polygon(0% 100%, var(--indentPercentage) 50%, 0% 0%, calc(100% - var(--indentPercentage)) 0%, 100% 50%, calc(100% - var(--indentPercentage)) 100%);
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-self: flex-end;
+    gap: .5rem;
+    padding: 1rem;
+    position: relative;
+    color: #fff;
+    background: linear-gradient(to right, var(--color1), var(--color3));
+    padding-left: 2rem;
+    transition: transform 400ms;
+}
+
+.process:hover {
+    transform: translateX(5vw)
+}
+
+.process:nth-of-type(even) {
+    clip-path: polygon(var(--indentPercentage) 100%, 0% 50%, var(--indentPercentage) 0%, 100% 0%, calc(100% - var(--indentPercentage)) 50%, 100% 100%);
+    translate: -10%;
+    flex-direction: row;
+    justify-self: flex-start;
+    background: linear-gradient(to left, var(--color1), var(--color3));
+    padding: 1rem;
+    padding-right: 2rem;
+}
+
+
+.process:nth-of-type(even):hover {
+    transform: translateX(-5vw)
+}

@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* if want to use animation on element, can use inline styles and inherit these animation names, if you need css selectors then use a page.css with the appropriate class that can apply to the selectors the animation name.  */
+
+
+
+@media (prefers-reduced-motion: no-preference) {
+    .translateOnScroll {
+        animation: translate both linear;
+        animation-timeline: view(70vh 10vh);
+    }
+
+    .opacityOnScroll {
+        animation: opacity both linear;
+        animation-timeline: view(70vh 10vh);
+    }
+
+    .scaleOnScroll {
+        animation: scale both linear;
+        animation-timeline: view(70vh 10vh);
+    }
+
+    @keyframes opacity {
+        from {
+            opacity: var(--opacityFrom, 0);
+        }
+
+        to {
+            opacity: var(--opacityTo, 1);
+        }
+    }
+
+    @keyframes translate {
+        from {
+            translate: var(--translateFrom, 0 100%);
+        }
+
+        to {
+            translate: var(--translateTo, 0 0);
+        }
+    }
+
+    @keyframes scale {
+        from {
+            scale: var(--scaleFrom, 0);
+        }
+
+        to {
+            scale: var(--scaleTo, 1);
+        }
+    }
+
+    @keyframes transformRotateY {
+        from {
+            transform: rotateY(var(--transformRotateYFrom, 90deg));
+        }
+
+        to {
+            transform: rotateY(var(--transformRotateYTo, 0deg));
+        }
+    }
+
+
+    @keyframes rotate {
+        from {
+            rotate: var(--rotateFrom, 90deg);
+        }
+
+        to {
+            rotate: var(--rotateTo, 0deg);
+        }
+    }
+}

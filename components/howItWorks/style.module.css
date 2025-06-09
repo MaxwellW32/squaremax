@@ -1,0 +1,19 @@
+.mainCard {}
+
+.outline {
+    border: 3px solid transparent;
+    transition: border 400ms;
+}
+
+.mainCard:hover .outline {
+    border: 3px solid var(--color1)
+}
+
+.circleCont {
+    translate: -50% -50%;
+    transition: translate 400ms;
+}
+
+.mainCard:hover .circleCont {
+    translate: -50% -100%;
+}

@@ -1,0 +1,10 @@
+.iconCont {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    color: #fff;
+}
+
+.iconCont svg {
+    fill: #fff;
+}

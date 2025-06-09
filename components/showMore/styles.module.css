@@ -1,3 +1,7 @@
+.mainDiv svg {
+    fill: #000;
+}
+
 .animateIn {
     animation: animateIn 600ms both;
 }

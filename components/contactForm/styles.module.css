@@ -1,0 +1,10 @@
+.formDiv {
+    color: #000;
+}
+
+.formColCont div:has(input),
+.formColCont div:has(textarea) {
+    display: grid;
+    gap: 1rem;
+    align-content: flex-start;
+}

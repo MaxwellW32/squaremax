@@ -1,0 +1,178 @@
+.mainNav {
+    background-color: #fff;
+    color: #000;
+    padding: 0rem 1rem;
+    position: relative;
+    top: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    justify-content: space-between;
+    align-items: center;
+    text-transform: capitalize;
+    z-index: 999;
+    font-weight: bold;
+    transition: translate 1s;
+}
+
+.mainNav svg {
+    aspect-ratio: 1/1;
+    transition: rotate 400ms;
+}
+
+.mainMenu {
+    display: grid;
+    justify-content: center;
+    grid-auto-flow: column;
+    white-space: nowrap;
+    background-color: #fff;
+}
+
+.mainMenuItem {
+    position: relative;
+    cursor: pointer;
+}
+
+.mainMenuItem>div:first-of-type {
+    padding: 1rem;
+}
+
+.mainMenuItem:hover>.subMenu {
+    display: block;
+}
+
+.mainMenuItem:hover>div>a,
+.mainMenuItem:hover>div>svg {
+    color: var(--color1);
+    fill: var(--color1);
+}
+
+.subMenu {
+    display: none;
+    position: absolute;
+    left: 0;
+    background-color: #fff;
+}
+
+.subMenuItem {
+    padding: 1rem;
+    cursor: pointer;
+}
+
+.subMenuItem:hover>.subSubMenu {
+    display: block;
+}
+
+
+.subMenuItem:hover>div>a,
+.subMenuItem:hover>div>svg {
+    color: var(--color1);
+    fill: var(--color1);
+}
+
+.subSubMenu {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    translate: 100% 0;
+    background-color: #fff;
+}
+
+.subSubMenuItem {
+    padding: 1rem;
+    cursor: pointer;
+}
+
+.subSubMenuItem:hover>a,
+.subSubMenuItem:hover>svg {
+    color: var(--color1);
+    fill: var(--color1);
+}
+
+
+.mobileMenu {
+    display: none;
+}
+
+@media only screen and (max-width: 900px) {
+
+    /* all but desktop styles */
+
+    .desktopMenu {
+        display: none !important;
+    }
+
+    .mobileMenu {
+        display: grid;
+        justify-self: flex-start;
+    }
+
+    .mainNav {
+        padding: 1rem 1rem;
+        position: relative;
+    }
+
+    .mainMenu {
+        justify-content: stretch;
+        grid-auto-flow: row;
+        height: auto;
+        display: grid;
+        max-height: 60vh;
+        overflow-y: auto;
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        translate: -50% 0%;
+        width: 100%;
+        border: 1px solid black;
+    }
+
+    .mainMenuItem {
+        position: relative;
+        padding: 1rem;
+        border-bottom: 1px solid #000;
+    }
+
+    .mainMenuItem>div:first-of-type {
+        padding: 0;
+    }
+
+    .mainMenuItem:hover>.subMenu {
+        display: block;
+    }
+
+    .subMenu {
+        display: block;
+        position: relative;
+        top: 0rem;
+        left: 0rem;
+    }
+
+
+    .subMenuItem>div:first-of-type {
+        padding: 0;
+    }
+
+    .subMenuItem:hover>.subSubMenu {
+        display: block;
+    }
+
+    .subSubMenu {
+        display: block;
+        position: relative;
+        top: 0rem;
+        left: 0rem;
+        translate: 0px 0px;
+    }
+
+    .subSubMenuItem {
+        padding: 1rem;
+    }
+
+
+    .navButton {
+        font-size: .7rem;
+        padding: .5rem 1rem !important;
+        margin-block: 0rem;
+    }
+}

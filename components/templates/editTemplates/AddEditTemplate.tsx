@@ -7,7 +7,7 @@ import { category, collection, template, templatesSchema, newTemplate, newTempla
 import { deepClone } from '@/utility/utility'
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { addTemplate, deleteTemplate, removeEntryFromGlobalTemplatesFile, updateTemplate } from '@/serverFunctions/handleTemplates'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import { deleteDirectory } from '@/serverFunctions/handleServerFiles'
 import { websiteTemplatesDir } from '@/lib/websiteTemplateLib'
 import TextInput from '@/components/textInput/TextInput'

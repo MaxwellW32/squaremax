@@ -4,21 +4,24 @@ import "./globals.css";
 import Nav from "@/components/nav/Nav";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
+import { servicesData } from "@/lib/servicesData";
+import Footer from "@/components/footer/Footer";
+import { auth } from "@/auth/auth";
 
 //to do
 //complete website setup so you and mom can make websites - new design
 //make custom forms for each edit data category type
-//make drop down lists no padding
-//
+//templates can import fonts
 //
 //
 //
 //
 //
 
-
-
-
+const rubik = localFont({
+  src: "./fonts/Rubik.ttf",
+  variable: "--rubik",
+});
 const geist = localFont({
   src: "./fonts/Geist.ttf",
   variable: "--geist",
@@ -44,17 +47,50 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth()
 
   return (
     <html lang="en">
       <body
-        className={`${geist.variable} antialiased`}
+        className={`${rubik.variable} ${geist.variable} antialiased`}
       >
         <SessionProvider>
           <Toaster position="top-center" reverseOrder={false} />
-          <Nav />
+          <Nav
+            menuInfoArr={[
+              {
+                title: "Services",
+                link: "/services",
+                subMenu: servicesData.map(eachService => {
+                  return {
+                    title: eachService.name,
+                    link: eachService.link
+                  }
+                })
+              }, {
+                title: "Testimonials",
+                link: "/testimonials",
+              },
+              {
+                title: "Blog",
+                link: "/blog",
+              },
+              {
+                title: "Projects",
+                link: "/projects",
+              },
+              {
+                title: "FAQ",
+                link: "/FAQ",
+              }
+            ]}
+
+            session={session}
+          />
 
           {children}
+
+          <Footer />
         </SessionProvider>
       </body>
     </html>

@@ -2,7 +2,7 @@
 import styles from "./style.module.css"
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { page, usedComponent, website } from '@/types'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sortUsedComponentsByOrder, } from '@/utility/utility'
 import { useSearchParams } from 'next/navigation'

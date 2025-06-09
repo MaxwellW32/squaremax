@@ -1,0 +1,15 @@
+.logo {
+    cursor: pointer;
+    position: relative;
+    z-index: 100;
+}
+
+.logo:hover {
+    animation: wobble 500ms infinite alternate ease-in-out;
+}
+
+@keyframes wobble {
+    to {
+        rotate: 10deg;
+    }
+}

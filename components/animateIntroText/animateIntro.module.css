@@ -1,0 +1,30 @@
+.wordDiv {
+    padding: .5rem;
+    animation: fadeIn 1s both;
+}
+
+.supportTextEl {
+    animation: fadeIn 1s both;
+}
+
+.highlight {
+    background-color: var(--color1);
+    color: #fff;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+
+@media only screen and (max-width: 400px) {
+    .main h1 {
+        font-size: var(--fontSizeM);
+    }
+}

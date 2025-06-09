@@ -1,0 +1,38 @@
+.fadeOut {
+    animation: fadeOut 1s both;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        display: none;
+    }
+}
+
+.menuButton {
+    opacity: 0.2;
+}
+
+.menuButton:hover {
+    opacity: 1;
+    transition: opacity 400ms;
+}
+
+
+.buttonCont button {
+    background-color: var(--color1);
+    border-radius: .5rem;
+    text-transform: uppercase;
+    color: #fff;
+    padding: 1rem 2rem;
+    transition: filter 400ms;
+
+}
+
+.buttonCont button:hover {
+    filter: brightness(.8);
+}

@@ -1,0 +1,16 @@
+.button {
+    padding: .5rem 2rem;
+    background-color: var(--color2);
+    border-radius: .2rem;
+    transition: scale 400ms;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.button:hover {
+    scale: 1.05;
+}
+
+.button button {
+    color: #fff;
+}

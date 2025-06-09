@@ -1,0 +1,43 @@
+.service {
+    position: relative;
+    background-color: #fff;
+    color: var(--shade4);
+    transition: color 400ms;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+}
+
+.service svg {
+    transition: fill 400ms;
+    fill: #000;
+}
+
+.hovering .backdropCont {
+    opacity: 1;
+}
+
+.hovering svg {
+    fill: #fff;
+}
+
+.hovering {
+    color: #fff;
+}
+
+.backdropCont {
+    opacity: 0;
+    transition: opacity 400ms;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.service>div {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+}

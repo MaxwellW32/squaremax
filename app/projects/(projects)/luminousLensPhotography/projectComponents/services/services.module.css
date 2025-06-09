@@ -1,0 +1,21 @@
+.serviceCont {
+    position: relative;
+    z-index: 1;
+}
+
+.serviceCont:hover::before {
+    background-color: var(--color1);
+}
+
+.serviceCont::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--gray2);
+    translate: 2.25rem -2.25rem;
+    z-index: -1;
+    transition: background-color 600ms;
+}

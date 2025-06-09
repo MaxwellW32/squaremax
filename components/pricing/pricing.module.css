@@ -1,0 +1,87 @@
+.pricingTable {
+    display: grid;
+    align-content: flex-start;
+    gap: .5rem;
+    border: 2px solid var(--shade3);
+    padding: 1rem;
+    border-radius: 1rem;
+    transition: border 300ms;
+    position: relative;
+    overflow: hidden;
+}
+
+.gradient {
+    opacity: 0;
+    transition: opacity 400ms;
+    z-index: -1;
+}
+
+.changeColor {
+    transition: color 400ms;
+}
+
+.pricingTable:hover,
+.pricingTableHovering {
+    border: 2px solid var(--color1);
+
+}
+
+.pricingTable:hover .changeColor,
+.pricingTableHovering .changeColor {
+    color: #fff;
+}
+
+.pricingTable:hover .gradient,
+.pricingTableHovering .gradient {
+    opacity: 1;
+}
+
+
+.morePricingCont {
+    padding: 1rem;
+    background-color: #fff;
+    border: 2px solid var(--shade3);
+    border-radius: 1rem;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+
+.morePricingCont>h3 {
+    margin-block: 1rem;
+}
+
+
+.ruleCont {
+    display: grid;
+    text-transform: capitalize;
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #000;
+}
+
+.ruleCont>li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    padding: 1rem;
+
+}
+
+.price {
+    display: flex;
+    font-size: var(--fontSizeL);
+    font-weight: var(--fontWeightM);
+    color: var(--color3);
+}
+
+.price>span {
+    display: grid;
+    grid-auto-flow: column;
+    font-size: var(--fontSizeR);
+    align-self: flex-end;
+    font-weight: normal;
+    text-transform: none;
+}

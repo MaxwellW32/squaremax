@@ -1,0 +1,7 @@
+.cartButton {
+    transition: color 400ms;
+}
+
+.cartButton:hover {
+    color: var(--color2);
+}

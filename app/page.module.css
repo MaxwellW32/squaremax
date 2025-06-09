@@ -18,3 +18,33 @@
     align-content: flex-start;
     grid-template-rows: 1fr auto;
 }
+
+.graphicCont svg:hover {
+    scale: 1;
+}
+
+.graphic1 {
+    width: 300px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    rotate: -25deg;
+}
+
+.graphic2 {
+    width: 300px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    rotate: 15deg;
+}
+
+@media only screen and (max-width: 500px) {
+    .graphic1 {
+        translate: -30% 0;
+    }
+
+    .graphic2 {
+        translate: 50% 0;
+    }
+}

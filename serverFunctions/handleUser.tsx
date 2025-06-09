@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { newGithubTokenType, updateUser, updateGithubTokenType, updateGithubTokenSchema, updateUserSchema, user, githubTokenSchema, githubTokenType, userSchema, newGithubTokenSchema } from "@/types";
-import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck";
+import { sessionCheckWithError } from "@/useful/sessionCheck";
 import { eq } from "drizzle-orm";
 import { getGithubUserFromToken } from "./handleGithub";
 import { v4 as uuidV4 } from "uuid";

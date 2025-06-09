@@ -2,7 +2,7 @@ import JSZip from "jszip";
 import path from "path";
 import fs from "fs/promises";
 import { requestDownloadWebsiteBodySchema, usedComponent } from "@/types";
-import { ensureUserCanAccessWebsite } from "@/usefulFunctions/sessionCheck";
+import { ensureUserCanAccessWebsite } from "@/useful/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
 import { checkIfDirectoryExists, ensureDirectoryExists } from "@/utility/manageFiles";

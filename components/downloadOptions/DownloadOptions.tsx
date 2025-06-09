@@ -1,6 +1,6 @@
 import { getGithubRepos, pushToGithubRepo, searchGithubReposByName } from '@/serverFunctions/handleGithub'
 import { githubRepo, githubTokenType, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, website } from '@/types'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import React, { HTMLAttributes, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import AddEditGithub from '../users/addEditGithub/AddEditGithub'

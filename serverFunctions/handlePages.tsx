@@ -2,7 +2,7 @@
 import { db } from "@/db"
 import { pages } from "@/db/schema"
 import { newPage, newPageSchema, page, pageSchema, updatePage, updatePageSchema, website, websiteSchema } from "@/types"
-import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
+import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"

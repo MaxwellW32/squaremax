@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { toast } from 'react-hot-toast'
 import { getSpecificWebsite, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { maxImageUploadSize, maxBodyToServerSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
-import { convertBtyes } from '@/usefulFunctions/usefulFunctions'
+import { convertBtyes } from '@/useful/usefulFunctions'
 
 export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }: { seenWebsite: website, seenProjectSet: React.Dispatch<React.SetStateAction<website>> }) {
     const [uploadedImages, uploadedImagesSet] = useState<FormData | null>(null)

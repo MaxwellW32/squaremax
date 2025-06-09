@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { usedComponents } from "@/db/schema"
-import { ensureUserCanAccessWebsite } from "@/usefulFunctions/sessionCheck"
+import { ensureUserCanAccessWebsite } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
 import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentLocationType, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"

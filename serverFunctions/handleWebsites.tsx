@@ -2,7 +2,7 @@
 import { db } from "@/db"
 import { websites } from "@/db/schema"
 import { newWebsite, newWebsiteSchema, updateWebsite, updateWebsiteSchema, website, websiteSchema } from "@/types"
-import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
+import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 

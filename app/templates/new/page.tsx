@@ -1,5 +1,5 @@
 import AddEditTemplate from '@/components/templates/editTemplates/AddEditTemplate'
-import { sessionCheckWithError } from '@/usefulFunctions/sessionCheck'
+import { sessionCheckWithError } from '@/useful/sessionCheck'
 import React from 'react'
 
 export default async function Page() {

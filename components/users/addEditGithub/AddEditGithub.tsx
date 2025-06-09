@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
 import { deepClone } from '@/utility/utility'
-import { consoleAndToastError } from '@/usefulFunctions/consoleErrorWithToast'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import { newGithubTokenSchema, newGithubTokenType, githubTokenSchema, githubTokenType, updateGithubTokenSchema } from '@/types'
 import TextInput from '@/components/textInput/TextInput'
 import TextArea from '@/components/textArea/TextArea'

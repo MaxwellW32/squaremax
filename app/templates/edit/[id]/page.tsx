@@ -1,6 +1,6 @@
 import AddEditTemplate from "@/components/templates/editTemplates/AddEditTemplate"
 import { getSpecificTemplate } from "@/serverFunctions/handleTemplates"
-import { sessionCheckWithError } from "@/usefulFunctions/sessionCheck"
+import { sessionCheckWithError } from "@/useful/sessionCheck"
 
 export default async function Page({ params }: { params: { id: string } }) {
     const session = await sessionCheckWithError()
