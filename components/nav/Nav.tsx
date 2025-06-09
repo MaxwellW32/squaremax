@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import styles from "./nav.module.css"
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
