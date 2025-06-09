@@ -1009,6 +1009,10 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                                         refresh: true
                                                                     })
                                                                 }}
+
+                                                                style={{
+                                                                    justifySelf: "flex-end"
+                                                                }}
                                                             />
                                                         </div>
                                                     )

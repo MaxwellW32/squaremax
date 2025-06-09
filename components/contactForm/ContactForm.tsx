@@ -88,7 +88,7 @@ export default function ContactForm() {
         try {
             if (!userFormSchema.safeParse(formObj).success) return toast.error("Form not valid")
             await sendNodeEmail({
-                sendTo: "squaremaxtech@gmail.com",
+                sendTo: "info@squaremaxtech.com",
                 replyTo: formObj.email,
                 subject: `Customer Contact from ${formObj.name}`,
                 text: `

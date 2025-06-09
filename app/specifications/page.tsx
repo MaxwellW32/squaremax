@@ -303,7 +303,7 @@ export default function Page() {
             if (!specificationsFormSchema.safeParse(specificationsObj).success) return toast.error("Form not valid")
 
             await sendNodeEmail({
-                sendTo: "squaremaxtech@gmail.com",
+                sendTo: "info@squaremaxtech.com",
                 replyTo: specificationsObj["au"],
                 subject: `Customer Specifications for ${specificationsObj["aa"]}`,
                 text: (`

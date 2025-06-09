@@ -2,10 +2,11 @@
 import React, { useState } from 'react'
 import toast from 'react-hot-toast'
 
-export default function ConfirmationBox({ text, confirmationText, successMessage, runAction, float = false, icon }: { text: string, confirmationText: string, successMessage: string, runAction: () => void, float?: boolean, icon?: React.JSX.Element }) {
+export default function ConfirmationBox({ text, confirmationText, successMessage, runAction, float = false, icon, ...elProps }: { text: string, confirmationText: string, successMessage: string, runAction: () => void, float?: boolean, icon?: React.JSX.Element } & React.HTMLAttributes<HTMLDivElement>) {
     const [confirmed, confirmedSet] = useState(false)
+
     return (
-        <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", position: "relative" }}>
+        <div {...elProps} style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", position: "relative", ...elProps.style }}>
             <button className='button1'
                 onClick={() => {
                     confirmedSet(true)
