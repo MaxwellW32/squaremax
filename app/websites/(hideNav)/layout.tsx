@@ -12,13 +12,15 @@ export default function HideNavLayout({
     const seenNav = document.querySelector("#mainNav")
     if (seenNav === null) return
 
+    const footerNav = document.querySelector("#footerNav")
+    if (footerNav === null) return
+
     seenNav.classList.add("hideNav")
+    footerNav.classList.add("hideNav")
 
     return () => {
-      const seenNav = document.querySelector("#mainNav")
-      if (seenNav === null) return
-
-      seenNav.classList.remove("hideNav")
+      seenNav.classList.add("hideNav")
+      footerNav.classList.add("hideNav")
     }
   }, [])
 

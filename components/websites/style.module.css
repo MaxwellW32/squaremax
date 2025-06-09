@@ -50,7 +50,7 @@
     z-index: 1;
     transform-origin: top center;
 
-    background-color: var(--shade3);
+    background-color: var(--bg2);
     overflow-y: scroll;
 }
 
@@ -80,7 +80,7 @@
     align-content: flex-start;
     grid-template-rows: auto auto 1fr;
     overflow: auto;
-    background-color: var(--shade2);
+    background-color: var(--bg2);
 }
 
 .topSideBar {
@@ -215,7 +215,7 @@
 
 .styleEditor {
     background-color: antiquewhite;
-    color: var(--shade1);
+    color: var(--shade4);
     min-height: 150px;
 }
 
@@ -238,6 +238,7 @@
     display: grid;
     align-content: flex-start;
     gap: 1rem;
+    padding: 1rem;
 }
 
 .form>div {

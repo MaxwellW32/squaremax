@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from "./nav.module.css"
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -7,6 +7,10 @@ import Logo from "@/components/logo/Logo"
 import { signIn } from 'next-auth/react'
 import { Session } from 'next-auth'
 import MoreNavOptions from '../moreNavOptions/MoreNavOptions'
+import { website } from '@/types'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
+import { getWebsitesFromUser } from '@/serverFunctions/handleWebsites'
+
 type menuItem = {
     title: string,
     link: string,
@@ -25,6 +29,22 @@ type subSubMenuItem = {
 }
 
 export default function MainNav({ menuInfoArr, session }: { menuInfoArr: menuItem[], session: Session | null }) {
+    const [seenUserProjects, seenUserProjectsSet] = useState<website[] | undefined>(undefined)
+
+    //search
+    useEffect(() => {
+        try {
+            const search = async () => {
+                if (session === null) return
+
+                seenUserProjectsSet(await getWebsitesFromUser())
+            }
+            search()
+
+        } catch (error) {
+            consoleAndToastError(error)
+        }
+    }, [])
 
     return (
         <nav id='mainNav' className={styles.mainNav}>

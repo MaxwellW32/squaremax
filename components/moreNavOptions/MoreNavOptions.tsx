@@ -1,14 +1,35 @@
 "use client"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import defaultImage2 from "@/public/defaultImage2.jpg"
 import styles from "./styles.module.css"
 import SignOutButton from "../SignOutButton"
 import { Session } from "next-auth"
 import toast from "react-hot-toast"
+import { website } from "@/types"
+import { getWebsitesFromUser } from "@/serverFunctions/handleWebsites"
+import { consoleAndToastError } from "@/useful/consoleErrorWithToast"
+import Link from "next/link"
+import { usePathname } from 'next/navigation'
 
 export default function MoreNavOptions({ session }: { session: Session }) {
     const [showingNav, showingNavSet] = useState(false)
+
+    const [seenUserWebsites, seenUserWebsitesSet] = useState<website[] | undefined>(undefined)
+    const pathname = usePathname()
+
+    //search
+    useEffect(() => {
+        try {
+            const search = async () => {
+                seenUserWebsitesSet(await getWebsitesFromUser())
+            }
+            search()
+
+        } catch (error) {
+            consoleAndToastError(error)
+        }
+    }, [])
 
     return (
         <div className={styles.contDiv}>
@@ -20,13 +41,36 @@ export default function MoreNavOptions({ session }: { session: Session }) {
                 <ul className={styles.moreItemsMenu}
                     onClick={() => { showingNavSet(false) }}
                 >
+                    <Link href={`/websites/new`} style={{ justifySelf: "flex-end" }}>
+                        <button className='thirdButton' style={{ padding: ".5rem", }}>Add Website</button>
+                    </Link>
+
+                    {seenUserWebsites !== undefined && (
+                        <>
+                            {seenUserWebsites.map(eachWebsite => {
+                                const foundInUrl = pathname.includes(eachWebsite.id)
+
+                                return (
+                                    <li className={styles.moreIntemsItem} key={eachWebsite.id} >
+                                        <Link href={`/websites/edit/${eachWebsite.id}`} style={{ color: foundInUrl ? "var(--color1)" : "" }}>
+                                            {eachWebsite.name}
+                                        </Link>
+                                    </li>
+                                )
+                            })}
+
+                        </>
+                    )}
+
                     <li className={styles.moreIntemsItem}>account</li>
 
                     <li className={styles.moreIntemsItem}>settings</li>
 
                     <li className={styles.moreIntemsItem}>
                         <button style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation()
+
                                 navigator.clipboard.writeText(session.user.id);
 
                                 toast.success("user id copied to clipboard")

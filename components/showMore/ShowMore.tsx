@@ -6,7 +6,7 @@ export default function ShowMore({ label, content, svgColor, startShowing }: { l
     const [showing, showingSet] = useState(startShowing ?? false)
 
     return (
-        <div style={{ display: "grid" }} className={styles.mainDiv}>
+        <div style={{ display: "grid", alignContent: "flex-start" }} className={styles.mainDiv}>
             <div style={{ display: "flex", gap: ".5rem", alignItems: "center", cursor: "pointer", padding: "1rem" }} onClick={() => showingSet(prev => !prev)}>
                 <p>{label}</p>
 
@@ -15,7 +15,7 @@ export default function ShowMore({ label, content, svgColor, startShowing }: { l
                 </span>
             </div>
 
-            <div style={{ padding: '1rem', display: !showing ? "none" : "", overflow: "hidden" }}>
+            <div style={{ padding: '1rem', display: !showing ? "none" : "grid", alignContent: "flex-start", overflow: "clip" }}>
                 <div className={`${showing ? styles.animateIn : ""}`} style={{}}>
                     {content}
                 </div>
