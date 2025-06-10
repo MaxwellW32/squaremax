@@ -14,8 +14,7 @@ export default function Pricing() {
     }
 
     return (
-        <div style={{ display: "grid" }}>
-
+        <div style={{ display: "grid", alignContent: "flex-start", }}>
             <div style={{ display: "grid", gap: "var(--spacingR)", marginBlock: "1rem" }}>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--spacingR)", justifyContent: "center", }}>
                     <p style={{}}>All plans include:</p>
@@ -173,13 +172,14 @@ export default function Pricing() {
                 )}
             </div>
 
-
-            <div ref={containerRef} className={`${styles.container} snap`} style={{ display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridAutoColumns: "300px", overflowX: "auto", padding: "1rem", scrollBehavior: "smooth" }}>
-                {pricingTables.map((eachTable, eachTableIndex) => {
-                    return (
-                        <DisplayPricingTable key={eachTableIndex} pricingTable={eachTable} startHovering={eachTableIndex === 2} recommended={eachTableIndex === 2} scrollToRecommended={scrollToRecommended} />
-                    )
-                })}
+            <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto", margin: "0 auto", }}>
+                <div ref={containerRef} className={`snap`} style={{ display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridAutoColumns: "300px", overflow: "auto", padding: "1rem", scrollBehavior: "smooth" }}>
+                    {pricingTables.map((eachTable, eachTableIndex) => {
+                        return (
+                            <DisplayPricingTable key={eachTableIndex} pricingTable={eachTable} startHovering={eachTableIndex === 2} recommended={eachTableIndex === 2} scrollToRecommended={scrollToRecommended} />
+                        )
+                    })}
+                </div>
             </div>
         </div>
     )

@@ -6,6 +6,11 @@ export default function ImageCarousel({ childEls, restTimer = 30000, loopTimer =
     const [userHandling, userHandlingSet] = useState(false)
 
     const loopTimerRef = useRef<NodeJS.Timeout>()
+
+    const childElRefs = useRef<HTMLDivElement[]>([])
+    const [maxHeight, maxHeightSet] = useState<number | undefined>(undefined)
+
+    //handle auto next
     useEffect(() => {
         if (userHandling) {
             if (loopTimerRef.current) clearInterval(loopTimerRef.current)
@@ -22,6 +27,19 @@ export default function ImageCarousel({ childEls, restTimer = 30000, loopTimer =
             }
         }
     }, [userHandling])
+
+    //search for max height
+    useEffect(() => {
+        let seenMaxHeight = 0
+
+        childElRefs.current.forEach(eachElement => {
+            if (eachElement.offsetHeight > seenMaxHeight) {
+                seenMaxHeight = eachElement.offsetHeight + 10
+            }
+        })
+
+        maxHeightSet(seenMaxHeight)
+    }, [])
 
     const next = () => {
         currentIndexSet(prev => {
@@ -58,11 +76,19 @@ export default function ImageCarousel({ childEls, restTimer = 30000, loopTimer =
         }, restTimer);
     }
 
+    function addToChildElRefs(e: HTMLDivElement | null) {
+        if (e === null) return
+
+        if (!childElRefs.current.includes(e)) {
+            childElRefs.current.push(e)
+        }
+    }
+
     return (
-        <div {...elProps} style={{ position: "relative", ...elProps?.style }}>
+        <div {...elProps} style={{ opacity: maxHeight === undefined ? 0 : 1, minHeight: `${maxHeight}px`, display: "grid", alignContent: "stretch", position: "relative", ...elProps?.style }}>
             {childEls.map((eachItem, eachItemIndex) => {
                 return (
-                    <div key={eachItemIndex} className={`${eachItemIndex !== currentIndex ? "noDisplay" : ""}`}>
+                    <div key={eachItemIndex} ref={addToChildElRefs} className={`${maxHeight !== undefined && eachItemIndex !== currentIndex ? "noDisplay" : ""}`} style={{ display: "grid", alignContent: "stretch", height: "100%" }}>
                         {eachItem}
                     </div>
                 )

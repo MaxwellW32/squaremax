@@ -1535,41 +1535,41 @@ export default function Home() {
         </svg>
       </div>
 
-      <ImageCarousel style={{ backgroundColor: "#000" }} childEls={[
-        {
-          supportingTitle: "Next-Gen Web Solutions",
-          Heading: "Next.js Web Development",
-          summary: "Unlock the potential of your online presence with cutting-edge websites and dynamic web applications!",
-          buttonText: "Discover Next.js Solutions",
-          link: "/contact",
-          image: "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg"
-        },
-        {
-          supportingTitle: "Innovative Design & Development",
-          Heading: "Incredible Website Creation",
-          summary: "Stand out in the digital realm with stunning website designs and robust development.",
-          buttonText: "See Our Web Designs",
-          link: "/projects",
-          image: "https://plus.unsplash.com/premium_photo-1661679290109-770a3e282fa9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          supportingTitle: "Custom Web Applications",
-          Heading: "Tailor-Made Web Apps",
-          summary: "Empower your business with custom web applications designed to streamline processes and enhance user engagement.",
-          buttonText: "Explore Web Apps",
-          link: "/projects",
-          image: "/phonescreen.jpg"
-        },
-        {
-          supportingTitle: "Optimized Security Solutions",
-          Heading: "Digital Security & Performance",
-          summary: "Ensure the safety and reliability of your digital assets with our comprehensive security and performance optimization services. From SSL integration to speed optimization, we fortify your online presence.",
-          buttonText: "Secure Your Digital Assets",
-          link: "/contact",
-          image: "https://images.pexels.com/photos/13282612/pexels-photo-13282612.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-        }
-      ]
-        .map((eachItem, eachItemIndex) => {
+      <ImageCarousel style={{ backgroundColor: "#000" }}
+        childEls={[
+          {
+            supportingTitle: "Next-Gen Web Solutions",
+            Heading: "Next.js Web Development",
+            summary: "Unlock the potential of your online presence with cutting-edge websites and dynamic web applications!",
+            buttonText: "Discover Next.js Solutions",
+            link: "/contact",
+            image: "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg"
+          },
+          {
+            supportingTitle: "Innovative Design & Development",
+            Heading: "Incredible Website Creation",
+            summary: "Stand out in the digital realm with stunning website designs and robust development.",
+            buttonText: "See Our Web Designs",
+            link: "/projects",
+            image: "https://plus.unsplash.com/premium_photo-1661679290109-770a3e282fa9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          },
+          {
+            supportingTitle: "Custom Web Applications",
+            Heading: "Tailor-Made Web Apps",
+            summary: "Empower your business with custom web applications designed to streamline processes and enhance user engagement.",
+            buttonText: "Explore Web Apps",
+            link: "/projects",
+            image: "/phonescreen.jpg"
+          },
+          {
+            supportingTitle: "Optimized Security Solutions",
+            Heading: "Digital Security & Performance",
+            summary: "Ensure the safety and reliability of your digital assets with our comprehensive security and performance optimization services. From SSL integration to speed optimization, we fortify your online presence.",
+            buttonText: "Secure Your Digital Assets",
+            link: "/contact",
+            image: "https://images.pexels.com/photos/13282612/pexels-photo-13282612.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+          }
+        ].map((eachItem, eachItemIndex) => {
           return (
             <div key={eachItemIndex} style={{ padding: "5rem 1rem", color: "#fff", position: "relative" }}>
               <Image alt={`${eachItem.Heading}'s image`} src={eachItem.image} priority={true} width={1920} height={1920} style={{ objectFit: "cover", position: "absolute", top: 0, left: 0, width: "100%", height: "100%" } as React.CSSProperties} />
@@ -1597,7 +1597,8 @@ export default function Home() {
               </div>
             </div>
           )
-        })} />
+        })}
+      />
 
       <section>
         <AboutUs />

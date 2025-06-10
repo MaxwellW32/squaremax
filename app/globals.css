@@ -377,7 +377,7 @@ section {
 }
 
 .noDisplay {
-    display: none;
+    display: none !important;
 }
 
 .fadeIn {
