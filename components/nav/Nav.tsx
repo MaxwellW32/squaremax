@@ -38,7 +38,7 @@ export default function MainNav({ menuInfoArr, session }: { menuInfoArr: menuIte
             <div style={{ justifySelf: "flex-end", display: "grid", alignContent: "flex-start" }}>
                 {session === null ? (
                     <>
-                        <button className={`button1 ${styles.navButton}`}
+                        <button className={`button1`} style={{ padding: ".5rem 1rem" }}
                             onClick={() => signIn()}
                         >Login</button>
                     </>

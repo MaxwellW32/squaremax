@@ -18,7 +18,7 @@
     display: grid;
     gap: 1rem;
     padding: 1rem;
-    color: #76808b;
+    color: #fff;
 }
 
 .formPage h2 {
@@ -39,7 +39,7 @@
 
 .formPage input::placeholder,
 .formPage textarea::placeholder {
-    color: #fff;
+    color: #76808b;
 }
 
 

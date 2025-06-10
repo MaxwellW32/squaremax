@@ -302,6 +302,8 @@ export default function Page() {
         try {
             if (!specificationsFormSchema.safeParse(specificationsObj).success) return toast.error("Form not valid")
 
+            toast.success("Sending!")
+
             await sendNodeEmail({
                 sendTo: "info@squaremaxtech.com",
                 replyTo: specificationsObj["au"],
@@ -345,8 +347,7 @@ ${specificationsObj[eachQuestionId]}
 
         return (
             <>
-                {/* required inputs */}
-                {requiredQuestions.length > 0 && (
+                {requiredQuestions.length > 0 && (//required inputs
                     <div className={`${styles.formPage} ${styles.requiredInputsCont}`}>
                         {requiredQuestions.map((eachId, eachIdIndex) => {
                             return (
@@ -356,8 +357,7 @@ ${specificationsObj[eachQuestionId]}
                     </div>
                 )}
 
-                {/* optional inputs */}
-                {optionalQuestions.map((eachId, eachIdIndex) => {
+                {optionalQuestions.map((eachId, eachIdIndex) => {//optional inputs
                     return (
                         <React.Fragment key={eachIdIndex}>{returnInput(eachId)}</React.Fragment>
                     )
@@ -376,9 +376,8 @@ ${specificationsObj[eachQuestionId]}
     return (
         <main className={styles.main}>
             <div ref={formContRef} className={styles.formCont}>
-                {/* form navigation buttons */}
                 <div className='noScrollBar' style={{ display: "flex", overflowX: "auto", gap: "var(--spacingR)" }}>
-                    {Object.entries(pages).map(([key,], pageButtonIndex) => {
+                    {Object.entries(pages).map(([key,], pageButtonIndex) => {//form navigation buttons
                         return (
                             <button key={key} className={styles.formPageButton} style={{ backgroundColor: "", color: pageButtonIndex === currentPageIndex ? "#fff" : "#aaa", width: "8rem", paddingBlock: ".5rem", flexShrink: 0 }}
                                 onClick={() => {
@@ -438,8 +437,7 @@ ${specificationsObj[eachQuestionId]}
                         )
                     })}
 
-                    {/* submit button */}
-                    {currentPageIndex !== 0 && (
+                    {currentPageIndex !== 0 && (//submit button
                         <div style={{ display: "flex", justifyContent: "center", gap: ".5rem" }}>
                             <button className='button2'
                                 onClick={() => {

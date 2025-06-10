@@ -87,6 +87,9 @@ export default function ContactForm() {
     const handleSubmit = async () => {
         try {
             if (!userFormSchema.safeParse(formObj).success) return toast.error("Form not valid")
+
+            toast.success("Sending!")
+
             await sendNodeEmail({
                 sendTo: "info@squaremaxtech.com",
                 replyTo: formObj.email,

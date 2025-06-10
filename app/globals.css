@@ -18,6 +18,7 @@
     --color1: #e52b50;
     --color2: #F4F7FC;
     --color3: #0582f0;
+    --color5: #f60d3b;
 
     --bg1: #252628;
     --bg2: #fff;
@@ -480,6 +481,11 @@ section {
 
 .snap>* {
     scroll-snap-align: start;
+}
+
+.errorText {
+    color: var(--color5);
+    font-size: var(--fontSizeS);
 }
 
 .reset * {
