@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import { projectsData } from "@/lib/projectsData"
 import Link from "next/link"
 import ShowMore from "../showMore/ShowMore"
+import ScreenHide from "../screenHide/ScreenHide"
+import { controlNavView } from "@/utility/utility"
 
 export default function ViewProjects({ children, ...elProps }: { children: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>) {
     const pathname = usePathname()
@@ -16,41 +18,18 @@ export default function ViewProjects({ children, ...elProps }: { children: React
 
     //hide navs
     useEffect(() => {
-        controlNav("hide")
+        //hide
+        controlNavView(false)
 
         navHiddenOnceSet(true)
+        navHiddenSet(true)
 
         return () => {
-            controlNav("show")
-        }
-    }, [])
-
-    function controlNav(option: "hide" | "show") {
-        const mainNav = document.getElementById(`mainNav`)
-        const footerNav = document.getElementById(`footerNav`)
-
-        if (option === "hide") {
-            if (mainNav) {
-                mainNav.classList.add("hide")
-            }
-
-            if (footerNav) {
-                footerNav.classList.add("hide")
-            }
-            navHiddenSet(true)
-
-
-        } else {
-            if (mainNav) {
-                mainNav.classList.remove("hide")
-            }
-
-            if (footerNav) {
-                footerNav.classList.remove("hide")
-            }
+            //show
+            controlNavView(true)
             navHiddenSet(false)
         }
-    }
+    }, [])
 
     const currentIndex = useMemo(() => {
         const pathnameSplit = pathname.split("/")
@@ -84,7 +63,11 @@ export default function ViewProjects({ children, ...elProps }: { children: React
 
     return (
         <>
-            <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: 0, backgroundColor: "#000", zIndex: 9999 }} className={`${navHiddenOnce ? styles.fadeOut : ""}`}></div>
+            <ScreenHide hidden={navHiddenOnce}
+                style={{
+                    backgroundColor: "var(--bg1)"
+                }}
+            />
 
             <div {...elProps} style={{ display: !navHiddenOnce ? "none" : "", position: "relative", ...elProps?.style }} >
                 {children}
@@ -93,7 +76,12 @@ export default function ViewProjects({ children, ...elProps }: { children: React
                     <span className={`material-symbols-outlined ${styles.menuButton}`} style={{ opacity: showingMenu ? 1 : "", marginBottom: "1rem", fontSize: "2.5rem", color: "#fff" }}
                         onClick={() => {
                             showingMenuSet(prev => !prev);
-                            if (!navHidden) { controlNav("hide") }
+
+                            if (!navHidden) {
+                                //hide
+                                controlNavView(false)
+                                navHiddenSet(true)
+                            }
                         }}>
                         widgets
                     </span>
@@ -103,10 +91,16 @@ export default function ViewProjects({ children, ...elProps }: { children: React
                             <span className="material-symbols-outlined" style={{ justifySelf: "flex-end", fontSize: "2.5rem" }}
                                 onClick={() => {
                                     if (navHidden) {
-                                        controlNav("show")
+                                        //show
+                                        controlNavView(true)
+                                        navHiddenSet(false)
+
                                         window.scrollTo({ top: 0 })
+
                                     } else {
-                                        controlNav("hide")
+                                        //hide
+                                        controlNavView(false)
+                                        navHiddenSet(true)
                                     }
                                 }}>
                                 home

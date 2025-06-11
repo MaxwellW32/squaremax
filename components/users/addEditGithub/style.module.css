@@ -1,6 +1,7 @@
 .form {
     display: grid;
     align-content: flex-start;
+    gap: var(--spacingR);
 }
 
 .form>div {
@@ -8,10 +9,6 @@
     align-content: flex-start;
     gap: .5rem;
 }
-
-
-
-
 
 .tokensCont {
     display: grid;

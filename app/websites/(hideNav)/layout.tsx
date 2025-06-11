@@ -1,28 +1,32 @@
 "use client"
-
-import { useEffect } from "react";
+import ScreenHide from "@/components/screenHide/ScreenHide";
+import { controlNavView } from "@/utility/utility";
+import { useEffect, useState } from "react";
 
 export default function HideNavLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [hidden, hiddenSet] = useState(false)
+
+  //hide navs
   useEffect(() => {
-    //hide it
-    const seenNav = document.querySelector("#mainNav")
-    if (seenNav === null) return
-
-    const footerNav = document.querySelector("#footerNav")
-    if (footerNav === null) return
-
-    seenNav.classList.add("hideNav")
-    footerNav.classList.add("hideNav")
+    //hide
+    controlNavView(false)
+    hiddenSet(true)
 
     return () => {
-      seenNav.classList.add("hideNav")
-      footerNav.classList.add("hideNav")
+      controlNavView(true)
+      hiddenSet(false)
     }
   }, [])
 
-  return children
+  return (
+    <>
+      <ScreenHide hidden={hidden} />
+
+      {hidden && children}
+    </>
+  )
 }

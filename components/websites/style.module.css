@@ -4,7 +4,6 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
     overflow: auto;
-    z-index: 0;
 }
 
 .topSettingsCont {
@@ -109,11 +108,18 @@
     position: fixed;
     bottom: 0;
     translate: -100% 0;
-    pointer-events: none;
+    z-index: 10;
+
+    pointer-events: all;
 }
 
-.addOnMenu>* {
+.addOnMenu * {
     pointer-events: initial;
+}
+
+.addOnMenuDragCont {
+    display: grid;
+    align-content: flex-start;
 }
 
 /* desktop */
@@ -184,15 +190,16 @@
 
     .addOnMenu {
         display: flex;
-        position: fixed;
-
         bottom: 0;
         right: 0;
         translate: 0 0;
-        pointer-events: none;
-        z-index: 99999;
+        /* pointer-events: none; */
     }
 
+    .addOnMenuDragCont {
+        display: flex;
+        align-content: flex-start;
+    }
 }
 
 @keyframes highlightComponent {

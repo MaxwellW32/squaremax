@@ -22,7 +22,7 @@ export default function ConfirmationBox({ text, confirmationText, successMessage
                     <p style={{ fontSize: "var(--fontSizeS)" }}>{confirmationText}</p>
 
                     <div style={{ display: "flex", flexWrap: "wrap", textTransform: "capitalize" }}>
-                        <button className='button1'
+                        <button className='button2'
                             onClick={() => {
                                 runAction()
 
@@ -32,7 +32,7 @@ export default function ConfirmationBox({ text, confirmationText, successMessage
                             }}
                         >yes</button>
 
-                        <button className='button1'
+                        <button className='button2'
                             onClick={() => { confirmedSet(false) }}
                         >cancel</button>
                     </div>

@@ -113,7 +113,7 @@ export default function AddGithubRepository({ seenGithubToken, functionSubmit }:
                     if (eachKey === "private" && formObj.private !== undefined) {
                         return (
                             <React.Fragment key={eachKey}>
-                                <button className='button1'
+                                <button className='button2' style={{ justifySelf: "flex-start" }}
                                     onClick={() => {
                                         formObjSet(prevFormObj => {
                                             const newFormObj = deepClone(prevFormObj)

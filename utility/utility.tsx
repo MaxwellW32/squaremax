@@ -298,3 +298,26 @@ export function makeValidVariableName(seenString: string) {
 export function spaceCamelCase(seenString: string) {
     return seenString.replace(/([A-Z])/g, ' $1').replace(/^./, function (str) { return str.toUpperCase(); })
 }
+
+export function controlNavView(showing: boolean | "toggle") {
+    const seenNav = document.querySelector("#mainNav")
+    if (seenNav === null) throw new Error("not seeing nav")
+
+    const footerNav = document.querySelector("#footerNav")
+    if (footerNav === null) throw new Error("not seeing footer")
+
+    if (showing === "toggle") {
+        seenNav.classList.toggle("hideNav")
+        footerNav.classList.toggle("hideNav")
+
+    } else {
+        if (showing) {
+            seenNav.classList.remove("hideNav")
+            footerNav.classList.remove("hideNav")
+
+        } else {
+            seenNav.classList.add("hideNav")
+            footerNav.classList.add("hideNav")
+        }
+    }
+}

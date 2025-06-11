@@ -12,11 +12,18 @@ import { auth } from "@/auth/auth";
 //make custom forms for each edit data category type
 //templates can import fonts
 //
+//fix colours
+//incorperate family on template
+//fix layout loading state
+//
+//
+//
 
 const rubik = localFont({
   src: "./fonts/Rubik.ttf",
   variable: "--rubik",
 });
+
 const geist = localFont({
   src: "./fonts/Geist.ttf",
   variable: "--geist",

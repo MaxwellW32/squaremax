@@ -114,8 +114,8 @@ export default function Page({ params }: { params: { websiteId: string } }) {
                 nodeRef={draggableRef}
             >
                 <div ref={draggableRef} style={{ display: "grid", alignContent: "flex-start", width: "min(200px, 60vw)" }}>
-                    <div className='toolTip' style={{ backgroundColor: "var(--shade1)", cursor: "pointer", padding: ".5rem", display: "grid", alignItems: "center", justifyItems: "center" }} data-tooltip={"drag"}>
-                        <svg style={{ fill: "var(--shade2)" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 288c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 288zm0-128c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 160z" /></svg>
+                    <div className='toolTip' style={{ backgroundColor: "var(--bg1)", cursor: "pointer", padding: "var(--spacingS)", display: "grid", alignItems: "center", justifyItems: "center" }} data-tooltip={"drag"}>
+                        <svg style={{ fill: "var(--bg2" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 288c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 288zm0-128c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 160z" /></svg>
                     </div>
 
                     <select value={activePageId}
@@ -143,7 +143,7 @@ export default function Page({ params }: { params: { websiteId: string } }) {
                     <div style={{ display: "flex", justifyContent: "center" }}>
                         {sizeOptions.map(eachSizeOption => {
                             return (
-                                <button key={eachSizeOption.name} className='button1 svgChildFill' style={{ padding: ".5rem" }}
+                                <button key={eachSizeOption.name} className='button4 svgChildFill' style={{ padding: "var(--spacingS)", backgroundColor: eachSizeOption.active ? "var(--color1)" : "" }}
                                     onClick={() => {
                                         sizeOptionsSet(prevSizeOptions => {
                                             const newSizeOptions = prevSizeOptions.map(eachSizeOptionMap => {

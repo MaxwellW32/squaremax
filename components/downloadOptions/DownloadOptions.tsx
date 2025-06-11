@@ -15,11 +15,12 @@ import TextInput from '../textInput/TextInput'
 export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTokens, viewingDownloadOptionsSet, ...elProps }: {
     seenSession: Session, seenWebsite: website, seenGithubTokens: githubTokenType[], viewingDownloadOptionsSet?: React.Dispatch<React.SetStateAction<boolean>>
 } & HTMLAttributes<HTMLDivElement>) {
-    const [githubTokens, githubTokensSet] = useState<githubTokenType[]>(seenGithubTokens)
+    const [githubTokens, githubTokensSet] = useState<githubTokenType[]>([...seenGithubTokens])
+    const activeGithubToken = useMemo<githubTokenType | undefined>(() => {
+        return githubTokens.find(eachGithubToken => eachGithubToken.active)
+    }, [githubTokens])
+
     const [downloadOption, downloadOptionSet] = useState<"zip" | "github">(githubTokens.length > 0 ? "github" : "zip")
-
-    const activeGithubToken = githubTokens.find(eachGithubToken => eachGithubToken.active)
-
     const [repositories, repositoriesSet] = useState<githubRepo[]>([])
     const [search, searchSet] = useState("")
 
@@ -77,14 +78,21 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
 
     //get repositories each time the github token changes
     useEffect(() => {
+        if (activeGithubToken === undefined) return
+
         handleRepoSearch()
     }, [activeGithubToken])
 
     async function handleRepoSearch() {
-        if (activeGithubToken === undefined) return
+        try {
+            if (activeGithubToken === undefined) return
 
-        const seenRepositories = await getGithubRepos(activeGithubToken.token)
-        repositoriesSet(seenRepositories)
+            const seenRepositories = await getGithubRepos(activeGithubToken.token)
+            repositoriesSet(seenRepositories)
+
+        } catch (error) {
+            consoleAndToastError(error)
+        }
     }
 
     async function handleGetGithubTokens() {
@@ -99,17 +107,16 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
         }
     }
 
-
     return (
-        <div {...elProps} style={{ display: "grid", alignContent: "flex-start", position: "fixed", top: "50%", left: "50%", translate: "-50% -50%", width: "min(500px, 95vw)", height: "80vh", backgroundColor: "var(--shade2)", zIndex: 10, overflowY: "auto", border: "1px solid var(--shade1)", ...elProps?.style }}>
+        <div {...elProps} style={{ display: "grid", alignContent: "flex-start", position: "fixed", top: "50%", left: "50%", translate: "-50% -50%", width: "min(500px, 95vw)", height: "80vh", backgroundColor: "var(--bg2)", zIndex: 10, overflowY: "auto", border: "1px solid var(--shade1)", ...elProps?.style }}>
             {/* download option selection */}
             <div style={{ display: "flex", overflowX: "auto" }}>
-                <button className='button1' style={{ backgroundColor: downloadOption === "github" ? "var(--color1)" : "" }}
+                <button className={`button3 ${downloadOption === "github" ? "hovering" : ""}`} style={{}}
                     onClick={() => {
                         downloadOptionSet("github")
                     }}>github</button>
 
-                <button className='button1' style={{ backgroundColor: downloadOption === "zip" ? "var(--color1)" : "" }}
+                <button className={`button3 ${downloadOption === "zip" ? "hovering" : ""}`} style={{}}
                     onClick={() => {
                         downloadOptionSet("zip")
                     }}>zip</button>
@@ -122,14 +129,13 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                     }}>close</button>
             </div>
 
-
             {/* display area for each download option */}
             <div style={{ display: "grid", alignContent: "flex-start", overflowY: "auto" }}>
                 {downloadOption === "zip" && (
-                    <div style={{ display: "grid", alignContent: "flex-start", padding: "1rem" }}>
-                        <h2>Download your website as a zip file</h2>
+                    <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)", padding: "var(--spacingR)", }}>
+                        <p>Download your website as a zip file</p>
 
-                        <button className='button1'
+                        <button className='button1' style={{ justifySelf: "flex-start" }}
                             onClick={() => {
                                 handleWebsiteDownload({ option: "zip" })
                             }}
@@ -146,7 +152,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                                     {githubTokens.map(eachGithubToken => {
                                         return (
                                             <div key={eachGithubToken.id}>
-                                                <button className='button1'
+                                                <button className='button2'
                                                     onClick={() => {
                                                         githubTokensSet((prevGithubTokens => {
                                                             // set active on all to false
@@ -236,18 +242,17 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
 
                                 {search !== "" && (
                                     <>
-                                        <button className='button1' style={{ justifySelf: "flex-end" }}
+                                        <button className='button2' style={{ justifySelf: "flex-end" }}
                                             onClick={async () => {
                                                 toast.success("searching")
+
                                                 const serverRepos = await searchGithubReposByName(activeGithubToken, search)
 
                                                 repositoriesSet(prevLocalRepos => {
                                                     const localRepoIds = new Set(prevLocalRepos.map(repo => repo.id));
                                                     const uniqueNewRepos = serverRepos.filter(repo => !localRepoIds.has(repo.id));
 
-                                                    if (uniqueNewRepos.length > 0) {
-                                                        toast.success("searched")
-                                                    }
+                                                    toast.success("searched")
 
                                                     const newArray: githubRepo[] = [...prevLocalRepos, ...uniqueNewRepos];
                                                     return newArray
@@ -258,7 +263,13 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                                     </>
                                 )}
 
-                                <ShowMore label='add github repo'
+                                <ShowMore
+                                    label=''
+                                    labelJSX={(
+                                        <>
+                                            <button className='button2'>add repo</button>
+                                        </>
+                                    )}
                                     content={(
                                         <AddGithubRepository seenGithubToken={activeGithubToken}
                                             functionSubmit={handleRepoSearch}
@@ -268,14 +279,14 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
 
                                 {filteredRepositories.map(eachFilteredRepository => {
                                     return (
-                                        <div key={eachFilteredRepository.id} style={{ padding: "1rem", display: "flex", alignItems: "center", gap: "var(--spacingR)", overflowX: "auto", borderTop: "1px solid var(--shade1)", }}>
+                                        <div key={eachFilteredRepository.id} style={{ padding: "var(--spacingR)", display: "flex", alignItems: "center", gap: "var(--spacingR)", overflowX: "auto", borderTop: "1px solid var(--shade1)", }}>
                                             <label>{eachFilteredRepository.name}</label>
 
                                             <p style={{ flex: 1 }}><Moment fromNow>{eachFilteredRepository.updated_at}</Moment></p>
 
                                             <ConfirmationBox text='' confirmationText='are you sure you want to upload to this repo?' successMessage='uploading!' float={true}
                                                 icon={
-                                                    <svg style={{ fill: "var(--shade2)" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480l0-83.6c0-4 1.5-7.8 4.2-10.8L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z" /></svg>
+                                                    <svg style={{ fill: "var(--bg2)" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480l0-83.6c0-4 1.5-7.8 4.2-10.8L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z" /></svg>
                                                 }
                                                 runAction={async () => {
                                                     if (activeGithubToken == undefined) return

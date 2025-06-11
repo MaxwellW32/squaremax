@@ -5,7 +5,7 @@ import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serv
 import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, previewTemplateType, sizeOptionsArr, sizeOptionType, updatePageSchema, updateUsedComponent, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
-import { addScopeToCSS, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, scaleToFit, sortUsedComponentsByOrder, } from '@/utility/utility'
+import { addScopeToCSS, controlNavView, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, scaleToFit, sortUsedComponentsByOrder, } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
@@ -1109,13 +1109,13 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                 content={
                                                     <>
                                                         {viewerTemplate === null ? (
-                                                            <button className='button1'
+                                                            <button className='button2'
                                                                 onClick={() => {
                                                                     viewerTemplateSet({ usedComponentIdToSwap: activeUsedComponent.id, template: null, builtTemplate: null })
                                                                 }}
                                                             >enable viewer node</button>
                                                         ) : (
-                                                            <button className='button1'
+                                                            <button className='button2'
                                                                 onClick={() => {
                                                                     viewerTemplateSet(null)
                                                                 }}
@@ -1205,19 +1205,19 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                             <Draggable
                                 nodeRef={draggableRef}
                             >
-                                <div style={{}} ref={draggableRef}>
-                                    <div className='toolTip' style={{ backgroundColor: "var(--bg1)", cursor: "pointer", padding: ".5rem", display: "grid", alignItems: "center", justifyItems: "center" }} data-tooltip={"drag"}>
+                                <div className={styles.addOnMenuDragCont} ref={draggableRef}>
+                                    <button className='toolTip button4' data-tooltip={"drag"}>
                                         <svg style={{ fill: "var(--bg2)" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M32 288c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 288zm0-128c-17.7 0-32 14.3-32 32s14.3 32 32 32l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 160z" /></svg>
-                                    </div>
+                                    </button>
 
                                     <TemplateSelector websiteId={websiteObj.id} seenLocation={activeLocation} seenPage={activePage} activeLocationSet={activeLocationSet} handleManageUsedComponents={handleManageUsedComponents} previewTemplate={previewTemplate} previewTemplateSet={previewTemplateSet} seenActiveUsedComponent={activeUsedComponent} seenUsedComponents={websiteObj.usedComponents} canFloat={true} />
                                 </div>
                             </Draggable>
                         )}
 
-                        {showingSideBar && (
+                        {showingSideBar && (//dim button
                             <>
-                                <button className='button4 toolTip' data-tooltip={"dim"} style={{ filter: dimSideBar ? "brightness(.4)" : "" }}
+                                <button className='button4 toolTip' data-tooltip={"dim"} style={{ filter: dimSideBar ? "brightness(.4)" : "", backgroundColor: "var(--color3)" }}
                                     onClick={() => {
                                         dimSideBarSet(prev => !prev)
                                     }}
@@ -1227,7 +1227,8 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                             </>
                         )}
 
-                        <button className='button4 toolTip' data-tooltip={`${showingSideBar ? "close" : "open"} side bar`}
+                        <button className='button4 toolTip' style={{ backgroundColor: "var(--color3)" }}
+                            data-tooltip={`${showingSideBar ? "close" : "open"} side bar`}
                             onClick={() => {
                                 showingSideBarSet(prev => {
                                     const newBool = !prev
@@ -1250,12 +1251,9 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                 <DownloadOptions style={{ display: viewingDownloadOptions ? "" : "none" }} seenSession={seenSession} seenWebsite={websiteObj} seenGithubTokens={seenSession.user.userGithubTokens} viewingDownloadOptionsSet={viewingDownloadOptionsSet} />
             </div>
 
-            <button className="button1 hideNavButton" style={{ position: "fixed", bottom: 0, left: 0, padding: ".5rem" }}
+            <button className="button1 hideNavButton" style={{}}
                 onClick={() => {
-                    const element = document.getElementById("mainNav");
-                    if (element !== null) {
-                        element.classList.toggle("hideNav");
-                    }
+                    controlNavView("toggle")
                 }}
             >
                 <svg style={{ fill: "var(--bg2)" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z" /></svg>

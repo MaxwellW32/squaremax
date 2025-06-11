@@ -10,7 +10,7 @@ import { servicesData } from '@/lib/servicesData'
 
 export default function Footer() {
     return (
-        <footer id='footerNav' style={{ padding: "2rem 1rem", backgroundColor: "var(--bg1)", color: "#fff", display: "grid", gap: "var(--spacingR)" }}>
+        <footer id='footerNav' style={{ padding: "2rem 1rem", backgroundColor: "var(--bg1)", color: "#fff", display: "grid", gap: "var(--spacingR)", zIndex: 999 }}>
             <ul className={styles.footerUL}>
                 {[
                     {

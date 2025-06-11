@@ -203,13 +203,13 @@ section {
 }
 
 .button2 {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: color-mix(in hsl, var(--bg1) 60%, transparent);
     border-radius: .2rem;
     text-transform: uppercase;
-    color: #fff;
-    padding: 1rem 2rem;
+    color: var(--shade5);
+    padding: var(--spacingS);
     transition: background-color 400ms, color 400ms;
-
+    font-size: var(--fontSizeS);
 }
 
 .button2>svg {
@@ -233,14 +233,24 @@ section {
     color: #000;
     font-weight: bold;
     display: flex;
-    gap: 1rem;
+    gap: var(--spacingR);
     justify-content: space-between;
     align-items: center;
     overflow: hidden;
-    padding: .5rem;
+    padding: var(--spacingS);
     transition: background-color 400ms, color 400ms;
 }
 
+.button3:hover,
+.button3.hovering {
+    background-color: var(--color1);
+    color: #fff;
+}
+
+.button3:hover>div,
+.button3.hovering>div {
+    background-color: #000
+}
 
 .button3 svg {
     fill: #fff
@@ -251,34 +261,16 @@ section {
     transition: background-color 400ms;
 }
 
-.button3:hover>div {
-    background-color: #000
-}
-
-
-.button3:hover {
-    background-color: var(--color1);
-    color: #fff;
-}
-
-.button3Hovering>div {
-    background-color: #000
-}
-
-
-.button3Hovering {
-    background-color: var(--color1);
-    color: #fff;
-}
-
 .button4 {
     background-color: var(--bg1);
     color: var(--shade5);
-    padding: .2rem;
+    padding: var(--spacingS);
     font-size: var(--fontSizeS);
     text-transform: capitalize;
     font-weight: 700;
     transition: scale .4s;
+    display: grid;
+    justify-items: center;
 }
 
 .tag {
@@ -335,12 +327,22 @@ section {
 
 .hideNavButton {
     transition: opacity 400ms ease;
-    animation: fadeOut 3s ease;
+    animation: fadeOut 6s ease;
+    position: fixed;
     opacity: 0;
+    bottom: 0;
+    left: 0;
+    padding: var(--spacingS);
+    z-index: 9999;
+    border-bottom-left-radius: 0rem;
 }
 
 @keyframes fadeOut {
     0% {
+        opacity: 1;
+    }
+
+    50% {
         opacity: 1;
     }
 
@@ -354,7 +356,7 @@ section {
 }
 
 .svgChildFill>svg {
-    fill: var(--fill, var(--shade2));
+    fill: var(--fill, var(--bg2));
 }
 
 .resizeSvg>svg {
