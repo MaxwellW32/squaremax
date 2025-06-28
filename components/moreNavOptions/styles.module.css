@@ -5,7 +5,7 @@
 }
 
 .moreItemsMenu {
-    padding: .5rem;
+    padding: var(--spacingS);
     display: grid;
     position: absolute;
     top: 100%;
@@ -17,7 +17,7 @@
 }
 
 .moreIntemsItem {
-    padding: .5rem;
+    padding: var(--spacingS);
     transition: color 400ms, background-color 400ms;
     cursor: pointer;
 }

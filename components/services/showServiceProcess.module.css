@@ -2,19 +2,19 @@
     --indentPercentage: 3%;
     width: fit-content;
     min-height: 100px;
-    padding-block: 1rem;
+    padding-block: var(--spacingR);
     clip-path: polygon(0% 100%, var(--indentPercentage) 50%, 0% 0%, calc(100% - var(--indentPercentage)) 0%, 100% 50%, calc(100% - var(--indentPercentage)) 100%);
     display: flex;
     flex-wrap: wrap;
     flex-direction: row-reverse;
     align-items: center;
     justify-self: flex-end;
-    gap: .5rem;
-    padding: 1rem;
+    gap: var(--spacingS);
+    padding: var(--spacingR);
     position: relative;
     color: #fff;
     background: linear-gradient(to right, var(--color1), var(--color3));
-    padding-left: 2rem;
+    padding-left: var(--spacingEL);
     transition: transform 400ms;
 }
 
@@ -28,8 +28,8 @@
     flex-direction: row;
     justify-self: flex-start;
     background: linear-gradient(to left, var(--color1), var(--color3));
-    padding: 1rem;
-    padding-right: 2rem;
+    padding: var(--spacingR);
+    padding-right: var(--spacingEL);
 }
 
 

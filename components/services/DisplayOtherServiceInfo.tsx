@@ -12,10 +12,10 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
         <>
             <h2>Key Features</h2>
 
-            <ul style={{ padding: '1rem', display: "grid", gap: ".5rem" }}>
+            <ul style={{ padding: 'var(--spacingR)', display: "grid", gap: "var(--spacingS)" }}>
                 {service.keyFeatures.map((eachFeature, eachFeatureIndex) => {
                     return (
-                        <li key={eachFeatureIndex} style={{ display: "flex", gap: ".5rem" }}>
+                        <li key={eachFeatureIndex} style={{ display: "flex", gap: "var(--spacingS)" }}>
                             <svg xmlns="http://www.w3.org/2000/svg" xmlSpace="preserve" viewBox="0 0 122.88 109.76">
                                 <path d="m0 52.88 22.68-.3c8.76 5.05 16.6 11.59 23.35 19.86C63.49 43.49 83.55 19.77 105.6 0h17.28C92.05 34.25 66.89 70.92 46.77 109.76 36.01 86.69 20.96 67.27 0 52.88z" style={{ fillRule: "evenodd", clipRule: "evenodd", fill: "var(--color1)", }} />
                             </svg>
@@ -28,10 +28,10 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
 
             <h2>Technlogy used</h2>
 
-            <ul style={{ display: "flex", gap: "var(--spacingR)", overflowX: "auto", padding: "1rem" }}>
+            <ul style={{ display: "flex", gap: "var(--spacingR)", overflowX: "auto", padding: "var(--spacingR)" }}>
                 {service.technologyUsed.map((eachItem, eachItemIndex) => {
                     return (
-                        <li key={eachItemIndex} style={{ padding: '.5rem 1rem', borderRadius: "2rem", backgroundColor: "var(--color1)", fontWeight: "bold", color: "#fff", whiteSpace: "nowrap" }}>{eachItem}</li>
+                        <li key={eachItemIndex} style={{ padding: 'var(--spacingS) var(--spacingR)', borderRadius: "2rem", backgroundColor: "var(--color1)", fontWeight: "bold", color: "#fff", whiteSpace: "nowrap" }}>{eachItem}</li>
                     )
                 })}
             </ul>
@@ -51,13 +51,13 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
                 </>
             )}
 
-            <Link href={"/contact"} style={{ justifySelf: "center", marginTop: "1rem" }}>
+            <Link href={"/contact"} style={{ justifySelf: "center", marginTop: "var(--spacingR)" }}>
                 <button className='button1'>Get Started</button>
             </Link>
 
             {projectsData.filter(eachProject => eachProject.representingService.includes(service.name)).length > 0 && (
                 <>
-                    <h2 style={{ marginBottom: ".5rem" }}>{service.name} projects</h2>
+                    <h2 style={{ marginBottom: "var(--spacingS)" }}>{service.name} projects</h2>
 
                     <DisplayProjects seenProjectData={projectsData.filter(eachProject => eachProject.representingService.includes(service.name))} />
                 </>
@@ -65,7 +65,7 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
 
             <h2>Related services</h2>
 
-            <div className='snap' style={{ marginTop: "1rem", display: "grid", gridAutoFlow: "column", gridAutoColumns: "min(300px, 100%)", overflowX: "auto" }}>
+            <div className='snap' style={{ marginTop: "var(--spacingR)", display: "grid", gridAutoFlow: "column", gridAutoColumns: "min(300px, 100%)", overflowX: "auto" }}>
                 {servicesData.filter(eachService => eachService.name !== service.name).map((eachService, eachServiceIndex) => {
                     return (
                         <ShowService key={eachServiceIndex} service={eachService} />

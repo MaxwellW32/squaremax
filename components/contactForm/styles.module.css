@@ -5,6 +5,6 @@
 .formColCont div:has(input),
 .formColCont div:has(textarea) {
     display: grid;
-    gap: 1rem;
+    gap: var(--spacingR);
     align-content: flex-start;
 }

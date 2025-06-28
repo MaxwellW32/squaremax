@@ -92,10 +92,10 @@ export default function AnimateIntroText() {
     }
 
     return (
-        <div className={styles.mainCont} style={{ width: "min(500px, 100%)", minHeight: "75svh", display: "grid", position: "relative", zIndex: 1, justifyItems: "center", padding: "1rem", backgroundColor: "rgba(255,255,255,0.9)", opacity: started ? 1 : 0, transition: "opacity 1s", gap: "var(--spacingR)" }}>
+        <div className={styles.mainCont} style={{ width: "min(500px, 100%)", minHeight: "75svh", display: "grid", position: "relative", zIndex: 1, justifyItems: "center", padding: "var(--spacingR)", backgroundColor: "rgba(255,255,255,0.9)", opacity: started ? 1 : 0, transition: "opacity 1s", gap: "var(--spacingR)" }}>
             <h1 ref={headingContainerRef} style={{ display: "flex", flexWrap: "wrap", textTransform: "uppercase", alignSelf: "flex-start" }} ></h1>
 
-            <div ref={supportingTextContainerRef} style={{ display: "flex", flexWrap: "wrap", gap: ".2rem", justifySelf: "flex-end", paddingRight: "1rem", fontWeight: "bold" }} ></div>
+            <div ref={supportingTextContainerRef} style={{ display: "flex", flexWrap: "wrap", gap: ".2rem", justifySelf: "flex-end", paddingRight: "var(--spacingR)", fontWeight: "bold" }} ></div>
 
             <Link href={"/contact"} style={{ justifySelf: "flex-end", alignSelf: "flex-end" }}>
                 <button className={`button1 fadeIn`} style={{}}>Get Started</button>

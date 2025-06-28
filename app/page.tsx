@@ -1571,7 +1571,7 @@ export default function Home() {
           }
         ].map((eachItem, eachItemIndex) => {
           return (
-            <div key={eachItemIndex} style={{ padding: "5rem 1rem", color: "#fff", position: "relative" }}>
+            <div key={eachItemIndex} style={{ padding: "5rem var(--spacingR)", color: "#fff", position: "relative" }}>
               <Image alt={`${eachItem.Heading}'s image`} src={eachItem.image} priority={true} width={1920} height={1920} style={{ objectFit: "cover", position: "absolute", top: 0, left: 0, width: "100%", height: "100%" } as React.CSSProperties} />
 
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6  )" }}></div>
@@ -1615,11 +1615,11 @@ export default function Home() {
 
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: "var(--spacingR)", flexWrap: 'wrap', maxWidth: "1000px", margin: "0 auto", color: "var(--color1)" }}>
-          <MyMetrics amount={100} amountAdd="+"
+          <MyMetrics amount={7} amountAdd="+"
             icon={<span style={{ fontSize: "var(--iconSizeL)", }} className="material-symbols-outlined">partner_exchange</span>}
             text="Happy Clients" />
 
-          <MyMetrics amount={50} amountAdd="+"
+          <MyMetrics amount={7} amountAdd="+"
             icon={<span style={{ fontSize: "var(--iconSizeL)", }} className="material-symbols-outlined">fact_check</span>}
 
             text="Projects Complete" />
@@ -1639,7 +1639,7 @@ export default function Home() {
 
         <p style={{ maxWidth: "75ch", justifySelf: "center", textAlign: 'center' }}>From innovative website development to seamless mobile app solutions we specialize in delivering cutting-edge digital solutions tailored to your business needs.</p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))", width: "min(1000px, 100%)", justifySelf: "center", marginTop: "1rem", borderBottom: "1px solid #000", borderRight: "1px solid #000" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))", width: "min(1000px, 100%)", justifySelf: "center", marginTop: "var(--spacingR)", borderBottom: "1px solid #000", borderRight: "1px solid #000" }}>
           {servicesData.map((eachService, eachServiceIndex) => {
             return (
               <ShowService key={eachServiceIndex} service={eachService} startHovering={eachServiceIndex === 0} />

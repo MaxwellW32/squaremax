@@ -248,7 +248,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
                 <ul style={{ display: "flex", overflowX: "auto", justifySelf: "stretch" }}>
                     {categories.map(eachCategory => {
                         return (
-                            <button key={eachCategory.name} className='button2' style={{ backgroundColor: eachCategory.name === activeSelection.current ? "var(--color1)" : "", padding: ".5rem" }}
+                            <button key={eachCategory.name} className='button2' style={{ backgroundColor: eachCategory.name === activeSelection.current ? "var(--color1)" : "", padding: "var(--spacingS)" }}
                                 onClick={() => {
                                     searchUnderCategory(eachCategory.name)
 

@@ -12,7 +12,7 @@ export default function Page() {
                         <h1>Popular Questions</h1>
                     </div>
 
-                    <div style={{ display: "grid", maxWidth: "75ch", margin: "1rem auto", padding: "1rem", boxShadow: "0px 0px 40px 20px #eee" }}>
+                    <div style={{ display: "grid", maxWidth: "75ch", margin: "var(--spacingR) auto", padding: "var(--spacingR)", boxShadow: "0px 0px 40px 20px #eee" }}>
                         <Faq
                             question="What services do you offer?"
                             answer="We specialize in website development, mobile app development, cloud solutions integration, custom software development, UI/UX design, digital marketing integration, maintenance and support, consulting, and training."

@@ -6,14 +6,14 @@
 .serviceCont {
     display: grid;
     align-content: flex-start;
-    padding: 1rem;
+    padding: var(--spacingR);
 }
 
 .serviceCont>h2 {
-    margin-top: 1rem;
+    margin-top: var(--spacingR);
 }
 
 .serviceCont>p {
-    padding-left: 1rem;
+    padding-left: var(--spacingR);
     max-width: 50ch;
 }

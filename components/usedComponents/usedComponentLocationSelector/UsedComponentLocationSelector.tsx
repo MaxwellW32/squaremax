@@ -55,7 +55,7 @@ export default function UsedComponentLocationSelector({ seenUsedComponent, seenP
 
                     {transferToLocation === "page" && (
                         <>
-                            <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem" }}>
+                            <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingS)" }}>
                                 {seenPages.map(eachPage => {
                                     return (
                                         <button key={eachPage.id} className='button1'

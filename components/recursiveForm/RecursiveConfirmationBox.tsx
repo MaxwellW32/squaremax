@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 export default function RecursiveConfirmationBox({ text, confirmationText, successMessage, runAction, float = false, icon }: { text: string, confirmationText: string, successMessage: string, runAction: () => void, float?: boolean, icon?: React.JSX.Element }) {
     const [confirmed, confirmedSet] = useState(false)
     return (
-        <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", position: "relative" }}>
+        <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingS)", position: "relative" }}>
             <button className='button1'
                 onClick={() => {
                     confirmedSet(true)
@@ -17,7 +17,7 @@ export default function RecursiveConfirmationBox({ text, confirmationText, succe
             </button>
 
             {confirmed && (
-                <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", ...(float ? { position: "fixed", right: 0 } : { position: "relative" }), backgroundColor: "beige", padding: "1rem", zIndex: 999 }}>
+                <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingS)", ...(float ? { position: "fixed", right: 0 } : { position: "relative" }), backgroundColor: "beige", padding: "var(--spacingR)", zIndex: 999 }}>
                     <p style={{ fontSize: "var(--fontSizeS)" }}>{confirmationText}</p>
 
                     <div style={{ display: "flex", flexWrap: "wrap", textTransform: "capitalize" }}>

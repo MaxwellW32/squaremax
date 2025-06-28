@@ -195,7 +195,7 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", alignItems: "center" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingS)", alignItems: "center" }}>
                 <button className='button1'
                     onClick={async () => {
                         handleSearch()
@@ -226,7 +226,7 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
                     <>
                         <p>page</p>
 
-                        <input type='text' value={`${pageIndex + 1}`} style={{ width: "4ch", padding: "0 .5rem", textAlign: "center" }}
+                        <input type='text' value={`${pageIndex + 1}`} style={{ width: "4ch", padding: "0 var(--spacingS)", textAlign: "center" }}
                             onChange={(e) => {
                                 //validate entered num
                                 let seenIndex = parseInt(e.target.value)
@@ -259,7 +259,7 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
                 <ShowMore
                     label='Filters'
                     content={
-                        <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)", paddingBlock: "1rem", position: "relative" }}>
+                        <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)", paddingBlock: "var(--spacingR)", position: "relative" }}>
                             {Object.entries(activeSearchFilters).map((eachEntry) => {
                                 const eachFilterKey = eachEntry[0] as keyof searchFiltersType<T>
                                 const eachFilterValue = eachEntry[1] as searchFiltersType<T>[keyof T]
@@ -271,10 +271,10 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
                                 const label = spaceCamelCase(eachFilterKeyStringType.charAt(0).toUpperCase() + eachFilterKeyStringType.slice(1))
 
                                 return (
-                                    <div key={eachFilterKeyStringType} style={{ display: "grid", alignContent: "flex-start", gap: ".5rem" }}>
+                                    <div key={eachFilterKeyStringType} style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingS)" }}>
                                         <label>{label}</label>
 
-                                        <div style={{ display: "grid", alignContent: "flex-start", gridTemplateColumns: "1fr auto", gap: ".5rem" }}>
+                                        <div style={{ display: "grid", alignContent: "flex-start", gridTemplateColumns: "1fr auto", gap: "var(--spacingS)" }}>
                                             {typeof eachFilterValue.value === "boolean" && (
                                                 <button className='button1' style={{ backgroundColor: activeSearchFilters[eachFilterKey] ? "" : "rgb(var(--color2))" }}
                                                     onClick={() => {

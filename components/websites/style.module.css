@@ -16,7 +16,7 @@
 .mainSettingsContMiddle {
     display: flex;
     justify-content: center;
-    gap: .5rem;
+    gap: var(--spacingS);
 }
 
 .mainContent {
@@ -91,7 +91,7 @@
 .selectionOptionsCont {
     display: flex;
     overflow: auto;
-    padding-right: 1rem;
+    padding-right: var(--spacingR);
 }
 
 .selectionContent {
@@ -157,10 +157,10 @@
 
 .sideBarOtherContent {
     display: grid;
-    gap: 1rem;
+    gap: var(--spacingR);
     align-content: flex-start;
     overflow: auto;
-    padding: 1rem;
+    padding: var(--spacingR);
 }
 
 .editing {
@@ -244,14 +244,14 @@
 .form {
     display: grid;
     align-content: flex-start;
-    gap: 1rem;
-    padding: 1rem;
+    gap: var(--spacingR);
+    padding: var(--spacingR);
 }
 
 .form>div {
     display: grid;
     align-content: flex-start;
-    gap: .5rem;
+    gap: var(--spacingS);
 }
 
 .fontsCont {
@@ -259,7 +259,7 @@
     grid-auto-flow: column;
     overflow-x: auto;
     grid-auto-columns: 80%;
-    margin-top: 2rem;
+    margin-top: var(--spacingEL);
 }
 
 .fontCont {
@@ -270,5 +270,5 @@
 .fontCont>div {
     display: grid;
     align-content: flex-start;
-    gap: .5rem;
+    gap: var(--spacingS);
 }

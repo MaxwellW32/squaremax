@@ -7,7 +7,7 @@ export default function ShowMore({ label, content, svgColor, startShowing, label
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start" }} className={styles.mainDiv}>
-            <div style={{ display: "flex", gap: ".5rem", alignItems: "center", cursor: "pointer", padding: "1rem" }} onClick={() => showingSet(prev => !prev)}>
+            <div style={{ display: "flex", gap: "var(--spacingS)", alignItems: "center", cursor: "pointer", padding: "var(--spacingR)" }} onClick={() => showingSet(prev => !prev)}>
                 <div style={{ display: "flex", gap: "var(--spacingS)" }}>
                     {label !== "" && (
                         <p>{label}</p>
@@ -21,7 +21,7 @@ export default function ShowMore({ label, content, svgColor, startShowing, label
                 </span>
             </div>
 
-            <div style={{ padding: '1rem', display: !showing ? "none" : "grid", alignContent: "flex-start", overflow: "clip" }}>
+            <div style={{ padding: 'var(--spacingR)', display: !showing ? "none" : "grid", alignContent: "flex-start", overflow: "clip" }}>
                 <div className={`${showing ? styles.animateIn : ""}`} style={{ display: "grid", alignContent: "flex-start" }}>
                     {content}
                 </div>

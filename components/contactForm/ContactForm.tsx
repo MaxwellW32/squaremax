@@ -114,7 +114,7 @@ ${formObj.message}
 
     return (
         <form action={() => { }} className={styles.formDiv} style={{ display: "grid", alignContent: "flex-start" }}>
-            <div style={{ textAlign: "center", display: "grid", gap: "var(--spacingR)", marginBottom: "2rem" }}>
+            <div style={{ textAlign: "center", display: "grid", gap: "var(--spacingR)", marginBottom: "var(--spacingEL)" }}>
                 <h1>Request Free Consultation</h1>
 
                 <p>Get in touch and discover how we can help. We will be in touch with you as soon as possible.</p>
@@ -187,7 +187,7 @@ ${formObj.message}
                 />
             </div>
 
-            <button className='button1' disabled={!userFormSchema.safeParse(formObj).success} type='submit' style={{ justifySelf: "flex-end", marginTop: '1rem' }}
+            <button className='button1' disabled={!userFormSchema.safeParse(formObj).success} type='submit' style={{ justifySelf: "flex-end", marginTop: 'var(--spacingR)' }}
                 onClick={() => {
                     handleSubmit()
                 }}

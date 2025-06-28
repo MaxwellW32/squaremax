@@ -66,7 +66,7 @@ export default function MoreNavOptions({ session }: { session: Session }) {
                     <li className={styles.moreIntemsItem}>settings</li>
 
                     <li className={styles.moreIntemsItem}>
-                        <button style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}
+                        <button style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingS)" }}
                             onClick={(e) => {
                                 e.stopPropagation()
 

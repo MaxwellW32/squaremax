@@ -202,7 +202,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
             </section>
 
             <section>
-                <ul style={{ display: "flex", gap: ".5rem" }}>
+                <ul style={{ display: "flex", gap: "var(--spacingS)" }}>
                     {categories.map(eachCategory => {
                         return (
                             <button key={eachCategory.name} className='button1' style={{ backgroundColor: eachCategory.name === selectedCategory?.name ? "var(--color1)" : "" }}

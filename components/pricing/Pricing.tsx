@@ -15,7 +15,7 @@ export default function Pricing() {
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start", }}>
-            <div style={{ display: "grid", gap: "var(--spacingR)", marginBlock: "1rem" }}>
+            <div style={{ display: "grid", gap: "var(--spacingR)", marginBlock: "var(--spacingR)" }}>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--spacingR)", justifyContent: "center", }}>
                     <p style={{}}>All plans include:</p>
 
@@ -32,7 +32,7 @@ export default function Pricing() {
                             }
                         ].map((each, eachIndex) => {
                             return (
-                                <li key={eachIndex} style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
+                                <li key={eachIndex} style={{ display: "flex", alignItems: "center", gap: "var(--spacingS)" }}>
                                     <div style={{ width: "fit-content", aspectRatio: "1/1", display: "grid", alignItems: "center", justifyItems: "center", position: "relative" }}>
                                         <div style={{ backgroundColor: "var(--color1)", position: "absolute", top: 0, left: 0, bottom: 0, right: 0, zIndex: -1, borderRadius: "50%", opacity: .05, scale: 1.2 }}></div>
 
@@ -56,7 +56,7 @@ export default function Pricing() {
 
                 {viewingMore && (
                     <div className={styles.morePricingCont}>
-                        <p style={{ maxWidth: "75ch", marginTop: "1rem" }}>Price varies on invoice for domain name purchasing, database rentals, hosting costs</p>
+                        <p style={{ maxWidth: "75ch", marginTop: "var(--spacingR)" }}>Price varies on invoice for domain name purchasing, database rentals, hosting costs</p>
 
                         <h3 className='supportingTitle2'>Maintenance</h3>
 
@@ -127,7 +127,7 @@ export default function Pricing() {
                             })}
                         </ul>
 
-                        <p style={{ maxWidth: "75ch", marginTop: "1rem" }}>Our team excels at crafting compelling Ad Campaigns tailored to your business needs, ensuring your advertisements not only show results, but turn website visits into conversions.</p>
+                        <p style={{ maxWidth: "75ch", marginTop: "var(--spacingR)" }}>Our team excels at crafting compelling Ad Campaigns tailored to your business needs, ensuring your advertisements not only show results, but turn website visits into conversions.</p>
 
 
                         <h3 className='supportingTitle2'>Managed Hosting Cost</h3>
@@ -173,7 +173,7 @@ export default function Pricing() {
             </div>
 
             <div style={{ display: "grid", alignContent: "flex-start", overflow: "auto", margin: "0 auto", }}>
-                <div ref={containerRef} className={`snap`} style={{ display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridAutoColumns: "300px", overflow: "auto", padding: "1rem", scrollBehavior: "smooth" }}>
+                <div ref={containerRef} className={`snap`} style={{ display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridAutoColumns: "300px", overflow: "auto", padding: "var(--spacingR)", scrollBehavior: "smooth" }}>
                     {pricingTables.map((eachTable, eachTableIndex) => {
                         return (
                             <DisplayPricingTable key={eachTableIndex} pricingTable={eachTable} startHovering={eachTableIndex === 2} recommended={eachTableIndex === 2} scrollToRecommended={scrollToRecommended} />
@@ -203,7 +203,7 @@ function DisplayPricingTable({ pricingTable, startHovering, recommended, scrollT
             <p style={{ textTransform: "capitalize", fontSize: "var(--fontSizeM)", fontWeight: "var(--fontWeightM)" }}>{pricingTable.planName}</p>
 
             {recommended && (
-                <p style={{ position: "absolute", top: 0, right: 0, margin: "1rem", backgroundColor: "var(--color1)", color: "#fff", padding: ".5rem", fontSize: "var(--fontSizeS)", borderRadius: "1rem", fontWeight: "bold" }}>Bestseller</p>
+                <p style={{ position: "absolute", top: 0, right: 0, margin: "var(--spacingR)", backgroundColor: "var(--color1)", color: "#fff", padding: "var(--spacingS)", fontSize: "var(--fontSizeS)", borderRadius: "var(--spacingR)", fontWeight: "bold" }}>Bestseller</p>
             )}
 
             <p style={{ minHeight: "120px" }}>{pricingTable.shortDescription}</p>

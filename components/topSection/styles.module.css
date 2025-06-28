@@ -1,6 +1,6 @@
 .iconCont {
     display: flex;
-    gap: 1rem;
+    gap: var(--spacingR);
     align-items: center;
     color: #fff;
 }

@@ -6,7 +6,7 @@ export default function ConfirmationBox({ text, confirmationText, successMessage
     const [confirmed, confirmedSet] = useState(false)
 
     return (
-        <div {...elProps} style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", position: "relative", ...elProps.style }}>
+        <div {...elProps} style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingS)", position: "relative", ...elProps.style }}>
             <button className='button1'
                 onClick={() => {
                     confirmedSet(true)
@@ -18,7 +18,7 @@ export default function ConfirmationBox({ text, confirmationText, successMessage
             </button>
 
             {confirmed && (
-                <div style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", ...(float ? { position: "fixed", top: 0, right: 0 } : { position: "relative" }), backgroundColor: "beige", padding: "1rem", zIndex: 999 }}>
+                <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingS)", ...(float ? { position: "fixed", top: 0, right: 0 } : { position: "relative" }), backgroundColor: "beige", padding: "var(--spacingR)", zIndex: 999 }}>
                     <p style={{ fontSize: "var(--fontSizeS)" }}>{confirmationText}</p>
 
                     <div style={{ display: "flex", flexWrap: "wrap", textTransform: "capitalize" }}>

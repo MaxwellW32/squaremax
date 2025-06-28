@@ -6,5 +6,5 @@
 .form>div {
     display: grid;
     align-content: flex-start;
-    gap: .5rem;
+    gap: var(--spacingS);
 }

@@ -146,7 +146,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                 {downloadOption === "github" && (
                     <div style={{ display: "grid", alignContent: "flex-start", overflowY: "auto", }}>
                         {/* account selection */}
-                        <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)", padding: "1rem", border: "1px solid var(--shade1)" }}>
+                        <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)", padding: "var(--spacingR)", border: "1px solid var(--shade1)" }}>
                             {activeGithubToken === undefined ? (
                                 <>
                                     {githubTokens.map(eachGithubToken => {

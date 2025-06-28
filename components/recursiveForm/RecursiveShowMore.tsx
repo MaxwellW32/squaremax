@@ -8,7 +8,7 @@ export default function RecursiveShowMore({ label, content, svgColor, startShowi
     return (
         <div style={{ display: "grid", alignContent: "flex-start" }}>
             {/* label area */}
-            <div style={{ display: "flex", gap: ".5rem", alignItems: "center", cursor: "pointer", padding: "1rem" }}
+            <div style={{ display: "flex", gap: "var(--spacingS)", alignItems: "center", cursor: "pointer", padding: "var(--spacingR)" }}
                 onClick={() => {
                     showingSet(prev => !prev)
                 }}

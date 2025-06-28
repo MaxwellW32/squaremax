@@ -9,7 +9,7 @@ export default function ShowServiceProcess({ service }: { service: service }) {
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start", overflow: "clip", justifyItems: "center" }}>
-            <ul ref={ref} style={{ display: "grid", alignContent: "flex-start", width: "min(60ch, 80%)", margin: "1rem auto" }}>
+            <ul ref={ref} style={{ display: "grid", alignContent: "flex-start", width: "min(60ch, 80%)", margin: "var(--spacingR) auto" }}>
                 {service.process.map((eachStep, eachStepIndex) => {
                     return (
                         <li key={eachStepIndex} className={`${styles.process} ${eachStepIndex % 2 ? "slideFromRight" : "slideFromLeft"}`} style={{ filter: `hue-rotate(${eachStepIndex * 10}deg)`, animationDelay: `${eachStepIndex * 100}ms`, animationPlayState: inView ? "running" : "paused" }}>

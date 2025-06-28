@@ -10,7 +10,7 @@ export default function EditContainersData({ location, seenUsedComponents }: { d
         <div>
             <h3>Edit container</h3>
 
-            <div style={{ padding: "1rem" }}>
+            <div style={{ padding: "var(--spacingR)" }}>
                 {seenChildren.map(eachUsedComponentChild => {
                     return (
                         <div key={eachUsedComponentChild.id}>{eachUsedComponentChild.id}</div>

@@ -35,7 +35,7 @@ export default function Page() {
                     autoSearch={true}
                 />
 
-                <div style={{ display: "grid", alignContent: "flex-start", paddingBlock: "1rem" }}>
+                <div style={{ display: "grid", alignContent: "flex-start", paddingBlock: "var(--spacingR)" }}>
                     {websiteSearchObj.loading && (
                         <p>loading...</p>
                     )}

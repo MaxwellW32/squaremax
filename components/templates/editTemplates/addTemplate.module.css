@@ -1,14 +1,14 @@
 .main {
     display: grid;
     align-content: flex-start;
-    gap: 1rem;
+    gap: var(--spacingR);
     overflow: auto;
 }
 
 .form {
     display: grid;
-    padding: 1rem;
-    gap: .5rem
+    padding: var(--spacingR);
+    gap: var(--spacingS)
 }
 
 .form>div {

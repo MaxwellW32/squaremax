@@ -276,7 +276,7 @@ function RenderForm({ seenForm, seenFormSet, userInteractedSet, seenMoreFormInfo
                                                     </>
                                                 )}
 
-                                                <RenderForm seenForm={eachValue} seenFormSet={seenFormSet} userInteractedSet={userInteractedSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} sentKeys={seenKeys} style={{ marginLeft: "1rem" }} seenFormErrors={seenFormErrors} parentArrayName={isArray ? eachKey : undefined} />
+                                                <RenderForm seenForm={eachValue} seenFormSet={seenFormSet} userInteractedSet={userInteractedSet} seenMoreFormInfo={seenMoreFormInfo} seenArrayStarters={seenArrayStarters} seenNullishStarters={seenNullishStarters} sentKeys={seenKeys} style={{ marginLeft: "var(--spacingR)" }} seenFormErrors={seenFormErrors} parentArrayName={isArray ? eachKey : undefined} />
                                             </>
                                         )}
                                     </>
@@ -288,7 +288,7 @@ function RenderForm({ seenForm, seenFormSet, userInteractedSet, seenMoreFormInfo
                 } else {
 
                     return (
-                        <div key={seenKeys} style={{ display: "grid", alignContent: "flex-start", gap: ".5rem", width: "100%" }}>
+                        <div key={seenKeys} style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingS)", width: "100%" }}>
                             {parentArrayName && arrayRemoveButton}
 
                             <label htmlFor={seenKeys}>{label}</label>

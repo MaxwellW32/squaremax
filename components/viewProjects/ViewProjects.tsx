@@ -73,7 +73,7 @@ export default function ViewProjects({ children, ...elProps }: { children: React
                 {children}
 
                 <div className={styles.menu} style={{ position: "fixed", bottom: 0, left: "50%", translate: "-50%", width: showingMenu ? "100%" : "", display: "grid", justifyItems: "center", zIndex: 9999 }}>
-                    <span className={`material-symbols-outlined ${styles.menuButton}`} style={{ opacity: showingMenu ? 1 : "", marginBottom: "1rem", fontSize: "2.5rem", color: "#fff" }}
+                    <span className={`material-symbols-outlined ${styles.menuButton}`} style={{ opacity: showingMenu ? 1 : "", marginBottom: "var(--spacingR)", fontSize: "2.5rem", color: "#fff" }}
                         onClick={() => {
                             showingMenuSet(prev => !prev);
 
@@ -87,7 +87,7 @@ export default function ViewProjects({ children, ...elProps }: { children: React
                     </span>
 
                     {showingMenu && (
-                        <div style={{ backgroundColor: "#000", color: "#fff", padding: "1rem", display: "grid", gap: ".5rem", justifyItems: "center", width: "min(800px, 100%)" }}>
+                        <div style={{ backgroundColor: "#000", color: "#fff", padding: "var(--spacingR)", display: "grid", gap: "var(--spacingS)", justifyItems: "center", width: "min(800px, 100%)" }}>
                             <span className="material-symbols-outlined" style={{ justifySelf: "flex-end", fontSize: "2.5rem" }}
                                 onClick={() => {
                                     if (navHidden) {
@@ -116,7 +116,7 @@ export default function ViewProjects({ children, ...elProps }: { children: React
                                 } />
                             )}
 
-                            <div className={styles.buttonCont} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: ".5rem" }}>
+                            <div className={styles.buttonCont} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "var(--spacingS)" }}>
                                 <Link href={`/projects/${projectsData[prev()].slug}`}>
                                     <button className="button1">Prev</button>
                                 </Link>

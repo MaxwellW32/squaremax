@@ -19,7 +19,7 @@ export default function AboutUs() {
 
                 <p>Whether you require scalable applications, intuitive user interfaces, or robust backend systems, We provide end-to-end software solutions tailored to meet your unique needs. </p>
 
-                <div className='snap' style={{ overflowX: "auto", display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridTemplateRows: "1fr 1fr", gridAutoColumns: "min(50ch, 100%)", paddingBlock: "1rem" }}>
+                <div className='snap' style={{ overflowX: "auto", display: "grid", gap: "var(--spacingR)", gridAutoFlow: "column", gridTemplateRows: "1fr 1fr", gridAutoColumns: "min(50ch, 100%)", paddingBlock: "var(--spacingR)" }}>
                     {[
                         {
                             title: "Professional IT Services",
@@ -53,7 +53,7 @@ export default function AboutUs() {
                                     {eachItem.icon}
                                 </div>
 
-                                <div style={{ flex: "1 1 300px", display: "grid", gap: ".5rem", alignContent: "flex-start" }}>
+                                <div style={{ flex: "1 1 300px", display: "grid", gap: "var(--spacingS)", alignContent: "flex-start" }}>
                                     <h3>{eachItem.title}</h3>
 
                                     <p>{eachItem.summary}</p>

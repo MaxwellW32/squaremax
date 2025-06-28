@@ -7,7 +7,7 @@
 .form>div {
     display: grid;
     align-content: flex-start;
-    gap: .5rem;
+    gap: var(--spacingS);
 }
 
 .tokensCont {
@@ -15,7 +15,7 @@
     grid-auto-flow: column;
     overflow-x: auto;
     grid-auto-columns: 80%;
-    margin-top: 2rem;
+    margin-top: var(--spacingEL);
 }
 
 .tokenCont {
@@ -26,5 +26,5 @@
 .tokenCont>div {
     display: grid;
     align-content: flex-start;
-    gap: .5rem;
+    gap: var(--spacingS);
 }

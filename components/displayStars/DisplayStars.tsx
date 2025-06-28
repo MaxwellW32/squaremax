@@ -27,7 +27,7 @@ export default function DisplayStars({ starRating }: { starRating: number }) {
     const starArray = makeStarArray()
 
     return (
-        <div style={{ display: "flex", gap: ",2rem", justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: "var(--spacingEL)", justifyContent: "center" }}>
             {starArray.map((eachSvg, svgIndex) => (
                 <div key={svgIndex} style={{ fill: svgIndex + 1 <= starRating ? "var(--color1)" : "white" }}>
                     {eachSvg}

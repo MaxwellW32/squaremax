@@ -379,7 +379,7 @@ ${specificationsObj[eachQuestionId]}
                 <div className='noScrollBar' style={{ display: "flex", overflowX: "auto", gap: "var(--spacingR)" }}>
                     {Object.entries(pages).map(([key,], pageButtonIndex) => {//form navigation buttons
                         return (
-                            <button key={key} className={styles.formPageButton} style={{ backgroundColor: "", color: pageButtonIndex === currentPageIndex ? "#fff" : "#aaa", width: "8rem", paddingBlock: ".5rem", flexShrink: 0 }}
+                            <button key={key} className={styles.formPageButton} style={{ backgroundColor: "", color: pageButtonIndex === currentPageIndex ? "#fff" : "#aaa", width: "8rem", paddingBlock: "var(--spacingS)", flexShrink: 0 }}
                                 onClick={() => {
                                     currentPageIndexSet(pageButtonIndex)
                                 }}
@@ -389,7 +389,7 @@ ${specificationsObj[eachQuestionId]}
                                 </span>
                             ) : (
                                 <div style={{ position: "relative" }}>
-                                    <div style={{ width: ".5rem", height: ".5rem", backgroundColor: "var(--color1)", borderRadius: "50%", display: pageButtonIndex !== currentPageIndex ? "none" : "", position: "absolute", top: "50%", left: "50%", translate: "-300% -50%" }}></div>
+                                    <div style={{ width: "var(--spacingS)", height: ".5rem", backgroundColor: "var(--color1)", borderRadius: "50%", display: pageButtonIndex !== currentPageIndex ? "none" : "", position: "absolute", top: "50%", left: "50%", translate: "-300% -50%" }}></div>
 
                                     {pageButtonIndex}
                                 </div>
@@ -438,7 +438,7 @@ ${specificationsObj[eachQuestionId]}
                     })}
 
                     {currentPageIndex !== 0 && (//submit button
-                        <div style={{ display: "flex", justifyContent: "center", gap: ".5rem" }}>
+                        <div style={{ display: "flex", justifyContent: "center", gap: "var(--spacingS)" }}>
                             <button className='button2'
                                 onClick={() => {
                                     scrollToForm()

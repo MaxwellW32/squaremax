@@ -9,7 +9,7 @@ export default function HowItWorks() {
                 <p className='supportingTitle2'>How It Works</p>
                 <h1>check Out Our <span className='highlight'>Work Process</span></h1>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: "var(--spacingR)", marginBlock: "1rem", justifySelf: 'stretch' }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: "var(--spacingR)", marginBlock: "var(--spacingR)", justifySelf: 'stretch' }}>
                     {[
                         {
                             title: "Initial Consultation",
@@ -37,7 +37,7 @@ export default function HowItWorks() {
                         },
                     ].map((eachItem, eachItemIndex) => {
                         return (
-                            <div key={eachItemIndex} className={styles.mainCard} style={{ display: "flex", alignItems: 'center', gap: '1rem', flexDirection: "column", textAlign: "center" }}>
+                            <div key={eachItemIndex} className={styles.mainCard} style={{ display: "flex", alignItems: 'center', gap: 'var(--spacingR)', flexDirection: "column", textAlign: "center" }}>
                                 <div style={{ width: "70%", aspectRatio: "1/1", display: "grid", position: "relative" }}>
                                     <Image alt={`${eachItem.title}'s image`} src={eachItem.img} height={400} width={400} style={{ objectFit: "cover", height: '90%', width: "90%", borderRadius: "50%", position: "absolute", top: "50%", left: "50%", translate: "-50% -50%", }} />
 

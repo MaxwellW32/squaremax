@@ -876,7 +876,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                         <div className={styles.selectionOptionsCont}>
                             {["website", "page", "component"].map(eachOption => {
                                 return (
-                                    <button key={eachOption} style={{ backgroundColor: eachOption === selectionOption ? "var(--color1)" : "", justifySelf: "flex-start", padding: ".5rem" }} className='button3'
+                                    <button key={eachOption} style={{ backgroundColor: eachOption === selectionOption ? "var(--color1)" : "", justifySelf: "flex-start", padding: "var(--spacingS)" }} className='button3'
                                         onClick={() => {
                                             selectionOptionSet(eachOption as "page" | "website" | "component")
                                         }}
@@ -884,7 +884,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                 )
                             })}
 
-                            <div style={{ marginLeft: "auto", display: "flex", gap: ".5rem", alignItems: "center" }}>
+                            <div style={{ marginLeft: "auto", display: "flex", gap: "var(--spacingS)", alignItems: "center" }}>
                                 {activeSizeOption !== undefined && activePage !== undefined && (
                                     <Link href={`/websites/view/${websiteObj.id}?size=${activeSizeOption.name}&page=${activePage.link}`} target="_blank" className='toolTip' data-tooltip={"view website"} style={{ "--translate": "-100% 0", display: "inline-block" } as React.CSSProperties}
                                     >
@@ -901,7 +901,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                         </div>
 
                         <div className={styles.selectionContent}>
-                            <div style={{ display: selectionOption === "website" ? "grid" : "none", paddingInline: "1rem" }}>
+                            <div style={{ display: selectionOption === "website" ? "grid" : "none", paddingInline: "var(--spacingR)" }}>
                                 <ShowMore startShowing={true}
                                     label='global styles'
                                     content={
@@ -961,7 +961,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                             </div>
 
                             {websiteObj.pages !== undefined && (
-                                <div style={{ display: selectionOption === "page" ? "grid" : "none", padding: "1rem" }}>
+                                <div style={{ display: selectionOption === "page" ? "grid" : "none", padding: "var(--spacingR)" }}>
                                     <button className='button1' style={{ justifySelf: "flex-end" }}
                                         onClick={() => {
                                             addingPageSet(prev => !prev)
@@ -1027,7 +1027,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                 <div style={{ display: selectionOption === "component" ? "grid" : "none" }}>
                                     {activeUsedComponent !== undefined ? (
                                         <>
-                                            <div style={{ display: "flex", flexWrap: "wrap", alignItems: 'center', justifyContent: "space-between", padding: "1rem" }}>
+                                            <div style={{ display: "flex", flexWrap: "wrap", alignItems: 'center', justifyContent: "space-between", padding: "var(--spacingR)" }}>
                                                 <label>{activeUsedComponent.data.category} template</label>
 
                                                 {Object.hasOwn(activeUsedComponent.data, "children") && (
@@ -1082,7 +1082,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                                         }}
                                                                     />
 
-                                                                    <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "1rem" }}
+                                                                    <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "var(--spacingR)" }}
                                                                         onChange={(e) => {
                                                                             const newActiveComp: usedComponent = { ...activeUsedComponent }
                                                                             newActiveComp.data.mainElProps.className = e.target.value
