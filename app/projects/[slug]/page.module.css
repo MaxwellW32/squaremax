@@ -22,13 +22,12 @@
     transition: opacity 400ms;
 }
 
-
 .buttonCont button {
     background-color: var(--color1);
     border-radius: .5rem;
     text-transform: uppercase;
     color: #fff;
-    padding: var(--spacingR) var(--spacingEL);
+    padding: 1rem 2rem;
     transition: filter 400ms;
 
 }

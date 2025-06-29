@@ -19,11 +19,6 @@ import { auth } from "@/auth/auth";
 //
 //
 
-const rubik = localFont({
-  src: "./fonts/Rubik.ttf",
-  variable: "--rubik",
-});
-
 const materialSymbolsOutlined = localFont({
   src: "./fonts/MaterialSymbolsOutlined-VariableFont_FILL,GRAD,opsz,wght.ttf",
   variable: "--materialSymbolsOutlined",
@@ -35,6 +30,11 @@ const materialSymbolsRounded = localFont({
 const materialSymbolsSharp = localFont({
   src: "./fonts/MaterialSymbolsSharp-VariableFont_FILL,GRAD,opsz,wght.ttf",
   variable: "--materialSymbolsSharp",
+});
+
+const rubik = localFont({
+  src: "./fonts/Rubik.ttf",
+  variable: "--rubik",
 });
 
 const geist = localFont({

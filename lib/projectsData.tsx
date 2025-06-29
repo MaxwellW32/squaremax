@@ -19,7 +19,7 @@ export const projectsData: projectData[] = [
     {
         name: "Luminous Lens Photography",
         slug: "luminousLensPhotography",
-        image: `/projects/luminousLens/luminous.jpg`,
+        image: `/projects/luminousLensPhotography.jpg`,
         type: "landing page",
         forCategory: [],
         categoryStyles: ["modern"],
@@ -28,8 +28,8 @@ export const projectsData: projectData[] = [
     },
     {
         name: "Folliblanc Music",
-        slug: "FolliblancMusic",
-        image: `/projects/folliblancMusic/titleimage.jpg`,
+        slug: "folliblancMusic",
+        image: `/projects/folliblanc.jpg`,
         type: "landing page",
         forCategory: [],
         categoryStyles: ["fun"],
@@ -39,7 +39,7 @@ export const projectsData: projectData[] = [
     {
         name: "Burger Bliss",
         slug: "burgerBliss",
-        image: `/projects/projectThree/cover.jpg`,
+        image: `/projects/burgerBliss.jpg`,
         type: "landing page",
         forCategory: ["restaurants"],
         categoryStyles: ["modern"],

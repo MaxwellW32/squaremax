@@ -8,7 +8,7 @@ export default function DisplayProjects({ seenProjectData }: { seenProjectData: 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%),1fr))", gap: "var(--spacingR)" }}>
             {seenProjectData.map(eachProject => {
                 return (
-                    <Link key={eachProject.slug} href={`/projects/${eachProject.slug}`} style={{ backgroundColor: "var(--bg1)", display: "grid", gridTemplateRows: "1fr auto", aspectRatio: "1/2" }}>
+                    <Link key={eachProject.slug} href={`/projects/${eachProject.slug}`} target='blank_' style={{ backgroundColor: "var(--bg1)", display: "grid", gridTemplateRows: "1fr auto", aspectRatio: "1/2" }}>
                         <div style={{ overflow: "hidden" }}>
                             <Image alt={`${eachProject.name}'s image`} src={eachProject.image} width={500} height={500} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                         </div>
