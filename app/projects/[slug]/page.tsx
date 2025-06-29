@@ -6,7 +6,7 @@ import Link from "next/link"
 import { controlNavView } from "@/utility/utility"
 import ScreenHide from "@/components/screenHide/ScreenHide"
 import ShowMore from "@/components/showMore/ShowMore"
-import { useRouter, usePathname, useParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Page({ params }: { params: { slug: string } }) {
     const router = useRouter();
