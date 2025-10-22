@@ -321,3 +321,30 @@ export function controlNavView(showing: boolean | "toggle") {
         }
     }
 }
+
+export function flattenObject(obj: any, prefix = "data", result: Record<string, any> = {}): Record<string, any> {
+    for (const key in obj) {
+        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+
+        const value = obj[key];
+        const path = `${prefix}.${key}`;
+
+        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+            flattenObject(value, path, result);
+
+        } else if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+                if (typeof item === "object") {
+                    flattenObject(item, `${path}[${index}]`, result);
+                } else {
+                    result[`${path}[${index}]`] = item;
+                }
+            });
+
+        } else {
+            result[path] = value;
+        }
+    }
+
+    return result;
+}

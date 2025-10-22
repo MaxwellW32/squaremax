@@ -1,4 +1,5 @@
 "use client"
+import { flattenObject } from "@/utility/utility";
 import React, { HTMLAttributes } from "react";
 
 //build logical elements by tags
@@ -7,11 +8,12 @@ import React, { HTMLAttributes } from "react";
 //focus on content - not global styling for everything - so padding, colors will be on element in style, global slassnames can be added later for fonts 
 //each element looks to a main for data - read the type then display it - normal, and array based
 
+//save point
+
 type componentType = {
     id: string,
-    type:
-    {
-        type: "heros",
+    type: {
+        category: "heros",
         data: {
             title: string,
             text: string
@@ -24,141 +26,15 @@ type componentType = {
             subMenu: string[]
         }
     } | {
-        type: "containers",
-        data: {}
+        category: "containers",
+        data: {
+            title: string
+        }
     },
     elements: elementType[],
     childComponents: string[],
+    showMultiple?: true
 }
-const components: componentType[] = [
-    {
-        id: "xqwsdaqertyuiop",
-        type: {
-            category: "navbars",
-            data: {
-                navItem: "nav item text",
-                menuItem: "menu item text",
-                subMenu: ["sub item 1", "sub item 2"]
-            }
-        },
-        elements: [
-            {
-                id: "123",
-                type: {
-                    tag: "h1",
-                    props: {
-                        className: "text-2xl font-bold text-gray-800",
-                        style: {}
-                    }
-                },
-                children: [{ type: "native", content: "heading 1 - <<data.navItem>>" }]
-            },
-            {
-                id: "zxcvbnm",
-                type: {
-                    tag: "div",
-                    props: {
-                        style: {
-                            backgroundColor: "purple", padding: "1rem"
-                        }
-                    }
-                },
-                children: [{ type: "id", id: "aaaqwertyuiop" }]
-            },
-            {
-                id: "aaaqwertyuiop",
-                type: {
-                    tag: "div",
-                    props: {
-                        style: {
-                            backgroundColor: "green", padding: "1rem"
-                        }
-                    }
-                },
-                children: [{ type: "id", id: "234" }]
-            },
-            {
-                id: "234",
-                type: {
-                    tag: "p",
-                    props: {}
-                },
-                children: [{ type: "native", content: "paragraph element 1" }]
-            },
-            {
-                id: "345",
-                type: {
-                    tag: "p",
-                    props: {}
-                },
-                children: [{ type: "native", content: "paragraph element 2" }]
-            },
-            {
-                id: "456",
-                type: {
-                    tag: "p",
-                    props: {}
-                },
-                children: [{ type: "native", content: "paragraph element 3" }]
-            },
-        ],
-        childComponents: []
-    },
-    // {//show child element example
-    //     id: "asdfgh",
-    //     type: {
-    //         category: "navbars",
-    //         data: {
-    //             navItem: "nav item text",
-    //             menuItem: "menu item text",
-    //             subMenu: ["sub item 1", "sub item 2"]
-    //         }
-    //     },
-    //     elements: [
-    //         {
-    //             id: "123",
-    //             type: {
-    //                 tag: "h1",
-    //                 props: {
-    //                     className: "text-2xl font-bold text-gray-800",
-    //                     style: { marginBottom: "1rem" }
-    //                 }
-    //             },
-    //             children: [{ type: "native", content: "heading - <<data.navItem>>" }]
-    //         },
-    //         {
-    //             id: "234",
-    //             type: {
-    //                 tag: "div",
-    //                 props: {}
-    //             },
-    //             children: [{ type: "id", id: "345" }]
-    //         },
-    //         {
-    //             id: "345",
-    //             type: {
-    //                 tag: "div",
-    //                 props: {}
-    //             },
-    //             children: [{ type: "id", id: "456" }] //then add variables
-    //         },
-    //         {
-    //             id: "456",
-    //             type: {
-    //                 tag: "p",
-    //                 props: {}
-    //             },
-    //             children: [{ type: "native", content: "this is a p element 2x - <<data.subMenu[0]>>" }] //then add variables
-    //         },
-    //     ],
-    //     childComponents: []
-    // }
-]
-
-//what does multiple text look like in p element
-
-
-
 
 type elementType = {
     id: string;
@@ -167,46 +43,208 @@ type elementType = {
     | { tag: "h1"; props: HTMLAttributes<HTMLHeadingElement> }
     | { tag: "div"; props: HTMLAttributes<HTMLDivElement> };
     children: elementChildType[];
-    atRoot?: true,
 };
 
 type elementChildType =
-    | { type: "id"; id: string } // references another element
-    | { type: "native"; content: string }; // plain text
+    | { type: "elementId"; elementId: string } // references another element
+    | { type: "text"; content: string } // plain text
+    | { type: "component", componentIndex: number } // references another component
+
+const components: componentType[] = [
+    {
+        id: "nav-001",
+        type: {
+            category: "navbars",
+            data: {
+                navItem: "nav item",
+                menuItem: "menu item",
+                subMenu: ["sub menu item"]
+            }
+        },
+        elements: [
+            {
+                id: "aaa",
+                type: {
+                    tag: "div",
+                    props: {
+                        style: { backgroundColor: "purple", padding: ".5rem" }
+                    }
+                },
+                children: [
+                    { type: "elementId", elementId: "ppp" },
+                ],
+            },
+            {
+                id: "ppp",
+                type: {
+                    tag: "p",
+                    props: {}
+                },
+                children: [
+                    { type: "text", content: "<<data.navItem>>" }
+                ]
+            },
+        ],
+        childComponents: []
+    },
+    {
+        id: "cont-001",
+        type: {
+            category: "containers",
+            data: {
+                title: "container title"
+            }
+        },
+        elements: [
+            {
+                id: "aaa",
+                type: {
+                    tag: "div",
+                    props: {
+                        style: { padding: "1rem", backgroundColor: "green" }
+                    }
+                },
+                children: [
+                    { type: "elementId", elementId: "h1-title" },
+                    { type: "elementId", elementId: "div-sub" }
+                ],
+            },
+            {
+                id: "h1-title",
+                type: {
+                    tag: "h1",
+                    props: {
+                        className: "font-extrabold",
+                        style: {}
+                    }
+                },
+                children: [
+                    { type: "text", content: "<<data.title>>" }
+                ]
+            },
+            {
+                id: "div-sub",
+                type: {
+                    tag: "div",
+                    props: {
+                        style: {}
+                    }
+                },
+                children: [
+                    { type: "component", componentIndex: 0 }
+                ]
+            }
+        ],
+        childComponents: ["hero-001"]
+    },
+    {
+        id: "hero-001",
+        type: {
+            category: "heros",
+            data: {
+                title: "Build Beautiful Websites Effortlessly",
+                text: "Squaremax lets you design, customize, and launch your next website in minutes."
+            }
+        },
+        elements: [
+            {
+                id: "div-outer",
+                type: {
+                    tag: "div",
+                    props: {
+                        className: "flex flex-col items-center justify-center min-h-[80vh] bg-gray-50 px-6 text-center",
+                        style: {}
+                    }
+                },
+                children: [
+                    { type: "elementId", elementId: "h1-title" },
+                    { type: "elementId", elementId: "p-subtext" }
+                ],
+            },
+            {
+                id: "h1-title",
+                type: {
+                    tag: "h1",
+                    props: {
+                        className: "text-5xl font-extrabold text-gray-900 mb-4 max-w-3xl leading-tight",
+                        style: {}
+                    }
+                },
+                children: [
+                    { type: "text", content: "<<data.title>>" }
+                ]
+            },
+            {
+                id: "p-subtext",
+                type: {
+                    tag: "p",
+                    props: {
+                        className: "text-lg text-gray-600 max-w-2xl",
+                        style: {}
+                    }
+                },
+                children: [
+                    { type: "text", content: "<<data.text>>" }
+                ]
+            }
+        ],
+        childComponents: [],
+    }
+]
+
+
+//Render components
+function renderComponents(componentsToRender: componentType[], allComponents: componentType[], calledByParent?: boolean) {
+    return componentsToRender.map(eachComponent => {
+
+        //if component id found in children of other component elements
+        let componentIsAChild = false
+
+        allComponents.forEach(eachComponentForEach => {
+            eachComponentForEach.childComponents.forEach(eachChildComponentId => {
+                if (eachChildComponentId === eachComponent.id) {
+                    componentIsAChild = true
+                }
+            })
+        })
+
+        //ensure we don't show the same component multiple times - unless wanted
+        if (componentIsAChild && !calledByParent && eachComponent.showMultiple === undefined) {
+            return null
+        }
+
+        return (
+            <React.Fragment key={eachComponent.id}>
+                {renderElements(eachComponent.elements, eachComponent, allComponents)}
+            </React.Fragment>
+        )
+    })
+}
 
 //Recursive function that builds a React element
-function renderElements(elementsToRender: elementType[], pairedComponent: componentType, calledByParent?: boolean): React.ReactNode {
-    console.log(`$elementsToRender`, elementsToRender);
+function renderElements(elementsToRender: elementType[], pairedComponent: componentType, allComponents: componentType[], calledByParent?: boolean): React.ReactNode {
 
     return (
         <>
-            {elementsToRender.map(eachElement => {
-                const { type: ElementType, children } = eachElement;
-
+            {elementsToRender.map(eachElementToRender => {
                 //if found in children of other elements don't show
                 let elementIsAChild = false
 
                 const elementsInComponent = pairedComponent.elements
                 elementsInComponent.forEach(eachElementForEach => {
                     eachElementForEach.children.forEach(eachChild => {
-                        if (eachChild.type === "id" && eachChild.id === eachElement.id) {
+                        if (eachChild.type === "elementId" && eachChild.elementId === eachElementToRender.id) {
                             elementIsAChild = true
                         }
                     })
                 })
 
                 if (elementIsAChild) {
-                    console.log(`$elementIsAChild`, elementIsAChild);
-                    console.log(`$eachElement`, eachElement);
-                    console.log(`$calledByParent`, calledByParent);
-
-                    // if (!calledByParent) return null
+                    if (!calledByParent) return null
                 }
 
-                // if (elementIsAChild && !calledByParent)
-
-                const resolvedChildren = children.map((child, i) => {
-                    if (child.type === "native") {
+                const resolvedChildren = eachElementToRender.children.map((child, i) => {
+                    if (child.type === "text") {
                         let seenContent = child.content
 
                         const flattenedData = flattenObject(pairedComponent.type.data);
@@ -220,11 +258,24 @@ function renderElements(elementsToRender: elementType[], pairedComponent: compon
 
                         return seenContent;
 
-                    } else if (child.type === "id") {
-                        const childElement = elementsToRender.find(eachElementFind => eachElementFind.id === child.id);
+                    } else if (child.type === "elementId") {
+                        const childElement = elementsInComponent.find(eachElementFind => eachElementFind.id === child.elementId);
 
                         if (childElement !== undefined) {
-                            return <React.Fragment key={i}>{renderElements([childElement], pairedComponent, true)}</React.Fragment>;
+                            return <React.Fragment key={i}>{renderElements([childElement], pairedComponent, allComponents, true)}</React.Fragment>;
+                        }
+
+                        return null;
+
+                    } else if (child.type === "component") {
+                        const childComponent = allComponents.find(eachComponent => eachComponent.id === pairedComponent.childComponents[child.componentIndex]);
+
+                        if (childComponent !== undefined) {
+                            return (
+                                <React.Fragment key={i}>
+                                    {renderComponents([childComponent], allComponents, true)}
+                                </React.Fragment>
+                            );
                         }
 
                         return null;
@@ -233,51 +284,16 @@ function renderElements(elementsToRender: elementType[], pairedComponent: compon
                     return null;
                 });
 
-                return React.createElement(ElementType.tag, { key: eachElement.id, ...ElementType.props }, resolvedChildren);
+                return React.createElement(eachElementToRender.type.tag, { key: eachElementToRender.id, ...eachElementToRender.type.props }, resolvedChildren);
             })}
         </>
     )
 }
 
-function flattenObject(obj: any, prefix = "data", result: Record<string, any> = {}): Record<string, any> {
-    for (const key in obj) {
-        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
-
-        const value = obj[key];
-        const path = `${prefix}.${key}`;
-
-        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-            flattenObject(value, path, result);
-
-        } else if (Array.isArray(value)) {
-            value.forEach((item, index) => {
-                if (typeof item === "object") {
-                    flattenObject(item, `${path}[${index}]`, result);
-                } else {
-                    result[`${path}[${index}]`] = item;
-                }
-            });
-
-        } else {
-            result[path] = value;
-        }
-    }
-
-    return result;
-}
-
 export default function Page() {
     return (
-        <div>
-            <p>Page</p>
-
-            {components.map(eachComponent => {
-                return (
-                    <React.Fragment key={eachComponent.id}>
-                        {renderElements(eachComponent.elements, eachComponent)}
-                    </React.Fragment>
-                )
-            })}
-        </div>
+        <main>
+            {renderComponents(components, components)}
+        </main>
     );
 }
