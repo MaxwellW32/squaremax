@@ -2,13 +2,13 @@
 
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { newGithubTokenType, updateUser, updateGithubTokenType, updateGithubTokenSchema, updateUserSchema, user, githubTokenSchema, githubTokenType, userSchema, newGithubTokenSchema } from "@/types";
+import { newGithubTokenType, updateUserType, updateGithubTokenType, updateGithubTokenSchema, updateUserSchema, userType, githubTokenSchema, githubTokenType, userSchema, newGithubTokenSchema } from "@/types";
 import { sessionCheckWithError } from "@/useful/sessionCheck";
 import { eq } from "drizzle-orm";
 import { getGithubUserFromToken } from "./handleGithub";
 import { v4 as uuidV4 } from "uuid";
 
-export async function updateTheUser(userObj: Partial<updateUser>): Promise<user> {
+export async function updateTheUser(userObj: Partial<updateUserType>): Promise<userType> {
     await sessionCheckWithError()
 
     const validatedObj = updateUserSchema.partial().parse(userObj)
@@ -23,7 +23,7 @@ export async function updateTheUser(userObj: Partial<updateUser>): Promise<user>
     return result
 }
 
-export async function getUser(userIdObj: Pick<user, "id">): Promise<user | undefined> {
+export async function getUser(userIdObj: Pick<userType, "id">): Promise<userType | undefined> {
     await sessionCheckWithError()
 
     userSchema.pick({ id: true }).parse(userIdObj)
@@ -35,7 +35,7 @@ export async function getUser(userIdObj: Pick<user, "id">): Promise<user | undef
     return result
 }
 
-export async function getUserGithubTokens(userIdObj: Pick<user, "id">): Promise<user["userGithubTokens"]> {
+export async function getUserGithubTokens(userIdObj: Pick<userType, "id">): Promise<userType["userGithubTokens"]> {
     //have to have a login yourself
     await sessionCheckWithError()
 
@@ -52,7 +52,7 @@ export async function getUserGithubTokens(userIdObj: Pick<user, "id">): Promise<
     return result.userGithubTokens
 }
 
-async function syncWithLatestTokens(userId: user["id"], seenUserGithubTokens: githubTokenType[]) {
+async function syncWithLatestTokens(userId: userType["id"], seenUserGithubTokens: githubTokenType[]) {
     //gets handed the current user tokens ensures it matched with server, if not adds it to latest on server
     userSchema.shape.id.parse(userId)
 
@@ -175,7 +175,7 @@ export async function updateUserGithubToken(githubTokenId: githubTokenType["id"]
     return updatedUser.userGithubTokens
 }
 
-export async function deleteUserGithubTokens(userId: user["id"], githubTokenToDelete: githubTokenType) {
+export async function deleteUserGithubTokens(userId: userType["id"], githubTokenToDelete: githubTokenType) {
     // Ensure sent right object
     userSchema.shape.id.parse(userId);
     githubTokenSchema.parse(githubTokenToDelete);

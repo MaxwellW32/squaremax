@@ -1,7 +1,7 @@
-import { page, usedComponent, usedComponentLocationType } from '@/types'
+import { pageType, usedComponentType, usedComponentLocationType } from '@/types'
 import React, { useEffect } from 'react'
 
-export default function LocationSelector({ location, activeLocationSet, activePage, activeUsedComponent, ...elProps }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePage: page | undefined, activeUsedComponent: usedComponent | undefined, } & React.HtmlHTMLAttributes<HTMLSelectElement>) {
+export default function LocationSelector({ location, activeLocationSet, activePage, activeUsedComponent, ...elProps }: { location: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, activePage: pageType | undefined, activeUsedComponent: usedComponentType | undefined, } & React.HtmlHTMLAttributes<HTMLSelectElement>) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
     const activeUsedComponentCanHaveChild = activeUsedComponent !== undefined ? Object.hasOwn(activeUsedComponent.data, "children") : false
 

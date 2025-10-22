@@ -3,8 +3,10 @@ import { getSpecificWebsite } from '@/serverFunctions/handleWebsites'
 import EditWebsite from '@/components/websites/EditWebsite'
 import { ensureUserCanAccessWebsite } from '@/useful/sessionCheck'
 
-export default async function Page({ params }: { params: { websiteId: string } }) {
-    const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: params.websiteId } })
+export default async function Page({ params }: { params: Promise<{ websiteId: string }> }) {
+    const { websiteId } = await params
+
+    const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } })
     if (seenWebsite === undefined) return <p>not seeing seenWebsite</p>
 
     const session = await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers)

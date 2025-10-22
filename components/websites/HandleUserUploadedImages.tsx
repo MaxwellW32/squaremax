@@ -1,5 +1,5 @@
 "use client"
-import { website } from '@/types'
+import { websitetype } from '@/types'
 import React, { useState } from 'react'
 import ShowMore from '@/components/showMore/ShowMore'
 import styles from "./style.module.css"
@@ -9,7 +9,7 @@ import { getSpecificWebsite, updateTheWebsite } from '@/serverFunctions/handleWe
 import { maxImageUploadSize, maxBodyToServerSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
 import { convertBtyes } from '@/useful/usefulFunctions'
 
-export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }: { seenWebsite: website, seenProjectSet: React.Dispatch<React.SetStateAction<website>> }) {
+export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }: { seenWebsite: websitetype, seenProjectSet: React.Dispatch<React.SetStateAction<websitetype>> }) {
     const [uploadedImages, uploadedImagesSet] = useState<FormData | null>(null)
 
     return (
@@ -77,7 +77,7 @@ export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }
                                     throw new Error("trouble updating, not seeing latest project")
                                 }
 
-                                let latestImagesSeen: website["userUploadedImages"] = latestProject.userUploadedImages
+                                let latestImagesSeen: websitetype["userUploadedImages"] = latestProject.userUploadedImages
 
                                 if (latestImagesSeen === null) {
                                     latestImagesSeen = [...seenData.imageNames]

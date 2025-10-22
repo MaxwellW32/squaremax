@@ -1,5 +1,5 @@
 "use server"
-import { githubContentData, githubRepo, githubTokenType, githubUser, newGithubRepoType, user, website, websiteSchema } from "@/types";
+import { githubContentData, githubRepo, githubTokenType, githubUser, newGithubRepoType, userType, websitetype, websiteSchema } from "@/types";
 // import { githubContentData, githubRepo, githubUser, newGithubRepoType, website, websiteSchema, usedComponent, user } from "@/types";
 import { Octokit } from "octokit";
 import fs from "fs/promises";
@@ -58,7 +58,7 @@ export async function addGithubRepo(token: githubTokenType["token"], newGithubRe
 
 export async function pushToGithubRepo(
     token: githubTokenType,
-    websiteId: website["id"],
+    websiteId: websitetype["id"],
     repoName: string
 ) {
     const octokit = new Octokit({ auth: token.token });

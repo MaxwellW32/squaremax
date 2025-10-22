@@ -1,17 +1,17 @@
 import { changeUsedComponentLocation } from '@/serverFunctions/handleUsedComponents';
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites';
-import { page, usedComponent, usedComponentLocationType, website } from '@/types'
+import { pageType, usedComponentType, usedComponentLocationType, websitetype } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast';
 import { sanitizeUsedComponentData } from '@/utility/utility';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
 
-export default function UsedComponentLocationSelector({ seenUsedComponent, seenPages }: { websiteId: website["id"], seenUsedComponent: usedComponent, seenPages: page[] }) {
+export default function UsedComponentLocationSelector({ seenUsedComponent, seenPages }: { websiteId: websitetype["id"], seenUsedComponent: usedComponentType, seenPages: pageType[] }) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
     const [transferToLocation, transferToLocationSet] = useState<usedComponentLocationType["type"] | undefined>()
-    const [activeParentId, activeParentIdSet] = useState<usedComponent["id"]>("")
+    const [activeParentId, activeParentIdSet] = useState<usedComponentType["id"]>("")
 
-    async function handleSubmission(sentUsedComponent: usedComponent, newLocation: usedComponentLocationType) {
+    async function handleSubmission(sentUsedComponent: usedComponentType, newLocation: usedComponentLocationType) {
         try {
             const sanitizedUsedComponent = sanitizeUsedComponentData(sentUsedComponent)
             await changeUsedComponentLocation(sanitizedUsedComponent, newLocation)

@@ -1,14 +1,14 @@
 "use server"
 import { db } from "@/db"
 import { pages } from "@/db/schema"
-import { newPage, newPageSchema, page, pageSchema, updatePage, updatePageSchema, website, websiteSchema } from "@/types"
+import { newPageType, newPageSchema, pageType, pageSchema, updatePageType, updatePageSchema, websitetype, websiteSchema } from "@/types"
 import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
 import { deleteUsedComponent, getUsedComponents } from "./handleUsedComponents"
 
-export async function addPage(seenNewPage: newPage): Promise<page> {
+export async function addPage(seenNewPage: newPageType): Promise<pageType> {
     //validation
     newPageSchema.parse(seenNewPage)
 
@@ -17,7 +17,7 @@ export async function addPage(seenNewPage: newPage): Promise<page> {
     if (seenWebsite === undefined) throw new Error("not seeing website")
     await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
-    const fullNewPage: page = {
+    const fullNewPage: pageType = {
         ...seenNewPage,
         id: uuidV4()
     }
@@ -30,7 +30,7 @@ export async function addPage(seenNewPage: newPage): Promise<page> {
     return result
 }
 
-export async function updateThePage(pageId: page["id"], websiteId: website["id"], updatePageObj: Partial<updatePage>) {
+export async function updateThePage(pageId: pageType["id"], websiteId: websitetype["id"], updatePageObj: Partial<updatePageType>) {
     //validation
     updatePageSchema.partial().parse(updatePageObj)
 
@@ -46,7 +46,7 @@ export async function updateThePage(pageId: page["id"], websiteId: website["id"]
         .where(eq(pages.id, pageId))
 }
 
-export async function deletePage(websiteId: website["id"], pageId: page["id"], deleteRelatedUsedComponents = true) {
+export async function deletePage(websiteId: websitetype["id"], pageId: pageType["id"], deleteRelatedUsedComponents = true) {
     //validate
     websiteSchema.shape.id.parse(websiteId)
     pageSchema.shape.id.parse(pageId)
@@ -72,7 +72,7 @@ export async function deletePage(websiteId: website["id"], pageId: page["id"], d
         .where(eq(pages.id, pageId));
 }
 
-export async function getSpecificPage(pageId: page["id"]): Promise<page | undefined> {
+export async function getSpecificPage(pageId: pageType["id"]): Promise<pageType | undefined> {
     //validation
     pageSchema.shape.id.parse(pageId)
 
@@ -90,7 +90,7 @@ export async function getSpecificPage(pageId: page["id"]): Promise<page | undefi
     return result
 }
 
-export async function getPagesFromWebsite(websiteId: website["id"]): Promise<page[]> {
+export async function getPagesFromWebsite(websiteId: websitetype["id"]): Promise<pageType[]> {
     //validation
     websiteSchema.shape.id.parse(websiteId)
 

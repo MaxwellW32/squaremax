@@ -1,18 +1,18 @@
 "use client"
 import styles from "./style.module.css"
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { page, usedComponent, website } from '@/types'
+import { pageType, usedComponentType, websitetype } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sortUsedComponentsByOrder, } from '@/utility/utility'
 import { useSearchParams } from 'next/navigation'
 import { templateDataType } from "@/types/templateDataTypes"
 
-export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: website }) {
+export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: websitetype }) {
     const searchParams = useSearchParams();
 
-    const [activePageId, activePageIdSet] = useState<page["id"] | undefined>(undefined)
-    const activePage = useMemo<page | undefined>(() => {
+    const [activePageId, activePageIdSet] = useState<pageType["id"] | undefined>(undefined)
+    const activePage = useMemo<pageType | undefined>(() => {
         if (websiteFromServer.pages === undefined || activePageId === undefined) return undefined
 
         const foundPage = websiteFromServer.pages.find(eachPageFind => eachPageFind.id === activePageId)
@@ -126,7 +126,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
     }, [])
 
 
-    async function buildUsedComponents(sentUsedComponents: usedComponent[]) {
+    async function buildUsedComponents(sentUsedComponents: usedComponentType[]) {
         usedComponentsBuiltSet(false)
 
         //ensure all can be rendered
@@ -151,7 +151,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
         usedComponentsBuiltSet(true)
     }
-    async function renderUsedComponentsInUse(seenUsedComponents: usedComponent[], seenActivePageId?: page["id"]) {
+    async function renderUsedComponentsInUse(seenUsedComponents: usedComponentType[], seenActivePageId?: pageType["id"]) {
         //get the header, footer and usedComponents on this page
         const baseUsedComponentsInUse = seenUsedComponents.filter(eachFilterUsedComponent => {
             return eachFilterUsedComponent.location.type === "header" || eachFilterUsedComponent.location.type === "footer" || (seenActivePageId !== undefined && eachFilterUsedComponent.location.type === "page" && eachFilterUsedComponent.location.pageId === seenActivePageId)
@@ -159,7 +159,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 
         //then get all of the base components children recursively
         const baseUsedComponentsInUseIds = baseUsedComponentsInUse.map(eachBaseUsedComponentInUseId => eachBaseUsedComponentInUseId.id)
-        const baseUsedComponentsDecendants: usedComponent[] = getDescendedUsedComponents(baseUsedComponentsInUseIds, seenUsedComponents)
+        const baseUsedComponentsDecendants: usedComponentType[] = getDescendedUsedComponents(baseUsedComponentsInUseIds, seenUsedComponents)
 
         const totalUsedComponentsToRender = [...baseUsedComponentsInUse, ...baseUsedComponentsDecendants]
 
@@ -201,7 +201,7 @@ export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: 
 function RenderComponentTree({
     seenUsedComponents, originalUsedComponentsList, renderedUsedComponentsObj
 }: {
-    seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>
+    seenUsedComponents: usedComponentType[], originalUsedComponentsList: usedComponentType[], renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>
 }) {
 
     return (
@@ -218,7 +218,7 @@ function RenderComponentTree({
 
                 const scopedCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id);
 
-                const seenChildren: usedComponent[] = getChildrenUsedComponents(eachUsedComponent.id, originalUsedComponentsList)
+                const seenChildren: usedComponentType[] = getChildrenUsedComponents(eachUsedComponent.id, originalUsedComponentsList)
 
                 //order the children
                 const seenOrderedChildren = sortUsedComponentsByOrder(seenChildren)

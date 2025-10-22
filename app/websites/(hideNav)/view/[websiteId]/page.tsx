@@ -2,21 +2,23 @@
 import { scaleToFit } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { page, sizeOptionsArr, sizeOptionType, website } from '@/types';
+import { pageType, sizeOptionsArr, sizeOptionType, websitetype } from '@/types';
 import { getSpecificWebsite } from '@/serverFunctions/handleWebsites';
 import toast from 'react-hot-toast';
 import Draggable from 'react-draggable';
 
-export default function Page({ params }: { params: { websiteId: string } }) {
+export default async function Page({ params }: { params: Promise<{ websiteId: string }> }) {
+    const { websiteId } = await params
+
     const searchParams = useSearchParams();
     const [refresher, refresherSet] = useState(true)
     const draggableRef = useRef<HTMLDivElement | null>(null)
 
-    const [websiteObj, websiteObjSet] = useState<website | undefined>()
+    const [websiteObj, websiteObjSet] = useState<websitetype | undefined>()
     const [screenDimensions, screenDimensionsSet] = useState<{ width: number, height: number } | null>(null)
 
-    const [activePageId, activePageIdSet] = useState<page["id"] | undefined>(undefined)
-    const activePage = useMemo<page | undefined>(() => {
+    const [activePageId, activePageIdSet] = useState<pageType["id"] | undefined>(undefined)
+    const activePage = useMemo<pageType | undefined>(() => {
         if (websiteObj === undefined || websiteObj.pages === undefined || activePageId === undefined) return undefined
 
         const foundPage = websiteObj.pages.find(eachPageFind => eachPageFind.id === activePageId)
@@ -33,7 +35,7 @@ export default function Page({ params }: { params: { websiteId: string } }) {
     //get website
     useEffect(() => {
         const search = async () => {
-            const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: params.websiteId } })
+            const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } })
             if (seenWebsite === undefined) {
                 toast.error("not seeing website")
                 return
@@ -160,7 +162,9 @@ export default function Page({ params }: { params: { websiteId: string } }) {
                                         })
                                     }}
                                 >
-                                    {eachSizeOption.icon}
+                                    <span className="material-symbols-outlined">
+                                        {eachSizeOption.iconName}
+                                    </span>
                                 </button>
                             )
                         })}

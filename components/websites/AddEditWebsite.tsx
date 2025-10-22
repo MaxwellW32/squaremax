@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
-import { newWebsite, newWebsiteSchema, updateWebsiteSchema, website, websiteSchema } from '@/types'
+import { newWebsiteType, newWebsiteSchema, updateWebsiteSchema, websitetype, websiteSchema } from '@/types'
 import { addWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
 import { useRouter } from 'next/navigation'
 import TextInput from '../textInput/TextInput'
@@ -10,15 +10,15 @@ import TextArea from '../textArea/TextArea'
 import { deepClone, makeValidVariableName } from '@/utility/utility'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 
-export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website }) {
+export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: websitetype }) {
     const router = useRouter()
 
-    const initialFormObj: newWebsite = {
+    const initialFormObj: newWebsiteType = {
         name: "",
     }
 
-    const [formObj, formObjSet] = useState<Partial<website>>(deepClone(sentWebsite === undefined ? initialFormObj : updateWebsiteSchema.parse(sentWebsite)))
-    type websiteKeys = keyof Partial<website>
+    const [formObj, formObjSet] = useState<Partial<websitetype>>(deepClone(sentWebsite === undefined ? initialFormObj : updateWebsiteSchema.parse(sentWebsite)))
+    type websiteKeys = keyof Partial<websitetype>
 
     type moreFormInfoType = Partial<{
         [key in websiteKeys]: {
@@ -57,7 +57,7 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: website 
         [key in websiteKeys]: string
     }>>({})
 
-    function checkIfValid(seenFormObj: Partial<website>, seenName: keyof Partial<website>, schema: typeof websiteSchema) {
+    function checkIfValid(seenFormObj: Partial<websitetype>, seenName: keyof Partial<websitetype>, schema: typeof websiteSchema) {
         //@ts-expect-error type
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 

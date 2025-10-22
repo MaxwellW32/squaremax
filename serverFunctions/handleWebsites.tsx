@@ -1,12 +1,12 @@
 "use server"
 import { db } from "@/db"
 import { websites } from "@/db/schema"
-import { newWebsite, newWebsiteSchema, updateWebsite, updateWebsiteSchema, website, websiteFilterType, websiteSchema } from "@/types"
+import { newWebsiteType, newWebsiteSchema, updateWebsiteType, updateWebsiteSchema, websitetype, websiteFilterType, websiteSchema } from "@/types"
 import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
 import { and, desc, eq, sql, SQLWrapper } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
-export async function addWebsite(seenNewWebsite: newWebsite): Promise<website> {
+export async function addWebsite(seenNewWebsite: newWebsiteType): Promise<websitetype> {
     const session = await sessionCheckWithError()
 
     newWebsiteSchema.parse(seenNewWebsite)
@@ -19,7 +19,7 @@ export async function addWebsite(seenNewWebsite: newWebsite): Promise<website> {
     return addedWebsite[0]
 }
 
-export async function updateTheWebsite(websiteId: website["id"], websiteObj: Partial<updateWebsite>) {
+export async function updateTheWebsite(websiteId: websitetype["id"], websiteObj: Partial<updateWebsiteType>) {
     //security check - ensures only admin or author can update
     const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
     if (seenWebsite === undefined) throw new Error("not seeing website")
@@ -37,7 +37,7 @@ export async function updateTheWebsite(websiteId: website["id"], websiteObj: Par
         .where(eq(websites.id, websiteId));
 }
 
-export async function refreshWebsitePath(websiteIdObj: Pick<website, "id">) {
+export async function refreshWebsitePath(websiteIdObj: Pick<websitetype, "id">) {
     await sessionCheckWithError()
 
     websiteSchema.pick({ id: true }).parse(websiteIdObj)
@@ -45,7 +45,7 @@ export async function refreshWebsitePath(websiteIdObj: Pick<website, "id">) {
     revalidatePath(`/websites/${websiteIdObj.id}`)
 }
 
-export async function deleteWebsite(websiteObj: Pick<website, "id">) {
+export async function deleteWebsite(websiteObj: Pick<websitetype, "id">) {
     //validation
     websiteSchema.pick({ id: true }).parse(websiteObj)
 
@@ -58,7 +58,7 @@ export async function deleteWebsite(websiteObj: Pick<website, "id">) {
     await db.delete(websites).where(eq(websites.id, websiteObj.id));
 }
 
-export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<website, "id"> } | { option: "name", data: Pick<website, "name"> }, websiteOnly?: boolean): Promise<website | undefined> {
+export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<websitetype, "id"> } | { option: "name", data: Pick<websitetype, "name"> }, websiteOnly?: boolean): Promise<websitetype | undefined> {
     if (websiteObj.option === "id") {
         websiteSchema.pick({ id: true }).parse(websiteObj.data)
 
@@ -105,7 +105,7 @@ export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<
     }
 }
 
-export async function getWebsitesFromUserOld(limit = 50, offset = 0): Promise<website[]> {
+export async function getWebsitesFromUserOld(limit = 50, offset = 0): Promise<websitetype[]> {
     const session = await sessionCheckWithError()
 
     const results = await db.query.websites.findMany({
@@ -116,7 +116,7 @@ export async function getWebsitesFromUserOld(limit = 50, offset = 0): Promise<we
 
     return results
 }
-export async function getWebsitesFromUser(filter: websiteFilterType, limit = 50, offset = 0, withProperty: { fromUser?: true, pages?: true, usedComponents?: true } = {}): Promise<website[]> {
+export async function getWebsitesFromUser(filter: websiteFilterType, limit = 50, offset = 0, withProperty: { fromUser?: true, pages?: true, usedComponents?: true } = {}): Promise<websitetype[]> {
     const session = await sessionCheckWithError()
 
     // Collect conditions dynamically

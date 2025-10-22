@@ -1,18 +1,21 @@
-import { fontsType, usedComponentLocationType, user, userUploadedImagesType, authorisedUserType } from "@/types";
+import { fontsType, usedComponentLocationType, userType, userUploadedImagesType, authorisedUserType, roleOptions } from "@/types";
 import { categoryName, templateDataType } from "@/types/templateDataTypes";
 import { relations } from "drizzle-orm";
-import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
+import { timestamp, pgTable, primaryKey, integer, text, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 // typeof users.$inferSelect;
 // typeof users.$inferInsert 
 
-// take from types array
-export const roleEnum = pgEnum("role", ["admin"]);
+export const roleEnum = pgEnum("role", roleOptions);
 
 export const users = pgTable("users", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userGithubTokens: json("userGithubTokens").notNull().$type<user["userGithubTokens"]>().default([]),
+    //defaults
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userGithubTokens: json("userGithubTokens").notNull().$type<userType["userGithubTokens"]>().default([]),
 
+    //regular
+
+    //null
     role: roleEnum(),
     name: text("name"),
     image: text("image"),
@@ -28,10 +31,11 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 
 export const websites = pgTable("websites", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
-    name: varchar("name", { length: 255 }).notNull(),
-    title: varchar("title", { length: 255 }).default("").notNull(),
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId").notNull().references(() => users.id),
+
+    name: text("name").notNull(),
+    title: text("title").default("").notNull(),
     description: text("description").default("").notNull(),
     fonts: json("fonts").$type<fontsType[]>().default([]).notNull(),
     globalCss: text("globalCss").default("").notNull(),
@@ -58,9 +62,10 @@ export const websiteRelations = relations(websites, ({ one, many }) => ({
 
 
 export const pages = pgTable("pages", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    link: varchar("link", { length: 255 }).notNull(),
-    websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    link: text("link").notNull(),
+    websiteId: text("websiteId").notNull().references(() => websites.id),
 },
     (t) => {
         return {
@@ -79,9 +84,10 @@ export const pageRelations = relations(pages, ({ one, many }) => ({
 
 
 export const usedComponents = pgTable('usedComponents', {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//unqieu id for template
-    websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
-    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    websiteId: text("websiteId").notNull().references(() => websites.id),
+    templateId: text("templateId").notNull().references(() => templates.id),
     css: text("css").default("").notNull(),
     order: integer("order").notNull(),
     location: json("location").$type<usedComponentLocationType>().notNull(),
@@ -108,11 +114,12 @@ export const usedComponentsRelations = relations(usedComponents, ({ one }) => ({
 
 
 export const templates = pgTable("templates", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//where you find it
-    name: varchar("name", { length: 255 }).notNull().unique(),
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    name: text("name").notNull().unique(),
     uses: integer("uses").default(0).notNull(),
     likes: integer("likes").default(0).notNull(),
-    categoryId: varchar("categoryId", { length: 255 }).notNull().references(() => categories.name),
+    categoryId: text("categoryId").notNull().references(() => categories.name),
     defaultCss: text("defaultCss").notNull(),
     defaultData: json("defaultData").$type<templateDataType>().notNull(),
 }, (t) => ({
@@ -134,7 +141,7 @@ export const templatesRelations = relations(templates, ({ one, many }) => ({
 
 
 export const categories = pgTable("categories", {
-    name: varchar("name", { length: 255 }).$type<categoryName>().notNull().unique(),
+    name: text("name").$type<categoryName>().notNull().unique(),
 })
 export const categoriesRelations = relations(categories, ({ many }) => ({
     templates: many(templates),
@@ -145,7 +152,7 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 
 
 export const styles = pgTable("styles", {
-    name: varchar("name", { length: 255 }).notNull().unique(),
+    name: text("name").notNull().unique(),
 })
 export const stylesRelations = relations(styles, ({ many }) => ({
     templateToStyles: many(templatesToStyles),
@@ -156,8 +163,8 @@ export const stylesRelations = relations(styles, ({ many }) => ({
 
 
 export const templatesToStyles = pgTable('templatesToStyles', {
-    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
-    styleName: varchar("styleName", { length: 255 }).notNull().references(() => styles.name),
+    templateId: text("templateId").notNull().references(() => templates.id),
+    styleName: text("styleName").notNull().references(() => styles.name),
 }, (t) => ({
     pk: primaryKey({ columns: [t.templateId, t.styleName] }),
 }),
@@ -223,13 +230,14 @@ export const accounts = pgTable(
         id_token: text("id_token"),
         session_state: text("session_state"),
     },
-    (account) => ({
-        compoundKey: primaryKey({
-            columns: [account.provider, account.providerAccountId],
-        }),
-    })
+    (account) => [
+        {
+            compoundKey: primaryKey({
+                columns: [account.provider, account.providerAccountId],
+            }),
+        },
+    ]
 )
-
 export const sessions = pgTable("session", {
     sessionToken: text("sessionToken").primaryKey(),
     userId: text("userId")
@@ -237,7 +245,6 @@ export const sessions = pgTable("session", {
         .references(() => users.id, { onDelete: "cascade" }),
     expires: timestamp("expires", { mode: "date" }).notNull(),
 })
-
 export const verificationTokens = pgTable(
     "verificationToken",
     {
@@ -245,14 +252,33 @@ export const verificationTokens = pgTable(
         token: text("token").notNull(),
         expires: timestamp("expires", { mode: "date" }).notNull(),
     },
-    (verificationToken) => ({
-        compositePk: primaryKey({
-            columns: [verificationToken.identifier, verificationToken.token],
-        }),
-    })
+    (verificationToken) => [
+        {
+            compositePk: primaryKey({
+                columns: [verificationToken.identifier, verificationToken.token],
+            }),
+        },
+    ]
 )
-
-
-
-
-
+export const authenticators = pgTable(
+    "authenticator",
+    {
+        credentialID: text("credentialID").notNull().unique(),
+        userId: text("userId")
+            .notNull()
+            .references(() => users.id, { onDelete: "cascade" }),
+        providerAccountId: text("providerAccountId").notNull(),
+        credentialPublicKey: text("credentialPublicKey").notNull(),
+        counter: integer("counter").notNull(),
+        credentialDeviceType: text("credentialDeviceType").notNull(),
+        credentialBackedUp: boolean("credentialBackedUp").notNull(),
+        transports: text("transports"),
+    },
+    (authenticator) => [
+        {
+            compositePK: primaryKey({
+                columns: [authenticator.userId, authenticator.credentialID],
+            }),
+        },
+    ]
+)

@@ -1,10 +1,10 @@
 "use client"
 import RecursiveForm from '@/components/recursiveForm/RecursiveForm'
-import { usedComponent } from '@/types'
+import { usedComponentType } from '@/types'
 import { navBarsDataType, templateDataType, updateNavBarsDataSchema, updateNavBarsDataType } from '@/types/templateDataTypes'
 import React from 'react'
 
-export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsDataType, activeUsedComponent: usedComponent, handlePropsChange: (newPropsObj: templateDataType, sentUsedComponent: usedComponent) => void }) {
+export default function EditNavbarsData({ data, activeUsedComponent, handlePropsChange }: { data: navBarsDataType, activeUsedComponent: usedComponentType, handlePropsChange: (newPropsObj: templateDataType, sentUsedComponent: usedComponentType) => void }) {
 
     //make components to edit the different types of reusable data
     //make recusrive component to edit nav menus

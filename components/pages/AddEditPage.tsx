@@ -1,7 +1,7 @@
 "use client"
 import React, { HTMLAttributes, useEffect, useState } from 'react'
 import styles from "./style.module.css"
-import { handleManagePageOptions, newPage, newPageSchema, page, pageSchema, updatePageSchema, website } from '@/types'
+import { handleManagePageOptions, newPageType, newPageSchema, pageType, pageSchema, updatePageSchema, websitetype } from '@/types'
 import TextInput from '../textInput/TextInput'
 import TextArea from '../textArea/TextArea'
 import { deepClone, makeValidPageLinkName } from '@/utility/utility'
@@ -9,8 +9,8 @@ import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import toast from 'react-hot-toast'
 import { addPage } from '@/serverFunctions/handlePages'
 
-export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage, submissionAction, ...elProps }: { sentWebsiteId: website["id"], sentPage?: page, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
-    const initialFormObj: newPage = {
+export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage, submissionAction, ...elProps }: { sentWebsiteId: websitetype["id"], sentPage?: pageType, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
+    const initialFormObj: newPageType = {
         link: "",
         websiteId: sentWebsiteId
     }
@@ -19,8 +19,8 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
     //form obj can be set from newPage or update page requirements
 
     //assign either a new form, or the safe values on an update form
-    const [formObj, formObjSet] = useState<Partial<page>>(deepClone(sentPage !== undefined ? updatePageSchema.parse(sentPage) : initialFormObj))
-    type pageKeys = keyof Partial<page>
+    const [formObj, formObjSet] = useState<Partial<pageType>>(deepClone(sentPage !== undefined ? updatePageSchema.parse(sentPage) : initialFormObj))
+    type pageKeys = keyof Partial<pageType>
 
     type moreFormInfoType = Partial<{
         [key in Partial<pageKeys>]: {
@@ -47,7 +47,7 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
         formObjSet(updatePageSchema.parse(sentPage))
     }, [sentPage])
 
-    function checkIfValid(seenFormObj: Partial<page>, seenName: keyof Partial<page>, schema: typeof pageSchema) {
+    function checkIfValid(seenFormObj: Partial<pageType>, seenName: keyof Partial<pageType>, schema: typeof pageSchema) {
         // @ts-expect-error type
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 
@@ -82,7 +82,7 @@ export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage,
                 //make new page
 
                 //validate
-                const validatedNewPage: newPage = newPageSchema.parse(formObj)
+                const validatedNewPage: newPageType = newPageSchema.parse(formObj)
 
                 //send up to server
                 const seenAddedPage = await addPage(validatedNewPage)

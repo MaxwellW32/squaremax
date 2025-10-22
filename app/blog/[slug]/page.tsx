@@ -3,8 +3,10 @@ import ShowDate from '@/components/showDate/ShowDate'
 import { blogData } from '@/lib/blogData'
 import React from 'react'
 
-export default function Page({ params }: { params: { slug: string } }) {
-    const foundBlog = blogData.find(eachBlog => eachBlog.slug === params.slug)
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params
+
+    const foundBlog = blogData.find(eachBlog => eachBlog.slug === slug)
     if (!foundBlog) return <p>Blog Not Found</p>
 
     return (
@@ -22,7 +24,7 @@ export default function Page({ params }: { params: { slug: string } }) {
             <section>
                 <h1>Other Blogs</h1>
 
-                <DisplayBlogs passedBlogData={blogData.filter(eachBlog => eachBlog.slug !== params.slug)} />
+                <DisplayBlogs passedBlogData={blogData.filter(eachBlog => eachBlog.slug !== slug)} />
             </section>
         </main>
     )

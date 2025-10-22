@@ -1,5 +1,5 @@
 import { getGithubRepos, pushToGithubRepo, searchGithubReposByName } from '@/serverFunctions/handleGithub'
-import { githubRepo, githubTokenType, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, website } from '@/types'
+import { githubRepo, githubTokenType, requestDownloadWebsiteBodySchema, requestDownloadWebsiteBodyType, websitetype } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import React, { HTMLAttributes, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -8,12 +8,13 @@ import { deleteUserGithubTokens, getUser } from '@/serverFunctions/handleUser'
 import { Session } from 'next-auth'
 import ShowMore from '../showMore/ShowMore'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
-import Moment from 'react-moment'
+import Moment from 'moment'
 import AddGithubRepository from '../users/addEditGithub/AddGithubRepository'
 import TextInput from '../textInput/TextInput'
+import moment from 'moment'
 
 export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTokens, viewingDownloadOptionsSet, ...elProps }: {
-    seenSession: Session, seenWebsite: website, seenGithubTokens: githubTokenType[], viewingDownloadOptionsSet?: React.Dispatch<React.SetStateAction<boolean>>
+    seenSession: Session, seenWebsite: websitetype, seenGithubTokens: githubTokenType[], viewingDownloadOptionsSet?: React.Dispatch<React.SetStateAction<boolean>>
 } & HTMLAttributes<HTMLDivElement>) {
     const [githubTokens, githubTokensSet] = useState<githubTokenType[]>([...seenGithubTokens])
     const activeGithubToken = useMemo<githubTokenType | undefined>(() => {
@@ -30,7 +31,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
         return repositories.filter(eachRepository => eachRepository.name.toLowerCase().includes(search.toLowerCase()))
     }, [repositories, search])
 
-    async function handleWebsiteDownload(data: { option: "zip" } | { option: "github", data: { token: githubTokenType, websiteId: website["id"], repoName: string } }) {
+    async function handleWebsiteDownload(data: { option: "zip" } | { option: "github", data: { token: githubTokenType, websiteId: websitetype["id"], repoName: string } }) {
         try {
             //build site
             toast.success("building site")
@@ -282,7 +283,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                                         <div key={eachFilteredRepository.id} style={{ padding: "var(--spacingR)", display: "flex", alignItems: "center", gap: "var(--spacingR)", overflowX: "auto", borderTop: "1px solid var(--shade1)", }}>
                                             <label>{eachFilteredRepository.name}</label>
 
-                                            <p style={{ flex: 1 }}><Moment fromNow>{eachFilteredRepository.updated_at}</Moment></p>
+                                            <p style={{ flex: 1 }}>{moment(eachFilteredRepository.updated_at, "YYYYMMDD").fromNow()}</p>
 
                                             <ConfirmationBox text='' confirmationText='are you sure you want to upload to this repo?' successMessage='uploading!' float={true}
                                                 icon={

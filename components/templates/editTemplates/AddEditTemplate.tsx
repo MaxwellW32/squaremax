@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import path from "path"
 import styles from "./addTemplate.module.css"
 import { toast } from 'react-hot-toast'
-import { category, collection, template, templatesSchema, newTemplate, newTemplateSchema } from '@/types'
+import { categoryType, collection, templateType, templatesSchema, newTemplateType, newTemplateSchema } from '@/types'
 import { deepClone } from '@/utility/utility'
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { addTemplate, deleteTemplate, removeEntryFromGlobalTemplatesFile, updateTemplate } from '@/serverFunctions/handleTemplates'
@@ -15,17 +15,17 @@ import TextArea from '@/components/textArea/TextArea'
 import ConfirmationBox from '@/components/confirmationBox/ConfirmationBox'
 import { templateDataSchema } from '@/types/templateDataTypes'
 
-export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: template }) {
-    const [initialForm,] = useState<Partial<newTemplate>>({
+export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templateType }) {
+    const [initialForm,] = useState<Partial<newTemplateType>>({
         name: "",
         categoryId: "",
         defaultCss: "",
         defaultData: undefined,
     })
 
-    const [formObj, formObjSet] = useState<Partial<newTemplate> | template>(oldTemplate !== undefined ? deepClone(oldTemplate) : deepClone(initialForm))
-    const [categories, categoriesSet] = useState<category[]>([])
-    const [selectedCategory, selectedCategorySet] = useState<category | null>(null)
+    const [formObj, formObjSet] = useState<Partial<newTemplateType> | templateType>(oldTemplate !== undefined ? deepClone(oldTemplate) : deepClone(initialForm))
+    const [categories, categoriesSet] = useState<categoryType[]>([])
+    const [selectedCategory, selectedCategorySet] = useState<categoryType | null>(null)
     const [seenCollection, seenCollectionSet] = useState<collection[]>([])
 
     //get categories
@@ -38,7 +38,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
         }
     }, [])
 
-    type templateKeys = keyof Partial<newTemplate>
+    type templateKeys = keyof Partial<newTemplateType>
 
     type moreFormInfoType = {
         [key in templateKeys]: {
@@ -76,7 +76,7 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
         [key in templateKeys]: string
     }>>({})
 
-    function checkIfValid(seenFormObj: Partial<newTemplate>, seenName: keyof Partial<newTemplate>, schema: typeof newTemplateSchema) {
+    function checkIfValid(seenFormObj: Partial<newTemplateType>, seenName: keyof Partial<newTemplateType>, schema: typeof newTemplateSchema) {
         // @ts-expect-error types
         const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
 

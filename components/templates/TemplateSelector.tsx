@@ -2,7 +2,7 @@
 import { getAllCategories } from '@/serverFunctions/handleCategories'
 import { getSpecificTemplate, getTemplatesByCategory, getTemplatesByFamily, getTemplatesByName } from '@/serverFunctions/handleTemplates'
 import { addUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { category, template, handleManageUpdateUsedComponentsOptions, newUsedComponent, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, website, usedComponent, previewTemplateType, activeSelectionType, otherSelctionOptionsArr, otherSelctionOptionsType, templateFilterOptionType, templateFilterOptions, page } from '@/types'
+import { categoryType, templateType, handleManageUpdateUsedComponentsOptions, newUsedComponentType, newUsedComponentSchema, usedComponentLocationType, viewerTemplateType, websitetype, usedComponentType, previewTemplateType, activeSelectionType, otherSelctionOptionsArr, otherSelctionOptionsType, templateFilterOptionType, templateFilterOptions, pageType } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { ensureChildCanBeAddedToParent, getUsedComponentsInSameLocation } from '@/utility/utility'
@@ -13,11 +13,11 @@ import LocationSelector from '../websites/LocationSelector'
 import { categoryName, categoryNameSchema, templateDataType } from '@/types/templateDataTypes'
 
 export default function TemplateSelector({ websiteId, seenLocation, activeLocationSet, seenPage, handleManageUsedComponents, viewerTemplateSet, previewTemplate, previewTemplateSet, seenActiveUsedComponent, seenUsedComponents, canFloat = false }: {
-    websiteId: website["id"], seenLocation: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, seenPage: page | undefined, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplate: previewTemplateType | null, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenActiveUsedComponent: usedComponent | undefined, seenUsedComponents: usedComponent[], canFloat?: boolean
+    websiteId: websitetype["id"], seenLocation: usedComponentLocationType, activeLocationSet: React.Dispatch<React.SetStateAction<usedComponentLocationType>>, seenPage: pageType | undefined, handleManageUsedComponents(options: handleManageUpdateUsedComponentsOptions): Promise<void>, viewerTemplateSet?: React.Dispatch<React.SetStateAction<viewerTemplateType | null>>, previewTemplate: previewTemplateType | null, previewTemplateSet: React.Dispatch<React.SetStateAction<previewTemplateType | null>>, seenActiveUsedComponent: usedComponentType | undefined, seenUsedComponents: usedComponentType[], canFloat?: boolean
 }) {
     const [userInteracting, userInteractingSet] = useState(false)
     const [, refresherSet] = useState(false)
-    const [categories, categoriesSet] = useState<category[]>([])
+    const [categories, categoriesSet] = useState<categoryType[]>([])
 
     const [filter, filterSet] = useState<templateFilterOptionType>("popular")
     const [otherData, otherDataSet] = useState("")
@@ -25,7 +25,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
     const activeSelection = useRef<activeSelectionType | undefined>()
     const localRenderedPreviewTemplatesObj = useRef<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>({})
 
-    const seenTemplates = useRef<{ [key in activeSelectionType]: template[] }>({
+    const seenTemplates = useRef<{ [key in activeSelectionType]: templateType[] }>({
         "navbars": [],//operate by pagination
         "heros": [],
         "containers": [],
@@ -113,7 +113,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
         //dont keep re reunning unless array chunk changes
         if (previewsBuilt.current) return
 
-        const templatesChunk: template[] = seenTemplates.current[activeSelection.current].slice(starterSearchIndex.current, starterSearchIndex.current + chunkSize)
+        const templatesChunk: templateType[] = seenTemplates.current[activeSelection.current].slice(starterSearchIndex.current, starterSearchIndex.current + chunkSize)
 
         await Promise.all(templatesChunk.map(async eachTemplate => {
             //build template
@@ -162,7 +162,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
     async function sendTemplateUp() {
         if (activeSelection.current === undefined) return
 
-        const newTemplateToBuild: template = seenTemplates.current[activeSelection.current][activeTemplateIndex.current[activeSelection.current]]
+        const newTemplateToBuild: templateType = seenTemplates.current[activeSelection.current][activeTemplateIndex.current[activeSelection.current]]
         if (newTemplateToBuild === undefined) return
 
         //if not built already rebuild
@@ -379,7 +379,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
                                         //add template to page normally 
                                         if (viewerTemplateSet === undefined) {
                                             //add to server
-                                            const newUsedComponent: newUsedComponent = {
+                                            const newUsedComponent: newUsedComponentType = {
                                                 websiteId: websiteId,
                                                 templateId: previewTemplate.template.id,
                                                 css: previewTemplate.template.defaultCss,

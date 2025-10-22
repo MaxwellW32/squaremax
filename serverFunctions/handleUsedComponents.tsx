@@ -3,12 +3,12 @@ import { db } from "@/db"
 import { usedComponents } from "@/db/schema"
 import { ensureUserCanAccessWebsite } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
-import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentLocationType, usedComponentSchema, website, websiteSchema } from "@/types"
+import { newUsedComponentType, updateUsedComponentType, updateUsedComponentSchema, usedComponentType, usedComponentLocationType, usedComponentSchema, websitetype, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
 import { ensureChildCanBeAddedToParent, getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByOrder } from "@/utility/utility"
 
-export async function getSpecificUsedComponent(usedComponentId: usedComponent["id"]): Promise<usedComponent | undefined> {
+export async function getSpecificUsedComponent(usedComponentId: usedComponentType["id"]): Promise<usedComponentType | undefined> {
     //validation
     usedComponentSchema.shape.id.parse(usedComponentId)
 
@@ -19,7 +19,7 @@ export async function getSpecificUsedComponent(usedComponentId: usedComponent["i
     return result
 }
 
-export async function getUsedComponents(selectionObj: { option: "website", data: Pick<usedComponent, "websiteId"> } | { option: "template", data: Pick<usedComponent, "templateId"> }): Promise<usedComponent[]> {
+export async function getUsedComponents(selectionObj: { option: "website", data: Pick<usedComponentType, "websiteId"> } | { option: "template", data: Pick<usedComponentType, "templateId"> }): Promise<usedComponentType[]> {
     if (selectionObj.option === "website") {
         //validation
         usedComponentSchema.pick({ websiteId: true }).parse(selectionObj.data)
@@ -53,8 +53,8 @@ export async function getUsedComponents(selectionObj: { option: "website", data:
     }
 }
 
-export async function addUsedComponent(newUsedComponent: newUsedComponent): Promise<usedComponent> {
-    const fullNewUsedComponent: usedComponent = {
+export async function addUsedComponent(newUsedComponent: newUsedComponentType): Promise<usedComponentType> {
+    const fullNewUsedComponent: usedComponentType = {
         id: uuidV4(),
         ...newUsedComponent,
     }
@@ -66,7 +66,7 @@ export async function addUsedComponent(newUsedComponent: newUsedComponent): Prom
     return result
 }
 
-export async function updateTheUsedComponent(websiteId: website["id"], usedComponentId: usedComponent["id"], updatedUsedComponentObj: Partial<updateUsedComponent>, runSecurity = true): Promise<usedComponent> {
+export async function updateTheUsedComponent(websiteId: websitetype["id"], usedComponentId: usedComponentType["id"], updatedUsedComponentObj: Partial<updateUsedComponentType>, runSecurity = true): Promise<usedComponentType> {
     //validation
     websiteSchema.shape.id.parse(websiteId)
     usedComponentSchema.shape.id.parse(usedComponentId)
@@ -88,7 +88,7 @@ export async function updateTheUsedComponent(websiteId: website["id"], usedCompo
     return result
 }
 
-export async function deleteUsedComponent(websiteId: website["id"], usedComponentId: usedComponent["id"]) {
+export async function deleteUsedComponent(websiteId: websitetype["id"], usedComponentId: usedComponentType["id"]) {
     //validation
     websiteSchema.shape.id.parse(websiteId)
     usedComponentSchema.shape.id.parse(usedComponentId)
@@ -116,7 +116,7 @@ export async function deleteUsedComponent(websiteId: website["id"], usedComponen
     await db.delete(usedComponents).where(eq(usedComponents.id, usedComponentId));
 }
 
-export async function changeUsedComponentIndex(seenUsedComponent: usedComponent, wantedIndex: number) {
+export async function changeUsedComponentIndex(seenUsedComponent: usedComponentType, wantedIndex: number) {
     //validation
     usedComponentSchema.parse(seenUsedComponent)
 
@@ -150,7 +150,7 @@ export async function changeUsedComponentIndex(seenUsedComponent: usedComponent,
     }))
 }
 
-export async function changeUsedComponentLocation(seenUsedComponent: usedComponent, newLocation: usedComponentLocationType) {
+export async function changeUsedComponentLocation(seenUsedComponent: usedComponentType, newLocation: usedComponentLocationType) {
     //validation
     usedComponentSchema.parse(seenUsedComponent)
 

@@ -1,4 +1,4 @@
-import { fontsType, usedComponent, usedComponentLocationType } from "@/types"
+import { fontsType, usedComponentType, usedComponentLocationType } from "@/types"
 
 export function deepClone(object: unknown) {
     return JSON.parse(JSON.stringify(object))
@@ -21,7 +21,7 @@ export function addScopeToCSS(cssString: string, idPrefix: string) {
     );
 }
 
-export function sanitizeUsedComponentData(usedComponent: usedComponent): usedComponent {
+export function sanitizeUsedComponentData(usedComponent: usedComponentType): usedComponentType {
     // Update the used components recursively
     const seenPropData = usedComponent.data
 
@@ -46,8 +46,8 @@ export function moveItemInArray<T>(arr: T[], fromIndex: number, toIndex: number)
     return newArr;
 }
 
-export function getDescendedUsedComponents(parentUsedComponentIds: (usedComponent["id"])[], originalUsedComponentsList: usedComponent[]): usedComponent[] {
-    const descendedArray: usedComponent[] = []
+export function getDescendedUsedComponents(parentUsedComponentIds: (usedComponentType["id"])[], originalUsedComponentsList: usedComponentType[]): usedComponentType[] {
+    const descendedArray: usedComponentType[] = []
 
     parentUsedComponentIds.forEach(eachParentUsedComponentId => {
         // get children for each usedComponent
@@ -63,7 +63,7 @@ export function getDescendedUsedComponents(parentUsedComponentIds: (usedComponen
     return descendedArray
 }
 
-export function getChildrenUsedComponents(usedComponentParentId: usedComponent["id"], originalUsedComponentsList: usedComponent[]) {
+export function getChildrenUsedComponents(usedComponentParentId: usedComponentType["id"], originalUsedComponentsList: usedComponentType[]) {
     // get children for each usedComponent
     const childrenUsedComponents = originalUsedComponentsList.filter(eachUsedComponent => {
         return eachUsedComponent.location.type === "child" && eachUsedComponent.location.parentId === usedComponentParentId
@@ -95,7 +95,7 @@ export function getChildrenUsedComponents(usedComponentParentId: usedComponent["
 //     return usedComponentsInSameLocation
 // }
 
-export function getUsedComponentsInSameLocation(seenLocation: usedComponentLocationType, usedComponents: usedComponent[]) {
+export function getUsedComponentsInSameLocation(seenLocation: usedComponentLocationType, usedComponents: usedComponentType[]) {
     const usedComponentsInSameLocation = usedComponents.filter(eachUsedComponentFilter => {
         let seenInMatchingLocation = false
 
@@ -118,7 +118,7 @@ export function getUsedComponentsInSameLocation(seenLocation: usedComponentLocat
     return usedComponentsInSameLocation
 }
 
-export function sortUsedComponentsByOrder(seenUsedComponents: usedComponent[]) {
+export function sortUsedComponentsByOrder(seenUsedComponents: usedComponentType[]) {
     let orderedUsedComponents = seenUsedComponents.sort((a, b) => a.order - b.order);
     return orderedUsedComponents
 }
@@ -138,7 +138,7 @@ export function formatCSS(cssString: string) {
 }
 
 //ensure parentEl can actually take children elements
-export function ensureChildCanBeAddedToParent(parentId: usedComponent["id"], seenUsedComponents: usedComponent[]) {
+export function ensureChildCanBeAddedToParent(parentId: usedComponentType["id"], seenUsedComponents: usedComponentType[]) {
     //ensure parent exists in array
     const foundParentUsedComponent = seenUsedComponents.find(eachSentUsedComponent => eachSentUsedComponent.id === parentId)
     if (foundParentUsedComponent === undefined) throw new Error("not seeing parent used component")
@@ -170,8 +170,8 @@ export function scaleToFit(containerWidth: number, containerHeight: number, want
 
 
 
-export function getUsedComponentsImportString(seenUsedComponents: usedComponent[]) {
-    const templatesIdsUsedAlready: usedComponent["templateId"][] = []
+export function getUsedComponentsImportString(seenUsedComponents: usedComponentType[]) {
+    const templatesIdsUsedAlready: usedComponentType["templateId"][] = []
 
     const seenResults: (string | null)[] = seenUsedComponents.map(eachUsedComponent => {
         //ensure no duplicates
@@ -186,7 +186,7 @@ export function getUsedComponentsImportString(seenUsedComponents: usedComponent[
     return seenResults.join("\n")
 }
 
-export function getUsedComponentsImportName(seenUsedComponent: usedComponent) {
+export function getUsedComponentsImportName(seenUsedComponent: usedComponentType) {
     let componentName = seenUsedComponent.template !== undefined ? seenUsedComponent.template.name : seenUsedComponent.data.category
 
     //capitalize the first letter
@@ -201,7 +201,7 @@ export function getUsedComponentsImportName(seenUsedComponent: usedComponent) {
     return componentName
 }
 
-export function makeUsedComponentsImplementationString(seenUsedComponents: usedComponent[], originalList: usedComponent[]): string {
+export function makeUsedComponentsImplementationString(seenUsedComponents: usedComponentType[], originalList: usedComponentType[]): string {
     return seenUsedComponents.map(eachUsedComponent => {
         const seenImplementationName = getUsedComponentsImportName(eachUsedComponent)
 

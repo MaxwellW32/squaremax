@@ -2,12 +2,12 @@
 import Link from 'next/link'
 import React, { useState } from 'react'
 import styles from "./page.module.css"
-import { searchObj, website } from '@/types'
+import { searchObjType, websitetype } from '@/types'
 import Search from '@/components/search/Search'
 import { getWebsitesFromUser } from '@/serverFunctions/handleWebsites'
 
 export default function Page() {
-    const [websiteSearchObj, websiteSearchObjSet] = useState<searchObj<website>>({
+    const [websiteSearchObj, websiteSearchObjSet] = useState<searchObjType<websitetype>>({
         searchItems: [],
     })
 

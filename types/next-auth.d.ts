@@ -1,8 +1,8 @@
 import type { Session } from 'next-auth';
-import { user } from '@/types';
+import { userType } from '@/types';
 
 declare module 'next-auth' {
   interface Session {
-    user: user
+    user: userType
   }
 }

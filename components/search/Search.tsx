@@ -1,29 +1,26 @@
 "use client"
-import { allFilterType, searchObj } from '@/types'
-import { spaceCamelCase } from '@/utility/utility'
+import { searchObjType, tableFilterTypes } from '@/types'
+import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import React, { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ShowMore from '../showMore/ShowMore'
-import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
+import { spaceCamelCase } from '@/utility/utility'
 
 type searchFiltersType<T> = {
-    [K in keyof T]?: {
+    [K in keyof tableFilterTypes<T>]?: {
         hidden?: true,
         active?: true,//start off - if undefined dont use 
         value: T[K]
     }
 }
 
-export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPage, searchFilters, handleResults = true, autoSearch = undefined }: {
-    searchObj: searchObj<T>, searchObjSet: React.Dispatch<React.SetStateAction<searchObj<T>>>, searchFunc: (allFilters: allFilterType) => Promise<T[]>, showPage?: boolean, searchFilters?: searchFiltersType<T>, handleResults?: boolean,
-    autoSearch?: true
-}) {
+export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPage, searchFilters, handleResults = true, autoSearch = undefined }: { searchObj: searchObjType<T>, searchObjSet: React.Dispatch<React.SetStateAction<searchObjType<T>>>, searchFunc: (allFilters: tableFilterTypes<T>) => Promise<T[]>, showPage?: boolean, searchFilters?: searchFiltersType<T>, handleResults?: boolean, autoSearch?: true }) {
     const wantsToSearchAgain = useRef(false)
 
     const [pageIndex, pageIndexSet] = useState<number | undefined>()
-    const pageDebounce = useRef<NodeJS.Timeout>()
+    const pageDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
 
-    const searchDebounce = useRef<NodeJS.Timeout | undefined>()
+    const searchDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
 
     const [activeSearchFilters, activeSearchFiltersSet] = useState<searchFiltersType<T>>(searchFilters === undefined ? {} : { ...searchFilters })
 
@@ -143,7 +140,7 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
                 return [seenKey, seenValue.value]
             })
 
-            const filtersOnly = Object.fromEntries(filtersOnlyPre.filter(each => each !== null)) as allFilterType
+            const filtersOnly = Object.fromEntries(filtersOnlyPre.filter(each => each !== null)) as tableFilterTypes<T>
 
             //set loading
             searchObjSet(prevSearchObj => {
@@ -195,7 +192,7 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
 
     return (
         <div style={{ display: "grid", alignContent: "flex-start", gap: "var(--spacingR)" }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingS)", alignItems: "center" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacingS)", alignItems: "center" }} className='resetTextMargin'>
                 <button className='button1'
                     onClick={async () => {
                         handleSearch()
@@ -226,7 +223,7 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
                     <>
                         <p>page</p>
 
-                        <input type='text' value={`${pageIndex + 1}`} style={{ width: "4ch", padding: "0 var(--spacingS)", textAlign: "center" }}
+                        <input type='text' value={`${pageIndex + 1}`} style={{ width: "4ch", padding: "0 .5rem", textAlign: "center" }}
                             onChange={(e) => {
                                 //validate entered num
                                 let seenIndex = parseInt(e.target.value)
@@ -296,7 +293,7 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
                                             )}
 
                                             {(typeof eachFilterValue.value === "string" || typeof eachFilterValue.value === "number") && (
-                                                <input type={typeof eachFilterValue.value === "number" ? "number" : "text"} value={eachFilterValue.value} placeholder={`enter ${label}`}
+                                                <input type={typeof eachFilterValue.value === "number" ? "number" : "text"} value={eachFilterValue.value} placeholder={`enter${label}`}
                                                     onChange={(e) => {
                                                         let seenText: string | number = e.target.value
 

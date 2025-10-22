@@ -2,7 +2,7 @@
 import { deletePage, getSpecificPage, updateThePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
 import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, page, previewTemplateType, sizeOptionsArr, sizeOptionType, updatePageSchema, updateUsedComponent, updateUsedComponentSchema, updateWebsite, updateWebsiteSchema, usedComponent, usedComponentLocationType, viewerTemplateType, website, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, pageType, previewTemplateType, sizeOptionsArr, sizeOptionType, updatePageSchema, updateUsedComponentType, updateUsedComponentSchema, updateWebsiteType, updateWebsiteSchema, usedComponentType, usedComponentLocationType, viewerTemplateType, websitetype, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, controlNavView, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, scaleToFit, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -25,7 +25,7 @@ import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from
 import Link from 'next/link'
 import { templateDataType } from '@/types/templateDataTypes'
 
-export default function EditWebsite({ websiteFromServer, seenSession }: { websiteFromServer: website, seenSession: Session }) {
+export default function EditWebsite({ websiteFromServer, seenSession }: { websiteFromServer: websitetype, seenSession: Session }) {
     const { editingContent, setEditing } = useEditingContent()
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -48,10 +48,10 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
     const canvasContRef = useRef<HTMLDivElement | null>(null)
     const draggableRef = useRef<HTMLDivElement | null>(null)
 
-    const [websiteObj, websiteObjSet] = useState<website>(websiteFromServer)
+    const [websiteObj, websiteObjSet] = useState<websitetype>(websiteFromServer)
 
-    const [activePageId, activePageIdSet] = useState<page["id"] | undefined>(websiteObj.pages !== undefined && websiteObj.pages.length > 0 ? websiteObj.pages[0].id : undefined)
-    const activePage = useMemo<page | undefined>(() => {
+    const [activePageId, activePageIdSet] = useState<pageType["id"] | undefined>(websiteObj.pages !== undefined && websiteObj.pages.length > 0 ? websiteObj.pages[0].id : undefined)
+    const activePage = useMemo<pageType | undefined>(() => {
         if (websiteObj.pages === undefined || activePageId === undefined) return undefined
 
         const foundPage = websiteObj.pages.find(eachPageFind => eachPageFind.id === activePageId)
@@ -65,11 +65,11 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
     const [addingPage, addingPageSet] = useState(false)
     const [usedComponentsBuilt, usedComponentsBuiltSet] = useState(false)
 
-    const tempActiveUsedComponentId = useRef<usedComponent["id"]>("")
-    const [activeUsedComponentId, activeUsedComponentIdSet] = useState<usedComponent["id"]>("")
+    const tempActiveUsedComponentId = useRef<usedComponentType["id"]>("")
+    const [activeUsedComponentId, activeUsedComponentIdSet] = useState<usedComponentType["id"]>("")
     const [selectionOption, selectionOptionSet] = useState<"website" | "page" | "component" | undefined>()
 
-    const activeUsedComponent = useMemo<usedComponent | undefined>(() => {
+    const activeUsedComponent = useMemo<usedComponentType | undefined>(() => {
         if (websiteObj.usedComponents === undefined) return undefined
 
         const foundUsedComponent = websiteObj.usedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === activeUsedComponentId)
@@ -83,7 +83,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         }>
     }>({})
 
-    const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
+    const updateWebsiteDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
     const updatePageDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
     const updateUsedComponentDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
 
@@ -447,7 +447,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         canvasRef.current.style.left = `${spacerRef.current.clientWidth / 2 - (fit ? canvasContRef.current.clientWidth : activeSizeOption.width) / 2}px`
     }
 
-    async function buildUsedComponents(sentUsedComponents: usedComponent[]) {
+    async function buildUsedComponents(sentUsedComponents: usedComponentType[]) {
         usedComponentsBuiltSet(false)
 
         //ensure all can be rendered
@@ -473,7 +473,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         usedComponentsBuiltSet(true)
     }
 
-    async function handleWebsiteUpdate(newWebsite: website) {
+    async function handleWebsiteUpdate(newWebsite: websitetype) {
         //set is editing
         setEditing("website")
 
@@ -617,7 +617,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                 const foundUsedComponent = websiteObj.usedComponents.find(eachUsedComponentFind => eachUsedComponentFind.id === options.updatedUsedComponentId)
                 if (foundUsedComponent === undefined) return
 
-                const updatedUsedComponent: usedComponent = { ...foundUsedComponent, ...options.seenUpdatedUsedComponent }
+                const updatedUsedComponent: usedComponentType = { ...foundUsedComponent, ...options.seenUpdatedUsedComponent }
 
                 if (options.rebuild) {
                     //ensure can be rendered
@@ -670,7 +670,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         }
     }
 
-    function handlePropsChange(newPropsObj: templateDataType, sentUsedComponent: usedComponent) {
+    function handlePropsChange(newPropsObj: templateDataType, sentUsedComponent: usedComponentType) {
         //update the data
         sentUsedComponent.data = newPropsObj
 
@@ -700,7 +700,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         selectionOptionSet("component")
     }
 
-    async function renderUsedComponentsInUse(seenUsedComponents: usedComponent[], seenActivePageId?: page["id"]) {
+    async function renderUsedComponentsInUse(seenUsedComponents: usedComponentType[], seenActivePageId?: pageType["id"]) {
         //get the header, footer and usedComponents on this page
         const baseUsedComponentsInUse = seenUsedComponents.filter(eachFilterUsedComponent => {
             return eachFilterUsedComponent.location.type === "header" || eachFilterUsedComponent.location.type === "footer" || (seenActivePageId !== undefined && eachFilterUsedComponent.location.type === "page" && eachFilterUsedComponent.location.pageId === seenActivePageId)
@@ -708,7 +708,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
 
         //then get all of the base components children recursively
         const baseUsedComponentsInUseIds = baseUsedComponentsInUse.map(eachBaseUsedComponentInUseId => eachBaseUsedComponentInUseId.id)
-        const baseUsedComponentsDecendants: usedComponent[] = getDescendedUsedComponents(baseUsedComponentsInUseIds, seenUsedComponents)
+        const baseUsedComponentsDecendants: usedComponentType[] = getDescendedUsedComponents(baseUsedComponentsInUseIds, seenUsedComponents)
 
         const totalUsedComponentsToRender = [...baseUsedComponentsInUse, ...baseUsedComponentsDecendants]
 
@@ -790,7 +790,9 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                     fitSet(false)
                                 }}
                             >
-                                {eachSizeOption.icon}
+                                <span className="material-symbols-outlined">
+                                    {eachSizeOption.iconName}
+                                </span>
                             </button>
                         )
                     })}
@@ -954,7 +956,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                     }}
                                     seenSchema={updateWebsiteSchema.omit({ globalCss: true })}
                                     updater={(seenForm) => {
-                                        const newFullWebsite: website = { ...websiteObj, ...(seenForm as updateWebsite) }
+                                        const newFullWebsite: websitetype = { ...websiteObj, ...(seenForm as updateWebsiteType) }
                                         handleWebsiteUpdate(newFullWebsite)
                                     }}
                                 />
@@ -1054,13 +1056,13 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                             content={
                                                                 <textarea rows={5} value={activeUsedComponent.css} className={styles.styleEditor}
                                                                     onChange={(e) => {
-                                                                        const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                        const newActiveComp: usedComponentType = { ...activeUsedComponent }
                                                                         newActiveComp.css = e.target.value
 
                                                                         handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
                                                                     }}
                                                                     onBlur={() => {
-                                                                        const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                        const newActiveComp: usedComponentType = { ...activeUsedComponent }
                                                                         newActiveComp.css = formatCSS(newActiveComp.css)
 
                                                                         handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
@@ -1075,7 +1077,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                                 <>
                                                                     <input type='text' value={activeUsedComponent.data.mainElProps.id ?? ""} placeholder='Add an id to this element'
                                                                         onChange={(e) => {
-                                                                            const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                            const newActiveComp: usedComponentType = { ...activeUsedComponent }
                                                                             newActiveComp.data.mainElProps.id = e.target.value
 
                                                                             handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
@@ -1084,7 +1086,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
 
                                                                     <input type='text' value={activeUsedComponent.data.mainElProps.className ?? ""} placeholder='Add css names here' style={{ marginTop: "var(--spacingR)" }}
                                                                         onChange={(e) => {
-                                                                            const newActiveComp: usedComponent = { ...activeUsedComponent }
+                                                                            const newActiveComp: usedComponentType = { ...activeUsedComponent }
                                                                             newActiveComp.data.mainElProps.className = e.target.value
 
                                                                             handleManageUsedComponents({ option: "update", updatedUsedComponentId: newActiveComp.id, seenUpdatedUsedComponent: newActiveComp })
@@ -1139,7 +1141,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                                                 const reusingUsedComponentData = activeUsedComponent.data.category === viewerTemplate.template.categoryId
 
                                                                                 //replace everything except id, pageid, compid, children
-                                                                                const newReplacedUsedComponent: Partial<updateUsedComponent> = { templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData }
+                                                                                const newReplacedUsedComponent: Partial<updateUsedComponentType> = { templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData }
 
                                                                                 //send to update 
                                                                                 handleManageUsedComponents({ option: "update", updatedUsedComponentId: activeUsedComponent.id, seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
@@ -1265,14 +1267,14 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
 function RenderComponentTree({
     seenUsedComponents, originalUsedComponentsList, websiteObj, renderedUsedComponentsObj, tempActiveUsedComponentId, previewTemplate, viewerTemplate, renderLocation
 }: {
-    seenUsedComponents: usedComponent[], originalUsedComponentsList: usedComponent[], websiteObj: website, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, previewTemplate: previewTemplateType | null, viewerTemplate: viewerTemplateType | null, renderLocation: usedComponentLocationType
+    seenUsedComponents: usedComponentType[], originalUsedComponentsList: usedComponentType[], websiteObj: websitetype, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, previewTemplate: previewTemplateType | null, viewerTemplate: viewerTemplateType | null, renderLocation: usedComponentLocationType
 }) {
     let SeenPreviewBuiltTemplate: React.ComponentType<{ data: templateDataType }> | null = null
     let seenPreviewTemplateData: templateDataType | null = null
     let previewScopedCss = null;
 
     let previewLocationMatches = false
-    let usedComponentToAttachFirstChild: usedComponent | null = null
+    let usedComponentToAttachFirstChild: usedComponentType | null = null
 
     //check for location match
     if (previewTemplate !== null) {
@@ -1353,7 +1355,7 @@ function RenderComponentTree({
 
                 let scopedCss = addScopeToCSS(eachUsedComponent.css, eachUsedComponent.id);
 
-                const seenChildren: usedComponent[] = getChildrenUsedComponents(eachUsedComponent.id, originalUsedComponentsList)
+                const seenChildren: usedComponentType[] = getChildrenUsedComponents(eachUsedComponent.id, originalUsedComponentsList)
 
                 //order the children
                 const seenOrderedChildren = sortUsedComponentsByOrder(seenChildren)

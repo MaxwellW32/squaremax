@@ -1,54 +1,9 @@
 "use client"
+import { componentType, elementType } from "@/types";
 import { flattenObject } from "@/utility/utility";
-import React, { HTMLAttributes } from "react";
+import React from "react";
 
-//build logical elements by tags
-//cn be edited
-//also put into element groupings - use a simple variable - display it
-//focus on content - not global styling for everything - so padding, colors will be on element in style, global slassnames can be added later for fonts 
-//each element looks to a main for data - read the type then display it - normal, and array based
 
-//save point
-
-type componentType = {
-    id: string,
-    type: {
-        category: "heros",
-        data: {
-            title: string,
-            text: string
-        }
-    } | {
-        category: "navbars",
-        data: {
-            navItem: string,
-            menuItem: string,
-            subMenu: string[]
-        }
-    } | {
-        category: "containers",
-        data: {
-            title: string
-        }
-    },
-    elements: elementType[],
-    childComponents: string[],
-    showMultiple?: true
-}
-
-type elementType = {
-    id: string;
-    type:
-    | { tag: "p"; props: HTMLAttributes<HTMLParagraphElement> }
-    | { tag: "h1"; props: HTMLAttributes<HTMLHeadingElement> }
-    | { tag: "div"; props: HTMLAttributes<HTMLDivElement> };
-    children: elementChildType[];
-};
-
-type elementChildType =
-    | { type: "elementId"; elementId: string } // references another element
-    | { type: "text"; content: string } // plain text
-    | { type: "component", componentIndex: number } // references another component
 
 const components: componentType[] = [
     {
@@ -201,8 +156,8 @@ function renderComponents(componentsToRender: componentType[], allComponents: co
         let componentIsAChild = false
 
         allComponents.forEach(eachComponentForEach => {
-            eachComponentForEach.childComponents.forEach(eachChildComponentId => {
-                if (eachChildComponentId === eachComponent.id) {
+            eachComponentForEach.childComponents.forEach(eachComponentChild => {
+                if (eachComponentChild === eachComponent.id) {
                     componentIsAChild = true
                 }
             })

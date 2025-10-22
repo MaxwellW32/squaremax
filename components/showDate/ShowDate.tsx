@@ -1,9 +1,11 @@
 "use client"
 import React from 'react'
-import Moment from 'react-moment'
+import moment from 'moment'
 
 export default function ShowDate({ date }: { date: Date }) {
     return (
-        <Moment from={new Date}>{date}</Moment>
+        <>
+            {moment(date, "YYYYMMDD").fromNow()}
+        </>
     )
 }

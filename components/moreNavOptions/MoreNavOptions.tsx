@@ -6,7 +6,7 @@ import styles from "./styles.module.css"
 import SignOutButton from "../SignOutButton"
 import { Session } from "next-auth"
 import toast from "react-hot-toast"
-import { website } from "@/types"
+import { websitetype } from "@/types"
 import { getWebsitesFromUser } from "@/serverFunctions/handleWebsites"
 import { consoleAndToastError } from "@/useful/consoleErrorWithToast"
 import Link from "next/link"
@@ -15,7 +15,7 @@ import { usePathname } from 'next/navigation'
 export default function MoreNavOptions({ session }: { session: Session }) {
     const [showingNav, showingNavSet] = useState(false)
 
-    const [seenUserWebsites, seenUserWebsitesSet] = useState<website[] | undefined>(undefined)
+    const [seenUserWebsites, seenUserWebsitesSet] = useState<websitetype[] | undefined>(undefined)
     const pathname = usePathname()
 
     //search

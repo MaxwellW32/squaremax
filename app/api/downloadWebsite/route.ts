@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import path from "path";
 import fs from "fs/promises";
-import { requestDownloadWebsiteBodySchema, usedComponent } from "@/types";
+import { requestDownloadWebsiteBodySchema, usedComponentType } from "@/types";
 import { ensureUserCanAccessWebsite } from "@/useful/sessionCheck";
 import { getSpecificWebsite } from "@/serverFunctions/handleWebsites";
 import { websiteBuildsStagingAreaDir, websiteBuildsStarterDir, websiteTemplatesDir } from "@/lib/websiteTemplateLib";
@@ -107,9 +107,9 @@ export async function POST(request: Request) {
   const footerUsedComponentsOrdered = sortUsedComponentsByOrder(footerUsedComponents)
 
   //then get all their descendants for proper import
-  const headerAndFooterUsedComponents: usedComponent[] = [...headerUsedComponentsOrdered, ...footerUsedComponentsOrdered]
-  const allDescendedUsedComponents: usedComponent[] = getDescendedUsedComponents(headerAndFooterUsedComponents.map(e => e.id), seenWebsite.usedComponents)
-  const allUsedComponentsUsed: usedComponent[] = [...headerAndFooterUsedComponents, ...allDescendedUsedComponents]
+  const headerAndFooterUsedComponents: usedComponentType[] = [...headerUsedComponentsOrdered, ...footerUsedComponentsOrdered]
+  const allDescendedUsedComponents: usedComponentType[] = getDescendedUsedComponents(headerAndFooterUsedComponents.map(e => e.id), seenWebsite.usedComponents)
+  const allUsedComponentsUsed: usedComponentType[] = [...headerAndFooterUsedComponents, ...allDescendedUsedComponents]
 
   //get all the needed import statements
   const usedComponentsImportsText = getUsedComponentsImportString(allUsedComponentsUsed)
@@ -185,8 +185,8 @@ export default function RootLayout({
       const usedComponentsOnPageOrdered = sortUsedComponentsByOrder(usedComponentsOnPage)
 
       //then get all their descendants for proper import
-      const allDescendedUsedComponents: usedComponent[] = getDescendedUsedComponents(usedComponentsOnPageOrdered.map(e => e.id), seenWebsite.usedComponents)
-      const allUsedComponentsUsed: usedComponent[] = [...usedComponentsOnPageOrdered, ...allDescendedUsedComponents]
+      const allDescendedUsedComponents: usedComponentType[] = getDescendedUsedComponents(usedComponentsOnPageOrdered.map(e => e.id), seenWebsite.usedComponents)
+      const allUsedComponentsUsed: usedComponentType[] = [...usedComponentsOnPageOrdered, ...allDescendedUsedComponents]
 
       //get all the needed import statements
       const usedComponentsImportsText = getUsedComponentsImportString(allUsedComponentsUsed)

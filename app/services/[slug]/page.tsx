@@ -9,8 +9,10 @@ import { projectsData } from '@/lib/projectsData'
 import DisplayProjects from '@/components/projects/DisplayProjects'
 import ShowService from '@/components/services/ShowService'
 
-export default async function Page({ params }: { params: { slug: string } }) {
-    const seenService = servicesData.find(eachService => eachService.slug === params.slug)
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params
+
+    const seenService = servicesData.find(eachService => eachService.slug === slug)
     if (seenService === undefined) return (<p>Service Not Found</p>)
 
     return (

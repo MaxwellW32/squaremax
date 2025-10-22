@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { templates } from "@/db/schema"
-import { collection, template, templatesSchema, newTemplate, newTemplateSchema, category, templateFilterOptionType } from "@/types"
+import { collection, templateType, templatesSchema, newTemplateType, newTemplateSchema, categoryType, templateFilterOptionType } from "@/types"
 import { sessionCheckWithError } from "@/useful/sessionCheck"
 import { desc, eq, like } from "drizzle-orm"
 import { deleteDirectory } from "./handleServerFiles"
@@ -12,7 +12,7 @@ import { replaceBaseFolderNameInPath } from "@/useful/usefulFunctions"
 import { deleteUsedComponent, getUsedComponents } from "./handleUsedComponents"
 import { categoryNameSchema } from "@/types/templateDataTypes"
 
-export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): Promise<template | undefined> {
+export async function getSpecificTemplate(templateIdObj: Pick<templateType, "id">): Promise<templateType | undefined> {
     templatesSchema.pick({ id: true }).parse(templateIdObj)
 
     const result = await db.query.templates.findFirst({
@@ -25,7 +25,7 @@ export async function getSpecificTemplate(templateIdObj: Pick<template, "id">): 
     return result
 }
 
-export async function getTemplatesByCategory(seenCategoryName: category["name"], filter: templateFilterOptionType, limit = 50, offset = 0): Promise<template[]> {
+export async function getTemplatesByCategory(seenCategoryName: categoryType["name"], filter: templateFilterOptionType, limit = 50, offset = 0): Promise<templateType[]> {
     //validation
     categoryNameSchema.parse(seenCategoryName)
 
@@ -42,7 +42,7 @@ export async function getTemplatesByCategory(seenCategoryName: category["name"],
     return results
 }
 
-export async function getTemplatesByFamily(seenFamilyName: string): Promise<template[]> {
+export async function getTemplatesByFamily(seenFamilyName: string): Promise<templateType[]> {
     //validation
     // categoryNameSchema.parse(seenCategoryName)
 
@@ -57,7 +57,7 @@ export async function getTemplatesByFamily(seenFamilyName: string): Promise<temp
     return []
 }
 
-export async function getTemplatesByName(seenName: string): Promise<template[]> {
+export async function getTemplatesByName(seenName: string): Promise<templateType[]> {
     templatesSchema.shape.name.parse(seenName)
 
     const results = await db.query.templates.findMany({
@@ -70,7 +70,7 @@ export async function getTemplatesByName(seenName: string): Promise<template[]> 
     return results
 }
 
-export async function addTemplate(seenNewTemplate: newTemplate, collectionsArr: collection[]): Promise<template> {
+export async function addTemplate(seenNewTemplate: newTemplateType, collectionsArr: collection[]): Promise<templateType> {
     const session = await sessionCheckWithError()
     if (session.user.role !== "admin") throw new Error("need to be admin to add website templates")
 
@@ -92,7 +92,7 @@ export async function addTemplate(seenNewTemplate: newTemplate, collectionsArr: 
     return addedTemplate
 }
 
-export async function updateTemplate(templateObj: Partial<template>, collectionsArr: collection[]) {
+export async function updateTemplate(templateObj: Partial<templateType>, collectionsArr: collection[]) {
     const session = await sessionCheckWithError()
     if (session.user.role !== "admin") throw new Error("need to be admin to add website templates")
 
@@ -118,7 +118,7 @@ export async function updateTemplate(templateObj: Partial<template>, collections
         .where(eq(templates.id, templateObj.id));
 }
 
-export async function deleteTemplate(templateId: template["id"]) {
+export async function deleteTemplate(templateId: templateType["id"]) {
     const session = await sessionCheckWithError()
     if (session.user.role !== "admin") throw new Error("not authorised to delete template")
 
@@ -133,7 +133,7 @@ export async function deleteTemplate(templateId: template["id"]) {
     await db.delete(templates).where(eq(templates.id, templateId));
 }
 
-async function createTemplateFolder(seenTemplateId: template["id"], collection: collection[]) {
+async function createTemplateFolder(seenTemplateId: templateType["id"], collection: collection[]) {
     //delete folder if existing already
     await deleteDirectory(path.join(websiteTemplatesDir, seenTemplateId))
 

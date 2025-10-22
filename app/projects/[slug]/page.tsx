@@ -8,7 +8,9 @@ import ScreenHide from "@/components/screenHide/ScreenHide"
 import ShowMore from "@/components/showMore/ShowMore"
 import { useRouter, usePathname } from "next/navigation";
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params
+
     const router = useRouter();
     const pathName = usePathname();
 
@@ -18,7 +20,7 @@ export default function Page({ params }: { params: { slug: string } }) {
     const [showingMenu, showingMenuSet] = useState(false)
 
     const [currentIndex, currentIndexSet] = useState(() => {
-        let currentIndex = projectsData.findIndex(eachProject => eachProject.slug === params.slug)
+        let currentIndex = projectsData.findIndex(eachProject => eachProject.slug === slug)
         if (currentIndex < 0) currentIndex = 0
 
         return currentIndex
@@ -42,7 +44,7 @@ export default function Page({ params }: { params: { slug: string } }) {
     //update pathname
     useEffect(() => {
         const newSlug = projectsData[currentIndex].slug;
-        router.push(pathName.replace(params.slug, newSlug));
+        router.push(pathName.replace(slug, newSlug));
     }, [currentIndex])
 
     const activeProject = projectsData[currentIndex]

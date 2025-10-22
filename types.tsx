@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Endpoints } from "@octokit/types";
 import { categoryNameSchema, templateDataSchema, templateDataType } from "./types/templateDataTypes";
+import React, { HTMLAttributes } from "react"
 
 // regular types
 export type websiteDownloadOptionType = "file" | "github"
@@ -27,13 +28,41 @@ export const newGithubRepoSchema = z.object({
 })
 export type newGithubRepoType = z.infer<typeof newGithubRepoSchema> & {}
 
+
+
 export type sizeOptionType = {
     name: string,
     width: number,
     height: number,
     active: boolean,
-    icon: JSX.Element
+    iconName: string
 }
+export const sizeOptionsArr: sizeOptionType[] = [
+    {
+        name: "mobile",
+        width: 375,
+        height: 667,
+        active: false,
+        iconName: "mobile"
+    },
+    {
+        name: "tablet",
+        width: 768,
+        height: 1024,
+        active: false,
+        iconName: "tablet"
+
+    },
+    {
+        name: "desktop",
+        width: 1920,
+        height: 1080,
+        active: true,
+        iconName: "desktop_mac"
+    },
+]
+
+
 
 const collectionSchema = z.object({
     relativePath: z.string().min(1),
@@ -42,13 +71,13 @@ const collectionSchema = z.object({
 export type collection = z.infer<typeof collectionSchema>
 
 export type viewerTemplateType = {
-    usedComponentIdToSwap: usedComponent["id"],
-    template: template | null,
+    usedComponentIdToSwap: usedComponentType["id"],
+    template: templateType | null,
     builtTemplate: React.ComponentType<{ data: templateDataType }> | null
 }
 
 export type previewTemplateType = {
-    template: template,
+    template: templateType,
     builtTemplate: React.ComponentType<{ data: templateDataType }>
     location: usedComponentLocationType,
     orderPosition: number,
@@ -57,22 +86,22 @@ export type previewTemplateType = {
 export type handleManagePageOptions =
     {
         option: "create",
-        seenAddedPage: page,
+        seenAddedPage: pageType,
     } | {
         option: "update",
-        seenUpdatedPage: updatePage,
-        updatedPageId: page["id"],
+        seenUpdatedPage: updatePageType,
+        updatedPageId: pageType["id"],
     }
 
 export type handleManageUpdateUsedComponentsOptions =
     {
         option: "create",
-        seenAddedUsedComponent: usedComponent,
+        seenAddedUsedComponent: usedComponentType,
 
     } | {
         option: "update",
-        seenUpdatedUsedComponent: Partial<updateUsedComponent>,
-        updatedUsedComponentId: usedComponent["id"],
+        seenUpdatedUsedComponent: Partial<updateUsedComponentType>,
+        updatedUsedComponentId: usedComponentType["id"],
         rebuild?: boolean
     }
 
@@ -167,62 +196,36 @@ export type EditingContentType = {
 
 export const otherSelctionOptionsArr = ["name", "family", "id", "recentlyViewed"] as const
 export type otherSelctionOptionsType = typeof otherSelctionOptionsArr[number]
-export type activeSelectionType = category["name"] | otherSelctionOptionsType
+export type activeSelectionType = categoryType["name"] | otherSelctionOptionsType
 
 export const templateFilterOptions = ["popular", "mostLiked"] as const
 export type templateFilterOptionType = typeof templateFilterOptions[number]
 
-export const sizeOptionsArr = [
-    {
-        name: "mobile",
-        width: 375,
-        height: 667,
-        active: false,
-        icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M80 0C44.7 0 16 28.7 16 64l0 384c0 35.3 28.7 64 64 64l224 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L80 0zM192 400a32 32 0 1 1 0 64 32 32 0 1 1 0-64z" /></svg>
-    },
-    {
-        name: "tablet",
-        width: 768,
-        height: 1024,
-        active: false,
-        icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM176 432l96 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-96 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z" /></svg>
-    },
-    {
-        name: "desktop",
-        width: 1920,
-        height: 1080,
-        active: true,
-        icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l176 0-10.7 32L160 448c-17.7 0-32 14.3-32 32s14.3 32 32 32l256 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-69.3 0L336 416l176 0c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0zM512 64l0 224L64 288 64 64l448 0z" /></svg>
-    },
-]
-
-import Z from "zod"
-
-export const specificationsFormSchema = Z.object({
-    "aa": Z.string().min(1, { message: "Business name is required." }),
-    "ab": Z.string().min(1, { message: "A business description is required." }),
-    "ac": Z.string().min(1, { message: "Target audience description is required." }),
-    "ad": Z.string().min(1, { message: "Please specify your core goals for the website." }),
-    "ae": Z.string(),
-    "af": Z.string(),
-    "ag": Z.string().min(1, { message: "The main action is required." }),
-    "ah": Z.string().min(1, { message: "Please list the features you need for the website." }),
-    "ai": Z.string(),
-    "aj": Z.string().min(1, { message: "Branding guidelines check is required." }),
-    "ak": Z.string(),
-    "al": Z.string().min(1, { message: "Please describe the look and feel you're aiming for." }),
-    "am": Z.string(),
-    "an": Z.string().min(1, { message: "Please specify if you'll provide the content or need assistance." }),
-    "ao": Z.string(),
-    "ap": Z.string(),
-    "aq": Z.string(),
-    "ar": Z.string().min(1, { message: "Please provide an ideal launch date for the website." }),
-    "as": Z.string(),
-    "at": Z.string().min(1, { message: "Budget range is required." }),
-    "au": Z.string().min(1, { message: "Email is required." })
+export const specificationsFormSchema = z.object({
+    "aa": z.string().min(1, { message: "Business name is required." }),
+    "ab": z.string().min(1, { message: "A business description is required." }),
+    "ac": z.string().min(1, { message: "Target audience description is required." }),
+    "ad": z.string().min(1, { message: "Please specify your core goals for the website." }),
+    "ae": z.string(),
+    "af": z.string(),
+    "ag": z.string().min(1, { message: "The main action is required." }),
+    "ah": z.string().min(1, { message: "Please list the features you need for the website." }),
+    "ai": z.string(),
+    "aj": z.string().min(1, { message: "Branding guidelines check is required." }),
+    "ak": z.string(),
+    "al": z.string().min(1, { message: "Please describe the look and feel you're aiming for." }),
+    "am": z.string(),
+    "an": z.string().min(1, { message: "Please specify if you'll provide the content or need assistance." }),
+    "ao": z.string(),
+    "ap": z.string(),
+    "aq": z.string(),
+    "ar": z.string().min(1, { message: "Please provide an ideal launch date for the website." }),
+    "as": z.string(),
+    "at": z.string().min(1, { message: "Budget range is required." }),
+    "au": z.string().min(1, { message: "Email is required." })
 });
 
-export type specificationsObjType = Z.infer<typeof specificationsFormSchema>
+export type specificationsObjType = z.infer<typeof specificationsFormSchema>
 
 export type clientSpecificationKeys = keyof specificationsObjType
 
@@ -240,7 +243,7 @@ export type pagesType = {
     [key: number]: {
         title?: string,
         questions: clientSpecificationKeys[],
-        extraInfo?: JSX.Element,
+        extraInfo?: React.JSX.Element,
         hideQuestions?: boolean
     }
 }
@@ -250,20 +253,21 @@ export const dateSchma = z.preprocess((val) => {
     return val;
 }, z.date())
 
-export const userFormSchema = Z.object({
-    name: Z.string().min(1),
-    email: Z.string().email(),
-    message: Z.string().min(1),
-    company: Z.string(),
+export const userFormSchema = z.object({
+    name: z.string().min(1),
+    email: z.string().email(),
+    message: z.string().min(1),
+    company: z.string(),
 })
 
-export type userForm = Z.infer<typeof userFormSchema>
+export type userForm = z.infer<typeof userFormSchema>
 
-export type websiteFilterType = { id?: website["id"], name?: website["name"], title?: website["title"], description?: website["description"] }
-export type otherFilterType = { id?: website["id"], name?: website["name"], title?: website["title"], description?: website["description"] }
-export type allFilterType = websiteFilterType | otherFilterType
+//handle search
+export type tableFilterTypes<T> = {
+    [key in keyof T]?: T[key]
+}
 
-export type searchObj<T> = {
+export type searchObjType<T> = {
     searchItems: T[],
     loading?: true,
     limit?: number, //how many
@@ -296,6 +300,47 @@ export type searchObj<T> = {
 
 
 //database types
+export type componentType = {
+    id: string,
+    type: {
+        category: "heros",
+        data: {
+            title: string,
+            text: string
+        }
+    } | {
+        category: "navbars",
+        data: {
+            navItem: string,
+            menuItem: string,
+            subMenu: string[]
+        }
+    } | {
+        category: "containers",
+        data: {
+            title: string
+        }
+    },
+    elements: elementType[],
+    childComponents: string[],
+    showMultiple?: true
+}
+
+export type elementType = {
+    id: string;
+    type:
+    | { tag: "p"; props: HTMLAttributes<HTMLParagraphElement> }
+    | { tag: "h1"; props: HTMLAttributes<HTMLHeadingElement> }
+    | { tag: "div"; props: HTMLAttributes<HTMLDivElement> };
+    children: elementChildType[];
+};
+
+export type elementChildType =
+    | { type: "elementId"; elementId: string } // references another element
+    | { type: "text"; content: string } // plain text
+    | { type: "component", componentIndex: number } // references another component
+
+
 export const githubTokenSchema = z.object({
     id: z.string().min(1),
     username: z.string().min(1),
@@ -310,24 +355,26 @@ export type newGithubTokenType = z.infer<typeof newGithubTokenSchema>
 export const updateGithubTokenSchema = githubTokenSchema.omit({ id: true })
 export type updateGithubTokenType = z.infer<typeof updateGithubTokenSchema>
 
-//keep synced with db schema
-export const userRoleSchema = z.enum(["admin"])
+//refresh db on change
+export const roleOptions = ["admin"] as const
+export const roleSchema = z.enum(roleOptions)
+export type roleType = z.infer<typeof roleSchema>
 
 export const userSchema = z.object({
     id: z.string().min(1),
     userGithubTokens: z.array(githubTokenSchema),
-    role: userRoleSchema.nullable(),
+    role: roleSchema.nullable(),
     name: z.string().nullable(),
     image: z.string().min(1).nullable(),
     email: z.string().min(1).nullable(),
     emailVerified: z.date().nullable(),
 })
-export type user = z.infer<typeof userSchema> & {
-    websites?: website[]
+export type userType = z.infer<typeof userSchema> & {
+    websites?: websitetype[]
 }
 
 export const updateUserSchema = userSchema.omit({ role: true, email: true, emailVerified: true })
-export type updateUser = z.infer<typeof updateUserSchema>
+export type updateUserType = z.infer<typeof updateUserSchema>
 
 
 
@@ -360,16 +407,16 @@ export const websiteSchema = z.object({
     authorisedUsers: z.array(authorisedUserSchema),
     dateAdded: dateSchma,
 })
-export type website = z.infer<typeof websiteSchema> & {
-    fromUser?: user,
-    pages?: page[],
-    usedComponents?: usedComponent[],
+export type websitetype = z.infer<typeof websiteSchema> & {
+    fromUser?: userType,
+    pages?: pageType[],
+    usedComponents?: usedComponentType[],
 }
 export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true, title: true, description: true, dateAdded: true })
-export type newWebsite = z.infer<typeof newWebsiteSchema>
+export type newWebsiteType = z.infer<typeof newWebsiteSchema>
 
 export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, })
-export type updateWebsite = z.infer<typeof updateWebsiteSchema>
+export type updateWebsiteType = z.infer<typeof updateWebsiteSchema>
 
 
 
@@ -380,15 +427,15 @@ export const pageSchema = z.object({
     link: z.string().min(1),
     websiteId: z.string().min(1),
 })
-export type page = z.infer<typeof pageSchema> & {
-    fromWebsite?: website
+export type pageType = z.infer<typeof pageSchema> & {
+    fromWebsite?: websitetype
 }
 
 export const newPageSchema = pageSchema.omit({ id: true })
-export type newPage = z.infer<typeof newPageSchema>
+export type newPageType = z.infer<typeof newPageSchema>
 
 export const updatePageSchema = pageSchema.omit({ id: true, websiteId: true })
-export type updatePage = z.infer<typeof updatePageSchema>
+export type updatePageType = z.infer<typeof updatePageSchema>
 
 
 
@@ -427,16 +474,16 @@ export const usedComponentSchema = z.object({
     location: usedComponentLocationSchema,
     data: templateDataSchema,
 })
-export type usedComponent = z.infer<typeof usedComponentSchema> & {
-    fromWebsite?: website,
-    template?: template,
+export type usedComponentType = z.infer<typeof usedComponentSchema> & {
+    fromWebsite?: websitetype,
+    template?: templateType,
 };
 
 export const newUsedComponentSchema = usedComponentSchema.omit({ id: true })
-export type newUsedComponent = z.infer<typeof newUsedComponentSchema>
+export type newUsedComponentType = z.infer<typeof newUsedComponentSchema>
 
 export const updateUsedComponentSchema = usedComponentSchema.omit({ id: true, websiteId: true })
-export type updateUsedComponent = z.infer<typeof updateUsedComponentSchema>
+export type updateUsedComponentType = z.infer<typeof updateUsedComponentSchema>
 
 
 
@@ -450,13 +497,13 @@ export const templatesSchema = z.object({
     defaultCss: z.string(),
     defaultData: templateDataSchema,
 })
-export type template = z.infer<typeof templatesSchema> & {
-    templatesToStyles?: templatesToStyles[],
-    usedComponents?: usedComponent[],
-    category?: category,
+export type templateType = z.infer<typeof templatesSchema> & {
+    templatesToStyles?: templateToStyleType[],
+    usedComponents?: usedComponentType[],
+    category?: categoryType,
 }
 export const newTemplateSchema = templatesSchema.omit({ id: true, uses: true, likes: true })
-export type newTemplate = z.infer<typeof newTemplateSchema>
+export type newTemplateType = z.infer<typeof newTemplateSchema>
 
 
 
@@ -464,8 +511,8 @@ export type newTemplate = z.infer<typeof newTemplateSchema>
 export const categoriesSchema = z.object({
     name: categoryNameSchema,
 })
-export type category = z.infer<typeof categoriesSchema> & {
-    templates?: template[]
+export type categoryType = z.infer<typeof categoriesSchema> & {
+    templates?: templateType[]
 }
 
 
@@ -474,8 +521,8 @@ export type category = z.infer<typeof categoriesSchema> & {
 export const stylesSchema = z.object({
     name: z.string().min(1),
 })
-export type style = z.infer<typeof stylesSchema> & {
-    templatesToStyles?: templatesToStyles[]
+export type styleType = z.infer<typeof stylesSchema> & {
+    templatesToStyles?: templateToStyleType[]
 }
 
 
@@ -485,7 +532,7 @@ export const templatesToStylesSchema = z.object({
     templateId: z.string().min(1),
     styleName: z.string().min(1),
 })
-export type templatesToStyles = z.infer<typeof templatesToStylesSchema> & {
-    template?: template,
-    style?: style
+export type templateToStyleType = z.infer<typeof templatesToStylesSchema> & {
+    template?: templateType,
+    style?: styleType
 }
