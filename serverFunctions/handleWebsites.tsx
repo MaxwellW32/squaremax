@@ -1,43 +1,46 @@
 "use server"
 import { db } from "@/db"
 import { websites } from "@/db/schema"
-import { newWebsiteType, newWebsiteSchema, updateWebsiteType, updateWebsiteSchema, websitetype, websiteFilterType, websiteSchema } from "@/types"
+import { newWebsiteType, newWebsiteSchema, updateWebsiteSchema, websiteType, websiteSchema, tableFilterTypes, updateWebsiteType } from "@/types"
 import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
-import { and, desc, eq, sql, SQLWrapper } from "drizzle-orm"
+import { makeWhereClauses } from "@/utility/utility"
+import { and, desc, eq, SQLWrapper } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
-export async function addWebsite(seenNewWebsite: newWebsiteType): Promise<websitetype> {
+export async function addWebsite(seenNewWebsite: newWebsiteType): Promise<websiteType> {
     const session = await sessionCheckWithError()
 
     newWebsiteSchema.parse(seenNewWebsite)
 
-    const addedWebsite = await db.insert(websites).values({
+    const [addedWebsite] = await db.insert(websites).values({
         ...seenNewWebsite,
         userId: session.user.id
     }).returning()
 
-    return addedWebsite[0]
+    return addedWebsite
 }
 
-export async function updateTheWebsite(websiteId: websitetype["id"], websiteObj: Partial<updateWebsiteType>) {
+export async function updateWebsite(websiteId: websiteType["id"], websiteObj: Partial<updateWebsiteType>) {
     //security check - ensures only admin or author can update
-    const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteId } })
+    const seenWebsite = await getSpecificWebsite(websiteId)
     if (seenWebsite === undefined) throw new Error("not seeing website")
 
-    //security
+    //auth
     await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
 
     const validatedNewWebsite = updateWebsiteSchema.partial().parse(websiteObj)
     if (websiteId === undefined) throw new Error("need id")
 
-    await db.update(websites)
+    const [result] = await db.update(websites)
         .set({
             ...validatedNewWebsite
         })
-        .where(eq(websites.id, websiteId));
+        .where(eq(websites.id, websiteId)).returning();
+
+    return result
 }
 
-export async function refreshWebsitePath(websiteIdObj: Pick<websitetype, "id">) {
+export async function refreshWebsitePath(websiteIdObj: Pick<websiteType, "id">) {
     await sessionCheckWithError()
 
     websiteSchema.pick({ id: true }).parse(websiteIdObj)
@@ -45,120 +48,48 @@ export async function refreshWebsitePath(websiteIdObj: Pick<websitetype, "id">) 
     revalidatePath(`/websites/${websiteIdObj.id}`)
 }
 
-export async function deleteWebsite(websiteObj: Pick<websitetype, "id">) {
-    //validation
-    websiteSchema.pick({ id: true }).parse(websiteObj)
+export async function getSpecificWebsite(websiteId: websiteType["id"], runAuth = true): Promise<websiteType | undefined> {
+    websiteSchema.shape.id.parse(websiteId)
 
-    //security check
-    const seenWebsite = await getSpecificWebsite({ option: "id", data: { "id": websiteObj.id } })
-    if (seenWebsite === undefined) throw new Error("not seeing website")
+    const result = await db.query.websites.findFirst({
+        where: eq(websites.id, websiteId),
+    });
 
-    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
+    if (runAuth && result !== undefined) {
+        //auth
+        await ensureUserCanAccessWebsite(result.userId, result.authorisedUsers)
+    }
 
-    await db.delete(websites).where(eq(websites.id, websiteObj.id));
+    return result
 }
 
-export async function getSpecificWebsite(websiteObj: { option: "id", data: Pick<websitetype, "id"> } | { option: "name", data: Pick<websitetype, "name"> }, websiteOnly?: boolean): Promise<websitetype | undefined> {
-    if (websiteObj.option === "id") {
-        websiteSchema.pick({ id: true }).parse(websiteObj.data)
+export async function getWebsites(filter: tableFilterTypes<websiteType>, getWith?: { [key in keyof websiteType]?: true }, limit = 50, offset = 0): Promise<websiteType[]> {
+    //compile filters into proper where clauses
+    const whereClauses: SQLWrapper[] = makeWhereClauses(websiteSchema.partial(), filter, websites)
 
-        const result = await db.query.websites.findFirst({
-            where: eq(websites.id, websiteObj.data.id),
-            with: websiteOnly ? undefined : {
-                pages: true,
-                usedComponents: {
-                    with: {
-                        template: true
-                    }
-                }
-            }
-        });
-
-        if (result !== undefined) {
-            //security check
-            await ensureUserCanAccessWebsite(result.userId, result.authorisedUsers)
-        }
-
-        return result
-
-    } else if (websiteObj.option === "name") {
-        websiteSchema.pick({ name: true }).parse(websiteObj.data)
-
-        const result = await db.query.websites.findFirst({
-            where: eq(websites.name, websiteObj.data.name),
-            with: websiteOnly ? undefined : {
-                pages: true,
-                usedComponents: {
-                    with: {
-                        template: true
-                    }
-                }
-            }
-        });
-
-        if (result !== undefined) {
-            //security check
-            await ensureUserCanAccessWebsite(result.userId, result.authorisedUsers)
-        }
-
-        return result
-    }
-}
-
-export async function getWebsitesFromUserOld(limit = 50, offset = 0): Promise<websitetype[]> {
-    const session = await sessionCheckWithError()
-
-    const results = await db.query.websites.findMany({
-        where: eq(websites.userId, session.user.id),
-        limit: limit,
-        offset: offset,
-    })
-
-    return results
-}
-export async function getWebsitesFromUser(filter: websiteFilterType, limit = 50, offset = 0, withProperty: { fromUser?: true, pages?: true, usedComponents?: true } = {}): Promise<websitetype[]> {
-    const session = await sessionCheckWithError()
-
-    // Collect conditions dynamically
-    const whereClauses: SQLWrapper[] = []
-
-    //auth
-    whereClauses.push(eq(websites.userId, session.user.id))
-
-    if (filter.id !== undefined) {
-        whereClauses.push(eq(websites.id, filter.id))
-    }
-
-    if (filter.name !== undefined) {
-        whereClauses.push(
-            sql`LOWER(${websites.name}) LIKE LOWER(${`%${filter.name}%`})`
-        )
-    }
-
-    if (filter.title !== undefined) {
-        whereClauses.push(
-            sql`LOWER(${websites.title}) LIKE LOWER(${`%${filter.title}%`})`
-        )
-    }
-
-    if (filter.description !== undefined) {
-        whereClauses.push(
-            sql`LOWER(${websites.description}) LIKE LOWER(${`%${filter.description}%`})`
-        )
-    }
-
-    // Run the query
     const results = await db.query.websites.findMany({
         where: and(...whereClauses),
+        limit,
+        offset,
         orderBy: [desc(websites.dateAdded)],
-        limit: limit,
-        offset: offset,
-        with: {
-            fromUser: withProperty.fromUser,
-            pages: withProperty.pages,
-            usedComponents: withProperty.usedComponents
+        with: getWith === undefined ? undefined : {
+            fromUser: getWith.fromUser,
         }
     });
 
-    return results
+    return results;
+}
+
+export async function deleteWebsite(websiteId: websiteType["id"]) {
+    //validation
+    websiteSchema.shape.id.parse(websiteId)
+
+    //security check
+    const seenWebsite = await getSpecificWebsite(websiteId)
+    if (seenWebsite === undefined) throw new Error("not seeing website")
+
+    //auth
+    await ensureUserCanAccessWebsite(seenWebsite.userId, seenWebsite.authorisedUsers, true)
+
+    await db.delete(websites).where(eq(websites.id, websiteId));
 }

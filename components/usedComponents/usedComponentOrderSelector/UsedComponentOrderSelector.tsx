@@ -1,12 +1,12 @@
 import { changeUsedComponentIndex } from '@/serverFunctions/handleUsedComponents'
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites'
-import { usedComponentType, websitetype } from '@/types'
+import { usedComponentType, websiteType } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import { getUsedComponentsInSameLocation, sanitizeUsedComponentData } from '@/utility/utility'
 import React, { useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 
-export default function UsedComponentOrderSelector({ websiteId, seenUsedComponents, seenUsedComponent }: { websiteId: websitetype["id"], seenUsedComponents: usedComponentType[], seenUsedComponent: usedComponentType }) {
+export default function UsedComponentOrderSelector({ websiteId, seenUsedComponents, seenUsedComponent }: { websiteId: websiteType["id"], seenUsedComponents: usedComponentType[], seenUsedComponent: usedComponentType }) {
     const [inputValue, inputValueSet] = useState("")
     const [wantedIndex, wantedIndexSet] = useState<number | null>(null)
 

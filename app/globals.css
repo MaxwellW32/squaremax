@@ -201,6 +201,7 @@ section {
     padding: var(--spacingR) var(--spacingEL);
     transition: filter 400ms;
     white-space: nowrap;
+    cursor: pointer;
 }
 
 .button1:hover {
@@ -219,6 +220,7 @@ section {
     padding: var(--spacingS);
     transition: background-color 400ms, color 400ms;
     font-size: var(--fontSizeS);
+    cursor: pointer;
 }
 
 .button2>svg {
@@ -234,7 +236,6 @@ section {
     fill: #000
 }
 
-
 .button3 {
     text-transform: capitalize;
     background-color: var(--color2);
@@ -248,6 +249,8 @@ section {
     overflow: hidden;
     padding: var(--spacingS);
     transition: background-color 400ms, color 400ms;
+    cursor: pointer;
+
 }
 
 .button3:hover,

@@ -5,8 +5,8 @@ import styles from "./style.module.css"
 import { deepClone } from '@/utility/utility'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import { newGithubTokenSchema, newGithubTokenType, githubTokenSchema, githubTokenType, updateGithubTokenSchema } from '@/types'
-import TextInput from '@/components/textInput/TextInput'
-import TextArea from '@/components/textArea/TextArea'
+import TextInput from '@/components/inputs/textInput/TextInput'
+import TextArea from '@/components/inputs/textArea/TextArea'
 import { addUserGithubToken, updateUserGithubToken } from '@/serverFunctions/handleUser'
 
 export default function AddEditGithub({ sentGithubToken, functionSubmit }: { sentGithubToken?: githubTokenType, functionSubmit?: () => void }) {

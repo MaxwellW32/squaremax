@@ -1,12 +1,12 @@
 import { changeUsedComponentLocation } from '@/serverFunctions/handleUsedComponents';
 import { refreshWebsitePath } from '@/serverFunctions/handleWebsites';
-import { pageType, usedComponentType, usedComponentLocationType, websitetype } from '@/types'
+import { pageType, usedComponentType, usedComponentLocationType, websiteType } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast';
 import { sanitizeUsedComponentData } from '@/utility/utility';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
 
-export default function UsedComponentLocationSelector({ seenUsedComponent, seenPages }: { websiteId: websitetype["id"], seenUsedComponent: usedComponentType, seenPages: pageType[] }) {
+export default function UsedComponentLocationSelector({ seenUsedComponent, seenPages }: { websiteId: websiteType["id"], seenUsedComponent: usedComponentType, seenPages: pageType[] }) {
     const locationSelectionOptions: usedComponentLocationType["type"][] = ["header", "page", "footer", "child"]
     const [transferToLocation, transferToLocationSet] = useState<usedComponentLocationType["type"] | undefined>()
     const [activeParentId, activeParentIdSet] = useState<usedComponentType["id"]>("")

@@ -2,12 +2,15 @@
 import Link from 'next/link'
 import React, { useState } from 'react'
 import styles from "./page.module.css"
-import { searchObjType, websitetype } from '@/types'
+import { searchObjType, websiteType } from '@/types'
 import Search from '@/components/search/Search'
-import { getWebsitesFromUser } from '@/serverFunctions/handleWebsites'
+import { getWebsites } from '@/serverFunctions/handleWebsites'
+import { useSession } from 'next-auth/react'
 
 export default function Page() {
-    const [websiteSearchObj, websiteSearchObjSet] = useState<searchObjType<websitetype>>({
+    const { data: session } = useSession()
+
+    const [websiteSearchObj, websiteSearchObjSet] = useState<searchObjType<websiteType>>({
         searchItems: [],
     })
 
@@ -24,7 +27,9 @@ export default function Page() {
                     searchObj={websiteSearchObj}
                     searchObjSet={websiteSearchObjSet}
                     searchFunc={async (seenFilters) => {
-                        return await getWebsitesFromUser({ ...seenFilters }, websiteSearchObj.limit, websiteSearchObj.offset)
+                        if (session === null) throw new Error("not seeing session")
+
+                        return await getWebsites({ ...seenFilters, userId: session.user.id }, {}, websiteSearchObj.limit, websiteSearchObj.offset)
                     }}
                     showPage={true}
                     searchFilters={{

@@ -1,7 +1,7 @@
 "use server"
 import { db } from "@/db"
 import { pages } from "@/db/schema"
-import { newPageType, newPageSchema, pageType, pageSchema, updatePageType, updatePageSchema, websitetype, websiteSchema } from "@/types"
+import { newPageType, newPageSchema, pageType, pageSchema, updatePageType, updatePageSchema, websiteType, websiteSchema } from "@/types"
 import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
 import { getSpecificWebsite } from "./handleWebsites"
@@ -30,7 +30,7 @@ export async function addPage(seenNewPage: newPageType): Promise<pageType> {
     return result
 }
 
-export async function updateThePage(pageId: pageType["id"], websiteId: websitetype["id"], updatePageObj: Partial<updatePageType>) {
+export async function updateThePage(pageId: pageType["id"], websiteId: websiteType["id"], updatePageObj: Partial<updatePageType>) {
     //validation
     updatePageSchema.partial().parse(updatePageObj)
 
@@ -46,7 +46,7 @@ export async function updateThePage(pageId: pageType["id"], websiteId: websitety
         .where(eq(pages.id, pageId))
 }
 
-export async function deletePage(websiteId: websitetype["id"], pageId: pageType["id"], deleteRelatedUsedComponents = true) {
+export async function deletePage(websiteId: websiteType["id"], pageId: pageType["id"], deleteRelatedUsedComponents = true) {
     //validate
     websiteSchema.shape.id.parse(websiteId)
     pageSchema.shape.id.parse(pageId)
@@ -90,7 +90,7 @@ export async function getSpecificPage(pageId: pageType["id"]): Promise<pageType 
     return result
 }
 
-export async function getPagesFromWebsite(websiteId: websitetype["id"]): Promise<pageType[]> {
+export async function getPagesFromWebsite(websiteId: websiteType["id"]): Promise<pageType[]> {
     //validation
     websiteSchema.shape.id.parse(websiteId)
 

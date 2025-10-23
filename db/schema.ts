@@ -1,5 +1,4 @@
-import { fontsType, usedComponentLocationType, userType, userUploadedImagesType, authorisedUserType, roleOptions } from "@/types";
-import { categoryName, templateDataType } from "@/types/templateDataTypes";
+import { fontsType, usedComponentLocationType, userType, userUploadedImagesType, authorisedUserType, roleOptions, templateCategoryNameOptions, templateTypeType, elementType } from "@/types";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, primaryKey, integer, text, pgEnum, json, index, boolean } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -32,16 +31,16 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const websites = pgTable("websites", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userId: text("userId").notNull().references(() => users.id),
-
-    name: text("name").notNull(),
+    dateAdded: timestamp("dateAdded", { mode: "date" }).defaultNow().notNull(),
     title: text("title").default("").notNull(),
-    description: text("description").default("").notNull(),
     fonts: json("fonts").$type<fontsType[]>().default([]).notNull(),
+    description: text("description").default("").notNull(),
     globalCss: text("globalCss").default("").notNull(),
     userUploadedImages: json("userUploadedImages").$type<userUploadedImagesType>().default([]).notNull(),
     authorisedUsers: json("authorisedUsers").$type<authorisedUserType[]>().default([]).notNull(),
-    dateAdded: timestamp("dateAdded", { mode: "date" }).defaultNow().notNull(),
+
+    userId: text("userId").notNull().references(() => users.id),
+    name: text("name").notNull(),
 },
     (table) => {
         return {
@@ -82,16 +81,42 @@ export const pageRelations = relations(pages, ({ one, many }) => ({
 
 
 
+export const templates = pgTable("templates", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    categoryId: text("categoryId").notNull().references(() => categories.id),
+    name: text("name").notNull().unique(),
+    type: json("type").$type<templateTypeType>().notNull(),
+    elements: json("elements").$type<elementType[]>().notNull(),
+    uses: integer("uses").default(0).notNull(),
+    likes: integer("likes").default(0).notNull(),
+}, (t) => ({
+    templateNameIndex: index("templateNameIndex").on(t.name),
+    templateUsesIndex: index("templateUsesIndex").on(t.uses),
+    templateLikesIndex: index("templateLikesIndex").on(t.likes),
+}))
+export const templatesRelations = relations(templates, ({ one, many }) => ({
+    templatesToStyles: many(templatesToStyles),
+    usedComponents: many(usedComponents),
+    category: one(categories, {
+        fields: [templates.categoryId],
+        references: [categories.name],
+    }),
+}));
+
+
+
 
 export const usedComponents = pgTable('usedComponents', {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
 
     websiteId: text("websiteId").notNull().references(() => websites.id),
     templateId: text("templateId").notNull().references(() => templates.id),
-    css: text("css").default("").notNull(),
-    order: integer("order").notNull(),
+    type: json("type").$type<templateTypeType>().notNull(),
+    elements: json("elements").$type<elementType[]>().notNull(),
     location: json("location").$type<usedComponentLocationType>().notNull(),
-    data: json("data").$type<templateDataType>().notNull(),
+    order: integer("order").notNull(),
+    showMultiple: boolean("showMultiple").notNull(),
 
 }, (t) => ({
     websiteIdIndex: index("websiteIdIndex").on(t.websiteId),
@@ -113,35 +138,11 @@ export const usedComponentsRelations = relations(usedComponents, ({ one }) => ({
 
 
 
-export const templates = pgTable("templates", {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-
-    name: text("name").notNull().unique(),
-    uses: integer("uses").default(0).notNull(),
-    likes: integer("likes").default(0).notNull(),
-    categoryId: text("categoryId").notNull().references(() => categories.name),
-    defaultCss: text("defaultCss").notNull(),
-    defaultData: json("defaultData").$type<templateDataType>().notNull(),
-}, (t) => ({
-    templateNameIndex: index("templateNameIndex").on(t.name),
-    templateUsesIndex: index("templateUsesIndex").on(t.uses),
-    templateLikesIndex: index("templateLikesIndex").on(t.likes),
-}))
-export const templatesRelations = relations(templates, ({ one, many }) => ({
-    templatesToStyles: many(templatesToStyles),
-    usedComponents: many(usedComponents),
-    category: one(categories, {
-        fields: [templates.categoryId],
-        references: [categories.name],
-    }),
-}));
-
-
-
-
+export const categoryNameEnum = pgEnum("categoryName", templateCategoryNameOptions);
 
 export const categories = pgTable("categories", {
-    name: text("name").$type<categoryName>().notNull().unique(),
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: categoryNameEnum().notNull(),
 })
 export const categoriesRelations = relations(categories, ({ many }) => ({
     templates: many(templates),
@@ -152,6 +153,7 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 
 
 export const styles = pgTable("styles", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     name: text("name").notNull().unique(),
 })
 export const stylesRelations = relations(styles, ({ many }) => ({
@@ -164,9 +166,9 @@ export const stylesRelations = relations(styles, ({ many }) => ({
 
 export const templatesToStyles = pgTable('templatesToStyles', {
     templateId: text("templateId").notNull().references(() => templates.id),
-    styleName: text("styleName").notNull().references(() => styles.name),
+    styleId: text("styleId").notNull().references(() => styles.id),
 }, (t) => ({
-    pk: primaryKey({ columns: [t.templateId, t.styleName] }),
+    pk: primaryKey({ columns: [t.templateId, t.styleId] }),
 }),
 );
 export const templatesToStylesRelations = relations(templatesToStyles, ({ one }) => ({
@@ -175,8 +177,8 @@ export const templatesToStylesRelations = relations(templatesToStyles, ({ one })
         references: [templates.id],
     }),
     style: one(styles, {
-        fields: [templatesToStyles.styleName],
-        references: [styles.name],
+        fields: [templatesToStyles.styleId],
+        references: [styles.id],
     }),
 }));
 

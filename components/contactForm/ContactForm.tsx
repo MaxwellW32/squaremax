@@ -5,8 +5,8 @@ import { toast } from 'react-hot-toast'
 import { sendNodeEmail } from '@/serverFunctions/handleNodeEmails'
 import { userForm, userFormSchema } from '@/types'
 import { retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage'
-import TextInput from '../textInput/TextInput'
-import TextArea from '../textArea/TextArea'
+import TextInput from '@/components/inputs/textInput/TextInput'
+import TextArea from '@/components/inputs/textArea/TextArea'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 
 export default function ContactForm() {

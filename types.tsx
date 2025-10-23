@@ -1,9 +1,16 @@
 import { z } from "zod";
 import { Endpoints } from "@octokit/types";
-import { categoryNameSchema, templateDataSchema, templateDataType } from "./types/templateDataTypes";
-import React, { HTMLAttributes } from "react"
+import React from "react"
 
-// regular types
+//group like types
+//close relation - no space
+//basic relation - 1 space
+//no relation but grouped - 5 spaces
+//large gap - 20 spaces
+//entire different concept - 50 spaces
+
+
+//download website
 export type websiteDownloadOptionType = "file" | "github"
 
 export type githubRepo = Endpoints["GET /repos/{owner}/{repo}"]["response"]["data"]
@@ -30,6 +37,17 @@ export type newGithubRepoType = z.infer<typeof newGithubRepoSchema> & {}
 
 
 
+//filters
+export type PgTableWithColumns<T extends TableConfig> = PgTable<T> & {
+    [Key in keyof T['columns']]: T['columns'][Key];
+} & {
+    enableRLS: () => Omit<PgTableWithColumns<T>, 'enableRLS'>;
+};
+
+
+
+
+//size options
 export type sizeOptionType = {
     name: string,
     width: number,
@@ -61,28 +79,24 @@ export const sizeOptionsArr: sizeOptionType[] = [
         iconName: "desktop_mac"
     },
 ]
+// const collectionSchema = z.object({
+//     relativePath: z.string().min(1),
+//     content: z.string().min(1),
+// })
+// export type collection = z.infer<typeof collectionSchema>
 
+// export type viewerTemplateType = {
+//     usedComponentIdToSwap: usedComponentType["id"],
+//     template: templateType | null,
+//     builtTemplate: React.ComponentType<{ data: templateDataType }> | null
+// }
 
-
-const collectionSchema = z.object({
-    relativePath: z.string().min(1),
-    content: z.string().min(1),
-})
-export type collection = z.infer<typeof collectionSchema>
-
-export type viewerTemplateType = {
-    usedComponentIdToSwap: usedComponentType["id"],
-    template: templateType | null,
-    builtTemplate: React.ComponentType<{ data: templateDataType }> | null
-}
-
-export type previewTemplateType = {
-    template: templateType,
-    builtTemplate: React.ComponentType<{ data: templateDataType }>
-    location: usedComponentLocationType,
-    orderPosition: number,
-}
-
+// export type previewTemplateType = {
+//     template: templateType,
+//     builtTemplate: React.ComponentType<{ data: templateDataType }>
+//     location: usedComponentLocationType,
+//     orderPosition: number,
+// }
 export type handleManagePageOptions =
     {
         option: "create",
@@ -111,8 +125,10 @@ export const requestDownloadWebsiteBodySchema = z.object({
 });
 export type requestDownloadWebsiteBodyType = z.infer<typeof requestDownloadWebsiteBodySchema>
 
+
+
+
 //recursive form
-//basically controlling the look of an element and the data validation
 export type recursiveFormMoreFormInfoElementType =
     {
         type: "input",
@@ -143,51 +159,57 @@ export type nullishStarters = {
     [key: string]: unknown
 }
 
-export const wsWebsiteUpdateSchema = z.object({
-    type: z.literal("website"),
-});
-export type wsWebsiteUpdateType = z.infer<typeof wsWebsiteUpdateSchema>
 
-export const wsPageUpdateSchema = z.object({
-    type: z.literal("page"),
-    pageId: z.string().min(1),
-    refresh: z.boolean()
-});
-export type wsPageUpdateType = z.infer<typeof wsPageUpdateSchema>
 
-export const wsUsedComponentUpdateSchema = z.object({
-    type: z.literal("usedComponent"),
-    usedComponentId: z.string().min(1),
-    refresh: z.boolean() //wait till user not editing to refresh
-});
-export type wsUsedComponentUpdateType = z.infer<typeof wsUsedComponentUpdateSchema>
 
-export const weWsUpdatedUnionSchema = z.union([wsWebsiteUpdateSchema, wsPageUpdateSchema, wsUsedComponentUpdateSchema])
-export type weWsUpdatedUnionType = z.infer<typeof weWsUpdatedUnionSchema>
+//websockets
+// export const wsWebsiteUpdateSchema = z.object({
+//     type: z.literal("website"),
+// });
+// export type wsWebsiteUpdateType = z.infer<typeof wsWebsiteUpdateSchema>
 
-export const webSocketStandardMessageSchema = z.object({
-    type: z.literal("standard"),
-    data: z.object({
-        websiteId: z.string(),
-        updated: weWsUpdatedUnionSchema
-    })
-});
-export type webSocketStandardMessageType = z.infer<typeof webSocketStandardMessageSchema>
+// export const wsPageUpdateSchema = z.object({
+//     type: z.literal("page"),
+//     pageId: z.string().min(1),
+//     refresh: z.boolean()
+// });
+// export type wsPageUpdateType = z.infer<typeof wsPageUpdateSchema>
 
-export const webSocketMessageJoinSchema = z.object({
-    type: z.literal("join"),
-    websiteId: z.string(),
-});
-export type webSocketMessageJoinType = z.infer<typeof webSocketMessageJoinSchema>
+// export const wsUsedComponentUpdateSchema = z.object({
+//     type: z.literal("usedComponent"),
+//     usedComponentId: z.string().min(1),
+//     refresh: z.boolean() //wait till user not editing to refresh
+// });
+// export type wsUsedComponentUpdateType = z.infer<typeof wsUsedComponentUpdateSchema>
 
-export const webSocketMessagePingSchema = z.object({
-    type: z.literal("ping"),
-});
-export type webSocketMessagePingType = z.infer<typeof webSocketMessagePingSchema>
+// export const weWsUpdatedUnionSchema = z.union([wsWebsiteUpdateSchema, wsPageUpdateSchema, wsUsedComponentUpdateSchema])
+// export type weWsUpdatedUnionType = z.infer<typeof weWsUpdatedUnionSchema>
 
-export const webSocketMessageSchema = z.union([webSocketStandardMessageSchema, webSocketMessageJoinSchema, webSocketMessagePingSchema])
-export type webSocketMessageType = z.infer<typeof webSocketMessageSchema>
+// export const webSocketStandardMessageSchema = z.object({
+//     type: z.literal("standard"),
+//     data: z.object({
+//         websiteId: z.string(),
+//         updated: weWsUpdatedUnionSchema
+//     })
+// });
+// export type webSocketStandardMessageType = z.infer<typeof webSocketStandardMessageSchema>
 
+// export const webSocketMessageJoinSchema = z.object({
+//     type: z.literal("join"),
+//     websiteId: z.string(),
+// });
+// export type webSocketMessageJoinType = z.infer<typeof webSocketMessageJoinSchema>
+
+// export const webSocketMessagePingSchema = z.object({
+//     type: z.literal("ping"),
+// });
+// export type webSocketMessagePingType = z.infer<typeof webSocketMessagePingSchema>
+
+// export const webSocketMessageSchema = z.union([webSocketStandardMessageSchema, webSocketMessageJoinSchema, webSocketMessagePingSchema])
+// export type webSocketMessageType = z.infer<typeof webSocketMessageSchema>
+
+
+//note which option is being updated
 export type EditingContentType = {
     website: boolean;
     pages: boolean;
@@ -248,7 +270,7 @@ export type pagesType = {
     }
 }
 
-export const dateSchma = z.preprocess((val) => {
+export const dateSchema = z.preprocess((val) => {
     if (typeof val === "string" || typeof val === "number") return new Date(val);
     return val;
 }, z.date())
@@ -276,71 +298,6 @@ export type searchObjType<T> = {
     refreshAll?: boolean
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//database types
-export type componentType = {
-    id: string,
-    type: {
-        category: "heros",
-        data: {
-            title: string,
-            text: string
-        }
-    } | {
-        category: "navbars",
-        data: {
-            navItem: string,
-            menuItem: string,
-            subMenu: string[]
-        }
-    } | {
-        category: "containers",
-        data: {
-            title: string
-        }
-    },
-    elements: elementType[],
-    childComponents: string[],
-    showMultiple?: true
-}
-
-export type elementType = {
-    id: string;
-    type:
-    | { tag: "p"; props: HTMLAttributes<HTMLParagraphElement> }
-    | { tag: "h1"; props: HTMLAttributes<HTMLHeadingElement> }
-    | { tag: "div"; props: HTMLAttributes<HTMLDivElement> };
-    children: elementChildType[];
-};
-
-export type elementChildType =
-    | { type: "elementId"; elementId: string } // references another element
-    | { type: "text"; content: string } // plain text
-    | { type: "component", componentIndex: number } // references another component
-
-
 export const githubTokenSchema = z.object({
     id: z.string().min(1),
     username: z.string().min(1),
@@ -355,6 +312,54 @@ export type newGithubTokenType = z.infer<typeof newGithubTokenSchema>
 export const updateGithubTokenSchema = githubTokenSchema.omit({ id: true })
 export type updateGithubTokenType = z.infer<typeof updateGithubTokenSchema>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //refresh db on change
 export const roleOptions = ["admin"] as const
 export const roleSchema = z.enum(roleOptions)
@@ -363,6 +368,7 @@ export type roleType = z.infer<typeof roleSchema>
 export const userSchema = z.object({
     id: z.string().min(1),
     userGithubTokens: z.array(githubTokenSchema),
+
     role: roleSchema.nullable(),
     name: z.string().nullable(),
     image: z.string().min(1).nullable(),
@@ -370,7 +376,7 @@ export const userSchema = z.object({
     emailVerified: z.date().nullable(),
 })
 export type userType = z.infer<typeof userSchema> & {
-    websites?: websitetype[]
+    websites?: websiteType[]
 }
 
 export const updateUserSchema = userSchema.omit({ role: true, email: true, emailVerified: true })
@@ -397,22 +403,23 @@ export type authorisedUserType = z.infer<typeof authorisedUserSchema>
 
 export const websiteSchema = z.object({
     id: z.string().min(1),
-    userId: z.string().min(1),
-    name: z.string().min(1),
+    dateAdded: dateSchema,
     title: z.string().min(1),
     description: z.string(),
     fonts: z.array(fontsSchema),
     globalCss: z.string(),
     userUploadedImages: userUploadedImagesSchema,
     authorisedUsers: z.array(authorisedUserSchema),
-    dateAdded: dateSchma,
+
+    name: z.string().min(1),
+    userId: z.string().min(1),
 })
-export type websitetype = z.infer<typeof websiteSchema> & {
+export type websiteType = z.infer<typeof websiteSchema> & {
     fromUser?: userType,
     pages?: pageType[],
     usedComponents?: usedComponentType[],
 }
-export const newWebsiteSchema = websiteSchema.omit({ id: true, userId: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true, title: true, description: true, dateAdded: true })
+export const newWebsiteSchema = websiteSchema.omit({ id: true, dateAdded: true, title: true, description: true, fonts: true, globalCss: true, userUploadedImages: true, authorisedUsers: true, })
 export type newWebsiteType = z.infer<typeof newWebsiteSchema>
 
 export const updateWebsiteSchema = websiteSchema.omit({ id: true, userId: true, })
@@ -424,11 +431,12 @@ export type updateWebsiteType = z.infer<typeof updateWebsiteSchema>
 
 export const pageSchema = z.object({
     id: z.string().min(1),
+
     link: z.string().min(1),
     websiteId: z.string().min(1),
 })
 export type pageType = z.infer<typeof pageSchema> & {
-    fromWebsite?: websitetype
+    fromWebsite?: websiteType
 }
 
 export const newPageSchema = pageSchema.omit({ id: true })
@@ -440,62 +448,88 @@ export type updatePageType = z.infer<typeof updatePageSchema>
 
 
 
-export const locationHeaderSchema = z.object({
-    type: z.literal("header"),
+export const templateCategoryNameOptions = ["heros", "navbars", "containers"] as const
+export const templateCategoryNameSchema = z.enum(templateCategoryNameOptions)
+export type templateCategoryNameType = z.infer<typeof templateCategoryNameSchema>
+
+const herosTemplateSchema = z.object({
+    category: z.literal(templateCategoryNameSchema.Enum.heros),
+    data: z.object({
+        title: z.string(),
+        text: z.string()
+    })
 })
-export type locationHeaderSchemaType = z.infer<typeof locationHeaderSchema>
-
-export const locationFooterSchema = z.object({
-    type: z.literal("footer"),
+const navbarsTemplateSchema = z.object({
+    category: z.literal(templateCategoryNameSchema.Enum.navbars),
+    data: z.object({
+        navItem: z.string(),
+        menuItem: z.string(),
+        subMenu: z.string().array(),
+    })
 })
-export type locationFooterSchemaType = z.infer<typeof locationFooterSchema>
-
-export const locationPageSchema = z.object({
-    type: z.literal("page"),
-    pageId: pageSchema.shape.id
+const containersTemplateSchema = z.object({
+    category: z.literal(templateCategoryNameSchema.Enum.containers),
+    data: z.object({
+        title: z.string(),
+    })
 })
-export type locationPageSchemaType = z.infer<typeof locationPageSchema>
+const templateTypeSchema = z.union([herosTemplateSchema, navbarsTemplateSchema, containersTemplateSchema])
+export type templateTypeType = z.infer<typeof templateTypeSchema>
 
-export const locationChildSchema = z.object({
-    type: z.literal("child"),
-    parentId: z.string().min(1)
+
+const htmlBaseAttributeSchema = z.object({
+    style: z.record(z.string()).optional(),
+    className: z.string().optional(),
+    id: z.string().optional(),
+});
+
+const pElementSchema = z.object({
+    tag: z.literal("p"),
+    props: htmlBaseAttributeSchema
 })
-export type locationChildSchemaType = z.infer<typeof locationChildSchema>
+const h1ElementSchema = z.object({
+    tag: z.literal("h1"),
+    props: htmlBaseAttributeSchema
+})
+const divElementSchema = z.object({
+    tag: z.literal("div"),
+    props: htmlBaseAttributeSchema
+})
+const elementTypeSchema = z.union([pElementSchema, h1ElementSchema, divElementSchema])
 
-export const usedComponentLocationSchema = z.union([locationHeaderSchema, locationFooterSchema, locationPageSchema, locationChildSchema])
-export type usedComponentLocationType = z.infer<typeof usedComponentLocationSchema>
 
-export const usedComponentSchema = z.object({
+
+const elementIdChildSchema = z.object({
+    type: z.literal("elementId"),
+    elementId: z.string().min(1),
+})
+const textChildSchema = z.object({
+    type: z.literal("text"),
+    content: z.string(),
+})
+const componentChildSchema = z.object({
+    type: z.literal("component"),
+    componentIndex: z.number(),
+})
+const elementChildrenSchema = z.union([elementIdChildSchema, textChildSchema, componentChildSchema])
+
+const elementSchema = z.object({
     id: z.string().min(1),
-    websiteId: z.string().min(1),
-    templateId: z.string().min(1),
-    css: z.string(),
-    order: z.number(),
-    location: usedComponentLocationSchema,
-    data: templateDataSchema,
+    type: elementTypeSchema,
+    children: elementChildrenSchema.array()
 })
-export type usedComponentType = z.infer<typeof usedComponentSchema> & {
-    fromWebsite?: websitetype,
-    template?: templateType,
-};
-
-export const newUsedComponentSchema = usedComponentSchema.omit({ id: true })
-export type newUsedComponentType = z.infer<typeof newUsedComponentSchema>
-
-export const updateUsedComponentSchema = usedComponentSchema.omit({ id: true, websiteId: true })
-export type updateUsedComponentType = z.infer<typeof updateUsedComponentSchema>
-
-
+export type elementType = z.infer<typeof elementSchema>
 
 
 export const templatesSchema = z.object({
     id: z.string().min(1),
+
+    categoryId: z.string().min(1),
     name: z.string().min(1),
+    type: templateTypeSchema,
+    elements: elementSchema.array(),
     uses: z.number(),
     likes: z.number(),
-    categoryId: z.string().min(1),
-    defaultCss: z.string(),
-    defaultData: templateDataSchema,
 })
 export type templateType = z.infer<typeof templatesSchema> & {
     templatesToStyles?: templateToStyleType[],
@@ -508,8 +542,59 @@ export type newTemplateType = z.infer<typeof newTemplateSchema>
 
 
 
+export const headerLocationSchema = z.object({
+    type: z.literal("header"),
+})
+export type headerLocationType = z.infer<typeof headerLocationSchema>
+
+export const footerLocationSchema = z.object({
+    type: z.literal("footer"),
+})
+export type footerLocationType = z.infer<typeof footerLocationSchema>
+
+export const pageLocationSchema = z.object({
+    type: z.literal("page"),
+    pageId: pageSchema.shape.id
+})
+export type pageLocationType = z.infer<typeof pageLocationSchema>
+pageLocationSchema
+export const childLocationSchema = z.object({
+    type: z.literal("child"),
+    parentId: z.string().min(1)
+})
+export type childLocationType = z.infer<typeof childLocationSchema>
+
+export const usedComponentLocationSchema = z.union([headerLocationSchema, footerLocationSchema, pageLocationSchema, childLocationSchema])
+export type usedComponentLocationType = z.infer<typeof usedComponentLocationSchema>
+
+export const usedComponentSchema = z.object({
+    id: z.string().min(1),
+
+    websiteId: z.string().min(1),
+    templateId: z.string().min(1),
+    type: templateTypeSchema,
+    elements: elementSchema.array(),
+    location: usedComponentLocationSchema,
+    order: z.number(),
+    showMultiple: z.boolean(),
+})
+export type usedComponentType = z.infer<typeof usedComponentSchema> & {
+    fromWebsite?: websiteType,
+    template?: templateType,
+};
+
+export const newUsedComponentSchema = usedComponentSchema.omit({ id: true })
+export type newUsedComponentType = z.infer<typeof newUsedComponentSchema>
+
+export const updateUsedComponentSchema = usedComponentSchema.omit({ id: true, websiteId: true })
+export type updateUsedComponentType = z.infer<typeof updateUsedComponentSchema>
+
+
+
+
 export const categoriesSchema = z.object({
-    name: categoryNameSchema,
+    id: z.string().min(1),
+    name: templateCategoryNameSchema,
 })
 export type categoryType = z.infer<typeof categoriesSchema> & {
     templates?: templateType[]
@@ -519,6 +604,7 @@ export type categoryType = z.infer<typeof categoriesSchema> & {
 
 
 export const stylesSchema = z.object({
+    id: z.string().min(1),
     name: z.string().min(1),
 })
 export type styleType = z.infer<typeof stylesSchema> & {

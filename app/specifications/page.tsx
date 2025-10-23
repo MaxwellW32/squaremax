@@ -6,9 +6,9 @@ import { sendNodeEmail } from '@/serverFunctions/handleNodeEmails'
 import { clientSpecificationKeys, moreFormInfoType, pagesType, specificationsFormSchema, specificationsObjType } from '@/types'
 import Image from 'next/image'
 import { retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage'
-import TextInput from '@/components/textInput/TextInput'
-import TextArea from '@/components/textArea/TextArea'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
+import TextInput from '@/components/inputs/textInput/TextInput'
+import TextArea from '@/components/inputs/textArea/TextArea'
 
 export default function Page() {
     const [initialSpecificationsObj,] = useState<specificationsObjType>({

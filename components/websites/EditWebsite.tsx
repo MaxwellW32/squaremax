@@ -1,8 +1,8 @@
 "use client"
 import { deletePage, getSpecificPage, updateThePage } from '@/serverFunctions/handlePages'
 import { deleteUsedComponent, getSpecificUsedComponent, updateTheUsedComponent } from '@/serverFunctions/handleUsedComponents'
-import { getSpecificWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, pageType, previewTemplateType, sizeOptionsArr, sizeOptionType, updatePageSchema, updateUsedComponentType, updateUsedComponentSchema, updateWebsiteType, updateWebsiteSchema, usedComponentType, usedComponentLocationType, viewerTemplateType, websitetype, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
+import { getSpecificWebsite, refreshWebsitePath, updateWebsite } from '@/serverFunctions/handleWebsites'
+import { handleManagePageOptions, handleManageUpdateUsedComponentsOptions, pageType, previewTemplateType, sizeOptionsArr, sizeOptionType, updatePageSchema, updateUsedComponentType, updateUsedComponentSchema, updateWebsiteType, updateWebsiteSchema, usedComponentType, usedComponentLocationType, viewerTemplateType, websiteType, webSocketMessageJoinSchema, webSocketMessageJoinType, webSocketMessagePingType, webSocketStandardMessageSchema, webSocketStandardMessageType, } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, controlNavView, formatCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sanitizeUsedComponentData, scaleToFit, sortUsedComponentsByOrder, } from '@/utility/utility'
@@ -23,9 +23,8 @@ import useEditingContent from './UseEditingContent'
 import Draggable from 'react-draggable';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { templateDataType } from '@/types/templateDataTypes'
 
-export default function EditWebsite({ websiteFromServer, seenSession }: { websiteFromServer: websitetype, seenSession: Session }) {
+export default function EditWebsite({ websiteFromServer, seenSession }: { websiteFromServer: websiteType, seenSession: Session }) {
     const { editingContent, setEditing } = useEditingContent()
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -48,7 +47,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
     const canvasContRef = useRef<HTMLDivElement | null>(null)
     const draggableRef = useRef<HTMLDivElement | null>(null)
 
-    const [websiteObj, websiteObjSet] = useState<websitetype>(websiteFromServer)
+    const [websiteObj, websiteObjSet] = useState<websiteType>(websiteFromServer)
 
     const [activePageId, activePageIdSet] = useState<pageType["id"] | undefined>(websiteObj.pages !== undefined && websiteObj.pages.length > 0 ? websiteObj.pages[0].id : undefined)
     const activePage = useMemo<pageType | undefined>(() => {
@@ -76,12 +75,6 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         return foundUsedComponent
 
     }, [websiteObj.usedComponents, activeUsedComponentId])
-
-    const renderedUsedComponentsObj = useRef<{
-        [key: string]: React.ComponentType<{
-            data: templateDataType;
-        }>
-    }>({})
 
     const updateWebsiteDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
     const updatePageDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
@@ -287,7 +280,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                     const searchPage = async () => {
                         if (seenMessageObj.refresh) {
                             const checkIfEditing = async () => {
-                                //reload all 
+                                //reload all
                                 if (!editingContent.current.pages) {
                                     refreshWebsitePath({ id: websiteObj.id })
 
@@ -341,7 +334,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                     const searchUsedComponent = async () => {
                         if (seenMessageObj.refresh) {
                             const checkIfEditing = async () => {
-                                //reload all 
+                                //reload all
                                 if (!editingContent.current.usedComponents) {
                                     refreshWebsitePath({ id: websiteObj.id })
 
@@ -473,7 +466,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         usedComponentsBuiltSet(true)
     }
 
-    async function handleWebsiteUpdate(newWebsite: websitetype) {
+    async function handleWebsiteUpdate(newWebsite: websiteType) {
         //set is editing
         setEditing("website")
 
@@ -491,7 +484,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                 const validatedNewWebsite = updateWebsiteSchema.parse(newWebsite)
 
                 saveStateSet("saving")
-                await updateTheWebsite(newWebsite.id, validatedNewWebsite)
+                await updateWebsite(newWebsite.id, validatedNewWebsite)
 
                 console.log(`$saved website to db`);
                 saveStateSet("saved")
@@ -956,7 +949,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                     }}
                                     seenSchema={updateWebsiteSchema.omit({ globalCss: true })}
                                     updater={(seenForm) => {
-                                        const newFullWebsite: websitetype = { ...websiteObj, ...(seenForm as updateWebsiteType) }
+                                        const newFullWebsite: websiteType = { ...websiteObj, ...(seenForm as updateWebsiteType) }
                                         handleWebsiteUpdate(newFullWebsite)
                                     }}
                                 />
@@ -1143,7 +1136,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
                                                                                 //replace everything except id, pageid, compid, children
                                                                                 const newReplacedUsedComponent: Partial<updateUsedComponentType> = { templateId: viewerTemplate.template.id, css: viewerTemplate.template.defaultCss, data: reusingUsedComponentData ? activeUsedComponent.data : viewerTemplate.template.defaultData }
 
-                                                                                //send to update 
+                                                                                //send to update
                                                                                 handleManageUsedComponents({ option: "update", updatedUsedComponentId: activeUsedComponent.id, seenUpdatedUsedComponent: newReplacedUsedComponent, rebuild: true })
 
                                                                                 viewerTemplateSet(null)
@@ -1267,7 +1260,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
 function RenderComponentTree({
     seenUsedComponents, originalUsedComponentsList, websiteObj, renderedUsedComponentsObj, tempActiveUsedComponentId, previewTemplate, viewerTemplate, renderLocation
 }: {
-    seenUsedComponents: usedComponentType[], originalUsedComponentsList: usedComponentType[], websiteObj: websitetype, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, previewTemplate: previewTemplateType | null, viewerTemplate: viewerTemplateType | null, renderLocation: usedComponentLocationType
+    seenUsedComponents: usedComponentType[], originalUsedComponentsList: usedComponentType[], websiteObj: websiteType, renderedUsedComponentsObj: React.MutableRefObject<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>, tempActiveUsedComponentId: React.MutableRefObject<string>, previewTemplate: previewTemplateType | null, viewerTemplate: viewerTemplateType | null, renderLocation: usedComponentLocationType
 }) {
     let SeenPreviewBuiltTemplate: React.ComponentType<{ data: templateDataType }> | null = null
     let seenPreviewTemplateData: templateDataType | null = null
@@ -1394,7 +1387,7 @@ function RenderComponentTree({
 
                     const seenEl = e.currentTarget as HTMLElement;
 
-                    //remove the highlight 
+                    //remove the highlight
                     seenEl.classList.remove(styles.highlightComponent);
                 }
 

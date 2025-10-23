@@ -10,8 +10,8 @@ import { addTemplate, deleteTemplate, removeEntryFromGlobalTemplatesFile, update
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import { deleteDirectory } from '@/serverFunctions/handleServerFiles'
 import { websiteTemplatesDir } from '@/lib/websiteTemplateLib'
-import TextInput from '@/components/textInput/TextInput'
-import TextArea from '@/components/textArea/TextArea'
+import TextInput from '@/components/inputs/textInput/TextInput'
+import TextArea from '@/components/inputs/textArea/TextArea'
 import ConfirmationBox from '@/components/confirmationBox/ConfirmationBox'
 import { templateDataSchema } from '@/types/templateDataTypes'
 

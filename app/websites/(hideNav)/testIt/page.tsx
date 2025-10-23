@@ -1,13 +1,23 @@
 "use client"
-import { componentType, elementType } from "@/types";
+import { elementType, usedComponentType } from "@/types";
 import { flattenObject } from "@/utility/utility";
 import React from "react";
 
+//make new website...
+//integrate into editWebsite
+//view all components belonging to site
+//render for different locatons
+//for each find children components - if found recurse
+//
+//
+//
+//
 
-
-const components: componentType[] = [
+const usedComponents: usedComponentType[] = [
     {
-        id: "nav-001",
+        id: "nav-001-used",
+        websiteId: "my-website-01",
+        templateId: "nav-001",
         type: {
             category: "navbars",
             data: {
@@ -40,10 +50,17 @@ const components: componentType[] = [
                 ]
             },
         ],
-        childComponents: []
+        location: {
+            type: "page",
+            pageId: "page-1"
+        },
+        order: 0,
+        showMultiple: false,
     },
     {
         id: "cont-001",
+        websiteId: "my-website-01",
+        templateId: "cont-001",
         type: {
             category: "containers",
             data: {
@@ -90,10 +107,17 @@ const components: componentType[] = [
                 ]
             }
         ],
-        childComponents: ["hero-001"]
+        location: {
+            type: "page",
+            pageId: "page-1"
+        },
+        order: 0,
+        showMultiple: false,
     },
     {
         id: "hero-001",
+        websiteId: "my-website-01",
+        templateId: "hero-001",
         type: {
             category: "heros",
             data: {
@@ -143,19 +167,23 @@ const components: componentType[] = [
                 ]
             }
         ],
-        childComponents: [],
+        location: {
+            type: "page",
+            pageId: "page-1"
+        },
+        order: 0,
+        showMultiple: false,
     }
 ]
 
-
 //Render components
-function renderComponents(componentsToRender: componentType[], allComponents: componentType[], calledByParent?: boolean) {
-    return componentsToRender.map(eachComponent => {
+function renderUsedComponents(usedComponentsToRender: usedComponentType[], allUsedComponents: usedComponentType[], calledByParent?: boolean) {
+    return usedComponentsToRender.map(eachComponent => {
 
         //if component id found in children of other component elements
         let componentIsAChild = false
 
-        allComponents.forEach(eachComponentForEach => {
+        allUsedComponents.forEach(eachComponentForEach => {
             eachComponentForEach.childComponents.forEach(eachComponentChild => {
                 if (eachComponentChild === eachComponent.id) {
                     componentIsAChild = true
@@ -170,14 +198,14 @@ function renderComponents(componentsToRender: componentType[], allComponents: co
 
         return (
             <React.Fragment key={eachComponent.id}>
-                {renderElements(eachComponent.elements, eachComponent, allComponents)}
+                {renderElements(eachComponent.elements, eachComponent, allUsedComponents)}
             </React.Fragment>
         )
     })
 }
 
 //Recursive function that builds a React element
-function renderElements(elementsToRender: elementType[], pairedComponent: componentType, allComponents: componentType[], calledByParent?: boolean): React.ReactNode {
+function renderElements(elementsToRender: elementType[], pairedUsedComponent: usedComponentType, allUsedComponents: usedComponentType[], calledByParent?: boolean): React.ReactNode {
 
     return (
         <>
@@ -185,7 +213,7 @@ function renderElements(elementsToRender: elementType[], pairedComponent: compon
                 //if found in children of other elements don't show
                 let elementIsAChild = false
 
-                const elementsInComponent = pairedComponent.elements
+                const elementsInComponent = pairedUsedComponent.elements
                 elementsInComponent.forEach(eachElementForEach => {
                     eachElementForEach.children.forEach(eachChild => {
                         if (eachChild.type === "elementId" && eachChild.elementId === eachElementToRender.id) {
@@ -202,7 +230,7 @@ function renderElements(elementsToRender: elementType[], pairedComponent: compon
                     if (child.type === "text") {
                         let seenContent = child.content
 
-                        const flattenedData = flattenObject(pairedComponent.type.data);
+                        const flattenedData = flattenObject(pairedUsedComponent.type.data);
                         // console.log(`$flattenedData`, flattenedData);
 
                         // Replace placeholders dynamically from flattened data
@@ -217,18 +245,18 @@ function renderElements(elementsToRender: elementType[], pairedComponent: compon
                         const childElement = elementsInComponent.find(eachElementFind => eachElementFind.id === child.elementId);
 
                         if (childElement !== undefined) {
-                            return <React.Fragment key={i}>{renderElements([childElement], pairedComponent, allComponents, true)}</React.Fragment>;
+                            return <React.Fragment key={i}>{renderElements([childElement], pairedUsedComponent, allUsedComponents, true)}</React.Fragment>;
                         }
 
                         return null;
 
                     } else if (child.type === "component") {
-                        const childComponent = allComponents.find(eachComponent => eachComponent.id === pairedComponent.childComponents[child.componentIndex]);
+                        const childComponent = allUsedComponents.find(eachComponent => eachComponent.id === pairedUsedComponent.childComponents[child.componentIndex]);
 
                         if (childComponent !== undefined) {
                             return (
                                 <React.Fragment key={i}>
-                                    {renderComponents([childComponent], allComponents, true)}
+                                    {renderUsedComponents([childComponent], allUsedComponents, true)}
                                 </React.Fragment>
                             );
                         }
@@ -248,7 +276,7 @@ function renderElements(elementsToRender: elementType[], pairedComponent: compon
 export default function Page() {
     return (
         <main>
-            {renderComponents(components, components)}
+            {renderUsedComponents(usedComponents, usedComponents)}
         </main>
     );
 }

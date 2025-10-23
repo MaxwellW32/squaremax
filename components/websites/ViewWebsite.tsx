@@ -1,14 +1,14 @@
 "use client"
 import styles from "./style.module.css"
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { pageType, usedComponentType, websitetype } from '@/types'
+import { pageType, usedComponentType, websiteType } from '@/types'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import globalDynamicTemplates from '@/utility/globalTemplates'
 import { addScopeToCSS, getChildrenUsedComponents, getDescendedUsedComponents, makeValidVariableName, sortUsedComponentsByOrder, } from '@/utility/utility'
 import { useSearchParams } from 'next/navigation'
 import { templateDataType } from "@/types/templateDataTypes"
 
-export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: websitetype }) {
+export default function ViewWebsite({ websiteFromServer }: { websiteFromServer: websiteType }) {
     const searchParams = useSearchParams();
 
     const [activePageId, activePageIdSet] = useState<pageType["id"] | undefined>(undefined)

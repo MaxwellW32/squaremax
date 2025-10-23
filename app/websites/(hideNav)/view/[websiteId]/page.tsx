@@ -2,7 +2,7 @@
 import { scaleToFit } from '@/utility/utility'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { pageType, sizeOptionsArr, sizeOptionType, websitetype } from '@/types';
+import { pageType, sizeOptionsArr, sizeOptionType, websiteType } from '@/types';
 import { getSpecificWebsite } from '@/serverFunctions/handleWebsites';
 import toast from 'react-hot-toast';
 import Draggable from 'react-draggable';
@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: Promise<{ websiteId: st
     const [refresher, refresherSet] = useState(true)
     const draggableRef = useRef<HTMLDivElement | null>(null)
 
-    const [websiteObj, websiteObjSet] = useState<websitetype | undefined>()
+    const [websiteObj, websiteObjSet] = useState<websiteType | undefined>()
     const [screenDimensions, screenDimensionsSet] = useState<{ width: number, height: number } | null>(null)
 
     const [activePageId, activePageIdSet] = useState<pageType["id"] | undefined>(undefined)

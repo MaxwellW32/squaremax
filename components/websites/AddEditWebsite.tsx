@@ -1,115 +1,73 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { toast } from 'react-hot-toast'
 import styles from "./style.module.css"
-import { newWebsiteType, newWebsiteSchema, updateWebsiteSchema, websitetype, websiteSchema } from '@/types'
-import { addWebsite, refreshWebsitePath, updateTheWebsite } from '@/serverFunctions/handleWebsites'
-import { useRouter } from 'next/navigation'
-import TextInput from '../textInput/TextInput'
-import TextArea from '../textArea/TextArea'
 import { deepClone, makeValidVariableName } from '@/utility/utility'
+import toast from 'react-hot-toast'
+import { newWebsiteSchema, websiteSchema, websiteType } from '@/types'
+import { addWebsite, updateWebsite } from '@/serverFunctions/handleWebsites'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
+import UseFormErrors from '../useFormErrors/UseFormErrors'
+import TextInput from '../inputs/textInput/TextInput'
+import { initialNewWebsiteObj } from '@/lib/initialFormData'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
-export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: websitetype }) {
+export default function AddEditWebsite({ sentWebsite, submissionAction }: { sentWebsite?: websiteType, submissionAction?: () => void }) {
+    const { data: session } = useSession()
     const router = useRouter()
 
-    const initialFormObj: newWebsiteType = {
-        name: "",
-    }
+    const [formObj, formObjSet] = useState<Partial<websiteType>>(deepClone(sentWebsite === undefined ? initialNewWebsiteObj : websiteSchema.partial().parse(sentWebsite)))
 
-    const [formObj, formObjSet] = useState<Partial<websitetype>>(deepClone(sentWebsite === undefined ? initialFormObj : updateWebsiteSchema.parse(sentWebsite)))
-    type websiteKeys = keyof Partial<websitetype>
+    const { formErrors, checkIfValid } = UseFormErrors<websiteType>({ schema: websiteSchema.partial() })
 
-    type moreFormInfoType = Partial<{
-        [key in websiteKeys]: {
-            label?: string,
-            placeHolder?: string,
-            type?: string,
-            required?: boolean
-            inputType: "input" | "textarea",
-        }
-    }>
+    //handle changes from above
+    useEffect(() => {
+        if (sentWebsite === undefined) return
 
-    const [moreFormInfo,] = useState<moreFormInfoType>({
-        "name": {
-            label: "name",
-            inputType: "input",
-            placeHolder: "Enter website name",
-        },
-        "title": {
-            label: "title",
-            inputType: "input",
-            placeHolder: "Enter website title",
-        },
-        "description": {
-            label: "description",
-            inputType: "textarea",
-            placeHolder: "Enter website description",
-        },
-        "fonts": {
-            label: "fonts",
-            inputType: "input",
-            placeHolder: "Enter website fonts",
-        },
-    });
+        formObjSet(deepClone(websiteSchema.partial().parse(sentWebsite)))
 
-    const [formErrors, formErrorsSet] = useState<Partial<{
-        [key in websiteKeys]: string
-    }>>({})
-
-    function checkIfValid(seenFormObj: Partial<websitetype>, seenName: keyof Partial<websitetype>, schema: typeof websiteSchema) {
-        //@ts-expect-error type
-        const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
-
-        if (testSchema.success) {//worked
-            formErrorsSet(prevObj => {
-                const newObj = { ...prevObj }
-                delete newObj[seenName]
-
-                return newObj
-            })
-
-        } else {
-            formErrorsSet(prevObj => {
-                const newObj = { ...prevObj }
-
-                let errorMessage = ""
-
-                JSON.parse(testSchema.error.message).forEach((eachErrorObj: Error) => {
-                    errorMessage += ` ${eachErrorObj.message}`
-                })
-
-                newObj[seenName] = errorMessage
-
-                return newObj
-            })
-        }
-    }
+    }, [sentWebsite])
 
     async function handleSubmit() {
         try {
+            if (session === null) return
+
+            toast.success("submittting")
+
+            //new website
             if (sentWebsite === undefined) {
-                //new website
+                //assign user id
+                formObj.userId = session.user.id
+
                 const validatedNewWebsite = newWebsiteSchema.parse(formObj)
 
+                //send up to server
                 const addedWebsite = await addWebsite(validatedNewWebsite)
 
-                toast.success(`Created Website ${formObj.name}!`)
-                formObjSet(deepClone(initialFormObj))
+                toast.success("created website")
 
                 setTimeout(() => {
-                    router.push(`/websites/${addedWebsite.id}`)
+                    router.push(`/websites/edit/${addedWebsite.id}`)
                 }, 2000);
 
+                //reset
+                formObjSet(deepClone(initialNewWebsiteObj))
+
             } else {
-                //update website
-                const validatedUpdateWebsite = updateWebsiteSchema.parse(formObj)
-                await updateTheWebsite(sentWebsite.id, validatedUpdateWebsite)
+                //validate
+                const validatedWebsite = websiteSchema.partial().parse(formObj)
 
-                //refresh
-                refreshWebsitePath({ id: sentWebsite.id })
+                //update
+                const updatedWebsite = await updateWebsite(sentWebsite.id, validatedWebsite)
 
-                toast.success("updated website!")
+                toast.success("website updated")
+
+                //set to updated
+                formObjSet(updatedWebsite)
+            }
+
+            if (submissionAction !== undefined) {
+                submissionAction()
             }
 
         } catch (error) {
@@ -117,187 +75,171 @@ export default function AddEditWebsite({ sentWebsite }: { sentWebsite?: websitet
         }
     }
 
-    //respond to changes above
-    useEffect(() => {
-        if (sentWebsite === undefined) return
-
-        formObjSet(updateWebsiteSchema.parse(sentWebsite))
-    }, [sentWebsite])
-
     return (
         <form className={styles.form} action={() => { }}>
-            {Object.entries(formObj).map(eachEntry => {
-                const eachKey = eachEntry[0] as websiteKeys
+            {formObj.id !== undefined && (
+                <>
+                    <TextInput
+                        name={"id"}
+                        value={`${formObj.id}`}
+                        type={"text"}
+                        label={"website id"}
+                        placeHolder={"enter website id"}
+                        onChange={(e) => {
+                            formObjSet(prevFormObj => {
+                                const newFormObj = { ...prevFormObj }
+                                if (newFormObj.id === undefined) return prevFormObj
 
-                if (eachKey === "fromUser" || eachKey === "userUploadedImages" || eachKey === "pages" || eachKey === "usedComponents") return null
+                                newFormObj.id = e.target.value
 
-                if (moreFormInfo[eachKey] === undefined) return null
+                                return newFormObj
+                            })
+                        }}
+                        onBlur={() => { checkIfValid(formObj, "id") }}
+                        errors={formErrors["id"]}
+                    />
+                </>
+            )}
 
-                if (eachKey === "fonts" && formObj.fonts !== undefined) {
-                    return (
-                        <React.Fragment key={eachKey}>
-                            <label>Fonts</label>
+            {formObj.name !== undefined && (
+                <>
+                    <TextInput
+                        name={"name"}
+                        value={formObj.name ?? ""}
+                        type={"text"}
+                        label={"name"}
+                        placeHolder={"enter full name"}
+                        onChange={(e) => {
+                            formObjSet(prevFormObj => {
+                                const newFormObj = { ...prevFormObj }
+                                if (newFormObj.name === undefined) return prevFormObj
 
-                            <div className={`${styles.fontsCont} snap`}>
-                                {formObj.fonts.map((eachFont, eachFontIndex) => {
-                                    return (
-                                        <div className={styles.fontCont} key={eachFontIndex} >
-                                            <button className='button2'
-                                                onClick={() => {
-                                                    formObjSet(prevFormObj => {
-                                                        const newFormObj = { ...prevFormObj }
-                                                        if (newFormObj.fonts === undefined) return prevFormObj
+                                newFormObj.name = e.target.value
 
-                                                        newFormObj.fonts = newFormObj.fonts.filter((ef, efIndex) => {
-                                                            return efIndex !== eachFontIndex
-                                                        })
+                                return newFormObj
+                            })
+                        }}
+                        onBlur={() => { checkIfValid(formObj, "name") }}
+                        errors={formErrors["name"]}
+                    />
+                </>
+            )}
 
-                                                        return newFormObj
-                                                    })
-                                                }}
-                                            >delete</button>
+            {formObj.fonts !== undefined && (
+                <>
+                    <label>Fonts</label>
 
-                                            <TextInput
-                                                name={eachKey + "importName"}
-                                                value={eachFont.importName}
-                                                type={"text"}
-                                                label={"Website font name"}
-                                                placeHolder={"Enter website font - case sensitive"}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    formObjSet(prevFormObj => {
-                                                        const newFormObj = { ...prevFormObj }
-                                                        if (newFormObj.fonts === undefined) return prevFormObj
+                    {formErrors["fonts"] !== undefined && (
+                        <p>{formErrors["fonts"]}</p>
+                    )}
 
-                                                        newFormObj.fonts[eachFontIndex].importName = e.target.value
-                                                        return newFormObj
-                                                    })
-                                                }}
-                                                onBlur={() => { checkIfValid(formObj, eachKey, websiteSchema) }}
-                                                errors={formErrors[eachKey]}
-                                            />
+                    <div className={`${styles.fontsCont} snap`}>
+                        {formObj.fonts.map((eachFont, eachFontIndex) => {
+                            return (
+                                <div className={styles.fontCont} key={eachFontIndex} >
+                                    <button className='button2'
+                                        onClick={() => {
+                                            formObjSet(prevFormObj => {
+                                                const newFormObj = { ...prevFormObj }
+                                                if (newFormObj.fonts === undefined) return prevFormObj
 
-                                            {formObj.fonts !== undefined && formObj.fonts[eachFontIndex].importName !== "" && (
-                                                <p>css: var(--font-{makeValidVariableName(eachFont.importName)})</p>
-                                            )}
+                                                newFormObj.fonts = newFormObj.fonts.filter((ef, efIndex) => {
+                                                    return efIndex !== eachFontIndex
+                                                })
 
-                                            <TextInput
-                                                name={eachKey + "subset"}
-                                                value={eachFont.subsets.join(",")}
-                                                type={"text"}
-                                                label={"Website font subset"}
-                                                placeHolder={"enter font subsets - e.g latin"}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    formObjSet(prevFormObj => {
-                                                        const newFormObj = { ...prevFormObj }
-                                                        if (newFormObj.fonts === undefined) return prevFormObj
+                                                return newFormObj
+                                            })
+                                        }}
+                                    >delete</button>
 
-                                                        newFormObj.fonts[eachFontIndex].subsets = e.target.value.split(",")
-                                                        return newFormObj
-                                                    })
+                                    <TextInput
+                                        name={"fontImportName"}
+                                        value={eachFont.importName}
+                                        type={"text"}
+                                        label={"Website font name"}
+                                        placeHolder={"Enter website font - case sensitive"}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                            formObjSet(prevFormObj => {
+                                                const newFormObj = { ...prevFormObj }
+                                                if (newFormObj.fonts === undefined) return prevFormObj
 
-                                                }}
-                                                onBlur={() => {
-                                                    checkIfValid(formObj, eachKey, websiteSchema)
-                                                }}
-                                                errors={formErrors[eachKey]}
-                                            />
+                                                newFormObj.fonts[eachFontIndex].importName = e.target.value
+                                                return newFormObj
+                                            })
+                                        }}
+                                        onBlur={() => { checkIfValid(formObj, "fonts") }}
+                                    />
 
-                                            <TextInput
-                                                name={eachKey + "weight"}
-                                                value={eachFont.weights !== null ? eachFont.weights.join(",") : ""}
-                                                type={"text"}
-                                                label={"enter font weight"}
-                                                placeHolder={"blank for variable fonts or 300,400...etc"}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    formObjSet(prevFormObj => {
-                                                        const newFormObj = { ...prevFormObj }
-                                                        if (newFormObj.fonts === undefined) return prevFormObj
+                                    {formObj.fonts !== undefined && formObj.fonts[eachFontIndex].importName !== "" && (
+                                        <p>css: var(--font-{makeValidVariableName(eachFont.importName)})</p>
+                                    )}
 
-                                                        newFormObj.fonts[eachFontIndex].weights = e.target.value.split(",")
+                                    <TextInput
+                                        name={"fontSubset"}
+                                        value={eachFont.subsets.join(",")}
+                                        type={"text"}
+                                        label={"Website font subset"}
+                                        placeHolder={"enter font subsets - e.g latin"}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                            formObjSet(prevFormObj => {
+                                                const newFormObj = { ...prevFormObj }
+                                                if (newFormObj.fonts === undefined) return prevFormObj
 
-                                                        if (e.target.value === "") {
-                                                            newFormObj.fonts[eachFontIndex].weights = null
-                                                        }
-                                                        return newFormObj
-                                                    })
-                                                }}
-                                                onBlur={() => {
-                                                    checkIfValid(formObj, eachKey, websiteSchema)
-                                                }}
-                                                errors={formErrors[eachKey]}
-                                            />
-                                        </div>
-                                    )
-                                })}
+                                                newFormObj.fonts[eachFontIndex].subsets = e.target.value.split(",")
+                                                return newFormObj
+                                            })
 
-                                <button className='button1' style={{ alignSelf: "center" }}
-                                    onClick={() => {
-                                        formObjSet(prevFormObj => {
-                                            const newFormObj = { ...prevFormObj }
-                                            if (newFormObj.fonts === undefined) return prevFormObj
+                                        }}
+                                        onBlur={() => { checkIfValid(formObj, "fonts") }}
+                                    />
 
-                                            newFormObj.fonts = [...newFormObj.fonts, {
-                                                importName: "",
-                                                subsets: [],
-                                                weights: null
-                                            }]
-                                            return newFormObj
-                                        })
-                                    }}
-                                >add</button>
-                            </div>
-                        </React.Fragment>
-                    )
-                }
+                                    <TextInput
+                                        name={"fontWeight"}
+                                        value={eachFont.weights !== null ? eachFont.weights.join(",") : ""}
+                                        type={"text"}
+                                        label={"enter font weight"}
+                                        placeHolder={"blank for variable fonts or 300,400...etc"}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                            formObjSet(prevFormObj => {
+                                                const newFormObj = { ...prevFormObj }
+                                                if (newFormObj.fonts === undefined) return prevFormObj
 
-                return (
-                    <React.Fragment key={eachKey}>
-                        {moreFormInfo[eachKey].inputType === "input" ? (
-                            <TextInput
-                                name={eachKey}
-                                value={`${formObj[eachKey]}`}
-                                type={moreFormInfo[eachKey].type}
-                                label={moreFormInfo[eachKey].label}
-                                placeHolder={moreFormInfo[eachKey].placeHolder}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    formObjSet(prevFormObj => {
-                                        const newFormObj = { ...prevFormObj }
-                                        if (eachKey === "fonts" || eachKey === "authorisedUsers" || eachKey === "dateAdded") return prevFormObj
+                                                newFormObj.fonts[eachFontIndex].weights = e.target.value.split(",")
 
-                                        newFormObj[eachKey] = e.target.value
-                                        return newFormObj
-                                    })
-                                }}
-                                onBlur={() => { checkIfValid(formObj, eachKey, websiteSchema) }}
-                                errors={formErrors[eachKey]}
-                            />
-                        ) : moreFormInfo[eachKey].inputType === "textarea" ? (
-                            <TextArea
-                                name={eachKey}
-                                value={`${formObj[eachKey]}`}
-                                label={moreFormInfo[eachKey].label}
-                                placeHolder={moreFormInfo[eachKey].placeHolder}
-                                onChange={(e) => {
-                                    formObjSet(prevFormObj => {
-                                        const newFormObj = { ...prevFormObj }
-                                        if (eachKey === "fonts" || eachKey === "authorisedUsers" || eachKey === "dateAdded") return prevFormObj
+                                                if (e.target.value === "") {
+                                                    newFormObj.fonts[eachFontIndex].weights = null
+                                                }
+                                                return newFormObj
+                                            })
+                                        }}
+                                        onBlur={() => { checkIfValid(formObj, "fonts") }}
+                                    />
+                                </div>
+                            )
+                        })}
 
-                                        newFormObj[eachKey] = (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
+                        <button className='button1' style={{ alignSelf: "center" }}
+                            onClick={() => {
+                                formObjSet(prevFormObj => {
+                                    const newFormObj = { ...prevFormObj }
+                                    if (newFormObj.fonts === undefined) return prevFormObj
 
-                                        return newFormObj
-                                    })
-                                }}
-                                onBlur={() => { checkIfValid(formObj, eachKey, websiteSchema) }}
-                                errors={formErrors[eachKey]}
-                            />
-                        ) : null}
-                    </React.Fragment>
-                )
-            })}
+                                    newFormObj.fonts = [...newFormObj.fonts, {
+                                        importName: "",
+                                        subsets: [],
+                                        weights: null
+                                    }]
+                                    return newFormObj
+                                })
+                            }}
+                        >add</button>
+                    </div>
+                </>
+            )}
 
             <button className='button1' style={{ justifySelf: "center" }}
                 onClick={handleSubmit}
-            >Submit</button>
+            >{sentWebsite !== undefined ? "update" : "submit"}</button>
         </form>
     )
 }

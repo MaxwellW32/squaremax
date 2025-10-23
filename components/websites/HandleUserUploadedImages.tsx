@@ -1,15 +1,15 @@
 "use client"
-import { websitetype } from '@/types'
+import { websiteType } from '@/types'
 import React, { useState } from 'react'
 import ShowMore from '@/components/showMore/ShowMore'
 import styles from "./style.module.css"
 import Image from 'next/image'
 import { toast } from 'react-hot-toast'
-import { getSpecificWebsite, updateTheWebsite } from '@/serverFunctions/handleWebsites'
+import { getSpecificWebsite, updateWebsite } from '@/serverFunctions/handleWebsites'
 import { maxImageUploadSize, maxBodyToServerSize, uploadedUserImagesStarterUrl } from '@/types/userUploadedTypes'
 import { convertBtyes } from '@/useful/usefulFunctions'
 
-export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }: { seenWebsite: websitetype, seenProjectSet: React.Dispatch<React.SetStateAction<websitetype>> }) {
+export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }: { seenWebsite: websiteType, seenProjectSet: React.Dispatch<React.SetStateAction<websiteType>> }) {
     const [uploadedImages, uploadedImagesSet] = useState<FormData | null>(null)
 
     return (
@@ -77,7 +77,7 @@ export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }
                                     throw new Error("trouble updating, not seeing latest project")
                                 }
 
-                                let latestImagesSeen: websitetype["userUploadedImages"] = latestProject.userUploadedImages
+                                let latestImagesSeen: websiteType["userUploadedImages"] = latestProject.userUploadedImages
 
                                 if (latestImagesSeen === null) {
                                     latestImagesSeen = [...seenData.imageNames]
@@ -86,7 +86,7 @@ export default function HandleUserUploadedImages({ seenWebsite, seenProjectSet }
                                 }
 
                                 //update the server
-                                await updateTheWebsite(seenWebsite.id, {
+                                await updateWebsite(seenWebsite.id, {
                                     userUploadedImages: latestImagesSeen
                                 })
 

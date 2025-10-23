@@ -1,15 +1,15 @@
 "use client"
 import React, { HTMLAttributes, useEffect, useState } from 'react'
 import styles from "./style.module.css"
-import { handleManagePageOptions, newPageType, newPageSchema, pageType, pageSchema, updatePageSchema, websitetype } from '@/types'
-import TextInput from '../textInput/TextInput'
-import TextArea from '../textArea/TextArea'
+import { handleManagePageOptions, newPageType, newPageSchema, pageType, pageSchema, updatePageSchema, websiteType } from '@/types'
+import TextInput from '@/components/inputs/textInput/TextInput'
+import TextArea from '@/components/inputs/textArea/TextArea'
 import { deepClone, makeValidPageLinkName } from '@/utility/utility'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import toast from 'react-hot-toast'
 import { addPage } from '@/serverFunctions/handlePages'
 
-export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage, submissionAction, ...elProps }: { sentWebsiteId: websitetype["id"], sentPage?: pageType, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
+export default function AddEditPage({ sentWebsiteId, sentPage, handleManagePage, submissionAction, ...elProps }: { sentWebsiteId: websiteType["id"], sentPage?: pageType, handleManagePage(options: handleManagePageOptions): Promise<void>, submissionAction?: () => void, } & HTMLAttributes<HTMLFormElement>) {
     const initialFormObj: newPageType = {
         link: "",
         websiteId: sentWebsiteId

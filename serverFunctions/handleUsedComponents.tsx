@@ -3,7 +3,7 @@ import { db } from "@/db"
 import { usedComponents } from "@/db/schema"
 import { ensureUserCanAccessWebsite } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
-import { newUsedComponentType, updateUsedComponentType, updateUsedComponentSchema, usedComponentType, usedComponentLocationType, usedComponentSchema, websitetype, websiteSchema } from "@/types"
+import { newUsedComponentType, updateUsedComponentType, updateUsedComponentSchema, usedComponentType, usedComponentLocationType, usedComponentSchema, websiteType, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
 import { v4 as uuidV4 } from "uuid"
 import { ensureChildCanBeAddedToParent, getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByOrder } from "@/utility/utility"
@@ -66,7 +66,7 @@ export async function addUsedComponent(newUsedComponent: newUsedComponentType): 
     return result
 }
 
-export async function updateTheUsedComponent(websiteId: websitetype["id"], usedComponentId: usedComponentType["id"], updatedUsedComponentObj: Partial<updateUsedComponentType>, runSecurity = true): Promise<usedComponentType> {
+export async function updateTheUsedComponent(websiteId: websiteType["id"], usedComponentId: usedComponentType["id"], updatedUsedComponentObj: Partial<updateUsedComponentType>, runSecurity = true): Promise<usedComponentType> {
     //validation
     websiteSchema.shape.id.parse(websiteId)
     usedComponentSchema.shape.id.parse(usedComponentId)
@@ -88,7 +88,7 @@ export async function updateTheUsedComponent(websiteId: websitetype["id"], usedC
     return result
 }
 
-export async function deleteUsedComponent(websiteId: websitetype["id"], usedComponentId: usedComponentType["id"]) {
+export async function deleteUsedComponent(websiteId: websiteType["id"], usedComponentId: usedComponentType["id"]) {
     //validation
     websiteSchema.shape.id.parse(websiteId)
     usedComponentSchema.shape.id.parse(usedComponentId)
