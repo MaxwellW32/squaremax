@@ -25,7 +25,7 @@ type componentType = {
         }
     } | {
         type: "containers",
-        data: {}
+        data: object
     },
     elements: elementType[],
     childComponents: string[],
@@ -239,10 +239,11 @@ function renderElements(elementsToRender: elementType[], pairedComponent: compon
     )
 }
 
-function flattenObject(obj: any, prefix = "data", result: Record<string, any> = {}): Record<string, any> {
+function flattenObject(obj: object, prefix = "data", result: Record<string, unknown> = {}): Record<string, unknown> {
     for (const key in obj) {
         if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
 
+        // @ts-expect-error type
         const value = obj[key];
         const path = `${prefix}.${key}`;
 
