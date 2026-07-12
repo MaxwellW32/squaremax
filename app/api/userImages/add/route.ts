@@ -6,48 +6,48 @@ import { convertBtyes } from "@/useful/usefulFunctions";
 import { sessionCheckWithError } from "@/useful/sessionCheck";
 import { ensureDirectoryExists } from "@/utility/manageFiles";
 
+const allowedImageTypes: { [mime: string]: string } = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
+    "image/avif": "avif",
+};
+
 export async function POST(request: Request) {
     await sessionCheckWithError()
 
     const formData = await request.formData();
-    const body = Object.fromEntries(formData);
+    const files = [...formData.values()].filter((value): value is File => value instanceof File);
 
-    const bodyEntries = Object.entries(body)
+    if (files.length === 0) {
+        return NextResponse.json({ error: "no image files sent" }, { status: 400 });
+    }
 
     //ensure it exists
     await ensureDirectoryExists(userUploadedImagesDirectory)
 
-    const addedImageNames = await Promise.all(bodyEntries.map(async eachEntry => {
-        const eachEntryValueFile = eachEntry[1]
-
-        const file = eachEntryValueFile as File;
-        const id = crypto.randomUUID()
-        const imageType = file.type.split('/')[1]
-        const imageFileName = `${id}.${imageType}`
-        const imagePath = path.join(userUploadedImagesDirectory, imageFileName)
-
-        // Check if file is an image (this will be redundant because of the 'accept' attribute, but can be good for double-checking)
-        if (!file.type.startsWith("image/")) {
-            throw new Error(`File is not an image.`)
+    const addedImageNames = await Promise.all(files.map(async file => {
+        const extension = allowedImageTypes[file.type];
+        if (extension === undefined) {
+            throw new Error(`File type not supported. Use jpeg, png, gif, webp or avif.`)
         }
 
-        // Check the file size
         if (file.size > maxImageUploadSize) {
             throw new Error(`File is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB`)
         }
+
+        const imageFileName = `${crypto.randomUUID()}.${extension}`
+        const imagePath = path.join(userUploadedImagesDirectory, imageFileName)
 
         const buffer = Buffer.from(await file.arrayBuffer());
 
         await fs.writeFile(imagePath, buffer);
 
         return imageFileName
-    })
-    )
+    }))
 
     return NextResponse.json({
         imageNames: addedImageNames,
     });
 }
-
-
-

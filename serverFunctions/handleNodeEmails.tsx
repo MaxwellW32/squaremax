@@ -1,8 +1,9 @@
 "use server"
 import nodemailer from "nodemailer"
+import { env } from "@/lib/env"
 
-const email = process.env.EMAIL
-const pass = process.env.EMAIL_PASS
+const email = env.EMAIL
+const pass = env.EMAIL_PASS
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.hostinger.com',

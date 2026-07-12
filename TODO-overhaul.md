@@ -5,15 +5,15 @@ architecture decisions for the client dynamic-website section as they land.
 
 ## Phase 0 — Audit & modernization
 - [x] Full codebase audit (see summary in CHANGELOG-overhaul.md header)
-- [ ] Tracking files committed
-- [ ] Upgrade packages: Next 14→16, React 18→19, Zod 3→4, Tailwind 3→4, Drizzle 0.34→0.45, next-auth beta.22→beta.31
-- [ ] Fix breaking changes (async request APIs, zod v4 API, tailwind v4 CSS-first config, eslint flat config)
-- [ ] Remove dead deps: jotai, socket.io, socket.io-client, react-moment (verify usage first), uuid (→ crypto.randomUUID)
-- [ ] Replace runtime-mutating template registry (utility/globalTemplates.tsx string-splice) with static registry
-- [ ] Zod-validated env config module (lib/env.ts), .env.example
-- [ ] Zod validation on all external inputs (API routes, forms, ws messages)
-- [ ] Remove tsconfig excludes for websiteTemplates; fix broken `containersType` imports
-- [ ] Green: typecheck + lint + build
+- [x] Tracking files committed
+- [x] Upgrade packages: Next 14→16, React 18→19, Zod 3→4, Tailwind 3→4, Drizzle 0.34→0.45, next-auth beta.22→beta.31
+- [x] Fix breaking changes (async request APIs, zod v4 API, tailwind v4 CSS-first config, eslint flat config)
+- [x] Remove dead deps: jotai, socket.io, socket.io-client, react-moment (verify usage first), uuid (→ crypto.randomUUID)
+- [x] Replace runtime-mutating template registry (utility/globalTemplates.tsx string-splice) with static registry
+- [x] Zod-validated env config module (lib/env.ts), .env.example
+- [x] Zod validation on all external inputs (API routes, forms, ws messages)
+- [x] Remove tsconfig excludes for websiteTemplates; fix broken `containersType` imports
+- [x] Green: typecheck + lint + build
 
 ## Phase 1 — Marketing site redesign
 - [ ] Token system (colors, type scale, spacing) — characterful display face + clean body face

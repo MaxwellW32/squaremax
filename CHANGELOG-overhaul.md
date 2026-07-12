@@ -35,3 +35,8 @@ One line per behavior-relevant refactor/change, newest last. Audit summary first
 - Fixed saveToStorage anys (generics), @ts-ignore → typed narrow in handleServerFiles,
   require(dotenv) → import in drizzle.config.ts, removed redundant dotenv load in handleNodeEmails.
 - package.json: added `typecheck` script; `lint` is now `eslint .` (next lint removed in Next 16).
+- Added lib/env.ts: Zod-validated env access (SKIP_ENV_VALIDATION escape hatch for CI); .env.example documents all vars.
+- db/index.ts + handleNodeEmails now consume lib/env (no scattered process.env / dotenv loads).
+- SECURITY: fixed path traversal in /api/userImages/view (unvalidated imageName reached fs.readFile; no auth). Now uuid.ext regex + resolved-path containment + 400/404 responses + immutable cache header.
+- /api/userImages/add: mime allowlist (jpeg/png/gif/webp/avif) + File instance check; extension derived from allowlist, not raw mime split.
+- Deleted dead code: app/websites/(hideNav)/testIt (alternate render prototype), utility/globalState.tsx (unused).
