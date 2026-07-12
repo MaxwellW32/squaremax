@@ -305,7 +305,6 @@ export default function Page() {
             toast.success("Sending!")
 
             await sendNodeEmail({
-                sendTo: "info@squaremaxtech.com",
                 replyTo: specificationsObj["au"],
                 subject: `Customer Specifications for ${specificationsObj["aa"]}`,
                 text: (`

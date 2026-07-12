@@ -1,64 +1,34 @@
 "use server"
 import nodemailer from "nodemailer"
+import { z } from "zod"
 import { env } from "@/lib/env"
-
-const email = env.EMAIL
-const pass = env.EMAIL_PASS
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.hostinger.com',
-    port: 465, // Or 587 if using TLS
-    secure: true, // true for port 465, false for 587
+    port: 465,
+    secure: true,
     auth: {
-        user: email,
-        pass: pass,
+        user: env.EMAIL,
+        pass: env.EMAIL_PASS,
     },
 });
 
-export async function sendNodeEmail(input: {
-    sendTo: string,
-    replyTo: string,
-    subject: string,
-    text: string,
-}) {
-    // const basePath = process.cwd()
-    // const locationToTempaltes = path.join(basePath, "templates", "simple.html")
-    // const htmlSource = await fs.readFile(locationToTempaltes, { encoding: "utf-8" })
-    // const template = Handlebars.compile(htmlSource);
-    // console.log("Message sent: %s", info.messageId);
+const studioEmailSchema = z.object({
+    replyTo: z.email(),
+    subject: z.string().min(1).max(200),
+    text: z.string().min(1).max(20_000),
+})
+
+//recipient is pinned to the studio inbox — this action is client-callable,
+//so accepting an arbitrary sendTo would be an open relay.
+export async function sendNodeEmail(input: z.infer<typeof studioEmailSchema>) {
+    const validated = studioEmailSchema.parse(input)
 
     await transporter.sendMail({
-        from: email,
-        to: input.sendTo,
-        subject: input.subject,
-        text: input.text,
-        // html: template({
-        //     root: (
-        //         `
-        //         <div>
-        //             ${Object.entries(input.pages).map(([key, value]) => {
-        //             return (
-        //                 `
-        //                     <h1>${value.title}</h1>
-
-        //                     ${value.questions.map(eachQuestionId => {
-        //                     return (
-        //                         `
-        //                             <p>${input.moreFormInfo[eachQuestionId].label}</p>
-        //                             <p>${input.specificationsObj[eachQuestionId]}</p>
-        //                             <b>hi bold test</b>
-        //                         `
-        //                     )
-        //                 })}
-
-        //                     <br/><br/>
-        //                     `
-        //             )
-        //         })}
-        //         </div>
-        //         `
-        //     )
-        // }),
-        replyTo: input.replyTo
+        from: env.EMAIL,
+        to: env.EMAIL,
+        subject: validated.subject,
+        text: validated.text,
+        replyTo: validated.replyTo,
     });
 }

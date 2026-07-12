@@ -91,7 +91,6 @@ export default function ContactForm() {
             toast.success("Sending!")
 
             await sendNodeEmail({
-                sendTo: "info@squaremaxtech.com",
                 replyTo: formObj.email,
                 subject: `Customer Contact from ${formObj.name}`,
                 text: `

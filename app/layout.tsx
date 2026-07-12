@@ -1,23 +1,12 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import Nav from "@/components/nav/Nav";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
-import { servicesData } from "@/lib/servicesData";
-import Footer from "@/components/footer/Footer";
 import { auth } from "@/auth/auth";
-
-//to do
-//make custom forms for each edit data category type
-//templates can import fonts
-//
-//fix colours
-//incorperate family on template
-//fix layout loading state
-//
-//
-//
+import SiteHeader from "@/components/marketing/SiteHeader";
+import SiteFooter from "@/components/marketing/SiteFooter";
 
 const materialSymbolsOutlined = localFont({
   src: "./fonts/MaterialSymbolsOutlined-VariableFont_FILL,GRAD,opsz,wght.ttf",
@@ -32,19 +21,20 @@ const materialSymbolsSharp = localFont({
   variable: "--materialSymbolsSharp",
 });
 
-const rubik = localFont({
-  src: "./fonts/Rubik.ttf",
-  variable: "--rubik",
-});
-
 const geist = localFont({
   src: "./fonts/Geist.ttf",
   variable: "--geist",
 });
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-space-grotesk",
+});
+
 const metadataInfo = {
-  title: "Squaremax - Expert Web Development & Mobile App Solutions",
-  description: "SquareMax is a leading web development agency specializing in high-performance Next JS websites and seamless React Native mobile app solutions. Our expert team delivers tailored digital experiences, from custom e-commerce platforms to robust software solutions. Contact us to elevate your online presence."
+  title: "Squaremax — Custom websites from $1,000 flat. Business pages from $10/month.",
+  description: "Two ways to get online: fixed-scope custom builds at flat tier prices ($1,000 / $3,500 / $6,500), or a hosted business page at squaremaxtech.com/your-business from $10/month. Fixed price. Fixed scope. Days, not months.",
 }
 
 export const metadata: Metadata = {
@@ -67,45 +57,16 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${rubik.variable} ${geist.variable} ${materialSymbolsOutlined.variable} ${materialSymbolsRounded.variable} ${materialSymbolsSharp.variable} antialiased`}
+        className={`${geist.variable} ${spaceGrotesk.variable} ${materialSymbolsOutlined.variable} ${materialSymbolsRounded.variable} ${materialSymbolsSharp.variable} antialiased`}
       >
         <SessionProvider>
           <Toaster position="top-center" reverseOrder={false} />
-          <Nav
-            menuInfoArr={[
-              {
-                title: "Services",
-                link: "/services",
-                subMenu: servicesData.map(eachService => {
-                  return {
-                    title: eachService.name,
-                    link: `/services/${eachService.slug}`
-                  }
-                })
-              }, {
-                title: "Testimonials",
-                link: "/testimonials",
-              },
-              {
-                title: "Blog",
-                link: "/blog",
-              },
-              {
-                title: "Projects",
-                link: "/projects",
-              },
-              {
-                title: "FAQ",
-                link: "/FAQ",
-              }
-            ]}
 
-            session={session}
-          />
+          <SiteHeader session={session} />
 
           {children}
 
-          <Footer />
+          <SiteFooter />
         </SessionProvider>
       </body>
     </html>
