@@ -40,3 +40,16 @@ One line per behavior-relevant refactor/change, newest last. Audit summary first
 - SECURITY: fixed path traversal in /api/userImages/view (unvalidated imageName reached fs.readFile; no auth). Now uuid.ext regex + resolved-path containment + 400/404 responses + immutable cache header.
 - /api/userImages/add: mime allowlist (jpeg/png/gif/webp/avif) + File instance check; extension derived from allowlist, not raw mime split.
 - Deleted dead code: app/websites/(hideNav)/testIt (alternate render prototype), utility/globalState.tsx (unused).
+- Marketing restructure: all chrome-bearing pages moved to app/(marketing)/ route group; root layout is providers-only; tenant pages render chrome-free.
+- BILLING PIVOT: Stripe replaced with PowerTranz hosted-page gateway (cheers pattern) — prepaid 30-day periods tracked in our DB, status computed at read time (active/grace/suspended), no cron. stripe dep removed, POWERTRANZ_* env added (SIMULATE=1 for dev).
+- Squaremax Sites shipped: three-layer design system (themes/variants/compositions), /[businessSlug] with per-slug cache tags, onboarding wizard, tenant + admin dashboards, booking/email/custom-domain add-ons, feature-flag catalog for the rest.
+- middleware.ts renamed proxy.ts (Next 16 convention); non-canonical hosts rewrite to /domains/[host] for the custom-domain add-on.
+- revalidateTag now requires a cache profile in Next 16 — all calls pass "max".
+- Zod 4: z.partialRecord for variantOverrides (z.record with enum keys demands exhaustive keys).
+- unstable_cache serializes Dates to ISO strings on cache hits — effectiveStatus normalizes (found via dev-server smoke test).
+- Additive migration drizzle/0001 applied to production DB: tenants, tenantPayments, tenantBookings, tenantAvailability, tenantMessages (+3 enums). No existing tables touched.
+- Seeded demo tenants: /fade-district (booking + email add-ons, barber theme), /pepper-and-thyme (gallery, espresso theme + services.list override).
+- Tests: vitest added (npm test) — 33 tests over tier bands (edges 2500/5000), discount, slug, booking conflicts, status.
+- Docs: ARCHITECTURE.md (three layers, request flow, billing flow, how-to-add-X), DEPLOY.md (pm2, Caddy on-demand TLS, backups, migrations).
+- /care-plan page added (email CTA for now; self-serve gateway checkout is a listed follow-up).
+- qrcode + tsx + vitest added as deps; nodemailer transporter unified in lib/email/transporter.ts (client-callable action still recipient-pinned).

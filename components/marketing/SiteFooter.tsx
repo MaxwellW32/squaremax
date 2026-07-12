@@ -23,6 +23,7 @@ export default function SiteFooter() {
                 <nav aria-label="Company" className="grid content-start gap-2 text-sm">
                     <p className="font-semibold uppercase tracking-wide text-white/50">Company</p>
                     <Link className="text-white/80 hover:text-white" href="/contact">Contact</Link>
+                    <Link className="text-white/80 hover:text-white" href="/care-plan">Care Plan</Link>
                     <Link className="text-white/80 hover:text-white" href="/privacyPolicy">Privacy</Link>
                     <a className="text-white/80 hover:text-white" href="mailto:info@squaremaxtech.com">info@squaremaxtech.com</a>
                 </nav>

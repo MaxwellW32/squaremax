@@ -101,11 +101,13 @@ export type SiteContent = z.infer<typeof siteContentSchema>
 
 //sensible starter content derived from the onboarding basics
 export function defaultSiteContent(businessName: string): SiteContent {
+    const name = businessName.trim() !== "" ? businessName.trim() : "Your business"
+
     return siteContentSchema.parse({
         schemaVersion: 1,
-        business: { name: businessName },
+        business: { name },
         hero: {
-            heading: businessName,
+            heading: name,
             subheading: "Welcome — we're glad you're here.",
             ctaLabel: "Get in touch",
         },

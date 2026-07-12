@@ -14,9 +14,11 @@ export const GRACE_DAYS = 7
 
 export type EffectiveStatus = "draft" | "active" | "grace" | "suspended" | "cancelled"
 
+//currentPeriodEnd may arrive as a string: unstable_cache JSON-serializes
+//Date columns on cache hits
 export function effectiveStatus(tenant: {
     status: "draft" | "live" | "cancelled"
-    currentPeriodEnd: Date | null
+    currentPeriodEnd: Date | string | null
 }): EffectiveStatus {
     if (tenant.status === "draft") return "draft"
     if (tenant.status === "cancelled") return "cancelled"
@@ -24,7 +26,8 @@ export function effectiveStatus(tenant: {
     if (tenant.currentPeriodEnd === null) return "suspended"
 
     const now = Date.now()
-    const periodEnd = tenant.currentPeriodEnd.getTime()
+    const periodEnd = new Date(tenant.currentPeriodEnd).getTime()
+    if (Number.isNaN(periodEnd)) return "suspended"
 
     if (now <= periodEnd) return "active"
     if (now <= periodEnd + GRACE_DAYS * 24 * 60 * 60 * 1000) return "grace"

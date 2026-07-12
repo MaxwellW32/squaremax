@@ -8,7 +8,8 @@
     "start": "NODE_ENV=production node server.js",
     "deploy": "sh deploy.sh",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
@@ -45,6 +46,8 @@
     "eslint-config-next": "^16.2.10",
     "postcss": "^8.5.17",
     "tailwindcss": "^4.3.2",
-    "typescript": "5.9"
+    "tsx": "^4.23.0",
+    "typescript": "5.9",
+    "vitest": "^4.1.10"
   }
 }

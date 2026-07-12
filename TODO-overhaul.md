@@ -1,71 +1,57 @@
 # Squaremax Overhaul — Progress Tracker
 
-Working directly on `master` per Maxwell's instruction. No pauses between phases; flag crucial
-architecture decisions for the client dynamic-website section as they land.
+Working directly on `master`. All six phases executed 2026-07-12. This file now tracks
+what shipped and the follow-ups worth doing next.
 
-## Phase 0 — Audit & modernization
-- [x] Full codebase audit (see summary in CHANGELOG-overhaul.md header)
-- [x] Tracking files committed
-- [x] Upgrade packages: Next 14→16, React 18→19, Zod 3→4, Tailwind 3→4, Drizzle 0.34→0.45, next-auth beta.22→beta.31
-- [x] Fix breaking changes (async request APIs, zod v4 API, tailwind v4 CSS-first config, eslint flat config)
-- [x] Remove dead deps: jotai, socket.io, socket.io-client, react-moment (verify usage first), uuid (→ crypto.randomUUID)
-- [x] Replace runtime-mutating template registry (utility/globalTemplates.tsx string-splice) with static registry
-- [x] Zod-validated env config module (lib/env.ts), .env.example
-- [x] Zod validation on all external inputs (API routes, forms, ws messages)
-- [x] Remove tsconfig excludes for websiteTemplates; fix broken `containersType` imports
-- [x] Green: typecheck + lint + build
+## Shipped ✔
 
-## Phase 1 — Marketing site redesign
-- [ ] Token system (colors, type scale, spacing) — characterful display face + clean body face
-- [ ] Pages: Home (two-path hero + embedded configurator), Custom Builds, Squaremax Sites, Portfolio/Work, Contact
-- [ ] Mobile responsive, visible focus, prefers-reduced-motion
+### Phase 0 — Modernization
+- [x] Next 14→16.2, React 18→19.2, Zod 3→4.4, Tailwind 3→4.3, Drizzle 0.34→0.45, next-auth beta.31; TS pinned 5.9; ESLint 9 flat config
+- [x] Dead deps removed (jotai, socket.io ×2, react-moment, uuid, stripe); dead code removed (testIt, globalState)
+- [x] Static template registry (no more runtime source-file mutation)
+- [x] lib/env.ts (Zod-validated env) + .env.example
+- [x] SECURITY: path traversal fixed in /api/userImages/view; upload mime allowlist; sendNodeEmail recipient pinned (was an open relay)
+- [x] websiteTemplates typechecked; broken imports fixed
 
-## Phase 2 — Flat-rate configurator
-- [ ] Typed service catalog (Zod schema, editable data file)
-- [ ] Tier bands: Launch $1,000 (≤$2,500) / Business $3,500 ($2,501–5,000) / Pro $6,500 (>$5,000)
-- [ ] Discount math: max(0, subtotal − tierPrice); count-up animations
-- [ ] Preset plans + use-case chips with tooltips
-- [ ] Engagement terms section + "How it works" 5-step timeline
-- [ ] CTA → intake form pre-filled with selections
+### Phase 1+2 — Marketing + configurator
+- [x] Token system (ink/paper/brand/cobalt/mist/line, Space Grotesk + Geist), blueprint-grid signature
+- [x] Pages: Home (two-path hero + live configurator), /custom-builds (+terms, 5-step timeline), /sites, /care-plan; nav tightened to 5 items
+- [x] Configurator: typed catalog (lib/pricing/catalog.ts), tier bands, flat-rate discount, presets, use-case chips, count-up (reduced-motion aware)
+- [x] Intake funnel: /custom-builds/start, server-side quote recompute, emails studio inbox
 
-## Phase 3 — Squaremax Sites (hosted, multi-tenant)
-- [ ] DB: tenants, site_content (JSONB + schemaVersion), site_config, bookings, availability, messages, reviews
-- [ ] /[businessSlug] server-rendered + ISR, cache-bust on save + billing webhooks
-- [ ] Slug safety: reserved words, normalization, uniqueness
-- [ ] Onboarding wizard: claim name → business form → pick look → add-ons → Stripe checkout → live
-- [ ] Stripe: $10/mo base + $10/mo per add-on as subscription items; webhooks → tenant status
-- [ ] Add-ons (full): booking, email notifications, custom domain (Caddy on-demand TLS doc)
-- [ ] Add-ons (stubbed behind flags): gallery, reviews, announcements, analytics
-- [ ] Admin dashboard (tenants, status, MRR, impersonate); tenant dashboard (content, design, add-ons)
+### Phase 3+4 — Squaremax Sites (hosted, multi-tenant)
+- [x] Three-layer design system: themes→CSS vars on tenant root · variant registry (16 variants/10 section types, token-only) · compositions (3 designs)
+- [x] Content keyed by section type; swap any variant within its class; any theme × any layout
+- [x] /[businessSlug]: RSC + per-slug cache tag, paused placeholder; marketing chrome isolated in (marketing) group
+- [x] Slug safety (normalize + reserved list); DB: tenants/payments/bookings/availability/messages (additive migration APPLIED to prod)
+- [x] Billing: PowerTranz prepaid periods (cheers pattern) — checkout, session, callback (server re-verify, CAS, +30 days); simulate mode for dev
+- [x] Onboarding wizard (claim → business form → pick look w/ live preview → add-ons → pay) + go-live QR page
+- [x] Tenant dashboard (content/design/add-ons/renew/bookings+availability/messages); admin dashboard (tenants, status, MRR)
+- [x] Add-ons live: booking, email notifications, custom domain (proxy rewrite + /domains route); stubbed behind flags: gallery, reviews, announcements, analytics
 
-## Phase 4 — Design system (three layers)
-- [ ] Layer 1: ThemeSchema → CSS custom properties on tenant page root (NOT :root)
-- [ ] Layer 2: variant registry { sectionType, variantId, component, propsSchema, preview }
-- [ ] Layer 3: layout compositions (ordered variant ids + default theme id)
-- [ ] ~8 quality themes + per-tenant token overrides
-- [ ] Migrate 3 existing templates into registry; retire old usedComponents path for hosted product
-- [ ] No-hardcoded-hex/font lint rule for variants
+### Phase 5 — Polish
+- [x] Seed: fade-district (barbershop, booking+email) + pepper-and-thyme (restaurant, gallery) — live in DB
+- [x] Tests (33, vitest): tier-band edges $2,500/$5,000, discount, slug, booking conflicts, status transitions
+- [x] ARCHITECTURE.md, DEPLOY.md (Caddy on-demand TLS, backups, pm2)
+- [x] Care Plan page (/care-plan)
+- [x] Smoke-tested in dev server: home, configurator, wizard, both tenant pages
 
-## Phase 5 — Polish & handoff
-- [ ] Intake form → DB + email (top of sales funnel)
-- [ ] Care Plan $100/mo Stripe product + admin tracking
-- [ ] Seed data: barbershop (booking) + restaurant (gallery) demo tenants
-- [ ] ARCHITECTURE.md, DEPLOY.md
-- [ ] Tests: tier bands (edges at exactly $2,500/$5,000), discount math, webhooks, slug validation, booking conflicts
+## Follow-ups (next sessions)
+- [ ] Tenant image uploads in wizard/dashboard (wire existing /api/userImages into hero/about/gallery fields)
+- [ ] Care Plan self-serve checkout (reuse initiateHostedPayment + a carePlanPayments table; page currently emails)
+- [ ] Renewal reminder emails (system cron hitting a small authed route — see DEPLOY.md)
+- [ ] Caddy on_demand_tls "ask" endpoint (/api/domains/check) + dashboard field to set customDomain
+- [ ] Build remaining add-ons: gallery upload UI, reviews, announcements, analytics
+- [ ] Retire legacy builder (app/(marketing)/websites, usedComponents, export pipeline) once Custom Builds delivery moves off it
+- [ ] Cancellation flow (tenant-initiated cancel → status "cancelled")
+- [ ] Consider Pro band pricing: subtotals $5,001–$6,500 currently pay ABOVE itemized value ("$6,500 flat, minimum" copy covers it, but consider Pro at $5,500 or band at >$6,500)
 
-## Key architecture decisions (tenant dynamic site) — decided, flag changes to Maxwell
-1. Content is keyed by SECTION TYPE (one hero blob, one services blob…), not by placed instance —
-   layout swap = new variant list over same data, zero migration.
-2. /[businessSlug] is RSC + ISR (revalidateTag per tenant), busted on content save AND Stripe status change.
-3. Static variant registry (code + deploy), replacing runtime file-mutation of globalTemplates.tsx.
-4. Theme = CSS custom properties inlined on tenant page ROOT ELEMENT (not :root) — instant client-side
-   theme preview, marketing chrome fully isolated, impersonation-safe.
-5. Curated self-hosted font set via next/font, referenced by key from themes (no runtime Google Fonts links).
-6. Custom domains = middleware host-header rewrite → /[slug], Caddy on-demand TLS in front.
-7. Old builder (usedComponents tree, CSS scoping, export/codegen) frozen for Custom Builds delivery;
-   hosted product uses the new three-layer system exclusively.
-
-## Environment notes
-- No .env.local on this dev machine — DB/SMTP/auth creds are VPS-only. Migrations are generated,
-  not applied, locally. .env.example documents everything needed.
-- Custom server (server.js) wraps Next + raw `ws` — kept; port 3000.
+## Key architecture decisions (final)
+1. Content keyed by SECTION TYPE — swap designs with zero data migration.
+2. /[businessSlug] = RSC + unstable_cache per-slug tags; busted on save AND billing change. (Cache serializes Dates to strings — effectiveStatus normalizes.)
+3. Static variant registry; variants are code, shipped by deploy.
+4. Theme = CSS vars on the tenant ROOT ELEMENT, never :root.
+5. Curated next/font set, referenced by key from themes.
+6. Custom domains = proxy.ts host rewrite → /domains/[host]; Caddy on-demand TLS.
+7. Billing = PowerTranz hosted page + prepaid periods in OUR db (cheers pattern), status computed at read time, no cron.
+8. Legacy builder frozen, not extended.
