@@ -33,9 +33,9 @@ const config = [
             "components/pages/**",
             "components/users/**",
             "components/githubOptions/**",
-            "app/websites/**",
-            "app/specifications/**",
-            "app/projects/**",
+            "app/(marketing)/websites/**",
+            "app/(marketing)/specifications/**",
+            "app/(marketing)/projects/**",
             "websiteTemplates/**",
         ],
         rules: {

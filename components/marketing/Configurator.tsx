@@ -13,20 +13,16 @@ function useAnimatedNumber(target: number): number {
     const shownRef = useRef(target)
 
     useEffect(() => {
-        if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            shownRef.current = target
-            shownSet(target)
-            return
-        }
-
         const from = shownRef.current
         if (from === target) return
 
-        const duration = 320
+        //reduced motion: still one rAF hop (never set state synchronously in an effect)
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        const duration = reduced ? 0 : 320
         const start = performance.now()
 
         const tick = (now: number) => {
-            const progress = Math.min(1, (now - start) / duration)
+            const progress = duration === 0 ? 1 : Math.min(1, (now - start) / duration)
             const eased = 1 - Math.pow(1 - progress, 3)
             const value = Math.round(from + (target - from) * eased)
             shownRef.current = value

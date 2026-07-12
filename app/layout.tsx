@@ -4,9 +4,6 @@ import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
-import { auth } from "@/auth/auth";
-import SiteHeader from "@/components/marketing/SiteHeader";
-import SiteFooter from "@/components/marketing/SiteFooter";
 
 const materialSymbolsOutlined = localFont({
   src: "./fonts/MaterialSymbolsOutlined-VariableFont_FILL,GRAD,opsz,wght.ttf",
@@ -47,13 +44,11 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth()
-
   return (
     <html lang="en">
       <body
@@ -62,11 +57,7 @@ export default async function RootLayout({
         <SessionProvider>
           <Toaster position="top-center" reverseOrder={false} />
 
-          <SiteHeader session={session} />
-
           {children}
-
-          <SiteFooter />
         </SessionProvider>
       </body>
     </html>

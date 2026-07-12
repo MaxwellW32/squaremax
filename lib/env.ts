@@ -19,9 +19,16 @@ const envSchema = z.object({
     AUTH_GITHUB_ID: z.string().min(1).optional(),
     AUTH_GITHUB_SECRET: z.string().min(1).optional(),
 
-    //billing + transactional email — optional until Phase 3 goes live
-    STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
-    STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+    //billing: PowerTranz hosted-page gateway (cheers pattern) — optional until
+    //credentials exist; POWERTRANZ_SIMULATE=1 exercises the flow locally
+    POWERTRANZ_ID: z.string().min(1).optional(),
+    POWERTRANZ_PASSWORD: z.string().min(1).optional(),
+    POWERTRANZ_HPP_PAGESET: z.string().min(1).optional(),
+    POWERTRANZ_HPP_PAGENAME: z.string().min(1).optional(),
+    POWERTRANZ_BASE_URL: z.url().optional(),
+    POWERTRANZ_SIMULATE: z.enum(["0", "1"]).optional(),
+
+    //transactional email for tenant add-ons — optional until Phase 3 goes live
     RESEND_API_KEY: z.string().min(1).optional(),
 
     //canonical origin for absolute urls (tenant QR codes, emails)

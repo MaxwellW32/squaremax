@@ -1,7 +1,10 @@
 import { fontsType, usedComponentLocationType, user, userUploadedImagesType, authorisedUserType } from "@/types";
 import { categoryName, templateDataType } from "@/types/templateDataTypes";
+import { SiteContent } from "@/lib/sites/content";
+import { SiteConfig } from "@/lib/sites/config";
+import { AddonId } from "@/lib/sites/addons";
 import { relations } from "drizzle-orm";
-import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index } from "drizzle-orm/pg-core"
+import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean, uniqueIndex } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 // typeof users.$inferSelect;
 // typeof users.$inferInsert 
@@ -205,6 +208,113 @@ export const templatesToStylesRelations = relations(templatesToStyles, ({ one })
 
 
 
+
+//============================================================
+// Squaremax Sites — multi-tenant hosted product.
+// Effective status is COMPUTED from currentPeriodEnd at read
+// time (prepaid periods, cheers billing pattern); the stored
+// status only distinguishes draft/cancelled from live tenants.
+//============================================================
+
+export const tenantStatusEnum = pgEnum("tenantStatus", ["draft", "live", "cancelled"]);
+export const tenantPaymentStatusEnum = pgEnum("tenantPaymentStatus", ["pending", "succeeded", "failed", "refunded"]);
+export const tenantBookingStatusEnum = pgEnum("tenantBookingStatus", ["pending", "confirmed", "cancelled"]);
+
+export const tenants = pgTable("tenants", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    slug: varchar("slug", { length: 63 }).notNull().unique(),
+    businessName: varchar("businessName", { length: 160 }).notNull(),
+    ownerUserId: varchar("ownerUserId", { length: 255 }).notNull().references(() => users.id),
+    status: tenantStatusEnum("status").default("draft").notNull(),
+    //paid-until date; live tenants past this (+ grace) render the paused page
+    currentPeriodEnd: timestamp("currentPeriodEnd", { mode: "date" }),
+    //custom-domain add-on: apex/subdomain pointed at the VPS (Caddy handles TLS)
+    customDomain: varchar("customDomain", { length: 255 }).unique(),
+    content: json("content").$type<SiteContent>().notNull(),
+    config: json("config").$type<SiteConfig>().notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
+}, (t) => ({
+    tenantSlugIndex: uniqueIndex("tenantSlugIndex").on(t.slug),
+    tenantOwnerIndex: index("tenantOwnerIndex").on(t.ownerUserId),
+}));
+export const tenantsRelations = relations(tenants, ({ one, many }) => ({
+    owner: one(users, { fields: [tenants.ownerUserId], references: [users.id] }),
+    payments: many(tenantPayments),
+    bookings: many(tenantBookings),
+    messages: many(tenantMessages),
+    availability: many(tenantAvailability),
+}));
+
+export const tenantPayments = pgTable("tenantPayments", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id),
+    amountCents: integer("amountCents").notNull(),
+    status: tenantPaymentStatusEnum("status").default("pending").notNull(),
+    gatewayTransactionId: text("gatewayTransactionId"),
+    //the span this prepaid charge buys
+    periodStart: timestamp("periodStart", { mode: "date" }),
+    periodEnd: timestamp("periodEnd", { mode: "date" }),
+    //add-ons included in this charge, for the audit trail
+    addonsSnapshot: json("addonsSnapshot").$type<AddonId[]>().default([]).notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+}, (t) => ({
+    tenantPaymentTenantIndex: index("tenantPaymentTenantIndex").on(t.tenantId),
+}));
+export const tenantPaymentsRelations = relations(tenantPayments, ({ one }) => ({
+    tenant: one(tenants, { fields: [tenantPayments.tenantId], references: [tenants.id] }),
+}));
+
+export const tenantBookings = pgTable("tenantBookings", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id),
+    serviceName: varchar("serviceName", { length: 120 }).notNull(),
+    customerName: varchar("customerName", { length: 120 }).notNull(),
+    customerEmail: varchar("customerEmail", { length: 160 }).notNull(),
+    customerPhone: varchar("customerPhone", { length: 40 }).default("").notNull(),
+    startsAt: timestamp("startsAt", { mode: "date" }).notNull(),
+    endsAt: timestamp("endsAt", { mode: "date" }).notNull(),
+    status: tenantBookingStatusEnum("status").default("pending").notNull(),
+    notes: text("notes").default("").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+}, (t) => ({
+    tenantBookingTenantIndex: index("tenantBookingTenantIndex").on(t.tenantId),
+    tenantBookingStartIndex: index("tenantBookingStartIndex").on(t.tenantId, t.startsAt),
+}));
+export const tenantBookingsRelations = relations(tenantBookings, ({ one }) => ({
+    tenant: one(tenants, { fields: [tenantBookings.tenantId], references: [tenants.id] }),
+}));
+
+//weekly opening template for the booking add-on: one row per weekday
+export const tenantAvailability = pgTable("tenantAvailability", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id),
+    dayOfWeek: integer("dayOfWeek").notNull(), //0 = Sunday … 6 = Saturday
+    openTime: varchar("openTime", { length: 5 }).notNull(), //"09:00"
+    closeTime: varchar("closeTime", { length: 5 }).notNull(), //"17:00"
+    slotMinutes: integer("slotMinutes").default(30).notNull(),
+}, (t) => ({
+    tenantAvailabilityTenantIndex: index("tenantAvailabilityTenantIndex").on(t.tenantId),
+    tenantAvailabilityDayIndex: uniqueIndex("tenantAvailabilityDayIndex").on(t.tenantId, t.dayOfWeek),
+}));
+export const tenantAvailabilityRelations = relations(tenantAvailability, ({ one }) => ({
+    tenant: one(tenants, { fields: [tenantAvailability.tenantId], references: [tenants.id] }),
+}));
+
+export const tenantMessages = pgTable("tenantMessages", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id),
+    name: varchar("name", { length: 120 }).notNull(),
+    email: varchar("email", { length: 160 }).notNull(),
+    body: text("body").notNull(),
+    read: boolean("read").default(false).notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+}, (t) => ({
+    tenantMessageTenantIndex: index("tenantMessageTenantIndex").on(t.tenantId),
+}));
+export const tenantMessagesRelations = relations(tenantMessages, ({ one }) => ({
+    tenant: one(tenants, { fields: [tenantMessages.tenantId], references: [tenants.id] }),
+}));
 
 export const accounts = pgTable(
     "account",
