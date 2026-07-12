@@ -40,3 +40,5 @@ next-env.d.ts
 
 # temp build area for website
 /websiteBuildsStagingArea
+# claude local settings
+.claude/
