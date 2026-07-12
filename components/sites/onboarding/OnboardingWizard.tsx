@@ -21,19 +21,21 @@ type ResumeTenant = {
     config: SiteConfig
 }
 
-export default function OnboardingWizard({ signedIn, resumeTenant, cancelled }: {
+export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, initialName }: {
     signedIn: boolean
     resumeTenant: ResumeTenant | null
     cancelled: boolean
+    initialName?: string
 }) {
     const [step, stepSet] = useState(resumeTenant !== null ? 1 : 0)
     const [busy, busySet] = useState(false)
 
-    //step 0
-    const [businessName, businessNameSet] = useState(resumeTenant?.content.business.name ?? "")
+    //step 0 (initialName survives the sign-in round trip via the callback url)
+    const [businessName, businessNameSet] = useState(resumeTenant?.content.business.name ?? initialName ?? "")
     const [slugInfo, slugInfoSet] = useState<{ slug: string; available: boolean; reason?: string } | null>(null)
     const [checkingSlug, checkingSlugSet] = useState(false)
     const slugDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
+    const slugRequestId = useRef(0)
 
     //draft tenant
     const [tenantId, tenantIdSet] = useState<string | null>(resumeTenant?.id ?? null)
@@ -57,13 +59,17 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled }: 
                 return
             }
 
+            //sequence responses: a slow reply for an older name must never
+            //overwrite the result for what's currently typed
+            const requestId = ++slugRequestId.current
             checkingSlugSet(true)
             try {
-                slugInfoSet(await checkSlugAvailability(businessName))
+                const result = await checkSlugAvailability(businessName)
+                if (requestId === slugRequestId.current) slugInfoSet(result)
             } catch {
-                slugInfoSet(null)
+                if (requestId === slugRequestId.current) slugInfoSet(null)
             } finally {
-                checkingSlugSet(false)
+                if (requestId === slugRequestId.current) checkingSlugSet(false)
             }
         }, empty ? 0 : 350)
 
@@ -82,10 +88,12 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled }: 
     }, [currentComposition])
 
     const claimContinue = async () => {
-        if (slugInfo === null || !slugInfo.available) return
+        if (checkingSlug || slugInfo === null || !slugInfo.available) return
 
         if (!signedIn) {
-            window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent("/sites/start")}`
+            //carry the typed name through the auth round trip
+            const returnTo = `/sites/start?name=${encodeURIComponent(businessName.trim())}`
+            window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent(returnTo)}`
             return
         }
 
@@ -194,7 +202,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled }: 
                     <button
                         type="button"
                         onClick={claimContinue}
-                        disabled={busy || slugInfo === null || !slugInfo.available}
+                        disabled={busy || checkingSlug || slugInfo === null || !slugInfo.available}
                         className="w-fit rounded-lg bg-cobalt px-6 py-3 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50"
                     >
                         {signedIn ? "Claim it — continue" : "Sign in & claim it"}
@@ -211,7 +219,15 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled }: 
                     <div className="grid gap-3 sm:grid-cols-2">
                         <label className="grid gap-1 text-sm font-semibold">Tagline
                             <input className={input} value={content.business.tagline} placeholder="Sharp cuts, no waiting"
-                                onChange={e => contentSet({ ...content, business: { ...content.business, tagline: e.target.value }, hero: { ...content.hero, subheading: content.hero.subheading === content.business.tagline ? e.target.value : content.hero.subheading } })} />
+                                onChange={e => {
+                                    //mirror into the hero subheading until the owner customizes it
+                                    const heroUntouched = content.hero.subheading === "Welcome — we're glad you're here." || content.hero.subheading === content.business.tagline
+                                    contentSet({
+                                        ...content,
+                                        business: { ...content.business, tagline: e.target.value },
+                                        hero: heroUntouched ? { ...content.hero, subheading: e.target.value } : content.hero,
+                                    })
+                                }} />
                         </label>
                         <label className="grid gap-1 text-sm font-semibold">Industry
                             <input className={input} value={content.business.industry} placeholder="Barbershop"

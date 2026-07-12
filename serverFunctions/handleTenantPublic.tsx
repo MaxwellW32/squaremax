@@ -1,11 +1,11 @@
 "use server"
 import { z } from "zod"
-import { and, eq, gte, lt, ne } from "drizzle-orm"
+import { and, eq, gte, lt, ne, sql } from "drizzle-orm"
 import { db } from "@/db"
 import { tenantAvailability, tenantBookings, tenantMessages, tenants } from "@/db/schema"
 import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
 import { slugSchema } from "@/lib/sites/slug"
-import { computeSlots, rangesOverlap } from "@/lib/sites/bookingLogic"
+import { businessDateISO, businessDayAnchor, computeSlots, dateISOSchemaPattern, rangesOverlap } from "@/lib/sites/bookingLogic"
 import { sendEmailInBackground } from "@/lib/email/transporter"
 
 //public server actions callable from tenant pages — every input is
@@ -51,7 +51,7 @@ export async function submitTenantMessage(input: z.infer<typeof messageInputSche
 
 const slotsInputSchema = z.object({
     slug: z.string(),
-    dateISO: z.string(), //"2026-07-15"
+    dateISO: z.string().regex(dateISOSchemaPattern), //"2026-07-15", business-local calendar date
     serviceName: z.string().min(1).max(120),
 })
 
@@ -64,10 +64,8 @@ export async function getBookingSlots(input: z.infer<typeof slotsInputSchema>): 
     if (service === undefined) throw new Error("service not found")
     const durationMinutes = service.durationMinutes ?? 30
 
-    const date = new Date(`${validated.dateISO}T00:00:00`)
-    if (Number.isNaN(date.getTime())) throw new Error("invalid date")
-
-    const dayEnd = new Date(date.getTime() + 24 * 60 * 60 * 1000)
+    const { dayStart } = businessDayAnchor(validated.dateISO)
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
 
     const [rules, existing] = await Promise.all([
         db.query.tenantAvailability.findMany({ where: eq(tenantAvailability.tenantId, tenant.id) }),
@@ -75,13 +73,13 @@ export async function getBookingSlots(input: z.infer<typeof slotsInputSchema>): 
             where: and(
                 eq(tenantBookings.tenantId, tenant.id),
                 ne(tenantBookings.status, "cancelled"),
-                gte(tenantBookings.startsAt, date),
+                gte(tenantBookings.startsAt, dayStart),
                 lt(tenantBookings.startsAt, dayEnd),
             ),
         }),
     ])
 
-    const slots = computeSlots({ date, rules, existing, durationMinutes })
+    const slots = computeSlots({ dateISO: validated.dateISO, rules, existing, durationMinutes })
     return slots.map(slot => slot.toISOString())
 }
 
@@ -109,13 +107,19 @@ export async function submitBooking(input: z.infer<typeof bookingInputSchema>) {
     const endsAt = new Date(startsAt.getTime() + durationMinutes * 60_000)
 
     //the requested slot must still be one the availability rules produce
+    //(dateISO derived from the instant in the BUSINESS timezone)
     const rules = await db.query.tenantAvailability.findMany({ where: eq(tenantAvailability.tenantId, tenant.id) })
-    const dayStart = new Date(startsAt); dayStart.setHours(0, 0, 0, 0)
-    const validSlots = computeSlots({ date: dayStart, rules, existing: [], durationMinutes })
+    const dateISO = businessDateISO(startsAt)
+    const { dayStart } = businessDayAnchor(dateISO)
+    const validSlots = computeSlots({ dateISO, rules, existing: [], durationMinutes })
     if (!validSlots.some(slot => slot.getTime() === startsAt.getTime())) throw new Error("slot not available")
 
-    //conflict check + insert inside one transaction to prevent double-booking
+    //conflict check + insert inside one transaction; the per-tenant advisory
+    //lock serializes concurrent submits (plain READ COMMITTED would let two
+    //transactions both pass the read check and double-book)
     const booking = await db.transaction(async tx => {
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${tenant.id}))`)
+
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         const sameDay = await tx.query.tenantBookings.findMany({
             where: and(

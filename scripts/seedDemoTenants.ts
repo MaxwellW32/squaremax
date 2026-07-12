@@ -164,7 +164,7 @@ async function main() {
         let tenantId: string
         if (existing !== undefined) {
             await db.update(schema.tenants)
-                .set({ content: demo.content, config: demo.config, status: "live", currentPeriodEnd: in30Days, updatedAt: new Date() })
+                .set({ businessName: demo.businessName, content: demo.content, config: demo.config, status: "live", currentPeriodEnd: in30Days, updatedAt: new Date() })
                 .where(eq(schema.tenants.id, existing.id))
             tenantId = existing.id
             console.log(`updated ${demo.slug}`)

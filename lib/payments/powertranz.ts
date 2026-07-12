@@ -113,31 +113,39 @@ export async function initiateHostedPayment(opts: {
 }
 
 //second SPI step after the callback: finalize with the SpiToken. No merchant
-//auth headers — the token IS the authorization.
+//auth headers — the token IS the authorization. Never throws: network errors
+//come back as not-approved so the caller can't 500 mid-3DS.
 export async function completeGatewayPayment(spiToken: string): Promise<{
     approved: boolean;
     transactionId: string | null;
+    orderIdentifier: string | null;
     message: string;
 }> {
-    const res = await fetch(`${BASE_URL}/api/spi/payment`, {
-        method: "POST",
-        headers: { "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify(spiToken),
-    });
-    if (!res.ok) {
-        return { approved: false, transactionId: null, message: `HTTP ${res.status}` };
+    try {
+        const res = await fetch(`${BASE_URL}/api/spi/payment`, {
+            method: "POST",
+            headers: { "content-type": "application/json", accept: "application/json" },
+            body: JSON.stringify(spiToken),
+        });
+        if (!res.ok) {
+            return { approved: false, transactionId: null, orderIdentifier: null, message: `HTTP ${res.status}` };
+        }
+        const data: {
+            Approved?: boolean;
+            IsoResponseCode?: string;
+            ResponseMessage?: string;
+            TransactionIdentifier?: string;
+            OrderIdentifier?: string;
+        } = await res.json();
+        return {
+            approved: data.Approved === true && data.IsoResponseCode === "00",
+            transactionId: data.TransactionIdentifier ?? null,
+            orderIdentifier: data.OrderIdentifier ?? null,
+            message: data.ResponseMessage ?? data.IsoResponseCode ?? "unknown",
+        };
+    } catch (error) {
+        return { approved: false, transactionId: null, orderIdentifier: null, message: error instanceof Error ? error.message : "network error" };
     }
-    const data: {
-        Approved?: boolean;
-        IsoResponseCode?: string;
-        ResponseMessage?: string;
-        TransactionIdentifier?: string;
-    } = await res.json();
-    return {
-        approved: data.Approved === true && data.IsoResponseCode === "00",
-        transactionId: data.TransactionIdentifier ?? null,
-        message: data.ResponseMessage ?? data.IsoResponseCode ?? "unknown",
-    };
 }
 
 //refund a settled transaction (full amount as used here); true = accepted

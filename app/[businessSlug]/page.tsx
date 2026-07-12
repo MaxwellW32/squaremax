@@ -1,7 +1,7 @@
 import React from "react"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { getTenantBySlugCached } from "@/serverFunctions/handleTenants"
+import { getTenantBySlugCached } from "@/lib/sites/tenantCache"
 import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
 import { slugSchema } from "@/lib/sites/slug"
 import TenantSite from "@/components/sites/TenantSite"

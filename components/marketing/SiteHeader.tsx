@@ -36,7 +36,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                     ))}
 
                     <Link
-                        href={session !== null ? "/websites" : "/api/auth/signin"}
+                        href={session !== null ? "/dashboard" : "/api/auth/signin"}
                         className="ml-2 rounded-md border border-ink px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-white"
                     >
                         {session !== null ? "Dashboard" : "Sign in"}
@@ -71,7 +71,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                         </Link>
                     ))}
                     <Link
-                        href={session !== null ? "/websites" : "/api/auth/signin"}
+                        href={session !== null ? "/dashboard" : "/api/auth/signin"}
                         onClick={() => openSet(false)}
                         className="rounded-md px-3 py-2.5 font-semibold text-ink hover:bg-line/60"
                     >

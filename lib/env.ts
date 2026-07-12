@@ -31,8 +31,12 @@ const envSchema = z.object({
     //transactional email for tenant add-ons — optional until Phase 3 goes live
     RESEND_API_KEY: z.string().min(1).optional(),
 
-    //canonical origin for absolute urls (tenant QR codes, emails)
-    SITE_URL: z.url().default("https://squaremaxtech.com"),
+    //canonical origin for absolute urls (payment callbacks, QR codes, emails).
+    //dev default is localhost so simulated payments post back to THIS machine,
+    //never to production
+    SITE_URL: z.url().default(
+        process.env.NODE_ENV === "production" ? "https://squaremaxtech.com" : "http://localhost:3000"
+    ),
 });
 
 export type Env = z.infer<typeof envSchema>;

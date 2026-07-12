@@ -148,7 +148,7 @@ export default function TenantDashboard(props: {
                         </p>
                         <p className="text-sm text-mist">
                             {props.currentPeriodEnd !== null
-                                ? `Paid through ${new Date(props.currentPeriodEnd).toLocaleDateString("en-US", { dateStyle: "long" })}`
+                                ? `Paid through ${new Date(props.currentPeriodEnd).toLocaleDateString("en-US", { dateStyle: "long", timeZone: "America/Jamaica" })}`
                                 : "No active period — pay to go live."}
                         </p>
                         <button type="button" disabled={busy} onClick={renew}
@@ -359,7 +359,7 @@ export default function TenantDashboard(props: {
                             <div key={booking.id} className="grid gap-1 rounded-lg border border-line bg-surface p-4 sm:grid-cols-[1fr_auto] sm:items-center">
                                 <div className="grid gap-0.5 text-sm">
                                     <p className="font-semibold">{booking.serviceName} — {booking.customerName}</p>
-                                    <p className="text-mist">{new Date(booking.startsAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</p>
+                                    <p className="text-mist">{new Date(booking.startsAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Jamaica" })}</p>
                                     <p className="text-mist">{booking.customerEmail}{booking.customerPhone !== "" ? ` · ${booking.customerPhone}` : ""}</p>
                                 </div>
                                 <div className="flex items-center gap-2">

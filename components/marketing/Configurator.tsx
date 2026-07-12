@@ -186,12 +186,18 @@ export default function Configurator() {
                         </p>
                     )}
 
-                    <Link
-                        href={intakeHref}
-                        className="rounded-lg bg-brand px-5 py-3 text-center font-display text-lg font-bold text-white transition-colors hover:bg-brand-deep"
-                    >
-                        Start my build — {usd.format(quote.tierPrice)} flat
-                    </Link>
+                    {selected.size > 0 ? (
+                        <Link
+                            href={intakeHref}
+                            className="rounded-lg bg-brand px-5 py-3 text-center font-display text-lg font-bold text-white transition-colors hover:bg-brand-deep"
+                        >
+                            Start my build — {usd.format(quote.tierPrice)} flat
+                        </Link>
+                    ) : (
+                        <span aria-disabled className="cursor-not-allowed rounded-lg bg-brand/40 px-5 py-3 text-center font-display text-lg font-bold text-white/70">
+                            Pick at least one service
+                        </span>
+                    )}
 
                     <ul className="grid gap-1.5 border-t border-white/15 pt-4 text-sm text-white/70">
                         {everyTierIncludes.map(eachItem => (

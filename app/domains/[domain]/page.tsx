@@ -1,34 +1,17 @@
 import React from "react"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { eq } from "drizzle-orm"
-import { unstable_cache } from "next/cache"
-import { db } from "@/db"
-import { tenants } from "@/db/schema"
+import { getTenantByDomainCached } from "@/lib/sites/tenantCache"
 import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
 import TenantSite from "@/components/sites/TenantSite"
 
-//custom-domain rendering: middleware rewrites foreign hosts here.
+//custom-domain rendering: proxy.ts rewrites foreign hosts here.
 //requires the tenant's custom-domain add-on to be enabled.
-
-async function getTenantByDomain(domainRaw: string) {
-    const domain = domainRaw.toLowerCase().slice(0, 255)
-
-    const cachedRead = unstable_cache(
-        async () => {
-            const tenant = await db.query.tenants.findFirst({ where: eq(tenants.customDomain, domain) })
-            return tenant ?? null
-        },
-        [`tenant-domain-${domain}`],
-        { tags: [`tenant-domain:${domain}`], revalidate: 3600 },
-    )
-
-    return cachedRead()
-}
+//note: params arrive already URL-decoded — do not decode again.
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
     const { domain } = await params
-    const tenant = await getTenantByDomain(decodeURIComponent(domain))
+    const tenant = await getTenantByDomainCached(domain)
     if (tenant === null) return {}
 
     const business = tenant.content.business
@@ -40,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
 
 export default async function Page({ params }: { params: Promise<{ domain: string }> }) {
     const { domain } = await params
-    const tenant = await getTenantByDomain(decodeURIComponent(domain))
+    const tenant = await getTenantByDomainCached(domain)
 
     if (tenant === null) notFound()
     if (!tenant.config.enabledAddons.includes("custom-domain")) notFound()

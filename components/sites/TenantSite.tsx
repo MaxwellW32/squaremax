@@ -4,6 +4,7 @@ import { SiteConfig } from "@/lib/sites/config"
 import { themesById, themeToStyle, themes } from "@/lib/sites/themes"
 import { compositionsById, compositions } from "@/lib/sites/compositions"
 import { variantsById } from "@/lib/sites/registry"
+import { tenantFontsClassName } from "@/lib/sites/fonts"
 
 //============================================================
 // The tenant renderer: theme tokens go on THIS root element
@@ -45,7 +46,7 @@ export default function TenantSite({
                 fontFamily: "var(--t-font-body)",
                 color: "var(--t-text)",
             }}
-            className="min-h-screen"
+            className={`${tenantFontsClassName} min-h-screen`}
         >
             {resolvedVariantIds.map(variantId => {
                 const entry = variantsById[variantId]

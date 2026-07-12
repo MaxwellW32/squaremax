@@ -8,6 +8,8 @@ const CANONICAL_HOSTS = new Set([
     "www.squaremaxtech.com",
     "localhost:3000",
     "localhost",
+    "127.0.0.1:3000",
+    "127.0.0.1",
 ])
 
 export default function proxy(request: NextRequest) {
@@ -20,7 +22,9 @@ export default function proxy(request: NextRequest) {
     if (pathname.startsWith("/_next") || pathname.startsWith("/api")) return NextResponse.next()
 
     const url = request.nextUrl.clone()
-    url.pathname = `/domains/${host}`
+    //tenant sites are single-page: only the root renders; any other path on a
+    //custom domain 404s (three segments never match /domains/[domain])
+    url.pathname = pathname === "/" ? `/domains/${host}` : `/domains/${host}/nf`
     return NextResponse.rewrite(url)
 }
 

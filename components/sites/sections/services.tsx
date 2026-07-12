@@ -17,9 +17,9 @@ export function ServicesGrid({ content }: SectionProps) {
                 </h2>
 
                 <ul className="grid gap-[var(--t-space)] sm:grid-cols-2 lg:grid-cols-3">
-                    {services.items.map(item => (
+                    {services.items.map((item, itemIndex) => (
                         <li
-                            key={item.name}
+                            key={item.name + "-" + itemIndex}
                             className="grid content-start gap-1.5 rounded-[var(--t-radius)] p-[calc(var(--t-space)*1.25)]"
                             style={{ backgroundColor: "var(--t-surface)", border: "1px solid var(--t-border)" }}
                         >
@@ -54,8 +54,8 @@ export function ServicesList({ content }: SectionProps) {
                 </h2>
 
                 <ul className="grid gap-[var(--t-space)]">
-                    {services.items.map(item => (
-                        <li key={item.name} className="grid gap-0.5">
+                    {services.items.map((item, itemIndex) => (
+                        <li key={item.name + "-" + itemIndex} className="grid gap-0.5">
                             <div className="flex items-baseline gap-2">
                                 <span className="font-semibold text-[var(--t-text)]" style={{ fontFamily: "var(--t-font-heading)" }}>{item.name}</span>
                                 <span aria-hidden className="grow border-b border-dotted" style={{ borderColor: "var(--t-border)" }} />

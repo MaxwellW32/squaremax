@@ -29,7 +29,8 @@ function BrandMark({ name, logoUrl }: { name: string; logoUrl: string }) {
 //variant: navbar.classic — brand left, links right
 export function NavbarClassic(props: SectionProps) {
     const { content, config } = props
-    const bookingOn = config.enabledAddons.includes("booking")
+    //the booking panel only renders when services exist — don't CTA into a void
+    const bookingOn = config.enabledAddons.includes("booking") && content.services.items.length > 0
 
     return (
         <header className="sticky top-0 z-40 border-b bg-[var(--t-bg)]/95 backdrop-blur" style={{ borderColor: "var(--t-border)" }}>

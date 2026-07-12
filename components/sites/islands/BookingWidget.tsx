@@ -1,19 +1,21 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import { getBookingSlots, submitBooking } from "@/serverFunctions/handleTenantPublic"
+import { BUSINESS_TZ, businessDateISO, businessDayAnchor } from "@/lib/sites/bookingLogic"
 
 type ServiceOption = { name: string; price: string; durationMinutes: number }
 
+//days + labels are computed in the BUSINESS timezone, so server render and
+//client hydration agree regardless of the visitor's own timezone
 function nextDays(count: number): { iso: string; label: string }[] {
+    const now = new Date()
     const days: { iso: string; label: string }[] = []
-    const today = new Date()
     for (let offset = 0; offset < count; offset++) {
-        const date = new Date(today)
-        date.setDate(today.getDate() + offset)
-        const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+        const iso = businessDateISO(now, offset)
         days.push({
             iso,
-            label: date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+            label: new Intl.DateTimeFormat("en-US", { timeZone: BUSINESS_TZ, weekday: "short", month: "short", day: "numeric" })
+                .format(businessDayAnchor(iso).dayStart),
         })
     }
     return days
@@ -86,9 +88,9 @@ export default function BookingWidget({ slug, services, preview }: { slug: strin
             <div className="grid gap-1.5">
                 <span className="text-[length:var(--t-text-s)] font-semibold uppercase tracking-wide text-[var(--t-text-muted)]">Service</span>
                 <div className="flex flex-wrap gap-2">
-                    {services.map(service => (
+                    {services.map((service, serviceIndex) => (
                         <button
-                            key={service.name}
+                            key={service.name + "-" + serviceIndex}
                             type="button"
                             onClick={() => serviceNameSet(service.name)}
                             className="rounded-[var(--t-radius)] px-3 py-2 text-[length:var(--t-text-s)] font-semibold"
@@ -143,7 +145,7 @@ export default function BookingWidget({ slug, services, preview }: { slug: strin
                                     ? { backgroundColor: "var(--t-primary)", color: "var(--t-primary-contrast)" }
                                     : { backgroundColor: "var(--t-bg)", border: "1px solid var(--t-border)", color: "var(--t-text)" }}
                             >
-                                {new Date(slot).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                {new Date(slot).toLocaleTimeString("en-US", { timeZone: BUSINESS_TZ, hour: "numeric", minute: "2-digit" })}
                             </button>
                         ))}
                     </div>

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import { revalidateTag } from "next/cache"
 import { db } from "@/db"
 import { tenantPayments, tenants } from "@/db/schema"
@@ -9,7 +9,12 @@ import { completeGatewayPayment, gatewaySimulated } from "@/lib/payments/powertr
 // a forged POST is harmless because a payment only flips
 // pending → succeeded via a real, completable SpiToken —
 // server-side re-verification is the source of truth.
-// CAS guard (where status = pending) makes replays idempotent.
+//
+// Concurrency: the whole settle runs inside one transaction
+// holding a per-payment advisory lock, with the payment row
+// re-read and the tenant row locked FOR UPDATE. This makes
+// duplicate callbacks idempotent AND makes two different
+// payments for the same tenant stack (+30d each), never clobber.
 //============================================================
 
 const PERIOD_DAYS = 30
@@ -43,6 +48,11 @@ function redirectHtml(target: string): Response {
     )
 }
 
+function bustTenantTags(slug: string, customDomain: string | null) {
+    revalidateTag(`tenant:${slug}`, "max")
+    if (customDomain !== null) revalidateTag(`tenant-domain:${customDomain}`, "max")
+}
+
 export async function POST(request: Request) {
     const url = new URL(request.url)
     const paymentId = url.searchParams.get("payment")
@@ -66,6 +76,7 @@ export async function POST(request: Request) {
     const { spiToken, simApproved } = await parseCallbackBody(request)
     if (spiToken === null) return redirectHtml(failureTarget)
 
+    //finalize with the gateway BEFORE opening the transaction (network call)
     let approved: boolean
     let transactionId: string | null
 
@@ -74,45 +85,66 @@ export async function POST(request: Request) {
         transactionId = spiToken
     } else {
         const result = await completeGatewayPayment(spiToken)
+        //if the gateway echoes our order reference, it must match this payment
+        const expectedOrder = `sub-${tenant.slug}-${payment.id.slice(0, 8)}`
+        if (result.orderIdentifier !== null && result.orderIdentifier !== expectedOrder) {
+            console.error(`payment callback order mismatch: expected ${expectedOrder}, got ${result.orderIdentifier} (payment ${payment.id})`)
+            return redirectHtml(failureTarget)
+        }
         approved = result.approved
         transactionId = result.transactionId
     }
 
-    if (!approved) {
-        await db.update(tenantPayments)
-            .set({ status: "failed" })
-            .where(and(eq(tenantPayments.id, payment.id), eq(tenantPayments.status, "pending")))
+    let outcome: "credited" | "already-settled" | "declined"
+    try {
+        outcome = await db.transaction(async tx => {
+            //serialize concurrent callbacks for this payment AND renewals for this tenant
+            await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${payment.id}))`)
+            await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${tenant.id}))`)
+
+            //re-read under the lock — a duplicate callback may have settled it already
+            const fresh = await tx.query.tenantPayments.findFirst({ where: eq(tenantPayments.id, payment.id) })
+            if (fresh === undefined) return "declined"
+            if (fresh.status === "succeeded") return "already-settled"
+            if (fresh.status !== "pending") return "declined"
+
+            if (!approved) {
+                await tx.update(tenantPayments).set({ status: "failed" }).where(eq(tenantPayments.id, payment.id))
+                return "declined"
+            }
+
+            //lock + re-read the tenant so two different payments stack, never clobber
+            const [lockedTenant] = await tx.select().from(tenants).where(eq(tenants.id, tenant.id)).for("update")
+            if (lockedTenant === undefined) return "declined"
+
+            const now = new Date()
+            const base = lockedTenant.currentPeriodEnd !== null && lockedTenant.currentPeriodEnd > now
+                ? lockedTenant.currentPeriodEnd
+                : now
+            const periodEnd = new Date(base.getTime() + PERIOD_DAYS * 24 * 60 * 60 * 1000)
+
+            await tx.update(tenantPayments)
+                .set({ status: "succeeded", gatewayTransactionId: transactionId, periodStart: base, periodEnd })
+                .where(eq(tenantPayments.id, payment.id))
+
+            await tx.update(tenants)
+                .set({ status: "live", currentPeriodEnd: periodEnd, updatedAt: now })
+                .where(eq(tenants.id, tenant.id))
+
+            return "credited"
+        })
+    } catch (error) {
+        //the charge may already be captured gateway-side: leave the payment
+        //pending (a callback replay can settle it) and log for reconciliation
+        console.error(`CRITICAL: payment settle failed after gateway approval — payment ${payment.id}, gateway txn ${transactionId ?? "unknown"}:`, error instanceof Error ? error.message : error)
         return redirectHtml(failureTarget)
     }
 
-    //promote + extend inside one transaction; CAS prevents double-crediting
-    const credited = await db.transaction(async tx => {
-        const promoted = await tx.update(tenantPayments)
-            .set({ status: "succeeded", gatewayTransactionId: transactionId })
-            .where(and(eq(tenantPayments.id, payment.id), eq(tenantPayments.status, "pending")))
-            .returning()
+    if (outcome === "declined") return redirectHtml(failureTarget)
 
-        if (promoted.length === 0) return false //another callback won the race
-
-        //stack on remaining time, never clip it
-        const now = new Date()
-        const base = tenant.currentPeriodEnd !== null && tenant.currentPeriodEnd > now ? tenant.currentPeriodEnd : now
-        const periodEnd = new Date(base.getTime() + PERIOD_DAYS * 24 * 60 * 60 * 1000)
-
-        await tx.update(tenantPayments)
-            .set({ periodStart: base, periodEnd })
-            .where(eq(tenantPayments.id, payment.id))
-
-        await tx.update(tenants)
-            .set({ status: "live", currentPeriodEnd: periodEnd, updatedAt: now })
-            .where(eq(tenants.id, tenant.id))
-
-        return true
-    })
-
-    if (credited) {
-        //billing state changed → the public page must reflect it immediately
-        revalidateTag(`tenant:${tenant.slug}`, "max")
+    if (outcome === "credited") {
+        //billing state changed → public pages must reflect it immediately
+        bustTenantTags(tenant.slug, tenant.customDomain)
     }
 
     return redirectHtml(successTarget)

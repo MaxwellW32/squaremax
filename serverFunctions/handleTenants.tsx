@@ -1,7 +1,7 @@
 "use server"
 import { z } from "zod"
 import { and, eq } from "drizzle-orm"
-import { revalidateTag, unstable_cache } from "next/cache"
+import { revalidateTag } from "next/cache"
 import { db } from "@/db"
 import { tenantAvailability, tenantBookings, tenantMessages, tenants } from "@/db/schema"
 import { siteContentSchema, SiteContent, defaultSiteContent } from "@/lib/sites/content"
@@ -17,23 +17,11 @@ import { sessionCheckWithError } from "@/useful/sessionCheck"
 // pages are cached aggressively and correct immediately.
 //============================================================
 
-export async function getTenantBySlugCached(slugRaw: string) {
-    const slug = slugSchema.parse(slugRaw)
-
-    const cachedRead = unstable_cache(
-        async () => {
-            const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
-            return tenant ?? null
-        },
-        [`tenant-${slug}`],
-        { tags: [`tenant:${slug}`], revalidate: 3600 },
-    )
-
-    return cachedRead()
-}
-
-function bustTenant(slug: string) {
+function bustTenant(slug: string, customDomain: string | null) {
     revalidateTag(`tenant:${slug}`, "max")
+    //the custom-domain page caches under its own tag — bust it too or the
+    //tenant's own domain serves stale content for up to an hour
+    if (customDomain !== null) revalidateTag(`tenant-domain:${customDomain}`, "max")
 }
 
 //------------------------------------------------------------
@@ -112,7 +100,7 @@ export async function updateTenantContent(tenantId: string, contentRaw: SiteCont
         .set({ content, businessName: content.business.name, updatedAt: new Date() })
         .where(eq(tenants.id, tenant.id))
 
-    bustTenant(tenant.slug)
+    bustTenant(tenant.slug, tenant.customDomain)
     return { ok: true }
 }
 
@@ -122,16 +110,20 @@ export async function updateTenantConfig(tenantId: string, configRaw: SiteConfig
 
     if (compositionsById[config.compositionId] === undefined) throw new Error("unknown composition")
 
-    //only fully-built add-ons can be enabled
+    //only fully-built add-ons can be NEWLY enabled; add-ons already on the
+    //tenant (e.g. seeded demos) may be kept without bricking every save
     for (const addonId of config.enabledAddons) {
-        if (addonsById[addonId].status !== "available") throw new Error(`${addonsById[addonId].name} is not available yet`)
+        const alreadyEnabled = tenant.config.enabledAddons.includes(addonId)
+        if (!alreadyEnabled && addonsById[addonId].status !== "available") {
+            throw new Error(`${addonsById[addonId].name} is not available yet`)
+        }
     }
 
     await db.update(tenants)
         .set({ config, updatedAt: new Date() })
         .where(eq(tenants.id, tenant.id))
 
-    bustTenant(tenant.slug)
+    bustTenant(tenant.slug, tenant.customDomain)
     return { ok: true }
 }
 
@@ -139,16 +131,21 @@ export async function updateTenantConfig(tenantId: string, configRaw: SiteConfig
 // booking add-on management (owner side)
 //------------------------------------------------------------
 
+const timeOfDayRegex = /^([01]\d|2[0-3]):[0-5]\d$/
+
 const availabilityRuleSchema = z.object({
     dayOfWeek: z.number().int().min(0).max(6),
-    openTime: z.string().regex(/^\d{2}:\d{2}$/),
-    closeTime: z.string().regex(/^\d{2}:\d{2}$/),
+    openTime: z.string().regex(timeOfDayRegex, "use HH:MM (24h)"),
+    closeTime: z.string().regex(timeOfDayRegex, "use HH:MM (24h)"),
     slotMinutes: z.number().int().min(5).max(240),
-})
+}).refine(rule => rule.openTime < rule.closeTime, "opening time must be before closing time")
+
+const availabilityRulesSchema = availabilityRuleSchema.array().max(7)
+    .refine(rules => new Set(rules.map(rule => rule.dayOfWeek)).size === rules.length, "one rule per weekday")
 
 export async function setTenantAvailability(tenantId: string, rulesRaw: z.infer<typeof availabilityRuleSchema>[]) {
     const tenant = await getOwnedTenant(tenantId)
-    const rules = availabilityRuleSchema.array().max(7).parse(rulesRaw)
+    const rules = availabilityRulesSchema.parse(rulesRaw)
 
     await db.transaction(async tx => {
         await tx.delete(tenantAvailability).where(eq(tenantAvailability.tenantId, tenant.id))

@@ -4,8 +4,8 @@ import type { Metadata } from "next"
 import { toDataURL } from "qrcode"
 import { notFound, redirect } from "next/navigation"
 import { auth } from "@/auth/auth"
-import { getTenantBySlugCached } from "@/serverFunctions/handleTenants"
-import { effectiveStatus } from "@/lib/sites/status"
+import { getTenantBySlugCached } from "@/lib/sites/tenantCache"
+import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
 import { env } from "@/lib/env"
 
 export const metadata: Metadata = {
@@ -33,10 +33,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                 <p aria-hidden className="text-5xl">🎉</p>
 
                 <h1 className="font-display text-4xl font-bold normal-case">
-                    {status === "active" ? `${tenant.businessName} is live!` : `${tenant.businessName} is almost there`}
+                    {isPubliclyVisible(status) ? `${tenant.businessName} is live!` : `${tenant.businessName} is almost there`}
                 </h1>
 
-                {status === "active" ? (
+                {isPubliclyVisible(status) ? (
                     <>
                         <a
                             href={`/${tenant.slug}`}

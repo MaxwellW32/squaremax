@@ -3,7 +3,8 @@ import { SectionProps } from "@/lib/sites/sectionProps"
 
 function HeroCta({ props }: { props: SectionProps }) {
     const { content, config } = props
-    const bookingOn = config.enabledAddons.includes("booking")
+    //the booking panel only renders when services exist — don't CTA into a void
+    const bookingOn = config.enabledAddons.includes("booking") && content.services.items.length > 0
     const label = content.hero.ctaLabel !== "" ? content.hero.ctaLabel : bookingOn ? "Book now" : "Get in touch"
 
     return (

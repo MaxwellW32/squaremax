@@ -8,10 +8,12 @@ export const metadata: Metadata = {
     title: "Start my build | Squaremax",
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ services?: string }> }) {
+export default async function Page({ searchParams }: { searchParams: Promise<{ services?: string | string[] }> }) {
     const { services: servicesParam } = await searchParams
 
-    const parsed = serviceIdSchema.array().min(1).safeParse((servicesParam ?? "").split(",").filter(Boolean))
+    //repeated ?services= params arrive as an array — take the first
+    const rawServices = Array.isArray(servicesParam) ? servicesParam[0] : servicesParam
+    const parsed = serviceIdSchema.array().min(1).safeParse((rawServices ?? "").split(",").filter(Boolean))
 
     if (!parsed.success) {
         return (

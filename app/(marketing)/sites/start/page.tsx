@@ -8,8 +8,8 @@ export const metadata: Metadata = {
     title: "Launch my page | Squaremax Sites",
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ tenant?: string; cancelled?: string }> }) {
-    const { tenant: tenantParam, cancelled } = await searchParams
+export default async function Page({ searchParams }: { searchParams: Promise<{ tenant?: string; cancelled?: string; name?: string }> }) {
+    const { tenant: tenantParam, cancelled, name } = await searchParams
     const session = await auth()
 
     //resume an in-progress draft (also how a cancelled payment returns)
@@ -29,6 +29,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
                 signedIn={session !== null}
                 resumeTenant={resumeTenant}
                 cancelled={cancelled === "1"}
+                initialName={typeof name === "string" ? name.slice(0, 160) : undefined}
             />
         </main>
     )

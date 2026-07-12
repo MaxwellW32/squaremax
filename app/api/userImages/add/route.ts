@@ -24,20 +24,22 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "no image files sent" }, { status: 400 });
     }
 
+    //validate the WHOLE batch before writing anything — a late rejection must
+    //not leave earlier files orphaned on disk
+    for (const file of files) {
+        if (allowedImageTypes[file.type] === undefined) {
+            return NextResponse.json({ error: "File type not supported. Use jpeg, png, gif, webp or avif." }, { status: 400 });
+        }
+        if (file.size > maxImageUploadSize) {
+            return NextResponse.json({ error: `File is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB` }, { status: 400 });
+        }
+    }
+
     //ensure it exists
     await ensureDirectoryExists(userUploadedImagesDirectory)
 
     const addedImageNames = await Promise.all(files.map(async file => {
-        const extension = allowedImageTypes[file.type];
-        if (extension === undefined) {
-            throw new Error(`File type not supported. Use jpeg, png, gif, webp or avif.`)
-        }
-
-        if (file.size > maxImageUploadSize) {
-            throw new Error(`File is too large. Maximum size is ${convertBtyes(maxImageUploadSize, "mb")} MB`)
-        }
-
-        const imageFileName = `${crypto.randomUUID()}.${extension}`
+        const imageFileName = `${crypto.randomUUID()}.${allowedImageTypes[file.type]}`
         const imagePath = path.join(userUploadedImagesDirectory, imageFileName)
 
         const buffer = Buffer.from(await file.arrayBuffer());
