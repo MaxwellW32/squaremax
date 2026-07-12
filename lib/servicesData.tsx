@@ -1,3 +1,4 @@
+import type { JSX } from "react"
 export type serviceName = "Website Development" | "Mobile App Development" | "E-commerce Solutions" | "Cloud Solutions Integration" | "Custom Software Development" | "SEO and Marketing" | "Managed Hosting";
 
 export type service = {

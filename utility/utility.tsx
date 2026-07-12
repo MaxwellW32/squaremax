@@ -51,7 +51,7 @@ export function getDescendedUsedComponents(parentUsedComponentIds: (usedComponen
 
     parentUsedComponentIds.forEach(eachParentUsedComponentId => {
         // get children for each usedComponent
-        let childrenUsedComponents = getChildrenUsedComponents(eachParentUsedComponentId, originalUsedComponentsList)
+        const childrenUsedComponents = getChildrenUsedComponents(eachParentUsedComponentId, originalUsedComponentsList)
         descendedArray.push(...childrenUsedComponents)
 
         const childrenUsedComponentIds = childrenUsedComponents.map(eachUsedComponentChild => eachUsedComponentChild.id)
@@ -119,7 +119,7 @@ export function getUsedComponentsInSameLocation(seenLocation: usedComponentLocat
 }
 
 export function sortUsedComponentsByOrder(seenUsedComponents: usedComponent[]) {
-    let orderedUsedComponents = seenUsedComponents.sort((a, b) => a.order - b.order);
+    const orderedUsedComponents = seenUsedComponents.sort((a, b) => a.order - b.order);
     return orderedUsedComponents
 }
 
@@ -205,7 +205,7 @@ export function makeUsedComponentsImplementationString(seenUsedComponents: usedC
     return seenUsedComponents.map(eachUsedComponent => {
         const seenImplementationName = getUsedComponentsImportName(eachUsedComponent)
 
-        let seenPropData = eachUsedComponent.data
+        const seenPropData = eachUsedComponent.data
         let writablePropData = ""
 
         //make the style id

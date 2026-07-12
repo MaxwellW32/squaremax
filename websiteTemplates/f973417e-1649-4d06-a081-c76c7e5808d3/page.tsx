@@ -1,8 +1,8 @@
-import { containersType } from '@/types';
+import { containersDataType } from '@/types/templateDataTypes';
 import React from 'react';
 import "@/app/globals.css";
 
-export default function ContainTwo({ data }: { data: containersType }) {
+export default function ContainTwo({ data }: { data: containersDataType }) {
   return (
     <div {...data.mainElProps} className={`container${data.styleId} ${data.mainElProps.className ?? ""}`}
     >

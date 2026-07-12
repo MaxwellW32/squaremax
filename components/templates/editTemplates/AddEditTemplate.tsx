@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast'
 import { category, collection, template, templatesSchema, newTemplate, newTemplateSchema } from '@/types'
 import { deepClone } from '@/utility/utility'
 import { getAllCategories } from '@/serverFunctions/handleCategories'
-import { addTemplate, deleteTemplate, removeEntryFromGlobalTemplatesFile, updateTemplate } from '@/serverFunctions/handleTemplates'
+import { addTemplate, deleteTemplate, updateTemplate } from '@/serverFunctions/handleTemplates'
 import { consoleAndToastError } from '@/useful/consoleErrorWithToast'
 import { deleteDirectory } from '@/serverFunctions/handleServerFiles'
 import { websiteTemplatesDir } from '@/lib/websiteTemplateLib'
@@ -173,9 +173,6 @@ export default function AddEditTemplate({ oldTemplate }: { oldTemplate?: templat
 
             //delete the website template dir
             await deleteDirectory(path.join(websiteTemplatesDir, oldTemplate.id))
-
-            //delete from global templates file
-            await removeEntryFromGlobalTemplatesFile(oldTemplate.id)
 
             toast.success("deleted template")
         } catch (error) {

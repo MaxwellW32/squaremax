@@ -83,7 +83,7 @@ export default function EditWebsite({ websiteFromServer, seenSession }: { websit
         }>
     }>({})
 
-    const updateWebsiteDebounce = useRef<NodeJS.Timeout>()
+    const updateWebsiteDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
     const updatePageDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
     const updateUsedComponentDebounce = useRef<{ [key: string]: NodeJS.Timeout }>({})
 

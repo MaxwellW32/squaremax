@@ -1,5 +1,5 @@
 "use client";
-import { navBarsDataType } from "@/types";
+import { navBarsDataType } from "@/types/templateDataTypes";
 import Link from "next/link";
 import Image from "next/image";
 import React, { useState } from "react";

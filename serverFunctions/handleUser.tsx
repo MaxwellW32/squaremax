@@ -6,7 +6,6 @@ import { newGithubTokenType, updateUser, updateGithubTokenType, updateGithubToke
 import { sessionCheckWithError } from "@/useful/sessionCheck";
 import { eq } from "drizzle-orm";
 import { getGithubUserFromToken } from "./handleGithub";
-import { v4 as uuidV4 } from "uuid";
 
 export async function updateTheUser(userObj: Partial<updateUser>): Promise<user> {
     await sessionCheckWithError()
@@ -90,7 +89,7 @@ export async function addUserGithubToken(newGithubToken: newGithubTokenType): Pr
 
     const newFullGithubToken: githubTokenType = {
         ...newGithubToken,
-        id: uuidV4(),
+        id: crypto.randomUUID(),
         username: seenUser.login
     }
 

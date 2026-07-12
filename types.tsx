@@ -1,3 +1,4 @@
+import type { JSX } from "react"
 import { z } from "zod";
 import { Endpoints } from "@octokit/types";
 import { categoryNameSchema, templateDataSchema, templateDataType } from "./types/templateDataTypes";

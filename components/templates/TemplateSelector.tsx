@@ -22,7 +22,7 @@ export default function TemplateSelector({ websiteId, seenLocation, activeLocati
     const [filter, filterSet] = useState<templateFilterOptionType>("popular")
     const [otherData, otherDataSet] = useState("")
 
-    const activeSelection = useRef<activeSelectionType | undefined>()
+    const activeSelection = useRef<activeSelectionType | undefined>(undefined)
     const localRenderedPreviewTemplatesObj = useRef<{ [key: string]: React.ComponentType<{ data: templateDataType; }> }>({})
 
     const seenTemplates = useRef<{ [key in activeSelectionType]: template[] }>({

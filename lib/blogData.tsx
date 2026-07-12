@@ -1,3 +1,4 @@
+import type { JSX } from "react"
 export type BlogDataType = {
     category: string;
     coverImage: string;

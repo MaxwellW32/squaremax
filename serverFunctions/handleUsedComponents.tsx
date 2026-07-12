@@ -5,7 +5,6 @@ import { ensureUserCanAccessWebsite } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
 import { newUsedComponent, updateUsedComponent, updateUsedComponentSchema, usedComponent, usedComponentLocationType, usedComponentSchema, website, websiteSchema } from "@/types"
 import { getSpecificWebsite } from "./handleWebsites"
-import { v4 as uuidV4 } from "uuid"
 import { ensureChildCanBeAddedToParent, getDescendedUsedComponents, getUsedComponentsInSameLocation, moveItemInArray, sortUsedComponentsByOrder } from "@/utility/utility"
 
 export async function getSpecificUsedComponent(usedComponentId: usedComponent["id"]): Promise<usedComponent | undefined> {
@@ -55,7 +54,7 @@ export async function getUsedComponents(selectionObj: { option: "website", data:
 
 export async function addUsedComponent(newUsedComponent: newUsedComponent): Promise<usedComponent> {
     const fullNewUsedComponent: usedComponent = {
-        id: uuidV4(),
+        id: crypto.randomUUID(),
         ...newUsedComponent,
     }
 
@@ -122,7 +121,7 @@ export async function changeUsedComponentIndex(seenUsedComponent: usedComponent,
 
     //security
     //get latest usedComponents on server
-    let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
+    const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
 
     //get used components in same location
     //put them in an array
@@ -156,7 +155,7 @@ export async function changeUsedComponentLocation(seenUsedComponent: usedCompone
 
     //security
     //get latest usedComponents on server
-    let latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
+    const latestUsedComponents = await getUsedComponents({ option: "website", data: { websiteId: seenUsedComponent.websiteId } })
 
     //if adding as a child of another element ensure parentEl is valid
     if (newLocation.type === "child") {

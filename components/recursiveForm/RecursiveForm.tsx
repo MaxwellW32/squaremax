@@ -44,7 +44,7 @@ export default function RecursiveForm({ seenForm, seenMoreFormInfo, seenArraySta
             formErrorsSet(prevFormErrors => {
                 const newFormErrors = { ...prevFormErrors }
 
-                seenSchemaResults.error.errors.forEach(eachError => {
+                seenSchemaResults.error.issues.forEach(eachError => {
                     const errorKey = eachError.path.join('/')
                     newFormErrors[errorKey] = eachError.message
                 })

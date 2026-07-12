@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs/promises";
-import { v4 as uuidV4 } from "uuid"
 import { NextResponse } from "next/server";
 import { maxImageUploadSize, userUploadedImagesDirectory } from "@/types/userUploadedTypes";
 import { convertBtyes } from "@/useful/usefulFunctions";
@@ -22,7 +21,7 @@ export async function POST(request: Request) {
         const eachEntryValueFile = eachEntry[1]
 
         const file = eachEntryValueFile as File;
-        const id = uuidV4()
+        const id = crypto.randomUUID()
         const imageType = file.type.split('/')[1]
         const imageFileName = `${id}.${imageType}`
         const imagePath = path.join(userUploadedImagesDirectory, imageFileName)

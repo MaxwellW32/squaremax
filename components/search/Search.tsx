@@ -21,9 +21,9 @@ export default function Search<T>({ searchObj, searchObjSet, searchFunc, showPag
     const wantsToSearchAgain = useRef(false)
 
     const [pageIndex, pageIndexSet] = useState<number | undefined>()
-    const pageDebounce = useRef<NodeJS.Timeout>()
+    const pageDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
 
-    const searchDebounce = useRef<NodeJS.Timeout | undefined>()
+    const searchDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
 
     const [activeSearchFilters, activeSearchFiltersSet] = useState<searchFiltersType<T>>(searchFilters === undefined ? {} : { ...searchFilters })
 

@@ -3,11 +3,12 @@ import { blogData } from '@/lib/blogData'
 import Link from 'next/link'
 import Image from 'next/image'
 
-export default function Page({ searchParams }: { searchParams: { category: string } }) {
+export default async function Page({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
+    const { category } = await searchParams
 
-    const usingSearchParams = searchParams.category !== undefined
+    const usingSearchParams = category !== undefined
 
-    const usableBlogData = usingSearchParams ? blogData.filter(eachBlog => eachBlog.category === searchParams.category) : blogData
+    const usableBlogData = usingSearchParams ? blogData.filter(eachBlog => eachBlog.category === category) : blogData
 
     return (
         <main>

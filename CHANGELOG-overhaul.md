@@ -18,3 +18,20 @@ One line per behavior-relevant refactor/change, newest last. Audit summary first
   usedComponents, templates, categories, styles, + next-auth tables).
 
 ## Changes
+- Upgraded: Next 14.2.35 → 16.2.10 (Turbopack builds), React 18 → 19.2, Zod 3 → 4.4, Tailwind 3 → 4.3
+  (CSS-first config; deleted tailwind.config.ts), Drizzle 0.34 → 0.45, drizzle-kit 0.25 → 0.31,
+  next-auth beta.22 → beta.31, pg/ws/sharp/octokit/jszip to latest. Added stripe + resend (used from Phase 3).
+- TypeScript pinned to 5.9 (TS 7 native compiler not yet supported by Next 16's build integration).
+- ESLint 9 + flat config (eslint.config.mjs); ESLint 10 incompatible with eslint-config-next's react plugin.
+  Legacy builder dirs have react-compiler rules downgraded to warnings pending Phase 1-4 replacement.
+- nodemailer pinned to ^7 (next-auth peer dependency ceiling), not v9.
+- Removed dead deps: jotai, socket.io, socket.io-client, react-moment, uuid/@types/uuid
+  (uuid → crypto.randomUUID; react-moment → Intl helpers in utility/dates.ts).
+- BEHAVIOR: template registry (utility/globalTemplates.tsx) is now static — no runtime file mutation.
+  addTemplate/deleteTemplate no longer splice source code; new templates need one registry line + deploy.
+  (Old approach broke immutable deploys/ISR; whole flow is superseded by the Phase 4 registry.)
+- Migrated 8 pages to Next 15/16 async params/searchParams APIs.
+- websiteTemplates/ now typechecked (removed tsconfig exclude); fixed broken containersType imports.
+- Fixed saveToStorage anys (generics), @ts-ignore → typed narrow in handleServerFiles,
+  require(dotenv) → import in drizzle.config.ts, removed redundant dotenv load in handleNodeEmails.
+- package.json: added `typecheck` script; `lint` is now `eslint .` (next lint removed in Next 16).

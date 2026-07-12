@@ -1,3 +1,4 @@
+import type { JSX } from "react"
 import { service } from '@/lib/servicesData'
 import Image from 'next/image'
 import React from 'react'

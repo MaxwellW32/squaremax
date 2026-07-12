@@ -1,13 +1,14 @@
 "use client"
 import { scaleToFit } from '@/utility/utility'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { use, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { page, sizeOptionsArr, sizeOptionType, website } from '@/types';
 import { getSpecificWebsite } from '@/serverFunctions/handleWebsites';
 import toast from 'react-hot-toast';
 import Draggable from 'react-draggable';
 
-export default function Page({ params }: { params: { websiteId: string } }) {
+export default function Page({ params }: { params: Promise<{ websiteId: string }> }) {
+    const { websiteId } = use(params)
     const searchParams = useSearchParams();
     const [refresher, refresherSet] = useState(true)
     const draggableRef = useRef<HTMLDivElement | null>(null)
@@ -33,7 +34,7 @@ export default function Page({ params }: { params: { websiteId: string } }) {
     //get website
     useEffect(() => {
         const search = async () => {
-            const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: params.websiteId } })
+            const seenWebsite = await getSpecificWebsite({ option: "id", data: { id: websiteId } })
             if (seenWebsite === undefined) {
                 toast.error("not seeing website")
                 return

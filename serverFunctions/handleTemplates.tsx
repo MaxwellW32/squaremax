@@ -86,9 +86,7 @@ export async function addTemplate(seenNewTemplate: newTemplate, collectionsArr: 
     //write Template files to directory
     await createTemplateFolder(addedTemplate.id, collectionsArr)
 
-    //add entry to allow dynamic imports
-    await addEntryToGlobalTemplatesFile(addedTemplate.id)
-
+    //NOTE: new templates must also be registered in utility/globalTemplates.tsx (static registry)
     return addedTemplate
 }
 
@@ -156,54 +154,3 @@ async function createTemplateFolder(seenTemplateId: template["id"], collection: 
     )
 }
 
-export async function addEntryToGlobalTemplatesFile(id: string) {//repalce with template when ready
-    const basePath = path.join(process.cwd(), globalTemplatesFilePath);
-
-    let fileContent = await fs.readFile(basePath, 'utf8');
-
-    const markerIndex = fileContent.indexOf('}//<marker>');
-
-    if (markerIndex === -1) {
-        throw new Error("Marker not found in file")
-    }
-
-    // Find the index of the newline character before the marker
-    let newlineIndex = fileContent.lastIndexOf('\n', markerIndex);
-
-    // Append the string before the marker
-    if (newlineIndex !== -1) {
-        fileContent = fileContent.slice(0, newlineIndex) + '\n' + `"${id}": () => dynamic(() => import(\`@/websiteTemplates/\${id}/page.tsx\`), { ssr: false }),` + fileContent.slice(newlineIndex);
-    }
-
-    await fs.writeFile(basePath, fileContent);
-
-    console.log('Record appended to dynamicTemplates successfully.');
-}
-
-export async function removeEntryFromGlobalTemplatesFile(id: string) {
-    const basePath = path.join(process.cwd(), globalTemplatesFilePath);
-
-    let fileContent = await fs.readFile(basePath, 'utf8');
-
-    // Split the file content by lines
-    const lines = fileContent.split('\n');
-
-    // Find the index of the line that contains the ID
-    const index = lines.findIndex(line => line.includes(`"${id}":`));
-
-    if (index !== -1) {
-        // Remove the line containing the ID
-        lines.splice(index, 1);
-
-        // Join the lines back into a single string
-        fileContent = lines.join('\n');
-
-        // Write the modified content back to the file
-        await fs.writeFile(basePath, fileContent);
-
-        console.log(`Line containing ID "${id}" removed from globalTemplates.tsx successfully.`);
-
-    } else {
-        console.log(`ID "${id}" not found in globalTemplate.tsx.`);
-    }
-}

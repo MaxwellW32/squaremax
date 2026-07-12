@@ -1,11 +1,12 @@
 "use client"
+import type { JSX } from "react"
 import React, { useRef, useEffect, useState, HTMLAttributes } from 'react'
 
 export default function ImageCarousel({ childEls, restTimer = 30000, loopTimer = 5000, ...elProps }: { childEls: JSX.Element[], restTimer?: number, loopTimer?: number } & HTMLAttributes<HTMLDivElement>) {
     const [currentIndex, currentIndexSet] = useState(0)
     const [userHandling, userHandlingSet] = useState(false)
 
-    const loopTimerRef = useRef<NodeJS.Timeout>()
+    const loopTimerRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
     const childElRefs = useRef<HTMLDivElement[]>([])
     const [maxHeight, maxHeightSet] = useState<number | undefined>(undefined)
@@ -64,7 +65,7 @@ export default function ImageCarousel({ childEls, restTimer = 30000, loopTimer =
         })
     }
 
-    const restartTimerRef = useRef<NodeJS.Timeout>()
+    const restartTimerRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
     const handleClick = () => {
         userHandlingSet(true)

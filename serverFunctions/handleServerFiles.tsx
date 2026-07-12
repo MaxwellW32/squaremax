@@ -10,8 +10,7 @@ export async function checkIfFileExists(filePath: string) {
         return true;
 
     } catch (error) {
-        //@ts-ignore
-        if (error.code === 'ENOENT') {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
             return false;
 
         } else {

@@ -1,4 +1,5 @@
 "use client"
+import type { JSX } from "react"
 import React, { useEffect, useRef, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 
@@ -11,7 +12,7 @@ export default function MyMetrics({ icon, amount, amountAdd, text, animateTime =
         return animateTime / amount
     })
 
-    const looper = useRef<NodeJS.Timeout>()
+    const looper = useRef<NodeJS.Timeout | undefined>(undefined)
 
     useEffect(() => {
         if (inView) {

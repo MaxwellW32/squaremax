@@ -8,7 +8,7 @@ import { deleteUserGithubTokens, getUser } from '@/serverFunctions/handleUser'
 import { Session } from 'next-auth'
 import ShowMore from '../showMore/ShowMore'
 import ConfirmationBox from '../confirmationBox/ConfirmationBox'
-import Moment from 'react-moment'
+import { timeAgo } from '@/utility/dates'
 import AddGithubRepository from '../users/addEditGithub/AddGithubRepository'
 import TextInput from '../textInput/TextInput'
 
@@ -282,7 +282,7 @@ export default function DownloadOptions({ seenSession, seenWebsite, seenGithubTo
                                         <div key={eachFilteredRepository.id} style={{ padding: "var(--spacingR)", display: "flex", alignItems: "center", gap: "var(--spacingR)", overflowX: "auto", borderTop: "1px solid var(--shade1)", }}>
                                             <label>{eachFilteredRepository.name}</label>
 
-                                            <p style={{ flex: 1 }}><Moment fromNow>{eachFilteredRepository.updated_at}</Moment></p>
+                                            <p style={{ flex: 1 }}>{eachFilteredRepository.updated_at ? timeAgo(eachFilteredRepository.updated_at) : null}</p>
 
                                             <ConfirmationBox text='' confirmationText='are you sure you want to upload to this repo?' successMessage='uploading!' float={true}
                                                 icon={

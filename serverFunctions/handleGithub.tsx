@@ -151,7 +151,7 @@ async function promiseLimiter<T>(
 ): Promise<unknown[]> {
     const arrChunk = mainArr.slice(startingIndex, startingIndex + chunkSize);
 
-    let seenResolvedInfo = await Promise.all(
+    const seenResolvedInfo = await Promise.all(
         arrChunk.map((eachItem) => asyncFunctionToRun(eachItem))
     );
 

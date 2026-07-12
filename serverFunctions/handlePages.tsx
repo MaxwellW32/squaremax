@@ -5,7 +5,6 @@ import { newPage, newPageSchema, page, pageSchema, updatePage, updatePageSchema,
 import { ensureUserCanAccessWebsite, sessionCheckWithError } from "@/useful/sessionCheck"
 import { eq } from "drizzle-orm"
 import { getSpecificWebsite } from "./handleWebsites"
-import { v4 as uuidV4 } from "uuid"
 import { deleteUsedComponent, getUsedComponents } from "./handleUsedComponents"
 
 export async function addPage(seenNewPage: newPage): Promise<page> {
@@ -19,7 +18,7 @@ export async function addPage(seenNewPage: newPage): Promise<page> {
 
     const fullNewPage: page = {
         ...seenNewPage,
-        id: uuidV4()
+        id: crypto.randomUUID()
     }
 
     //validation

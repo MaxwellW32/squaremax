@@ -3,7 +3,7 @@ import { z } from "zod";
 
 //start copy here
 const reusableHtmlAttributesSchema = z.object({
-    style: z.record(z.string()).optional(),
+    style: z.record(z.string(), z.string()).optional(),
     className: z.string().optional(),
     id: z.string().optional(),
 });
