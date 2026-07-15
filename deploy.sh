@@ -12,8 +12,6 @@ npm install
 # Build the app
 npm run build
 
-# Restart the PM2 process
-pm2 stop squaremax
-pm2 start squaremax
+pm2 startOrRestart ecosystem.config.js
 
 echo "Deployment complete."
