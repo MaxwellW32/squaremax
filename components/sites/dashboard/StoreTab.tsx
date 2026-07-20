@@ -1,7 +1,8 @@
 "use client"
 import React, { useState } from "react"
 import toast from "react-hot-toast"
-import { addProduct, deleteProduct, getProducts, getSales, getSalesSummary, recordSale, updateProduct } from "@/serverFunctions/handleInventory"
+import { addProduct, deleteProduct, getProducts, getSales, getSalesSummary, recordSale, refundSale, updateProduct } from "@/serverFunctions/handleInventory"
+import ReportsPanel from "./ReportsPanel"
 
 //============================================================
 // Store & inventory add-on tab: product list with stock + tax,
@@ -14,6 +15,7 @@ export type ProductRow = {
     name: string
     description: string
     priceCents: number
+    costCents: number
     taxRateBps: number
     stock: number
     trackStock: boolean
@@ -23,10 +25,13 @@ export type ProductRow = {
 
 export type SaleRow = {
     id: string
-    items: { productId: string; name: string; qty: number; unitPriceCents: number; taxCents: number }[]
+    items: { productId: string; name: string; qty: number; unitPriceCents: number; unitCostCents?: number; taxCents: number }[]
     subtotalCents: number
+    discountCents: number
     taxCents: number
     totalCents: number
+    paymentMethod: "cash" | "card" | "transfer" | "whatsapp" | "other"
+    status: "completed" | "refunded"
     customerName: string
     note: string
     createdAt: Date | string
@@ -43,7 +48,7 @@ export type SalesSummary = {
 const input = "rounded-md border border-line bg-surface px-3 py-2 text-sm font-normal"
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`
 
-const emptyProductForm = { name: "", description: "", price: "", taxPct: "", stock: "0", trackStock: true, imageSrc: "" }
+const emptyProductForm = { name: "", description: "", price: "", cost: "", taxPct: "", stock: "0", trackStock: true, imageSrc: "" }
 
 export default function StoreTab(props: {
     tenantId: string
@@ -63,6 +68,8 @@ export default function StoreTab(props: {
     //record-sale cart: productId -> qty
     const [cart, cartSet] = useState<Record<string, number>>({})
     const [saleCustomer, saleCustomerSet] = useState("")
+    const [salePayment, salePaymentSet] = useState<SaleRow["paymentMethod"]>("cash")
+    const [saleDiscount, saleDiscountSet] = useState("")
 
     const run = async (work: () => Promise<unknown>, success?: string) => {
         if (busy) return
@@ -97,6 +104,7 @@ export default function StoreTab(props: {
 
     const submitProduct = () => run(async () => {
         const priceCents = Math.round(Number(form.price) * 100)
+        const costCents = Math.round(Number(form.cost || "0") * 100)
         const taxRateBps = Math.round(Number(form.taxPct || "0") * 100)
         const stock = Math.round(Number(form.stock) || 0)
         if (form.name.trim() === "") throw new Error("name the product")
@@ -104,6 +112,7 @@ export default function StoreTab(props: {
 
         const payload = {
             name: form.name.trim(), description: form.description, priceCents,
+            costCents: Number.isFinite(costCents) && costCents >= 0 ? costCents : 0,
             taxRateBps: Number.isFinite(taxRateBps) ? taxRateBps : 0,
             stock, trackStock: form.trackStock, imageSrc: form.imageSrc, active: true,
         }
@@ -158,9 +167,12 @@ export default function StoreTab(props: {
                         <input className={input} placeholder="Image URL (optional)" value={form.imageSrc} onChange={e => formSet({ ...form, imageSrc: e.target.value })} />
                     </div>
                     <input className={input} placeholder="Short description (optional)" value={form.description} onChange={e => formSet({ ...form, description: e.target.value })} />
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="grid gap-2 sm:grid-cols-4">
                         <label className="grid gap-1 text-xs font-semibold">Price ($)
                             <input className={input} type="number" min={0} step="0.01" value={form.price} onChange={e => formSet({ ...form, price: e.target.value })} />
+                        </label>
+                        <label className="grid gap-1 text-xs font-semibold">Your cost ($)
+                            <input className={input} type="number" min={0} step="0.01" value={form.cost} onChange={e => formSet({ ...form, cost: e.target.value })} title="What you pay per unit — powers profit reports" />
                         </label>
                         <label className="grid gap-1 text-xs font-semibold">Tax rate (%)
                             <input className={input} type="number" min={0} step="0.5" value={form.taxPct} onChange={e => formSet({ ...form, taxPct: e.target.value })} />
@@ -187,6 +199,9 @@ export default function StoreTab(props: {
                     </div>
                 </div>
 
+                {/* reports, taxes & expenses */}
+                <ReportsPanel tenantId={props.tenantId} />
+
                 {/* product list */}
                 <div className="grid gap-2">
                     {products.length === 0 && <p className="text-sm text-mist">No products yet — add your first one above.</p>}
@@ -206,7 +221,8 @@ export default function StoreTab(props: {
                                     editingIdSet(product.id)
                                     formSet({
                                         name: product.name, description: product.description,
-                                        price: (product.priceCents / 100).toFixed(2), taxPct: (product.taxRateBps / 100).toString(),
+                                        price: (product.priceCents / 100).toFixed(2), cost: (product.costCents / 100).toFixed(2),
+                                        taxPct: (product.taxRateBps / 100).toString(),
                                         stock: String(product.stock), trackStock: product.trackStock, imageSrc: product.imageSrc,
                                     })
                                 }}>
@@ -216,6 +232,7 @@ export default function StoreTab(props: {
                                 onClick={() => run(async () => {
                                     await updateProduct(props.tenantId, product.id, {
                                         name: product.name, description: product.description, priceCents: product.priceCents,
+                                        costCents: product.costCents,
                                         taxRateBps: product.taxRateBps, stock: product.stock, trackStock: product.trackStock,
                                         imageSrc: product.imageSrc, active: !product.active,
                                     })
@@ -248,16 +265,31 @@ export default function StoreTab(props: {
                                 onChange={e => cartSet({ ...cart, [product.id]: Math.max(0, Math.round(Number(e.target.value) || 0)) })} />
                         </div>
                     ))}
+                    <div className="grid grid-cols-2 gap-2">
+                        <label className="grid gap-1 text-xs font-semibold">Paid by
+                            <select className={input} value={salePayment} onChange={e => salePaymentSet(e.target.value as SaleRow["paymentMethod"])}>
+                                {(["cash", "card", "transfer", "whatsapp", "other"] as const).map(method => (
+                                    <option key={method} value={method}>{method}</option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="grid gap-1 text-xs font-semibold">Discount ($)
+                            <input className={input} type="number" min={0} step="0.01" placeholder="0.00" value={saleDiscount} onChange={e => saleDiscountSet(e.target.value)} />
+                        </label>
+                    </div>
                     <input className={input} placeholder="Customer name (optional)" value={saleCustomer} onChange={e => saleCustomerSet(e.target.value)} />
                     <button type="button" disabled={busy || cartLines.length === 0}
                         className="rounded-lg bg-cobalt px-4 py-2.5 font-display font-bold text-white hover:bg-ink disabled:opacity-50"
                         onClick={() => run(async () => {
                             await recordSale(props.tenantId, {
                                 items: cartLines.map(([productId, qty]) => ({ productId, qty })),
+                                paymentMethod: salePayment,
+                                discountCents: Math.max(0, Math.round(Number(saleDiscount || "0") * 100)) || 0,
                                 customerName: saleCustomer, customerId: null, note: "",
                             })
                             cartSet({})
                             saleCustomerSet("")
+                            saleDiscountSet("")
                             await refreshAll()
                         }, "Sale recorded")}>
                         Record {cartLines.length > 0 ? `— ${money(cartTotalCents)}` : "sale"}
@@ -269,12 +301,27 @@ export default function StoreTab(props: {
                     {sales.length === 0 && <p className="text-sm text-mist">Nothing yet.</p>}
                     {sales.slice(0, 12).map(sale => (
                         <div key={sale.id} className="grid gap-0.5 border-b border-line/60 pb-2 text-sm last:border-b-0">
-                            <div className="flex justify-between gap-2">
-                                <span className="font-semibold">{money(sale.totalCents)}</span>
-                                <span className="text-xs text-mist">{new Date(sale.createdAt).toLocaleDateString("en-US", { dateStyle: "medium" })}</span>
+                            <div className="flex items-center justify-between gap-2">
+                                <span className={`font-semibold ${sale.status === "refunded" ? "text-mist line-through" : ""}`}>{money(sale.totalCents)}</span>
+                                <span className="flex items-center gap-2 text-xs text-mist">
+                                    <span className="capitalize">{sale.paymentMethod}</span>
+                                    {new Date(sale.createdAt).toLocaleDateString("en-US", { dateStyle: "medium" })}
+                                    {sale.status === "refunded" ? (
+                                        <span className="rounded-full bg-line px-2 py-0.5 font-semibold">refunded</span>
+                                    ) : (
+                                        <button type="button" disabled={busy} className="font-semibold text-mist hover:text-brand"
+                                            onClick={() => {
+                                                if (!window.confirm(`Refund this ${money(sale.totalCents)} sale? Stock is returned.`)) return
+                                                run(async () => { await refundSale(props.tenantId, sale.id); await refreshAll() }, "Refunded — stock returned")
+                                            }}>
+                                            Refund
+                                        </button>
+                                    )}
+                                </span>
                             </div>
                             <p className="text-xs text-mist">
                                 {sale.items.map(item => `${item.qty}× ${item.name}`).join(", ")}
+                                {sale.discountCents > 0 ? ` · −${money(sale.discountCents)} discount` : ""}
                                 {sale.customerName !== "" ? ` — ${sale.customerName}` : ""}
                             </p>
                         </div>

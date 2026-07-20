@@ -58,6 +58,7 @@ export const siteTemplates: SiteTemplate[] = [
                     { category: "testimonials", variantId: "testimonials.cards" },
                     { category: "hours", variantId: "hours.table" },
                     { category: "booking", variantId: "booking.panel" },
+                    { category: "faq", variantId: "faq.accordion" },
                     { category: "contact", variantId: "contact.split" },
                 ],
             },

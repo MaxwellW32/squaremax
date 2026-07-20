@@ -10,6 +10,10 @@ import { ContactSplit } from "@/components/sites/sections/contacts"
 import { ProductsGrid } from "@/components/sites/sections/products"
 import { FooterSimple, FooterColumns } from "@/components/sites/sections/footers"
 import { BookingPanel } from "@/components/sites/sections/booking"
+import { FeatureGridCards, FeatureGridChecklist, StatsStrip, CtaBand, CtaSplit, FaqAccordion, PricingCards, StepsNumbered, StepsTimeline } from "@/components/sites/sections/selling"
+import { TeamCards, LogoStripRow, BeforeAfterPairs, VideoEmbed } from "@/components/sites/sections/trust"
+import { PriceListClassic, PriceListColumns, LocationMapSplit, EventsList } from "@/components/sites/sections/practical"
+import { NewsletterStrip, DividerSimple, EmbedFrame } from "@/components/sites/sections/utility"
 
 //============================================================
 // The design reservoir. Every CATEGORY has one data shape
@@ -60,6 +64,42 @@ export const variants: VariantEntry[] = [
 
     { variantId: "footer.simple", category: "footer", label: "One line", component: FooterSimple },
     { variantId: "footer.columns", category: "footer", label: "Columns with links + contact", component: FooterColumns },
+
+    { variantId: "featureGrid.cards", category: "featureGrid", label: "Icon cards", component: FeatureGridCards },
+    { variantId: "featureGrid.checklist", category: "featureGrid", label: "Checklist — compact ✓ rows", component: FeatureGridChecklist },
+
+    { variantId: "stats.strip", category: "stats", label: "Big numbers band", component: StatsStrip },
+
+    { variantId: "ctaBanner.band", category: "ctaBanner", label: "Bold color band", component: CtaBand },
+    { variantId: "ctaBanner.split", category: "ctaBanner", label: "Text beside image", component: CtaSplit },
+
+    { variantId: "faq.accordion", category: "faq", label: "Accordion — tap to open", component: FaqAccordion },
+
+    { variantId: "pricingPlans.cards", category: "pricingPlans", label: "Plan cards", component: PricingCards },
+
+    { variantId: "steps.numbered", category: "steps", label: "Numbered cards", component: StepsNumbered },
+    { variantId: "steps.timeline", category: "steps", label: "Vertical timeline", component: StepsTimeline },
+
+    { variantId: "team.cards", category: "team", label: "Photo cards", component: TeamCards },
+
+    { variantId: "logoStrip.row", category: "logoStrip", label: "Quiet brand row", component: LogoStripRow },
+
+    { variantId: "beforeAfter.pairs", category: "beforeAfter", label: "Side-by-side pairs", component: BeforeAfterPairs },
+
+    { variantId: "video.embed", category: "video", label: "YouTube / Vimeo player", component: VideoEmbed },
+
+    { variantId: "priceList.classic", category: "priceList", label: "Classic menu — dotted leaders", component: PriceListClassic },
+    { variantId: "priceList.columns", category: "priceList", label: "Section columns", component: PriceListColumns },
+
+    { variantId: "locationMap.split", category: "locationMap", label: "Details beside map", component: LocationMapSplit },
+
+    { variantId: "events.list", category: "events", label: "Event rows", component: EventsList },
+
+    { variantId: "newsletter.strip", category: "newsletter", label: "Email capture band", component: NewsletterStrip },
+
+    { variantId: "divider.simple", category: "divider", label: "Line or spacing break", component: DividerSimple },
+
+    { variantId: "embed.frame", category: "embed", label: "Sandboxed embed", component: EmbedFrame },
 ]
 
 export const variantsById: Record<string, VariantEntry> = Object.fromEntries(

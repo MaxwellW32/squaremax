@@ -2,15 +2,16 @@
 import React, { useMemo, useState } from "react"
 import toast from "react-hot-toast"
 import TenantSite, { RenderableComponent, RenderablePage } from "@/components/sites/TenantSite"
-import { SiteMeta, ComponentData, ComponentCategory, componentCategorySchema, categoryLabels } from "@/lib/sites/content"
+import { SiteMeta, ComponentData, categoryLabels } from "@/lib/sites/content"
 import { SiteConfig } from "@/lib/sites/config"
 import { ComponentStyles } from "@/lib/sites/styles"
 import { ThemeColors } from "@/lib/sites/themes"
 import { ProductLite } from "@/lib/sites/sectionProps"
-import { variantsForCategory, variantsById } from "@/lib/sites/registry"
+import { variantsById, VariantEntry } from "@/lib/sites/registry"
 import { sortByOrder, PAGE_LIMIT } from "@/lib/sites/site"
 import { siteTemplates } from "@/lib/sites/siteTemplates"
 import ComponentDataForm from "./editorForms"
+import ComponentPicker, { PickerMode } from "./ComponentPicker"
 import {
     addComponent, addSitePage, applySiteTemplate, deleteComponent, deleteSitePage,
     getSiteForOwner, moveComponent, relocateComponent, swapComponentVariant,
@@ -63,7 +64,7 @@ export default function WebsiteEditor(props: {
 
     //page manager state
     const [newPageTitle, newPageTitleSet] = useState("")
-    const [addingCategory, addingCategorySet] = useState<ComponentCategory>("hero")
+    const [pickerMode, pickerModeSet] = useState<PickerMode | null>(null)
 
     const homePage = pages.find(page => page.slug === "") ?? pages[0]
     const currentPageId = location.region === "main" ? location.pageId : homePage?.id ?? ""
@@ -220,26 +221,11 @@ export default function WebsiteEditor(props: {
                     ))}
                 </div>
 
-                {/* add component */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <select className={input} value={addingCategory} onChange={e => addingCategorySet(componentCategorySchema.parse(e.target.value))}>
-                        {componentCategorySchema.options.map(category => (
-                            <option key={category} value={category}>{categoryLabels[category]}</option>
-                        ))}
-                    </select>
-                    <button type="button" disabled={busy} className={primaryButton}
-                        onClick={() => run(async () => {
-                            const created = await addComponent(props.tenantId, {
-                                region: location.region,
-                                pageId: location.region === "main" ? location.pageId : null,
-                                category: addingCategory,
-                            })
-                            await refresh()
-                            select(created as RenderableComponent)
-                        }, "Component added")}>
-                        + Add component
-                    </button>
-                </div>
+                {/* add component — opens the design picker */}
+                <button type="button" disabled={busy} className={primaryButton}
+                    onClick={() => pickerModeSet({ kind: "add" })}>
+                    + Add component
+                </button>
 
                 {/* ============ selected component panel ============ */}
                 {selected !== null && draftData !== null && (
@@ -250,17 +236,13 @@ export default function WebsiteEditor(props: {
                         </div>
 
                         {/* design swap — data stays, look changes */}
-                        <label className="grid gap-1 text-xs font-semibold">Design
-                            <select className={input} value={selected.variantId} disabled={busy}
-                                onChange={e => run(async () => {
-                                    await swapComponentVariant(props.tenantId, selected.id, e.target.value)
-                                    await refresh()
-                                }, "Design swapped — your content stayed put")}>
-                                {variantsForCategory(selected.category).map(variant => (
-                                    <option key={variant.variantId} value={variant.variantId}>{variant.label}</option>
-                                ))}
-                            </select>
-                        </label>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-semibold">Design: <span className="font-normal text-mist">{variantsById[selected.variantId]?.label ?? selected.variantId}</span></span>
+                            <button type="button" disabled={busy} className={quietButton}
+                                onClick={() => pickerModeSet({ kind: "swap", category: selected.category, currentVariantId: selected.variantId })}>
+                                Change design
+                            </button>
+                        </div>
 
                         {/* the instance's own data */}
                         <ComponentDataForm value={draftData} onChange={draftDataSet} />
@@ -366,6 +348,39 @@ export default function WebsiteEditor(props: {
                     </div>
                 </details>
             </div>
+
+            {/* the design picker overlay (add + swap) */}
+            {pickerMode !== null && (
+                <ComponentPicker
+                    mode={pickerMode}
+                    meta={props.meta}
+                    config={props.config}
+                    onClose={() => pickerModeSet(null)}
+                    onPick={(entry: VariantEntry) => {
+                        const mode = pickerMode
+                        pickerModeSet(null)
+                        if (mode.kind === "add") {
+                            run(async () => {
+                                const created = await addComponent(props.tenantId, {
+                                    region: location.region,
+                                    pageId: location.region === "main" ? location.pageId : null,
+                                    category: entry.category,
+                                    variantId: entry.variantId,
+                                })
+                                await refresh()
+                                select(created as RenderableComponent)
+                            }, `${categoryLabels[entry.category]} added — make it yours`)
+                        } else if (entry.variantId !== mode.currentVariantId) {
+                            run(async () => {
+                                const componentId = selectedId
+                                if (componentId === null) return
+                                await swapComponentVariant(props.tenantId, componentId, entry.variantId)
+                                await refresh()
+                            }, "Design swapped — your content stayed put")
+                        }
+                    }}
+                />
+            )}
 
             {/* ============ right: live preview ============ */}
             <div className="overflow-hidden rounded-xl border border-line bg-surface">

@@ -65,6 +65,15 @@ export async function submitTenantMessage(input: z.infer<typeof messageInputSche
     return { ok: true }
 }
 
+//which weekdays have opening rules — lets the booking calendar grey out
+//closed days without leaking the full availability config
+export async function getBookingWeekdays(slugRaw: string): Promise<number[]> {
+    const tenant = await getVisibleTenant(z.string().parse(slugRaw))
+    if (!tenant.config.enabledAddons.includes("booking")) return []
+    const rules = await db.query.tenantAvailability.findMany({ where: eq(tenantAvailability.tenantId, tenant.id) })
+    return [...new Set(rules.map(rule => rule.dayOfWeek))]
+}
+
 const slotsInputSchema = z.object({
     slug: z.string(),
     dateISO: z.string().regex(dateISOSchemaPattern), //"2026-07-15", business-local calendar date

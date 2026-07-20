@@ -392,34 +392,47 @@ export default function TenantDashboard(props: {
                         ))}
                     </div>
 
-                    <div className="grid h-fit content-start gap-2 rounded-lg border border-line bg-surface p-4">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-mist">Weekly availability</p>
+                    {/* weekly availability — rounded rows + status dots (cheers-style) */}
+                    <div className="grid h-fit content-start gap-2.5 rounded-2xl border border-line bg-surface p-5">
+                        <p className="text-xs font-medium uppercase tracking-wider text-mist">Weekly hours</p>
                         {dayNames.map((dayName, dayOfWeek) => {
                             const rule = availability.find(r => r.dayOfWeek === dayOfWeek)
+                            const open = rule !== undefined
                             return (
-                                <div key={dayName} className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm">
-                                    <span className={rule !== undefined ? "font-semibold" : "text-mist"}>{dayName}</span>
-                                    {rule !== undefined ? (
-                                        <span className="flex items-center gap-1">
-                                            <input type="time" value={rule.openTime} className="rounded border border-line px-1 py-0.5 text-xs"
+                                <div
+                                    key={dayName}
+                                    className={`flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2 transition-colors ${open ? "border-emerald-500/40 bg-paper" : "border-line bg-surface/60"}`}
+                                >
+                                    <button
+                                        type="button"
+                                        aria-label={open ? `Close ${dayName}` : `Open ${dayName}`}
+                                        onClick={() => availabilitySet(prev => open
+                                            ? prev.filter(r => r.dayOfWeek !== dayOfWeek)
+                                            : [...prev, { dayOfWeek, openTime: "09:00", closeTime: "17:00", slotMinutes: 30 }])}
+                                        className={`flex min-w-28 items-center gap-2 text-sm ${open ? "font-semibold text-ink" : "text-mist"}`}
+                                    >
+                                        <span aria-hidden className={`h-2 w-2 rounded-full ${open ? "bg-emerald-500" : "bg-line"}`} />
+                                        {dayName}
+                                    </button>
+
+                                    {open ? (
+                                        <span className="ml-auto flex items-center gap-1.5">
+                                            <input type="time" value={rule.openTime}
+                                                className="rounded-xl border border-line bg-surface px-2.5 py-1.5 text-xs outline-none transition-colors focus:border-cobalt"
                                                 onChange={e => availabilitySet(prev => prev.map(r => r.dayOfWeek === dayOfWeek ? { ...r, openTime: e.target.value } : r))} />
-                                            –
-                                            <input type="time" value={rule.closeTime} className="rounded border border-line px-1 py-0.5 text-xs"
+                                            <span className="text-xs text-mist">to</span>
+                                            <input type="time" value={rule.closeTime}
+                                                className="rounded-xl border border-line bg-surface px-2.5 py-1.5 text-xs outline-none transition-colors focus:border-cobalt"
                                                 onChange={e => availabilitySet(prev => prev.map(r => r.dayOfWeek === dayOfWeek ? { ...r, closeTime: e.target.value } : r))} />
-                                            <button type="button" aria-label={`Close ${dayName}`} className="px-1 text-mist hover:text-brand"
-                                                onClick={() => availabilitySet(prev => prev.filter(r => r.dayOfWeek !== dayOfWeek))}>×</button>
                                         </span>
                                     ) : (
-                                        <button type="button" className="text-xs font-semibold text-cobalt hover:underline"
-                                            onClick={() => availabilitySet(prev => [...prev, { dayOfWeek, openTime: "09:00", closeTime: "17:00", slotMinutes: 30 }])}>
-                                            + Open
-                                        </button>
+                                        <span className="ml-auto text-xs text-mist">Closed — tap the day to open</span>
                                     )}
                                 </div>
                             )
                         })}
                         <button type="button" disabled={busy} onClick={() => run(() => setTenantAvailability(props.tenantId, availability), "Availability saved")}
-                            className="mt-1 rounded-md bg-cobalt px-4 py-2 text-sm font-bold text-white hover:bg-ink disabled:opacity-50">
+                            className="mt-1.5 rounded-xl bg-cobalt px-5 py-2.5 text-sm font-display font-bold text-white hover:bg-ink disabled:opacity-50">
                             Save availability
                         </button>
                     </div>

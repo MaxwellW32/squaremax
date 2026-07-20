@@ -1,7 +1,10 @@
 /* Seed two demo tenants for instant demos (instance model):
      npx tsx scripts/seedDemoTenants.ts
    Idempotent: re-running rebuilds the same slugs (pages + components are
-   replaced wholesale). Owner = first admin user. */
+   replaced wholesale). Owner = first admin user.
+   NOTE: a running server may keep serving the cached tenant read for up to
+   1h (scripts can't bust Next cache tags) — restart it or clear
+   .next/cache/fetch-cache to see seeded changes immediately. */
 import "./loadEnv"
 import { Pool } from "pg"
 import { drizzle } from "drizzle-orm/node-postgres"
@@ -100,6 +103,14 @@ const demos: Demo[] = [
                 { heading: "Get in touch", blurb: "Questions about a booking? Message us." },
                 { heading: "Visit the shop", blurb: "Walk-ins welcome when a chair is free — booking guarantees your slot." },
             ],
+            faq: [{
+                heading: "Before you come",
+                items: [
+                    { question: "Do I need an appointment?", answer: "Walk-ins are welcome when a chair is free, but booking online guarantees your slot — no waiting." },
+                    { question: "How do I pay?", answer: "Cash and card at the chair. Card machines at both stations." },
+                    { question: "Running late?", answer: "We hold your slot for 10 minutes, then it goes to the next walk-in. Just message us if you're stuck in traffic." },
+                ],
+            }],
             text: [{
                 heading: "About the shop",
                 body: "Started in 2019 with one chair and a promise: your time matters. Every cut is booked, so you never sit around waiting.\n\nTwo barbers, one standard — leave sharper than you came.",

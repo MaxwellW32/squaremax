@@ -56,7 +56,19 @@ export async function customerSignUp(input: z.infer<typeof signUpSchema>) {
     const existing = await db.query.tenantCustomers.findFirst({
         where: and(eq(tenantCustomers.tenantId, tenant.id), eq(tenantCustomers.email, email)),
     })
-    if (existing !== undefined) throw new Error("an account with that email already exists — sign in instead")
+    if (existing !== undefined) {
+        //newsletter subscribers (no password yet) claim their record here
+        if (existing.passwordHash !== "") throw new Error("an account with that email already exists — sign in instead")
+
+        await db.update(tenantCustomers).set({
+            name: validated.name,
+            phone: validated.phone,
+            passwordHash: hashPassword(validated.password),
+        }).where(eq(tenantCustomers.id, existing.id))
+
+        await createCustomerSession(tenant.id, existing.id)
+        return publicCustomer({ ...existing, name: validated.name, phone: validated.phone })
+    }
 
     const [created] = await db.insert(tenantCustomers).values({
         tenantId: tenant.id,

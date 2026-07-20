@@ -3,7 +3,10 @@ import React from "react"
 import {
     ComponentData, NavbarData, HeroData, TextData, ServicesData, GalleryData,
     TestimonialsData, HoursData, AnnouncementData, ContactData, BookingData,
-    ProductsData, FooterData,
+    ProductsData, FooterData, FeatureGridData, StatsData, CtaBannerData,
+    FaqData, PricingPlansData, StepsData, TeamData, LogoStripData,
+    BeforeAfterData, VideoData, PriceListData, LocationMapData, EventsData,
+    NewsletterData, DividerData, EmbedData,
 } from "@/lib/sites/content"
 
 //============================================================
@@ -336,6 +339,348 @@ function FooterForm({ value, onChange }: { value: FooterData; onChange: (next: F
     )
 }
 
+function FeatureGridForm({ value, onChange }: { value: FeatureGridData; onChange: (next: FeatureGridData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+                <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            </div>
+            <ListSection label="Highlights (icon can be an emoji or image URL)" onAdd={() => onChange({ ...value, items: [...value.items, { icon: "", title: "", body: "" }] })}>
+                {value.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="grid grid-cols-[70px_1fr_auto] gap-1.5">
+                        <input className={inputClass} placeholder="⭐" value={item.icon}
+                            onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, icon: e.target.value }) })} />
+                        <div className="grid gap-1.5">
+                            <input className={inputClass} placeholder="Title" value={item.title}
+                                onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, title: e.target.value }) })} />
+                            <input className={inputClass} placeholder="Short text (optional)" value={item.body}
+                                onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, body: e.target.value }) })} />
+                        </div>
+                        <RemoveButton onClick={() => onChange({ ...value, items: removeAt(value.items, itemIndex) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function StatsForm({ value, onChange }: { value: StatsData; onChange: (next: StatsData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading (optional)" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <ListSection label="Numbers (value · label)" onAdd={() => onChange({ ...value, items: [...value.items, { value: "", label: "" }] })}>
+                {value.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="grid grid-cols-[100px_1fr_auto] gap-1.5">
+                        <input className={inputClass} placeholder="10+" value={item.value}
+                            onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, value: e.target.value }) })} />
+                        <input className={inputClass} placeholder="Years in business" value={item.label}
+                            onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, label: e.target.value }) })} />
+                        <RemoveButton onClick={() => onChange({ ...value, items: removeAt(value.items, itemIndex) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function CtaBannerForm({ value, onChange }: { value: CtaBannerData; onChange: (next: CtaBannerData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <AreaField label="Blurb" rows={2} value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Button label (empty = smart default)" value={value.ctaLabel} onChange={ctaLabel => onChange({ ...value, ctaLabel })} />
+                <TextField label="Button link (empty = booking/contact)" value={value.ctaHref} onChange={ctaHref => onChange({ ...value, ctaHref })} />
+            </div>
+            <TextField label="Image URL (used by the split design)" value={value.imageSrc} onChange={imageSrc => onChange({ ...value, imageSrc })} />
+        </div>
+    )
+}
+
+function FaqForm({ value, onChange }: { value: FaqData; onChange: (next: FaqData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+                <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            </div>
+            <ListSection label="Questions & answers" onAdd={() => onChange({ ...value, items: [...value.items, { question: "", answer: "" }] })}>
+                {value.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
+                        <div className="grid grid-cols-[1fr_auto] gap-1.5">
+                            <input className={inputClass} placeholder="Question" value={item.question}
+                                onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, question: e.target.value }) })} />
+                            <RemoveButton onClick={() => onChange({ ...value, items: removeAt(value.items, itemIndex) })} />
+                        </div>
+                        <textarea className={inputClass} rows={2} placeholder="Answer" value={item.answer}
+                            onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, answer: e.target.value }) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function PricingPlansForm({ value, onChange }: { value: PricingPlansData; onChange: (next: PricingPlansData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+                <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            </div>
+            <ListSection label="Plans" onAdd={() => onChange({ ...value, plans: [...value.plans, { name: "", price: "", period: "", features: [], ctaLabel: "", ctaHref: "", highlighted: false }] })}>
+                {value.plans.map((plan, planIndex) => (
+                    <div key={planIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
+                        <div className="grid grid-cols-[1fr_90px_90px_auto] gap-1.5">
+                            <input className={inputClass} placeholder="Plan name" value={plan.name}
+                                onChange={e => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, name: e.target.value }) })} />
+                            <input className={inputClass} placeholder="$50" value={plan.price}
+                                onChange={e => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, price: e.target.value }) })} />
+                            <input className={inputClass} placeholder="/month" value={plan.period}
+                                onChange={e => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, period: e.target.value }) })} />
+                            <RemoveButton onClick={() => onChange({ ...value, plans: removeAt(value.plans, planIndex) })} />
+                        </div>
+                        <textarea className={inputClass} rows={2} placeholder={"One feature per line"} value={plan.features.join("\n")}
+                            onChange={e => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, features: e.target.value.split("\n").map(f => f.slice(0, 120)).filter((f, i, arr) => f !== "" || i < arr.length - 1) }) })} />
+                        <CheckField label="Highlight this plan" checked={plan.highlighted} onChange={highlighted => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, highlighted }) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function StepsForm({ value, onChange }: { value: StepsData; onChange: (next: StepsData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+                <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            </div>
+            <ListSection label="Steps (numbered automatically)" onAdd={() => onChange({ ...value, steps: [...value.steps, { title: "", body: "", imageSrc: "" }] })}>
+                {value.steps.map((step, stepIndex) => (
+                    <div key={stepIndex} className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
+                        <input className={inputClass} placeholder={`Step ${stepIndex + 1} title`} value={step.title}
+                            onChange={e => onChange({ ...value, steps: setAt(value.steps, stepIndex, { ...step, title: e.target.value }) })} />
+                        <input className={inputClass} placeholder="Short text (optional)" value={step.body}
+                            onChange={e => onChange({ ...value, steps: setAt(value.steps, stepIndex, { ...step, body: e.target.value }) })} />
+                        <RemoveButton onClick={() => onChange({ ...value, steps: removeAt(value.steps, stepIndex) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function TeamForm({ value, onChange }: { value: TeamData; onChange: (next: TeamData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+                <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            </div>
+            <ListSection label="Team members" onAdd={() => onChange({ ...value, members: [...value.members, { name: "", role: "", photoSrc: "", bio: "", href: "" }] })}>
+                {value.members.map((member, memberIndex) => (
+                    <div key={memberIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
+                        <div className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
+                            <input className={inputClass} placeholder="Name" value={member.name}
+                                onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, name: e.target.value }) })} />
+                            <input className={inputClass} placeholder="Role" value={member.role}
+                                onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, role: e.target.value }) })} />
+                            <RemoveButton onClick={() => onChange({ ...value, members: removeAt(value.members, memberIndex) })} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <input className={inputClass} placeholder="Photo URL (optional)" value={member.photoSrc}
+                                onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, photoSrc: e.target.value }) })} />
+                            <input className={inputClass} placeholder="Link (Instagram etc., optional)" value={member.href}
+                                onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, href: e.target.value }) })} />
+                        </div>
+                        <input className={inputClass} placeholder="Short bio (optional)" value={member.bio}
+                            onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, bio: e.target.value }) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function LogoStripForm({ value, onChange }: { value: LogoStripData; onChange: (next: LogoStripData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <ListSection label="Brands (name shows if no logo image)" onAdd={() => onChange({ ...value, logos: [...value.logos, { name: "", src: "", href: "" }] })}>
+                {value.logos.map((logo, logoIndex) => (
+                    <div key={logoIndex} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-1.5">
+                        <input className={inputClass} placeholder="Brand name" value={logo.name}
+                            onChange={e => onChange({ ...value, logos: setAt(value.logos, logoIndex, { ...logo, name: e.target.value }) })} />
+                        <input className={inputClass} placeholder="Logo URL (optional)" value={logo.src}
+                            onChange={e => onChange({ ...value, logos: setAt(value.logos, logoIndex, { ...logo, src: e.target.value }) })} />
+                        <input className={inputClass} placeholder="Link (optional)" value={logo.href}
+                            onChange={e => onChange({ ...value, logos: setAt(value.logos, logoIndex, { ...logo, href: e.target.value }) })} />
+                        <RemoveButton onClick={() => onChange({ ...value, logos: removeAt(value.logos, logoIndex) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function BeforeAfterForm({ value, onChange }: { value: BeforeAfterData; onChange: (next: BeforeAfterData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <ListSection label="Photo pairs" onAdd={() => onChange({ ...value, pairs: [...value.pairs, { beforeSrc: "", afterSrc: "", caption: "" }] })}>
+                {value.pairs.map((pair, pairIndex) => (
+                    <div key={pairIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
+                        <div className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
+                            <input className={inputClass} placeholder="Before photo URL" value={pair.beforeSrc}
+                                onChange={e => onChange({ ...value, pairs: setAt(value.pairs, pairIndex, { ...pair, beforeSrc: e.target.value }) })} />
+                            <input className={inputClass} placeholder="After photo URL" value={pair.afterSrc}
+                                onChange={e => onChange({ ...value, pairs: setAt(value.pairs, pairIndex, { ...pair, afterSrc: e.target.value }) })} />
+                            <RemoveButton onClick={() => onChange({ ...value, pairs: removeAt(value.pairs, pairIndex) })} />
+                        </div>
+                        <input className={inputClass} placeholder="Caption (optional)" value={pair.caption}
+                            onChange={e => onChange({ ...value, pairs: setAt(value.pairs, pairIndex, { ...pair, caption: e.target.value }) })} />
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function VideoForm({ value, onChange }: { value: VideoData; onChange: (next: VideoData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading (optional)" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <TextField label="YouTube or Vimeo link" placeholder="https://www.youtube.com/watch?v=…" value={value.url} onChange={url => onChange({ ...value, url })} />
+            <TextField label="Caption (optional)" value={value.caption} onChange={caption => onChange({ ...value, caption })} />
+        </div>
+    )
+}
+
+function PriceListForm({ value, onChange }: { value: PriceListData; onChange: (next: PriceListData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+                <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            </div>
+            <ListSection label="Menu sections" onAdd={() => onChange({ ...value, sections: [...value.sections, { title: "", items: [] }] })}>
+                {value.sections.map((menuSection, sectionIndex) => (
+                    <div key={sectionIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
+                        <div className="grid grid-cols-[1fr_auto] gap-1.5">
+                            <input className={inputClass} placeholder="Section title (Starters, Mains…)" value={menuSection.title}
+                                onChange={e => onChange({ ...value, sections: setAt(value.sections, sectionIndex, { ...menuSection, title: e.target.value }) })} />
+                            <RemoveButton onClick={() => onChange({ ...value, sections: removeAt(value.sections, sectionIndex) })} />
+                        </div>
+                        {menuSection.items.map((item, itemIndex) => (
+                            <div key={itemIndex} className="ml-3 grid grid-cols-[2fr_2fr_80px_auto] gap-1.5">
+                                <input className={inputClass} placeholder="Item" value={item.name}
+                                    onChange={e => onChange({ ...value, sections: setAt(value.sections, sectionIndex, { ...menuSection, items: setAt(menuSection.items, itemIndex, { ...item, name: e.target.value }) }) })} />
+                                <input className={inputClass} placeholder="Description (optional)" value={item.description}
+                                    onChange={e => onChange({ ...value, sections: setAt(value.sections, sectionIndex, { ...menuSection, items: setAt(menuSection.items, itemIndex, { ...item, description: e.target.value }) }) })} />
+                                <input className={inputClass} placeholder="$12" value={item.price}
+                                    onChange={e => onChange({ ...value, sections: setAt(value.sections, sectionIndex, { ...menuSection, items: setAt(menuSection.items, itemIndex, { ...item, price: e.target.value }) }) })} />
+                                <RemoveButton onClick={() => onChange({ ...value, sections: setAt(value.sections, sectionIndex, { ...menuSection, items: removeAt(menuSection.items, itemIndex) }) })} />
+                            </div>
+                        ))}
+                        <button type="button" className="ml-3 w-fit text-xs font-semibold text-cobalt hover:underline"
+                            onClick={() => onChange({ ...value, sections: setAt(value.sections, sectionIndex, { ...menuSection, items: [...menuSection.items, { name: "", description: "", price: "" }] }) })}>
+                            + Add item
+                        </button>
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function LocationMapForm({ value, onChange }: { value: LocationMapData; onChange: (next: LocationMapData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+                <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            </div>
+            <TextField label="Address (empty = Business info address)" value={value.address} onChange={address => onChange({ ...value, address })} />
+            <TextField label="Google Maps embed link (optional — Share → Embed a map → copy the src URL)" value={value.mapEmbedUrl} onChange={mapEmbedUrl => onChange({ ...value, mapEmbedUrl })} />
+            <CheckField label="Show a Get directions button" checked={value.showDirectionsButton} onChange={showDirectionsButton => onChange({ ...value, showDirectionsButton })} />
+        </div>
+    )
+}
+
+function EventsForm({ value, onChange }: { value: EventsData; onChange: (next: EventsData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <ListSection label="Events" onAdd={() => onChange({ ...value, events: [...value.events, { title: "", dateText: "", location: "", description: "", href: "" }] })}>
+                {value.events.map((event, eventIndex) => (
+                    <div key={eventIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
+                        <div className="grid grid-cols-[1fr_150px_auto] gap-1.5">
+                            <input className={inputClass} placeholder="Event title" value={event.title}
+                                onChange={e => onChange({ ...value, events: setAt(value.events, eventIndex, { ...event, title: e.target.value }) })} />
+                            <input className={inputClass} placeholder="Fri Aug 14, 8pm" value={event.dateText}
+                                onChange={e => onChange({ ...value, events: setAt(value.events, eventIndex, { ...event, dateText: e.target.value }) })} />
+                            <RemoveButton onClick={() => onChange({ ...value, events: removeAt(value.events, eventIndex) })} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <input className={inputClass} placeholder="Location (optional)" value={event.location}
+                                onChange={e => onChange({ ...value, events: setAt(value.events, eventIndex, { ...event, location: e.target.value }) })} />
+                            <input className={inputClass} placeholder="Details (optional)" value={event.description}
+                                onChange={e => onChange({ ...value, events: setAt(value.events, eventIndex, { ...event, description: e.target.value }) })} />
+                        </div>
+                    </div>
+                ))}
+            </ListSection>
+        </div>
+    )
+}
+
+function NewsletterFormEditor({ value, onChange }: { value: NewsletterData; onChange: (next: NewsletterData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <AreaField label="Blurb" rows={2} value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
+            <TextField label="Button label" value={value.buttonLabel} onChange={buttonLabel => onChange({ ...value, buttonLabel })} />
+            <p className="text-xs text-mist">Signups land in your Customers tab, opted into email — announcement blasts (Marketing tab) reach them.</p>
+        </div>
+    )
+}
+
+function DividerForm({ value, onChange }: { value: DividerData; onChange: (next: DividerData) => void }) {
+    return (
+        <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Style">
+                <select className={inputClass} value={value.style} onChange={e => onChange({ ...value, style: e.target.value === "space" ? "space" : "line" })}>
+                    <option value="line">Line</option>
+                    <option value="space">Just space</option>
+                </select>
+            </Field>
+            <Field label="Size">
+                <select className={inputClass} value={value.size} onChange={e => onChange({ ...value, size: e.target.value === "s" ? "s" : e.target.value === "l" ? "l" : "m" })}>
+                    <option value="s">Small</option>
+                    <option value="m">Medium</option>
+                    <option value="l">Large</option>
+                </select>
+            </Field>
+        </div>
+    )
+}
+
+function EmbedForm({ value, onChange }: { value: EmbedData; onChange: (next: EmbedData) => void }) {
+    return (
+        <div className="grid gap-3">
+            <TextField label="Heading (optional)" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
+            <TextField label="Embed URL (https:// only — shown in a sandboxed frame)" placeholder="https://…" value={value.embedUrl} onChange={embedUrl => onChange({ ...value, embedUrl })} />
+            <Field label="Height (pixels)">
+                <input className={inputClass} type="number" min={100} max={2000} step={50} value={value.height}
+                    onChange={e => onChange({ ...value, height: Math.min(2000, Math.max(100, Number(e.target.value) || 400)) })} />
+            </Field>
+        </div>
+    )
+}
+
 //------------------------------------------------------------
 // the switch
 //------------------------------------------------------------
@@ -354,5 +699,21 @@ export default function ComponentDataForm({ value, onChange }: { value: Componen
         case "booking": return <BookingForm value={value} onChange={onChange} />
         case "products": return <ProductsForm value={value} onChange={onChange} />
         case "footer": return <FooterForm value={value} onChange={onChange} />
+        case "featureGrid": return <FeatureGridForm value={value} onChange={onChange} />
+        case "stats": return <StatsForm value={value} onChange={onChange} />
+        case "ctaBanner": return <CtaBannerForm value={value} onChange={onChange} />
+        case "faq": return <FaqForm value={value} onChange={onChange} />
+        case "pricingPlans": return <PricingPlansForm value={value} onChange={onChange} />
+        case "steps": return <StepsForm value={value} onChange={onChange} />
+        case "team": return <TeamForm value={value} onChange={onChange} />
+        case "logoStrip": return <LogoStripForm value={value} onChange={onChange} />
+        case "beforeAfter": return <BeforeAfterForm value={value} onChange={onChange} />
+        case "video": return <VideoForm value={value} onChange={onChange} />
+        case "priceList": return <PriceListForm value={value} onChange={onChange} />
+        case "locationMap": return <LocationMapForm value={value} onChange={onChange} />
+        case "events": return <EventsForm value={value} onChange={onChange} />
+        case "newsletter": return <NewsletterFormEditor value={value} onChange={onChange} />
+        case "divider": return <DividerForm value={value} onChange={onChange} />
+        case "embed": return <EmbedForm value={value} onChange={onChange} />
     }
 }

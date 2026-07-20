@@ -353,6 +353,8 @@ export const tenantProducts = pgTable("tenantProducts", {
     name: varchar("name", { length: 140 }).notNull(),
     description: text("description").default("").notNull(),
     priceCents: integer("priceCents").default(0).notNull(),
+    //what YOU pay per unit (cost of goods sold) — powers profit reporting
+    costCents: integer("costCents").default(0).notNull(),
     taxRateBps: integer("taxRateBps").default(0).notNull(),
     stock: integer("stock").default(0).notNull(),
     trackStock: boolean("trackStock").default(true).notNull(),
@@ -371,16 +373,23 @@ export type SaleItem = {
     name: string //snapshot — survives product rename/delete
     qty: number
     unitPriceCents: number
+    unitCostCents?: number //snapshot of product cost at sale time (COGS)
     taxCents: number
 }
+
+export type SalePaymentMethod = "cash" | "card" | "transfer" | "whatsapp" | "other"
 
 export const tenantSales = pgTable("tenantSales", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
     tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
     items: json("items").$type<SaleItem[]>().notNull(),
     subtotalCents: integer("subtotalCents").notNull(),
+    discountCents: integer("discountCents").default(0).notNull(),
     taxCents: integer("taxCents").notNull(),
     totalCents: integer("totalCents").notNull(),
+    paymentMethod: varchar("paymentMethod", { length: 20 }).$type<SalePaymentMethod>().default("cash").notNull(),
+    //refunded sales stay on the books (audit trail) but leave the totals
+    status: varchar("status", { length: 16 }).$type<"completed" | "refunded">().default("completed").notNull(),
     customerId: varchar("customerId", { length: 255 }).references(() => tenantCustomers.id, { onDelete: "set null" }),
     customerName: varchar("customerName", { length: 120 }).default("").notNull(),
     note: text("note").default("").notNull(),
@@ -391,6 +400,25 @@ export const tenantSales = pgTable("tenantSales", {
 }));
 export const tenantSalesRelations = relations(tenantSales, ({ one }) => ({
     tenant: one(tenants, { fields: [tenantSales.tenantId], references: [tenants.id] }),
+}));
+
+//business expenses (rent, supplies, utilities…) — completes the picture for
+//profit reports and tax filing alongside sales
+export const tenantExpenses = pgTable("tenantExpenses", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    label: varchar("label", { length: 160 }).notNull(),
+    category: varchar("category", { length: 60 }).default("general").notNull(),
+    amountCents: integer("amountCents").notNull(),
+    incurredAt: timestamp("incurredAt", { mode: "date" }).defaultNow().notNull(),
+    note: text("note").default("").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+}, (t) => ({
+    tenantExpenseTenantIndex: index("tenantExpenseTenantIndex").on(t.tenantId),
+    tenantExpenseDateIndex: index("tenantExpenseDateIndex").on(t.tenantId, t.incurredAt),
+}));
+export const tenantExpensesRelations = relations(tenantExpenses, ({ one }) => ({
+    tenant: one(tenants, { fields: [tenantExpenses.tenantId], references: [tenants.id] }),
 }));
 
 //announcement blasts sent through the notifications add-on (history/audit)
