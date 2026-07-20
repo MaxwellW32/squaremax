@@ -9,5 +9,10 @@ export default defineConfig({
     },
     test: {
         include: ["tests/**/*.test.ts"],
+        //tests import pure modules that sit behind files validating env at
+        //import time (registry -> sections -> islands -> db) — skip validation
+        env: {
+            SKIP_ENV_VALIDATION: "1",
+        },
     },
 })

@@ -4,16 +4,16 @@ import type { Metadata } from "next"
 import { addons, BASE_MONTHLY_PRICE } from "@/lib/sites/addons"
 
 export const metadata: Metadata = {
-    title: "Squaremax Sites — your business page, live tonight. $10/month.",
-    description: "Fill in your business details, pick a design with your real content in it, and go live at squaremaxtech.com/your-business. Add booking, galleries and more for $10/month each.",
+    title: "Squaremax Sites — your business website, live tonight. $5/month.",
+    description: "Pick a template, make it yours component by component, and go live at squaremaxtech.com/your-business. Add booking, notifications and inventory for $5/month each.",
 }
 
 const onboardingSteps: { title: string; body: string }[] = [
     { title: "Claim your name", body: "Pick your business name and see your address instantly: squaremaxtech.com/joes-barbershop." },
-    { title: "Tell us about your business", body: "Services, hours, location, contact, photos. Save as you go — nothing is lost." },
-    { title: "Pick your look", body: "Flip through designs with YOUR content already in them. Any color theme works with any layout." },
-    { title: "Choose add-ons", body: `Booking, email notifications, custom domain — $10/month each. Your total updates live.` },
-    { title: "Go live", body: "Pay, and your page is live with a QR code to share. Edit anything, anytime, from your dashboard." },
+    { title: "Pick a starting point", body: "A template is copied into your site piece by piece — with your name already in it. Or start blank. Any theme fits any layout." },
+    { title: "Tell us about your business", body: "Phone, WhatsApp, hours, address — every section of your site reads them from one place." },
+    { title: "Choose add-ons", body: "Booking, notifications, store & inventory, custom domain — $5/month each. Your total updates live." },
+    { title: "Go live", body: "Pay, and your site is live with a QR code to share. Reorder, restyle and swap components anytime from your dashboard." },
 ]
 
 export default function Page() {

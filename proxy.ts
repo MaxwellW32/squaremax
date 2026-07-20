@@ -22,9 +22,13 @@ export default function proxy(request: NextRequest) {
     if (pathname.startsWith("/_next") || pathname.startsWith("/api")) return NextResponse.next()
 
     const url = request.nextUrl.clone()
-    //tenant sites are single-page: only the root renders; any other path on a
-    //custom domain 404s (three segments never match /domains/[domain])
-    url.pathname = pathname === "/" ? `/domains/${host}` : `/domains/${host}/nf`
+    //tenant sites are multi-page now: the root and single-segment paths
+    //(/about, /account) rewrite to the domain route; deeper paths 404
+    //(four segments never match /domains/[domain]/[pageSlug])
+    const segments = pathname.split("/").filter(segment => segment !== "")
+    url.pathname = segments.length === 0 ? `/domains/${host}`
+        : segments.length === 1 ? `/domains/${host}/${segments[0]}`
+            : `/domains/${host}/nf/nf`
     return NextResponse.rewrite(url)
 }
 

@@ -1,20 +1,27 @@
 import React from "react"
-import { SectionProps } from "@/lib/sites/sectionProps"
+import { NavbarData } from "@/lib/sites/content"
+import { SectionProps, resolveHref, defaultCtaHref } from "@/lib/sites/sectionProps"
 
-//nav links derive from which sections have content — no config needed
-function navLinks({ content, config }: SectionProps): { href: string; label: string }[] {
-    const links: { href: string; label: string }[] = []
-    if (content.services.items.length > 0) links.push({ href: "#services", label: content.services.heading })
-    if (content.about.body !== "") links.push({ href: "#about", label: content.about.heading })
-    if (config.enabledAddons.includes("gallery") && content.gallery.images.length > 0) links.push({ href: "#gallery", label: content.gallery.heading })
-    links.push({ href: "#contact", label: content.contact.heading })
-    return links
+//navbar variants render THIS instance's menu (with one dropdown level).
+//An empty menu falls back to links for the site's pages.
+
+function menuFromPages(props: SectionProps<NavbarData>): NavbarData["menu"] {
+    if (props.data.menu.length > 0) return props.data.menu
+    return props.ctx.pages.map(page => ({
+        label: page.slug === "" ? "Home" : page.title,
+        href: page.slug === "" ? "/" : `/${page.slug}`,
+        subMenu: [],
+    }))
 }
 
-function BrandMark({ name, logoUrl }: { name: string; logoUrl: string }) {
-    if (logoUrl !== "") {
+function BrandMark({ props }: { props: SectionProps<NavbarData> }) {
+    const { data, ctx } = props
+    const name = data.logoText !== "" ? data.logoText : ctx.business.name
+    const logoSrc = data.logoImageSrc !== "" ? data.logoImageSrc : ctx.business.logoUrl
+
+    if (logoSrc !== "") {
         // eslint-disable-next-line @next/next/no-img-element
-        return <img src={logoUrl} alt={`${name} logo`} className="h-9 w-auto" />
+        return <img src={logoSrc} alt={`${name} logo`} className="h-9 w-auto" />
     }
     return (
         <span
@@ -26,30 +33,72 @@ function BrandMark({ name, logoUrl }: { name: string; logoUrl: string }) {
     )
 }
 
+function MenuLinks({ props, linkClassName }: { props: SectionProps<NavbarData>; linkClassName: string }) {
+    const { ctx } = props
+
+    return (
+        <>
+            {menuFromPages(props).map((item, itemIndex) => (
+                <div key={`${item.label}-${itemIndex}`} className="group relative">
+                    <a href={resolveHref(ctx, item.href)} className={linkClassName}>
+                        {item.label}{item.subMenu.length > 0 ? " ▾" : ""}
+                    </a>
+
+                    {item.subMenu.length > 0 && (
+                        <div
+                            className="invisible absolute left-0 top-full z-50 grid min-w-44 gap-0.5 rounded-[var(--t-radius)] p-1.5 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                            style={{ backgroundColor: "var(--t-surface)", border: "1px solid var(--t-border)" }}
+                        >
+                            {item.subMenu.map((sub, subIndex) => (
+                                <a
+                                    key={`${sub.label}-${subIndex}`}
+                                    href={resolveHref(ctx, sub.href)}
+                                    className="rounded-[var(--t-radius)] px-3 py-1.5 text-[length:var(--t-text-s)] hover:bg-[var(--t-bg)]"
+                                >
+                                    {sub.label}
+                                </a>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ))}
+        </>
+    )
+}
+
+function CtaButton({ props }: { props: SectionProps<NavbarData> }) {
+    const { data, ctx } = props
+    if (!data.showCta) return null
+
+    const label = data.cta !== undefined && data.cta.label !== "" ? data.cta.label
+        : ctx.enabledAddons.includes("booking") ? "Book now" : "Get in touch"
+    const href = data.cta !== undefined && data.cta.href !== "" ? data.cta.href : defaultCtaHref(ctx)
+
+    return (
+        <a
+            href={resolveHref(ctx, href)}
+            className="rounded-[var(--t-radius)] px-4 py-2 font-semibold"
+            style={{ backgroundColor: "var(--t-primary)", color: "var(--t-primary-contrast)" }}
+        >
+            {label}
+        </a>
+    )
+}
+
 //variant: navbar.classic — brand left, links right
-export function NavbarClassic(props: SectionProps) {
-    const { content, config } = props
-    //the booking panel only renders when services exist — don't CTA into a void
-    const bookingOn = config.enabledAddons.includes("booking") && content.services.items.length > 0
+export function NavbarClassic(props: SectionProps<NavbarData>) {
+    const { ctx } = props
 
     return (
         <header className="sticky top-0 z-40 border-b bg-[var(--t-bg)]/95 backdrop-blur" style={{ borderColor: "var(--t-border)" }}>
             <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 text-[var(--t-text)]">
-                <a href="#top"><BrandMark name={content.business.name} logoUrl={content.business.logoUrl} /></a>
+                <a href={resolveHref(ctx, "/")}><BrandMark props={props} /></a>
 
                 <nav className="flex items-center gap-1 text-[length:var(--t-text-s)] sm:gap-2 sm:text-[length:var(--t-text-m)]">
-                    {navLinks(props).map(link => (
-                        <a key={link.href} href={link.href} className="hidden rounded-[var(--t-radius)] px-3 py-1.5 hover:bg-[var(--t-surface)] sm:block">
-                            {link.label}
-                        </a>
-                    ))}
-                    <a
-                        href={bookingOn ? "#booking" : "#contact"}
-                        className="rounded-[var(--t-radius)] px-4 py-2 font-semibold"
-                        style={{ backgroundColor: "var(--t-primary)", color: "var(--t-primary-contrast)" }}
-                    >
-                        {bookingOn ? "Book now" : (content.hero.ctaLabel || "Get in touch")}
-                    </a>
+                    <div className="hidden items-center gap-1 sm:flex sm:gap-2">
+                        <MenuLinks props={props} linkClassName="rounded-[var(--t-radius)] px-3 py-1.5 hover:bg-[var(--t-surface)] block" />
+                    </div>
+                    <CtaButton props={props} />
                 </nav>
             </div>
         </header>
@@ -57,24 +106,20 @@ export function NavbarClassic(props: SectionProps) {
 }
 
 //variant: navbar.centered — stacked brand over centered links
-export function NavbarCentered(props: SectionProps) {
-    const { content } = props
+export function NavbarCentered(props: SectionProps<NavbarData>) {
+    const { ctx } = props
 
     return (
         <header className="border-b bg-[var(--t-bg)]" style={{ borderColor: "var(--t-border)" }}>
             <div className="mx-auto grid max-w-5xl justify-items-center gap-2 px-4 py-5 text-[var(--t-text)]">
-                <a href="#top"><BrandMark name={content.business.name} logoUrl={content.business.logoUrl} /></a>
+                <a href={resolveHref(ctx, "/")}><BrandMark props={props} /></a>
 
-                {content.business.tagline !== "" && (
-                    <p className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">{content.business.tagline}</p>
+                {ctx.business.tagline !== "" && (
+                    <p className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">{ctx.business.tagline}</p>
                 )}
 
                 <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[length:var(--t-text-s)]">
-                    {navLinks(props).map(link => (
-                        <a key={link.href} href={link.href} className="uppercase tracking-widest hover:text-[var(--t-primary)]">
-                            {link.label}
-                        </a>
-                    ))}
+                    <MenuLinks props={props} linkClassName="uppercase tracking-widest hover:text-[var(--t-primary)]" />
                 </nav>
             </div>
         </header>

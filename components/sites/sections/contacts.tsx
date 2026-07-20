@@ -1,11 +1,11 @@
 import React from "react"
+import { ContactData } from "@/lib/sites/content"
 import { SectionProps } from "@/lib/sites/sectionProps"
 import TenantMessageForm from "@/components/sites/islands/TenantMessageForm"
 
 //variant: contact.split — details left, message form right
-export function ContactSplit({ content, config, slug, preview }: SectionProps) {
-    const contact = content.contact
-    const business = content.business
+export function ContactSplit({ data, ctx }: SectionProps<ContactData>) {
+    const business = ctx.business
 
     return (
         <section id="contact" className="bg-[var(--t-surface)] !p-0">
@@ -15,33 +15,42 @@ export function ContactSplit({ content, config, slug, preview }: SectionProps) {
                         className="text-[length:var(--t-text-xl)] text-[var(--t-text)]"
                         style={{ fontFamily: "var(--t-font-heading)", fontWeight: "var(--t-heading-weight)" as never }}
                     >
-                        {contact.heading}
+                        {data.heading}
                     </h2>
 
-                    {contact.blurb !== "" && <p className="text-[var(--t-text-muted)]">{contact.blurb}</p>}
+                    {data.blurb !== "" && <p className="text-[var(--t-text-muted)]">{data.blurb}</p>}
 
-                    <ul className="grid gap-2 text-[length:var(--t-text-m)] text-[var(--t-text)]">
-                        {business.phone !== "" && (
-                            <li><a className="hover:text-[var(--t-primary)]" href={`tel:${business.phone}`}>📞 {business.phone}</a></li>
-                        )}
-                        {business.email !== "" && (
-                            <li><a className="hover:text-[var(--t-primary)]" href={`mailto:${business.email}`}>✉️ {business.email}</a></li>
-                        )}
-                        {business.address !== "" && (
-                            <li>
-                                <a
-                                    className="hover:text-[var(--t-primary)]"
-                                    href={`https://maps.google.com/?q=${encodeURIComponent(business.address)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    📍 {business.address}
-                                </a>
-                            </li>
-                        )}
-                    </ul>
+                    {data.showDetails && (
+                        <ul className="grid gap-2 text-[length:var(--t-text-m)] text-[var(--t-text)]">
+                            {business.phone !== "" && (
+                                <li><a className="hover:text-[var(--t-primary)]" href={`tel:${business.phone}`}>📞 {business.phone}</a></li>
+                            )}
+                            {business.whatsapp !== "" && (
+                                <li>
+                                    <a className="hover:text-[var(--t-primary)]" href={`https://wa.me/${business.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
+                                        💬 WhatsApp us
+                                    </a>
+                                </li>
+                            )}
+                            {business.email !== "" && (
+                                <li><a className="hover:text-[var(--t-primary)]" href={`mailto:${business.email}`}>✉️ {business.email}</a></li>
+                            )}
+                            {business.address !== "" && (
+                                <li>
+                                    <a
+                                        className="hover:text-[var(--t-primary)]"
+                                        href={`https://maps.google.com/?q=${encodeURIComponent(business.address)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        📍 {business.address}
+                                    </a>
+                                </li>
+                            )}
+                        </ul>
+                    )}
 
-                    {business.socials.length > 0 && (
+                    {data.showDetails && business.socials.length > 0 && (
                         <ul className="flex flex-wrap gap-3 text-[length:var(--t-text-s)]">
                             {business.socials.map(social => (
                                 <li key={social.url}>
@@ -60,8 +69,8 @@ export function ContactSplit({ content, config, slug, preview }: SectionProps) {
                     )}
                 </div>
 
-                {contact.showMessageForm && (
-                    <TenantMessageForm slug={slug} preview={preview === true} notify={config.enabledAddons.includes("email-notifications")} />
+                {data.showMessageForm && (
+                    <TenantMessageForm slug={ctx.slug} preview={ctx.preview === true} notify={ctx.enabledAddons.includes("notifications")} />
                 )}
             </div>
         </section>

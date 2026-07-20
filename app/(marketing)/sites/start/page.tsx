@@ -17,7 +17,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
     if (session !== null && tenantParam !== undefined) {
         try {
             const tenant = await getOwnedTenantById(tenantParam)
-            resumeTenant = { id: tenant.id, slug: tenant.slug, content: tenant.content, config: tenant.config }
+            resumeTenant = { id: tenant.id, slug: tenant.slug, meta: tenant.content, config: tenant.config }
         } catch {
             resumeTenant = null
         }

@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation"
 import type { Session } from "next-auth"
 
 const navItems = [
-    { title: "Custom Builds", link: "/custom-builds" },
     { title: "Squaremax Sites", link: "/sites" },
+    { title: "Custom Builds", link: "/custom-builds" },
     { title: "Work", link: "/projects" },
     { title: "Contact", link: "/contact" },
 ]

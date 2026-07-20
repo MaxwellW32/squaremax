@@ -1,62 +1,75 @@
 import { ComponentType } from "react"
-import { SectionType } from "./content"
+import { ComponentCategory } from "./content"
 import { SectionProps } from "./sectionProps"
 import { NavbarClassic, NavbarCentered } from "@/components/sites/sections/navbars"
 import { HeroSplit, HeroCentered, HeroBanner } from "@/components/sites/sections/heros"
-import { AboutImageText, AboutSimple } from "@/components/sites/sections/abouts"
+import { TextSimple, TextImage } from "@/components/sites/sections/texts"
 import { ServicesGrid, ServicesList } from "@/components/sites/sections/services"
-import { GalleryGrid, TestimonialsCards, HoursTable } from "@/components/sites/sections/extras"
+import { GalleryGrid, GalleryStrip, TestimonialsCards, TestimonialsSpotlight, HoursTable, AnnouncementBar } from "@/components/sites/sections/extras"
 import { ContactSplit } from "@/components/sites/sections/contacts"
+import { ProductsGrid } from "@/components/sites/sections/products"
 import { FooterSimple, FooterColumns } from "@/components/sites/sections/footers"
 import { BookingPanel } from "@/components/sites/sections/booking"
 
 //============================================================
-// Layer 2 — the component reservoir. Every section type has
-// one content schema (lib/sites/content.ts) and any number of
-// visual variants, all styled exclusively with --t-* tokens.
-// Adding a variant = one component + one entry here. Clients
-// swap variants WITHIN a section type ("other navbar designs").
+// The design reservoir. Every CATEGORY has one data shape
+// (lib/sites/content.ts) and any number of visual variants, all
+// styled exclusively with --t-* tokens. A placed component keeps
+// its own data and hot-swaps between variants of its category —
+// adding a design = one component + one entry here.
 //============================================================
 
 export type VariantEntry = {
     variantId: string //"hero.split"
-    sectionType: SectionType
+    category: ComponentCategory
     label: string //shown in the picker
-    component: ComponentType<SectionProps>
+    //typed against the category's data shape at the definition site; erased
+    //here (never = accepts nothing wider) and re-widened at the one render site
+    component: ComponentType<SectionProps<never>>
 }
 
 export const variants: VariantEntry[] = [
-    { variantId: "navbar.classic", sectionType: "navbar", label: "Classic — brand left, links right", component: NavbarClassic },
-    { variantId: "navbar.centered", sectionType: "navbar", label: "Centered — stacked & elegant", component: NavbarCentered },
+    { variantId: "navbar.classic", category: "navbar", label: "Classic — brand left, links right", component: NavbarClassic },
+    { variantId: "navbar.centered", category: "navbar", label: "Centered — stacked & elegant", component: NavbarCentered },
 
-    { variantId: "hero.split", sectionType: "hero", label: "Split — text beside image", component: HeroSplit },
-    { variantId: "hero.centered", sectionType: "hero", label: "Centered — minimal statement", component: HeroCentered },
-    { variantId: "hero.banner", sectionType: "hero", label: "Banner — full-width photo", component: HeroBanner },
+    { variantId: "hero.split", category: "hero", label: "Split — text beside image", component: HeroSplit },
+    { variantId: "hero.centered", category: "hero", label: "Centered — minimal statement", component: HeroCentered },
+    { variantId: "hero.banner", category: "hero", label: "Banner — full-width photo", component: HeroBanner },
 
-    { variantId: "about.image-text", sectionType: "about", label: "Image + text, two columns", component: AboutImageText },
-    { variantId: "about.simple", sectionType: "about", label: "Simple centered text", component: AboutSimple },
+    { variantId: "text.simple", category: "text", label: "Simple centered text", component: TextSimple },
+    { variantId: "text.image", category: "text", label: "Text beside image", component: TextImage },
 
-    { variantId: "services.grid", sectionType: "services", label: "Card grid", component: ServicesGrid },
-    { variantId: "services.list", sectionType: "services", label: "Menu-style list", component: ServicesList },
+    { variantId: "services.grid", category: "services", label: "Card grid", component: ServicesGrid },
+    { variantId: "services.list", category: "services", label: "Menu-style list", component: ServicesList },
 
-    { variantId: "gallery.grid", sectionType: "gallery", label: "Photo grid", component: GalleryGrid },
+    { variantId: "gallery.grid", category: "gallery", label: "Photo grid", component: GalleryGrid },
+    { variantId: "gallery.strip", category: "gallery", label: "Scrolling strip with captions", component: GalleryStrip },
 
-    { variantId: "testimonials.cards", sectionType: "testimonials", label: "Quote cards", component: TestimonialsCards },
+    { variantId: "testimonials.cards", category: "testimonials", label: "Quote cards", component: TestimonialsCards },
+    { variantId: "testimonials.spotlight", category: "testimonials", label: "Large spotlight quotes", component: TestimonialsSpotlight },
 
-    { variantId: "hours.table", sectionType: "hours", label: "Hours table", component: HoursTable },
+    { variantId: "hours.table", category: "hours", label: "Hours table", component: HoursTable },
 
-    { variantId: "contact.split", sectionType: "contact", label: "Details + message form", component: ContactSplit },
+    { variantId: "announcement.bar", category: "announcement", label: "Slim promo strip", component: AnnouncementBar },
 
-    { variantId: "booking.panel", sectionType: "booking", label: "Booking panel", component: BookingPanel },
+    { variantId: "contact.split", category: "contact", label: "Details + message form", component: ContactSplit },
 
-    { variantId: "footer.simple", sectionType: "footer", label: "One line", component: FooterSimple },
-    { variantId: "footer.columns", sectionType: "footer", label: "Columns with contact + hours", component: FooterColumns },
+    { variantId: "booking.panel", category: "booking", label: "Booking panel", component: BookingPanel },
+
+    { variantId: "products.grid", category: "products", label: "Product grid", component: ProductsGrid },
+
+    { variantId: "footer.simple", category: "footer", label: "One line", component: FooterSimple },
+    { variantId: "footer.columns", category: "footer", label: "Columns with links + contact", component: FooterColumns },
 ]
 
 export const variantsById: Record<string, VariantEntry> = Object.fromEntries(
     variants.map(variant => [variant.variantId, variant])
 )
 
-export function variantsForSection(sectionType: SectionType): VariantEntry[] {
-    return variants.filter(variant => variant.sectionType === sectionType)
+export function variantsForCategory(category: ComponentCategory): VariantEntry[] {
+    return variants.filter(variant => variant.category === category)
+}
+
+export function defaultVariantFor(category: ComponentCategory): VariantEntry {
+    return variantsForCategory(category)[0]
 }

@@ -1,33 +1,27 @@
 import { z } from "zod"
-import { sectionTypeSchema } from "./content"
 import { themeOverridesSchema } from "./themes"
 import { addonIdSchema } from "./addons"
 
 //============================================================
-// Per-tenant presentation config. Content never lives here —
-// this is WHICH design renders it:
-//  - compositionId: the chosen layout (ordered section list)
-//  - variantOverrides: per-section swaps within the same class
-//    (e.g. navbar.classic -> navbar.centered), the core of the
-//    "switch this component for another design" experience
-//  - themeId + themeOverrides: any theme on any layout
+// Per-tenant presentation config v2. The site's STRUCTURE lives
+// in tenantPages + tenantComponents rows (instance model); this
+// blob holds only the site-wide look and the purchased add-ons:
+//  - themeId + themeOverrides: colors/fonts applied to the whole
+//    site via --t-* tokens (components can override per instance)
+//  - enabledAddons: feature flags billing picks up automatically
 //============================================================
 
 export const siteConfigSchema = z.object({
-    schemaVersion: z.literal(1),
-    compositionId: z.string().min(1),
-    variantOverrides: z.partialRecord(sectionTypeSchema, z.string()).default({}),
+    schemaVersion: z.literal(2),
     themeId: z.string().min(1),
     themeOverrides: themeOverridesSchema.default({}),
     enabledAddons: addonIdSchema.array().default([]),
 })
 export type SiteConfig = z.infer<typeof siteConfigSchema>
 
-export function defaultSiteConfig(compositionId: string, themeId: string): SiteConfig {
+export function defaultSiteConfig(themeId: string): SiteConfig {
     return siteConfigSchema.parse({
-        schemaVersion: 1,
-        compositionId,
-        variantOverrides: {},
+        schemaVersion: 2,
         themeId,
         themeOverrides: {},
         enabledAddons: [],

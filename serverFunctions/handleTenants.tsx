@@ -1,28 +1,21 @@
 "use server"
 import { z } from "zod"
 import { and, eq } from "drizzle-orm"
-import { revalidateTag } from "next/cache"
 import { db } from "@/db"
-import { tenantAvailability, tenantBookings, tenantMessages, tenants } from "@/db/schema"
-import { siteContentSchema, SiteContent, defaultSiteContent } from "@/lib/sites/content"
-import { siteConfigSchema, SiteConfig, defaultSiteConfig } from "@/lib/sites/config"
-import { addonsById } from "@/lib/sites/addons"
-import { compositions, compositionsById } from "@/lib/sites/compositions"
+import { tenantAvailability, tenantBookings, tenantComponents, tenantMessages, tenantPages, tenants } from "@/db/schema"
+import { defaultSiteMeta } from "@/lib/sites/content"
+import { defaultSiteConfig } from "@/lib/sites/config"
+import { addonIdSchema, addonsById } from "@/lib/sites/addons"
+import { siteTemplatesById, instantiateTemplate } from "@/lib/sites/siteTemplates"
 import { slugSchema, normalizeSlug } from "@/lib/sites/slug"
 import { sessionCheckWithError } from "@/useful/sessionCheck"
+import { getOwnedTenant, bustTenant } from "@/lib/sites/owner"
 
 //============================================================
 // Tenant CRUD. Public tenant pages read through the per-slug
 // cache tag; every mutation here busts exactly that tag, so
 // pages are cached aggressively and correct immediately.
 //============================================================
-
-function bustTenant(slug: string, customDomain: string | null) {
-    revalidateTag(`tenant:${slug}`, "max")
-    //the custom-domain page caches under its own tag — bust it too or the
-    //tenant's own domain serves stale content for up to an hour
-    if (customDomain !== null) revalidateTag(`tenant-domain:${customDomain}`, "max")
-}
 
 //------------------------------------------------------------
 // onboarding
@@ -47,8 +40,11 @@ export async function checkSlugAvailability(raw: string): Promise<{ slug: string
 const createDraftSchema = z.object({
     businessName: z.string().min(1).max(160),
     slug: z.string(),
+    templateId: z.string().default("storefront-classic"),
 })
 
+//creates the tenant AND copies the chosen template into it component by
+//component — every placed component gets its own unique id and data blob
 export async function createDraftTenant(input: z.infer<typeof createDraftSchema>): Promise<{ tenantId: string; slug: string }> {
     const session = await sessionCheckWithError()
     const validated = createDraftSchema.parse(input)
@@ -56,15 +52,27 @@ export async function createDraftTenant(input: z.infer<typeof createDraftSchema>
     const availability = await checkSlugAvailability(validated.slug)
     if (!availability.available) throw new Error(availability.reason ?? "name unavailable")
 
-    const defaultComposition = compositions[0]
+    const template = siteTemplatesById[validated.templateId]
+    if (template === undefined) throw new Error("unknown template")
 
-    const [created] = await db.insert(tenants).values({
-        slug: availability.slug,
-        businessName: validated.businessName,
-        ownerUserId: session.user.id,
-        content: defaultSiteContent(validated.businessName),
-        config: defaultSiteConfig(defaultComposition.id, defaultComposition.defaultThemeId),
-    }).returning()
+    const meta = defaultSiteMeta(validated.businessName)
+    const { pages, components } = instantiateTemplate(template, meta.business)
+
+    const created = await db.transaction(async tx => {
+        const [tenant] = await tx.insert(tenants).values({
+            slug: availability.slug,
+            businessName: validated.businessName,
+            ownerUserId: session.user.id,
+            content: meta,
+            config: defaultSiteConfig(template.themeId),
+        }).returning()
+
+        await tx.insert(tenantPages).values(pages.map(page => ({ ...page, tenantId: tenant.id })))
+        if (components.length > 0) {
+            await tx.insert(tenantComponents).values(components.map(component => ({ ...component, tenantId: tenant.id })))
+        }
+        return tenant
+    })
 
     return { tenantId: created.id, slug: created.slug }
 }
@@ -73,46 +81,22 @@ export async function createDraftTenant(input: z.infer<typeof createDraftSchema>
 // owner-gated reads & writes
 //------------------------------------------------------------
 
-async function getOwnedTenant(tenantId: string) {
-    const session = await sessionCheckWithError()
-    const tenant = await db.query.tenants.findFirst({ where: eq(tenants.id, z.string().parse(tenantId)) })
-    if (tenant === undefined) throw new Error("tenant not found")
-    if (tenant.ownerUserId !== session.user.id && session.user.role !== "admin") {
-        throw new Error("not authorised for this tenant")
-    }
-    return tenant
-}
-
 export async function getMyTenants() {
     const session = await sessionCheckWithError()
     return db.query.tenants.findMany({ where: eq(tenants.ownerUserId, session.user.id) })
 }
 
 export async function getOwnedTenantById(tenantId: string) {
-    return getOwnedTenant(tenantId)
+    return getOwnedTenant(z.string().parse(tenantId))
 }
 
-export async function updateTenantContent(tenantId: string, contentRaw: SiteContent) {
-    const tenant = await getOwnedTenant(tenantId)
-    const content = siteContentSchema.parse(contentRaw)
+//add-on flags: only fully-built add-ons can be NEWLY enabled; add-ons already
+//on the tenant may be kept without bricking every save
+export async function setTenantAddons(tenantId: string, enabledAddonsRaw: unknown) {
+    const tenant = await getOwnedTenant(z.string().parse(tenantId))
+    const enabledAddons = addonIdSchema.array().parse(enabledAddonsRaw)
 
-    await db.update(tenants)
-        .set({ content, businessName: content.business.name, updatedAt: new Date() })
-        .where(eq(tenants.id, tenant.id))
-
-    bustTenant(tenant.slug, tenant.customDomain)
-    return { ok: true }
-}
-
-export async function updateTenantConfig(tenantId: string, configRaw: SiteConfig) {
-    const tenant = await getOwnedTenant(tenantId)
-    const config = siteConfigSchema.parse(configRaw)
-
-    if (compositionsById[config.compositionId] === undefined) throw new Error("unknown composition")
-
-    //only fully-built add-ons can be NEWLY enabled; add-ons already on the
-    //tenant (e.g. seeded demos) may be kept without bricking every save
-    for (const addonId of config.enabledAddons) {
+    for (const addonId of enabledAddons) {
         const alreadyEnabled = tenant.config.enabledAddons.includes(addonId)
         if (!alreadyEnabled && addonsById[addonId].status !== "available") {
             throw new Error(`${addonsById[addonId].name} is not available yet`)
@@ -120,7 +104,7 @@ export async function updateTenantConfig(tenantId: string, configRaw: SiteConfig
     }
 
     await db.update(tenants)
-        .set({ config, updatedAt: new Date() })
+        .set({ config: { ...tenant.config, enabledAddons }, updatedAt: new Date() })
         .where(eq(tenants.id, tenant.id))
 
     bustTenant(tenant.slug, tenant.customDomain)
@@ -144,7 +128,7 @@ const availabilityRulesSchema = availabilityRuleSchema.array().max(7)
     .refine(rules => new Set(rules.map(rule => rule.dayOfWeek)).size === rules.length, "one rule per weekday")
 
 export async function setTenantAvailability(tenantId: string, rulesRaw: z.infer<typeof availabilityRuleSchema>[]) {
-    const tenant = await getOwnedTenant(tenantId)
+    const tenant = await getOwnedTenant(z.string().parse(tenantId))
     const rules = availabilityRulesSchema.parse(rulesRaw)
 
     await db.transaction(async tx => {
@@ -158,12 +142,12 @@ export async function setTenantAvailability(tenantId: string, rulesRaw: z.infer<
 }
 
 export async function getTenantAvailability(tenantId: string) {
-    const tenant = await getOwnedTenant(tenantId)
+    const tenant = await getOwnedTenant(z.string().parse(tenantId))
     return db.query.tenantAvailability.findMany({ where: eq(tenantAvailability.tenantId, tenant.id) })
 }
 
 export async function getTenantBookings(tenantId: string) {
-    const tenant = await getOwnedTenant(tenantId)
+    const tenant = await getOwnedTenant(z.string().parse(tenantId))
     return db.query.tenantBookings.findMany({
         where: eq(tenantBookings.tenantId, tenant.id),
         orderBy: (bookings, { desc }) => [desc(bookings.startsAt)],
@@ -172,7 +156,7 @@ export async function getTenantBookings(tenantId: string) {
 }
 
 export async function setBookingStatus(tenantId: string, bookingId: string, status: "confirmed" | "cancelled") {
-    const tenant = await getOwnedTenant(tenantId)
+    const tenant = await getOwnedTenant(z.string().parse(tenantId))
     await db.update(tenantBookings)
         .set({ status })
         .where(and(eq(tenantBookings.id, z.string().parse(bookingId)), eq(tenantBookings.tenantId, tenant.id)))
@@ -180,7 +164,7 @@ export async function setBookingStatus(tenantId: string, bookingId: string, stat
 }
 
 export async function getTenantMessages(tenantId: string) {
-    const tenant = await getOwnedTenant(tenantId)
+    const tenant = await getOwnedTenant(z.string().parse(tenantId))
     return db.query.tenantMessages.findMany({
         where: eq(tenantMessages.tenantId, tenant.id),
         orderBy: (messages, { desc }) => [desc(messages.createdAt)],
@@ -189,7 +173,7 @@ export async function getTenantMessages(tenantId: string) {
 }
 
 export async function markMessageRead(tenantId: string, messageId: string) {
-    const tenant = await getOwnedTenant(tenantId)
+    const tenant = await getOwnedTenant(z.string().parse(tenantId))
     await db.update(tenantMessages)
         .set({ read: true })
         .where(and(eq(tenantMessages.id, z.string().parse(messageId)), eq(tenantMessages.tenantId, tenant.id)))

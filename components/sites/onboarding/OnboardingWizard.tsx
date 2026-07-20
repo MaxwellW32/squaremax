@@ -3,21 +3,21 @@ import React, { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import toast from "react-hot-toast"
 import TenantSite from "@/components/sites/TenantSite"
-import { SiteContent, defaultSiteContent, siteContentSchema, SectionType } from "@/lib/sites/content"
+import { SiteMeta, defaultSiteMeta, BusinessInfo } from "@/lib/sites/content"
 import { SiteConfig, defaultSiteConfig } from "@/lib/sites/config"
-import { compositions } from "@/lib/sites/compositions"
 import { themes } from "@/lib/sites/themes"
-import { variantsById, variantsForSection } from "@/lib/sites/registry"
+import { siteTemplates, instantiateTemplate } from "@/lib/sites/siteTemplates"
 import { addons, BASE_MONTHLY_PRICE, monthlyTotal, AddonId } from "@/lib/sites/addons"
-import { checkSlugAvailability, createDraftTenant, updateTenantConfig, updateTenantContent } from "@/serverFunctions/handleTenants"
+import { checkSlugAvailability, createDraftTenant, setTenantAddons } from "@/serverFunctions/handleTenants"
+import { setSiteTheme, updateBusinessInfo } from "@/serverFunctions/handleSiteBuilder"
 import { startTenantCheckout } from "@/serverFunctions/handleTenantBilling"
 
-const steps = ["Claim your name", "Your business", "Pick your look", "Add-ons", "Go live"] as const
+const steps = ["Claim your name", "Pick a starting point", "Your business", "Add-ons", "Go live"] as const
 
 type ResumeTenant = {
     id: string
     slug: string
-    content: SiteContent
+    meta: SiteMeta
     config: SiteConfig
 }
 
@@ -27,21 +27,25 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
     cancelled: boolean
     initialName?: string
 }) {
-    const [step, stepSet] = useState(resumeTenant !== null ? 1 : 0)
+    const [step, stepSet] = useState(resumeTenant !== null ? 2 : 0)
     const [busy, busySet] = useState(false)
 
     //step 0 (initialName survives the sign-in round trip via the callback url)
-    const [businessName, businessNameSet] = useState(resumeTenant?.content.business.name ?? initialName ?? "")
+    const [businessName, businessNameSet] = useState(resumeTenant?.meta.business.name ?? initialName ?? "")
     const [slugInfo, slugInfoSet] = useState<{ slug: string; available: boolean; reason?: string } | null>(null)
     const [checkingSlug, checkingSlugSet] = useState(false)
     const slugDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
     const slugRequestId = useRef(0)
 
+    //step 1 — template + theme (local until the tenant is created)
+    const [templateId, templateIdSet] = useState("storefront-classic")
+    const [themeId, themeIdSet] = useState<string | null>(null) //null = template default
+
     //draft tenant
     const [tenantId, tenantIdSet] = useState<string | null>(resumeTenant?.id ?? null)
     const [tenantSlug, tenantSlugSet] = useState<string | null>(resumeTenant?.slug ?? null)
-    const [content, contentSet] = useState<SiteContent>(resumeTenant?.content ?? defaultSiteContent(""))
-    const [config, configSet] = useState<SiteConfig>(resumeTenant?.config ?? defaultSiteConfig(compositions[0].id, compositions[0].defaultThemeId))
+    const [meta, metaSet] = useState<SiteMeta>(resumeTenant?.meta ?? defaultSiteMeta(""))
+    const [config, configSet] = useState<SiteConfig>(resumeTenant?.config ?? defaultSiteConfig("linen"))
 
     useEffect(() => {
         if (cancelled) toast("Payment cancelled — your page is saved, pick up where you left off.")
@@ -77,15 +81,19 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
     }, [businessName, step])
 
     const monthly = monthlyTotal(config.enabledAddons)
+    const input = "rounded-md border border-line bg-surface px-3 py-2.5 font-normal"
 
-    const currentComposition = compositions.find(c => c.id === config.compositionId) ?? compositions[0]
-    //section types present in the chosen composition, for variant swapping
-    const swappableSections = useMemo(() => {
-        const sectionTypes = currentComposition.sections
-            .map(variantId => variantsById[variantId]?.sectionType)
-            .filter((sectionType): sectionType is SectionType => sectionType !== undefined)
-        return sectionTypes.filter(sectionType => variantsForSection(sectionType).length > 1)
-    }, [currentComposition])
+    const chosenTemplate = siteTemplates.find(template => template.id === templateId) ?? siteTemplates[0]
+    const previewThemeId = themeId ?? chosenTemplate.themeId
+
+    //live template preview: the template is instantiated CLIENT-SIDE with the
+    //typed business name — the same copy-per-component routine that later runs
+    //on the server, so what you see is exactly what you get
+    const preview = useMemo(() => {
+        const previewMeta = defaultSiteMeta(businessName.trim() !== "" ? businessName.trim() : "Your business")
+        const { pages, components } = instantiateTemplate(chosenTemplate, previewMeta.business)
+        return { previewMeta, pages, components }
+    }, [chosenTemplate, businessName])
 
     const claimContinue = async () => {
         if (checkingSlug || slugInfo === null || !slugInfo.available) return
@@ -97,32 +105,42 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
             return
         }
 
+        stepSet(1)
+    }
+
+    //create the tenant: copies the chosen template component-by-component
+    const createFromTemplate = async () => {
+        if (slugInfo === null || !slugInfo.available) return
         busySet(true)
         try {
-            const created = await createDraftTenant({ businessName: businessName.trim(), slug: slugInfo.slug })
+            const created = await createDraftTenant({
+                businessName: businessName.trim(),
+                slug: slugInfo.slug,
+                templateId: chosenTemplate.id,
+            })
             tenantIdSet(created.tenantId)
             tenantSlugSet(created.slug)
-            contentSet(defaultSiteContent(businessName.trim()))
+            metaSet(defaultSiteMeta(businessName.trim()))
+
+            if (themeId !== null && themeId !== chosenTemplate.themeId) {
+                await setSiteTheme(created.tenantId, { themeId, themeOverrides: {} })
+            }
+            configSet({ ...config, themeId: previewThemeId })
+
             window.history.replaceState(null, "", `/sites/start?tenant=${created.tenantId}`)
-            stepSet(1)
+            stepSet(2)
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "couldn't claim that name")
+            toast.error(error instanceof Error ? error.message : "couldn't create your site")
         } finally {
             busySet(false)
         }
     }
 
-    const saveContent = async (nextStep: number) => {
+    const saveBusiness = async (nextStep: number) => {
         if (tenantId === null) return
-        const parsed = siteContentSchema.safeParse(content)
-        if (!parsed.success) {
-            toast.error(parsed.error.issues[0]?.message ?? "check the form")
-            return
-        }
-
         busySet(true)
         try {
-            await updateTenantContent(tenantId, parsed.data)
+            await updateBusinessInfo(tenantId, meta.business, meta.seo)
             stepSet(nextStep)
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "couldn't save")
@@ -131,11 +149,11 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
         }
     }
 
-    const saveConfig = async (nextStep: number) => {
+    const saveAddons = async (nextStep: number) => {
         if (tenantId === null) return
         busySet(true)
         try {
-            await updateTenantConfig(tenantId, config)
+            await setTenantAddons(tenantId, config.enabledAddons)
             stepSet(nextStep)
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "couldn't save")
@@ -156,7 +174,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
         }
     }
 
-    const input = "rounded-md border border-line bg-surface px-3 py-2.5 font-normal"
+    const setBusiness = (patch: Partial<BusinessInfo>) => metaSet({ ...meta, business: { ...meta.business, ...patch } })
 
     return (
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10">
@@ -210,138 +228,37 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                 </div>
             )}
 
-            {/* step 1 — business form */}
+            {/* step 1 — template + theme, with a real instantiated preview */}
             {step === 1 && (
-                <div className="grid max-w-2xl gap-4">
-                    <h1 className="font-display text-3xl font-bold normal-case">Tell us about {content.business.name || "your business"}</h1>
-                    <p className="text-mist">Everything is editable later from your dashboard.</p>
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="grid gap-1 text-sm font-semibold">Tagline
-                            <input className={input} value={content.business.tagline} placeholder="Sharp cuts, no waiting"
-                                onChange={e => {
-                                    //mirror into the hero subheading until the owner customizes it
-                                    const heroUntouched = content.hero.subheading === "Welcome — we're glad you're here." || content.hero.subheading === content.business.tagline
-                                    contentSet({
-                                        ...content,
-                                        business: { ...content.business, tagline: e.target.value },
-                                        hero: heroUntouched ? { ...content.hero, subheading: e.target.value } : content.hero,
-                                    })
-                                }} />
-                        </label>
-                        <label className="grid gap-1 text-sm font-semibold">Industry
-                            <input className={input} value={content.business.industry} placeholder="Barbershop"
-                                onChange={e => contentSet({ ...content, business: { ...content.business, industry: e.target.value } })} />
-                        </label>
-                    </div>
-
-                    <label className="grid gap-1 text-sm font-semibold">About your business
-                        <textarea rows={4} className={input} value={content.about.body} placeholder="Tell customers your story…"
-                            onChange={e => contentSet({ ...content, about: { ...content.about, body: e.target.value }, business: { ...content.business, description: e.target.value.slice(0, 300) } })} />
-                    </label>
-
-                    <div className="grid gap-3 sm:grid-cols-3">
-                        <label className="grid gap-1 text-sm font-semibold">Phone
-                            <input className={input} value={content.business.phone} onChange={e => contentSet({ ...content, business: { ...content.business, phone: e.target.value } })} />
-                        </label>
-                        <label className="grid gap-1 text-sm font-semibold">Email
-                            <input className={input} value={content.business.email} onChange={e => contentSet({ ...content, business: { ...content.business, email: e.target.value } })} />
-                        </label>
-                        <label className="grid gap-1 text-sm font-semibold">Address
-                            <input className={input} value={content.business.address} onChange={e => contentSet({ ...content, business: { ...content.business, address: e.target.value } })} />
-                        </label>
-                    </div>
-
-                    {/* services editor */}
-                    <fieldset className="grid gap-2 rounded-lg border border-line bg-surface p-4">
-                        <legend className="px-1 text-sm font-semibold">Services (name · price · duration)</legend>
-                        {content.services.items.map((item, index) => (
-                            <div key={index} className="grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
-                                <input className={input} value={item.name} placeholder="Haircut"
-                                    onChange={e => {
-                                        const items = [...content.services.items]; items[index] = { ...item, name: e.target.value }
-                                        contentSet({ ...content, services: { ...content.services, items } })
-                                    }} />
-                                <input className={input} value={item.price} placeholder="$30"
-                                    onChange={e => {
-                                        const items = [...content.services.items]; items[index] = { ...item, price: e.target.value }
-                                        contentSet({ ...content, services: { ...content.services, items } })
-                                    }} />
-                                <input className={input} type="number" min={5} step={5} value={item.durationMinutes ?? 30} title="Duration (minutes)"
-                                    onChange={e => {
-                                        const items = [...content.services.items]; items[index] = { ...item, durationMinutes: Number(e.target.value) || 30 }
-                                        contentSet({ ...content, services: { ...content.services, items } })
-                                    }} />
-                                <button type="button" aria-label="Remove service" className="rounded-md border border-line px-3 text-mist hover:text-brand"
-                                    onClick={() => contentSet({ ...content, services: { ...content.services, items: content.services.items.filter((_, i) => i !== index) } })}>×</button>
-                            </div>
-                        ))}
-                        <button type="button" className="w-fit rounded-md border border-ink px-3 py-1.5 text-sm font-semibold hover:bg-ink hover:text-white"
-                            onClick={() => contentSet({ ...content, services: { ...content.services, items: [...content.services.items, { name: "", description: "", price: "", durationMinutes: 30 }] } })}>
-                            + Add service
-                        </button>
-                    </fieldset>
-
-                    {/* hours editor */}
-                    <fieldset className="grid gap-2 rounded-lg border border-line bg-surface p-4">
-                        <legend className="px-1 text-sm font-semibold">Opening hours</legend>
-                        {content.hours.entries.map((entry, index) => (
-                            <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-                                <input className={input} value={entry.label} placeholder="Mon–Fri"
-                                    onChange={e => {
-                                        const entries = [...content.hours.entries]; entries[index] = { ...entry, label: e.target.value }
-                                        contentSet({ ...content, hours: { ...content.hours, entries } })
-                                    }} />
-                                <input className={input} value={entry.hours} placeholder="9am – 6pm"
-                                    onChange={e => {
-                                        const entries = [...content.hours.entries]; entries[index] = { ...entry, hours: e.target.value }
-                                        contentSet({ ...content, hours: { ...content.hours, entries } })
-                                    }} />
-                                <button type="button" aria-label="Remove hours row" className="rounded-md border border-line px-3 text-mist hover:text-brand"
-                                    onClick={() => contentSet({ ...content, hours: { ...content.hours, entries: content.hours.entries.filter((_, i) => i !== index) } })}>×</button>
-                            </div>
-                        ))}
-                        <button type="button" className="w-fit rounded-md border border-ink px-3 py-1.5 text-sm font-semibold hover:bg-ink hover:text-white"
-                            onClick={() => contentSet({ ...content, hours: { ...content.hours, entries: [...content.hours.entries, { label: "", hours: "" }] } })}>
-                            + Add hours
-                        </button>
-                    </fieldset>
-
-                    <div className="flex gap-3">
-                        <button type="button" disabled={busy} onClick={() => saveContent(2)}
-                            className="rounded-lg bg-cobalt px-6 py-3 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50">
-                            Save & pick my look
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* step 2 — pick your look (live preview with THEIR data) */}
-            {step === 2 && (
                 <div className="grid gap-6">
-                    <h1 className="font-display text-3xl font-bold normal-case">Pick your look — that&apos;s your real content in there</h1>
+                    <div className="grid gap-1">
+                        <h1 className="font-display text-3xl font-bold normal-case">Pick a starting point</h1>
+                        <p className="text-mist">
+                            A template is copied into your site component by component — then every piece is yours to
+                            edit, reorder, restyle or swap for another design. Or start from a blank canvas.
+                        </p>
+                    </div>
 
                     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
                         <div className="grid content-start gap-5">
                             <div className="grid gap-2">
-                                <p className="text-sm font-semibold uppercase tracking-wide text-mist">Layout</p>
-                                {compositions.map(composition => (
-                                    <button key={composition.id} type="button"
-                                        onClick={() => configSet({ ...config, compositionId: composition.id, variantOverrides: {} })}
-                                        className={`grid gap-0.5 rounded-lg border p-3 text-left ${config.compositionId === composition.id ? "border-cobalt bg-surface" : "border-line bg-surface/60 hover:border-mist"}`}>
-                                        <span className="font-display font-bold">{composition.name}</span>
-                                        <span className="text-xs text-mist">{composition.description}</span>
+                                {siteTemplates.map(template => (
+                                    <button key={template.id} type="button"
+                                        onClick={() => { templateIdSet(template.id); themeIdSet(null) }}
+                                        className={`grid gap-0.5 rounded-lg border p-3 text-left ${templateId === template.id ? "border-cobalt bg-surface" : "border-line bg-surface/60 hover:border-mist"}`}>
+                                        <span className="font-display font-bold">{template.name}</span>
+                                        <span className="text-xs text-mist">{template.description}</span>
                                     </button>
                                 ))}
                             </div>
 
                             <div className="grid gap-2">
-                                <p className="text-sm font-semibold uppercase tracking-wide text-mist">Theme — any theme fits any layout</p>
+                                <p className="text-sm font-semibold uppercase tracking-wide text-mist">Theme — any theme fits any template</p>
                                 <div className="flex flex-wrap gap-2">
                                     {themes.map(theme => (
                                         <button key={theme.id} type="button" title={theme.name}
-                                            onClick={() => configSet({ ...config, themeId: theme.id })}
-                                            className={`grid size-11 place-items-center overflow-hidden rounded-full border-2 ${config.themeId === theme.id ? "border-cobalt" : "border-line"}`}
+                                            onClick={() => themeIdSet(theme.id)}
+                                            className={`grid size-11 place-items-center overflow-hidden rounded-full border-2 ${previewThemeId === theme.id ? "border-cobalt" : "border-line"}`}
                                             style={{ backgroundColor: theme.colors.background }}>
                                             <span className="size-5 rounded-full" style={{ backgroundColor: theme.colors.primary }} />
                                         </button>
@@ -349,47 +266,86 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                                 </div>
                             </div>
 
-                            <div className="grid gap-2">
-                                <p className="text-sm font-semibold uppercase tracking-wide text-mist">Swap components</p>
-                                {swappableSections.map(sectionType => {
-                                    const options = variantsForSection(sectionType)
-                                    const compositionDefault = currentComposition.sections.find(id => variantsById[id]?.sectionType === sectionType)
-                                    const currentValue = config.variantOverrides[sectionType] ?? compositionDefault ?? options[0].variantId
-
-                                    return (
-                                        <label key={sectionType} className="grid gap-1 text-sm font-semibold capitalize">
-                                            {sectionType}
-                                            <select
-                                                value={currentValue}
-                                                onChange={e => configSet({ ...config, variantOverrides: { ...config.variantOverrides, [sectionType]: e.target.value } })}
-                                                className="rounded-md border border-line bg-surface px-3 py-2 font-normal"
-                                            >
-                                                {options.map(option => (
-                                                    <option key={option.variantId} value={option.variantId}>{option.label}</option>
-                                                ))}
-                                            </select>
-                                        </label>
-                                    )
-                                })}
-                            </div>
-
-                            <button type="button" disabled={busy} onClick={() => saveConfig(3)}
+                            <button type="button" disabled={busy} onClick={createFromTemplate}
                                 className="rounded-lg bg-cobalt px-6 py-3 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50">
-                                Save & choose add-ons
+                                {busy ? "Setting up your site…" : "Use this — continue"}
                             </button>
                         </div>
 
-                        {/* live preview */}
+                        {/* live preview of the instantiated template */}
                         <div className="overflow-hidden rounded-xl border border-line bg-surface">
                             <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
                                 <span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" />
-                                <span className="ml-2 truncate font-mono text-xs text-mist">squaremaxtech.com/{tenantSlug}</span>
+                                <span className="ml-2 truncate font-mono text-xs text-mist">squaremaxtech.com/{slugInfo?.slug ?? tenantSlug ?? ""}</span>
                             </div>
                             <div className="max-h-[70vh] overflow-y-auto">
-                                <TenantSite content={content} config={config} slug={tenantSlug ?? ""} preview />
+                                <TenantSite
+                                    meta={preview.previewMeta}
+                                    config={{ schemaVersion: 2, themeId: previewThemeId, themeOverrides: {}, enabledAddons: ["booking", "inventory"] }}
+                                    slug={slugInfo?.slug ?? ""}
+                                    basePath=""
+                                    tenantId="preview"
+                                    pages={preview.pages.map(page => ({ id: page.id, slug: page.slug, title: page.title, order: page.order }))}
+                                    components={preview.components}
+                                    currentPageId={preview.pages[0]?.id ?? ""}
+                                    products={[
+                                        { id: "demo-1", name: "Sample product", description: "Shows when you add products in the Store tab.", priceCents: 2500, imageSrc: "", stock: 5, trackStock: true },
+                                        { id: "demo-2", name: "Another product", description: "", priceCents: 1200, imageSrc: "", stock: 12, trackStock: true },
+                                    ]}
+                                    preview
+                                />
                             </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* step 2 — business info */}
+            {step === 2 && (
+                <div className="grid max-w-2xl gap-4">
+                    <h1 className="font-display text-3xl font-bold normal-case">Tell us about {meta.business.name || "your business"}</h1>
+                    <p className="text-mist">Your components read these everywhere — phone, WhatsApp, address. All editable later.</p>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="grid gap-1 text-sm font-semibold">Tagline
+                            <input className={input} value={meta.business.tagline} placeholder="Sharp cuts, no waiting"
+                                onChange={e => setBusiness({ tagline: e.target.value })} />
+                        </label>
+                        <label className="grid gap-1 text-sm font-semibold">Industry
+                            <input className={input} value={meta.business.industry} placeholder="Barbershop"
+                                onChange={e => setBusiness({ industry: e.target.value })} />
+                        </label>
+                    </div>
+
+                    <label className="grid gap-1 text-sm font-semibold">About your business
+                        <textarea rows={4} className={input} value={meta.business.description} placeholder="Tell customers your story…"
+                            onChange={e => setBusiness({ description: e.target.value })} />
+                    </label>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="grid gap-1 text-sm font-semibold">Phone
+                            <input className={input} value={meta.business.phone} onChange={e => setBusiness({ phone: e.target.value })} />
+                        </label>
+                        <label className="grid gap-1 text-sm font-semibold">WhatsApp (with country code)
+                            <input className={input} placeholder="18761234567" value={meta.business.whatsapp} onChange={e => setBusiness({ whatsapp: e.target.value })} />
+                        </label>
+                        <label className="grid gap-1 text-sm font-semibold">Email
+                            <input className={input} value={meta.business.email} onChange={e => setBusiness({ email: e.target.value })} />
+                        </label>
+                        <label className="grid gap-1 text-sm font-semibold">Address
+                            <input className={input} value={meta.business.address} onChange={e => setBusiness({ address: e.target.value })} />
+                        </label>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <button type="button" disabled={busy} onClick={() => saveBusiness(3)}
+                            className="rounded-lg bg-cobalt px-6 py-3 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50">
+                            Save & choose add-ons
+                        </button>
+                    </div>
+                    <p className="text-xs text-mist">
+                        Fine-tune every section (services, photos, hours, menus) from your dashboard&apos;s Website tab after checkout.
+                    </p>
                 </div>
             )}
 
@@ -397,7 +353,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
             {step === 3 && (
                 <div className="grid max-w-2xl gap-4">
                     <h1 className="font-display text-3xl font-bold normal-case">Add exactly what you need</h1>
-                    <p className="text-mist">Base page is ${BASE_MONTHLY_PRICE}/month. Toggle add-ons anytime — billing follows.</p>
+                    <p className="text-mist">Your website is ${BASE_MONTHLY_PRICE}/month. Each add-on is $5 — toggle them anytime, billing follows.</p>
 
                     <div className="grid gap-3">
                         {addons.map(addon => {
@@ -429,7 +385,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                         Your total: ${monthly}/month
                     </p>
 
-                    <button type="button" disabled={busy} onClick={() => saveConfig(4)}
+                    <button type="button" disabled={busy} onClick={() => saveAddons(4)}
                         className="w-fit rounded-lg bg-cobalt px-6 py-3 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50">
                         Save & review
                     </button>
@@ -444,7 +400,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                     <div className="grid gap-2 rounded-xl border border-line bg-surface p-6">
                         <p className="font-mono text-sm">squaremaxtech.com/<span className="font-bold text-cobalt">{tenantSlug}</span></p>
                         <ul className="grid gap-1 text-sm text-mist">
-                            <li>Base page — ${BASE_MONTHLY_PRICE}/mo</li>
+                            <li>Your website — ${BASE_MONTHLY_PRICE}/mo</li>
                             {config.enabledAddons.map(id => {
                                 const addon = addons.find(a => a.id === id)
                                 return addon !== undefined ? <li key={id}>{addon.name} — ${addon.monthlyPrice}/mo</li> : null
@@ -460,7 +416,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                             {busy ? "Opening secure checkout…" : `Pay $${monthly} & go live`}
                         </button>
                         <button type="button" onClick={() => stepSet(2)} className="rounded-lg border border-line px-5 py-3 font-semibold text-mist hover:text-ink">
-                            Back to design
+                            Back
                         </button>
                     </div>
 

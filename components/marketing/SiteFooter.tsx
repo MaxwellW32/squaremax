@@ -8,8 +8,8 @@ export default function SiteFooter() {
                 <div className="grid content-start gap-3">
                     <p className="font-display text-xl font-bold">squaremax</p>
                     <p className="max-w-sm text-sm text-white/70">
-                        Custom websites at flat prices. Hosted business pages from $10/month.
-                        Built in Jamaica, shipped worldwide.
+                        Hosted business websites with booking, notifications and inventory from $5/month.
+                        Custom builds at flat prices. Built in Jamaica, shipped worldwide.
                     </p>
                 </div>
 

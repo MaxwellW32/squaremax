@@ -30,8 +30,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 const metadataInfo = {
-  title: "Squaremax — Custom websites from $1,000 flat. Business pages from $10/month.",
-  description: "Two ways to get online: fixed-scope custom builds at flat tier prices ($1,000 / $3,500 / $6,500), or a hosted business page at squaremaxtech.com/your-business from $10/month. Fixed price. Fixed scope. Days, not months.",
+  title: "Squaremax — your business website + booking, notifications & inventory. $5/month per piece.",
+  description: "A beautiful hosted website at squaremaxtech.com/your-business from $5/month, with booking, customer notifications and inventory tracking at $5/month each. Need fully custom? Flat-price builds from $1,000.",
 }
 
 export const metadata: Metadata = {

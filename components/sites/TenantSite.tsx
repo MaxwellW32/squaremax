@@ -1,42 +1,78 @@
 import React from "react"
-import { SiteContent, SectionType } from "@/lib/sites/content"
+import { SiteMeta, ComponentData } from "@/lib/sites/content"
 import { SiteConfig } from "@/lib/sites/config"
 import { themesById, themeToStyle, themes } from "@/lib/sites/themes"
-import { compositionsById, compositions } from "@/lib/sites/compositions"
 import { variantsById } from "@/lib/sites/registry"
+import { SectionProps, SiteCtx, ProductLite, SitePageLink } from "@/lib/sites/sectionProps"
+import { ComponentStyles, scopeCss, stylesToVars } from "@/lib/sites/styles"
+import { componentsForPage, ComponentRegion } from "@/lib/sites/site"
 import { tenantFontsClassName } from "@/lib/sites/fonts"
+import { ComponentCategory } from "@/lib/sites/content"
 
 //============================================================
-// The tenant renderer: theme tokens go on THIS root element
-// (never :root), the composition decides section order, and
-// per-section overrides swap variants within a section type.
-// Server-renderable end to end; interactive bits are islands.
+// The tenant renderer (instance model): theme tokens go on THIS
+// root element (never :root); components render top-down —
+// header region, the current page's components, footer region.
+// Each instance is wrapped in a display:contents div carrying
+// its unique id: token overrides cascade from it, and custom CSS
+// is scoped to it. Server-renderable end to end; interactive
+// bits are client islands.
 //============================================================
+
+export type RenderableComponent = {
+    id: string
+    region: ComponentRegion
+    pageId: string | null
+    order: number
+    category: ComponentCategory
+    variantId: string
+    data: ComponentData
+    styles: ComponentStyles | null
+}
+
+export type RenderablePage = { id: string; slug: string; title: string; order: number }
 
 export default function TenantSite({
-    content,
+    meta,
     config,
     slug,
+    basePath,
+    tenantId,
+    pages,
+    components,
+    currentPageId,
+    products,
     preview,
 }: {
-    content: SiteContent
+    meta: SiteMeta
     config: SiteConfig
     slug: string
+    basePath: string
+    tenantId: string
+    pages: RenderablePage[]
+    components: RenderableComponent[]
+    currentPageId: string
+    products?: ProductLite[]
     preview?: boolean
 }) {
     const theme = themesById[config.themeId] ?? themes[0]
-    const composition = compositionsById[config.compositionId] ?? compositions[0]
 
-    //resolve final variant per section: composition default, then override
-    const resolvedVariantIds = composition.sections.map(variantId => {
-        const entry = variantsById[variantId]
-        if (entry === undefined) return null
-        const override = config.variantOverrides[entry.sectionType as SectionType]
-        if (override !== undefined && variantsById[override]?.sectionType === entry.sectionType) {
-            return override
-        }
-        return variantId
-    }).filter((id): id is string => id !== null)
+    const pageLinks: SitePageLink[] = [...pages]
+        .sort((a, b) => a.order - b.order)
+        .map(page => ({ slug: page.slug, title: page.title }))
+
+    const ctx: SiteCtx = {
+        tenantId,
+        slug,
+        basePath,
+        business: meta.business,
+        pages: pageLinks,
+        enabledAddons: config.enabledAddons,
+        products,
+        preview,
+    }
+
+    const visible = componentsForPage(components, currentPageId)
 
     return (
         <div
@@ -48,10 +84,22 @@ export default function TenantSite({
             }}
             className={`${tenantFontsClassName} min-h-screen`}
         >
-            {resolvedVariantIds.map(variantId => {
-                const entry = variantsById[variantId]
-                const Component = entry.component
-                return <Component key={variantId} content={content} config={config} slug={slug} preview={preview} />
+            {visible.map(component => {
+                const entry = variantsById[component.variantId]
+                if (entry === undefined || entry.category !== component.category) return null
+
+                //the registry stores type-erased components; the category check
+                //above guarantees data matches what the variant expects
+                const Component = entry.component as React.ComponentType<SectionProps>
+                const styleVars = stylesToVars(component.styles)
+                const customCss = component.styles?.css ?? ""
+
+                return (
+                    <div key={component.id} data-c={component.id} style={{ display: "contents", ...styleVars }}>
+                        {customCss !== "" && <style>{scopeCss(customCss, component.id)}</style>}
+                        <Component data={component.data} id={component.id} ctx={ctx} />
+                    </div>
+                )
             })}
         </div>
     )

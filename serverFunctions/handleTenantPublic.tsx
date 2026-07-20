@@ -2,11 +2,12 @@
 import { z } from "zod"
 import { and, eq, gte, lt, ne, sql } from "drizzle-orm"
 import { db } from "@/db"
-import { tenantAvailability, tenantBookings, tenantMessages, tenants } from "@/db/schema"
+import { tenantAvailability, tenantBookings, tenantComponents, tenantMessages, tenants } from "@/db/schema"
 import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
 import { slugSchema } from "@/lib/sites/slug"
 import { businessDateISO, businessDayAnchor, computeSlots, dateISOSchemaPattern, rangesOverlap } from "@/lib/sites/bookingLogic"
 import { sendEmailInBackground } from "@/lib/email/transporter"
+import { getCurrentCustomer } from "@/lib/sites/customerAuth"
 
 //public server actions callable from tenant pages — every input is
 //zod-validated and every action re-checks tenant visibility + add-on flags.
@@ -17,6 +18,21 @@ async function getVisibleTenant(slugRaw: string) {
     if (tenant === undefined) throw new Error("page not found")
     if (!isPubliclyVisible(effectiveStatus(tenant))) throw new Error("page is paused")
     return tenant
+}
+
+//bookable services now live on the tenant's BOOKING components (each placed
+//instance owns its data) — search across them for the requested service
+async function findBookableService(tenantId: string, serviceName: string): Promise<{ name: string; durationMinutes: number } | undefined> {
+    const bookingComponents = await db.query.tenantComponents.findMany({
+        where: and(eq(tenantComponents.tenantId, tenantId), eq(tenantComponents.category, "booking")),
+    })
+
+    for (const component of bookingComponents) {
+        if (component.data.category !== "booking") continue
+        const service = component.data.services.find(candidate => candidate.name === serviceName)
+        if (service !== undefined) return { name: service.name, durationMinutes: service.durationMinutes }
+    }
+    return undefined
 }
 
 const messageInputSchema = z.object({
@@ -37,7 +53,7 @@ export async function submitTenantMessage(input: z.infer<typeof messageInputSche
         body: validated.body,
     })
 
-    if (tenant.config.enabledAddons.includes("email-notifications") && tenant.content.business.email !== "") {
+    if (tenant.config.enabledAddons.includes("notifications") && tenant.content.business.email !== "") {
         sendEmailInBackground({
             to: tenant.content.business.email,
             replyTo: validated.email,
@@ -60,9 +76,9 @@ export async function getBookingSlots(input: z.infer<typeof slotsInputSchema>): 
     const tenant = await getVisibleTenant(validated.slug)
     if (!tenant.config.enabledAddons.includes("booking")) throw new Error("booking not enabled")
 
-    const service = tenant.content.services.items.find(item => item.name === validated.serviceName)
+    const service = await findBookableService(tenant.id, validated.serviceName)
     if (service === undefined) throw new Error("service not found")
-    const durationMinutes = service.durationMinutes ?? 30
+    const durationMinutes = service.durationMinutes
 
     const { dayStart } = businessDayAnchor(validated.dateISO)
     const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
@@ -98,9 +114,9 @@ export async function submitBooking(input: z.infer<typeof bookingInputSchema>) {
     const tenant = await getVisibleTenant(validated.slug)
     if (!tenant.config.enabledAddons.includes("booking")) throw new Error("booking not enabled")
 
-    const service = tenant.content.services.items.find(item => item.name === validated.serviceName)
+    const service = await findBookableService(tenant.id, validated.serviceName)
     if (service === undefined) throw new Error("service not found")
-    const durationMinutes = service.durationMinutes ?? 30
+    const durationMinutes = service.durationMinutes
 
     const startsAt = new Date(validated.startsAtISO)
     if (Number.isNaN(startsAt.getTime()) || startsAt <= new Date()) throw new Error("invalid time")
@@ -113,6 +129,9 @@ export async function submitBooking(input: z.infer<typeof bookingInputSchema>) {
     const { dayStart } = businessDayAnchor(dateISO)
     const validSlots = computeSlots({ dateISO, rules, existing: [], durationMinutes })
     if (!validSlots.some(slot => slot.getTime() === startsAt.getTime())) throw new Error("slot not available")
+
+    //a signed-in customer account on this tenant gets linked to the booking
+    const customer = await getCurrentCustomer(tenant.id)
 
     //conflict check + insert inside one transaction; the per-tenant advisory
     //lock serializes concurrent submits (plain READ COMMITTED would let two
@@ -139,6 +158,7 @@ export async function submitBooking(input: z.infer<typeof bookingInputSchema>) {
             customerName: validated.customerName,
             customerEmail: validated.customerEmail,
             customerPhone: validated.customerPhone,
+            customerId: customer?.id ?? null,
             startsAt,
             endsAt,
             notes: validated.notes,
@@ -147,7 +167,7 @@ export async function submitBooking(input: z.infer<typeof bookingInputSchema>) {
         return inserted
     })
 
-    if (tenant.config.enabledAddons.includes("email-notifications")) {
+    if (tenant.config.enabledAddons.includes("notifications")) {
         const when = startsAt.toLocaleString("en-US", { dateStyle: "full", timeStyle: "short" })
 
         if (tenant.content.business.email !== "") {

@@ -1,12 +1,13 @@
 import React from "react"
+import { BookingData } from "@/lib/sites/content"
 import { SectionProps } from "@/lib/sites/sectionProps"
 import BookingWidget from "@/components/sites/islands/BookingWidget"
 
 //variant: booking.panel — renders only when the booking add-on is enabled
-//and at least one service exists (the widget itself is a client island)
-export function BookingPanel({ content, config, slug, preview }: SectionProps) {
-    if (!config.enabledAddons.includes("booking")) return null
-    if (content.services.items.length === 0) return null
+//and this instance lists at least one bookable service (client island inside)
+export function BookingPanel({ data, ctx }: SectionProps<BookingData>) {
+    if (!ctx.enabledAddons.includes("booking")) return null
+    if (data.services.length === 0) return null
 
     return (
         <section id="booking" className="bg-[var(--t-bg)] !p-0">
@@ -15,16 +16,20 @@ export function BookingPanel({ content, config, slug, preview }: SectionProps) {
                     className="text-center text-[length:var(--t-text-xl)] text-[var(--t-text)]"
                     style={{ fontFamily: "var(--t-font-heading)", fontWeight: "var(--t-heading-weight)" as never }}
                 >
-                    Book an appointment
+                    {data.heading}
                 </h2>
 
+                {data.blurb !== "" && (
+                    <p className="text-center text-[length:var(--t-text-m)] text-[var(--t-text-muted)]">{data.blurb}</p>
+                )}
+
                 <BookingWidget
-                    slug={slug}
-                    preview={preview === true}
-                    services={content.services.items.map(item => ({
-                        name: item.name,
-                        price: item.price,
-                        durationMinutes: item.durationMinutes ?? 30,
+                    slug={ctx.slug}
+                    preview={ctx.preview === true}
+                    services={data.services.map(service => ({
+                        name: service.name,
+                        price: service.price,
+                        durationMinutes: service.durationMinutes,
                     }))}
                 />
             </div>
