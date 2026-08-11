@@ -108,6 +108,8 @@ const addComponentSchema = z.object({
     pageId: z.string().nullable(),
     category: componentCategorySchema,
     variantId: z.string().optional(),
+    //insert directly above this sibling (canvas "+ add here"); omitted = append
+    beforeId: z.string().nullable().optional(),
 })
 
 export async function addComponent(tenantId: string, input: z.infer<typeof addComponentSchema>) {
@@ -133,16 +135,32 @@ export async function addComponent(tenantId: string, input: z.infer<typeof addCo
         order: 0,
     })
 
-    const [created] = await db.insert(tenantComponents).values({
+    const before = validated.beforeId != null ? siblings.find(sibling => sibling.id === validated.beforeId) : undefined
+    const order = before !== undefined
+        ? before.order
+        : siblings.length === 0 ? 0 : siblings[siblings.length - 1].order + 1
+
+    const values = {
         tenantId: tenant.id,
         region: validated.region,
         pageId: validated.region === "main" ? validated.pageId : null,
-        order: siblings.length === 0 ? 0 : siblings[siblings.length - 1].order + 1,
+        order,
         category: validated.category,
         variantId,
         data: defaultComponentData(validated.category, tenant.content.business),
         styles: { tokens: {}, css: "" },
-    }).returning()
+    }
+
+    const created = await db.transaction(async tx => {
+        if (before !== undefined) {
+            //shift the insertion point and everything below it down one slot
+            for (const sibling of siblings.filter(candidate => candidate.order >= before.order).reverse()) {
+                await tx.update(tenantComponents).set({ order: sibling.order + 1 }).where(eq(tenantComponents.id, sibling.id))
+            }
+        }
+        const [row] = await tx.insert(tenantComponents).values(values).returning()
+        return row
+    })
 
     bustTenant(tenant.slug, tenant.customDomain)
     return created

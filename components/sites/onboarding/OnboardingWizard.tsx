@@ -33,6 +33,9 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
     //step 0 (initialName survives the sign-in round trip via the callback url)
     const [businessName, businessNameSet] = useState(resumeTenant?.meta.business.name ?? initialName ?? "")
     const [slugInfo, slugInfoSet] = useState<{ slug: string; available: boolean; reason?: string } | null>(null)
+    //the slug locked in by "Use this — continue": the live check above resets
+    //when we leave step 0, so later steps must never read slugInfo
+    const [claimedSlug, claimedSlugSet] = useState<string | null>(null)
     const [checkingSlug, checkingSlugSet] = useState(false)
     const slugDebounce = useRef<NodeJS.Timeout | undefined>(undefined)
     const slugRequestId = useRef(0)
@@ -105,17 +108,18 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
             return
         }
 
+        claimedSlugSet(slugInfo.slug)
         stepSet(1)
     }
 
     //create the tenant: copies the chosen template component-by-component
     const createFromTemplate = async () => {
-        if (slugInfo === null || !slugInfo.available) return
+        if (claimedSlug === null) return
         busySet(true)
         try {
             const created = await createDraftTenant({
                 businessName: businessName.trim(),
-                slug: slugInfo.slug,
+                slug: claimedSlug,
                 templateId: chosenTemplate.id,
             })
             tenantIdSet(created.tenantId)
@@ -276,13 +280,13 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                         <div className="overflow-hidden rounded-xl border border-line bg-surface">
                             <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
                                 <span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" />
-                                <span className="ml-2 truncate font-mono text-xs text-mist">squaremaxtech.com/{slugInfo?.slug ?? tenantSlug ?? ""}</span>
+                                <span className="ml-2 truncate font-mono text-xs text-mist">squaremaxtech.com/{claimedSlug ?? tenantSlug ?? ""}</span>
                             </div>
                             <div className="max-h-[70vh] overflow-y-auto">
                                 <TenantSite
                                     meta={preview.previewMeta}
                                     config={{ schemaVersion: 2, themeId: previewThemeId, themeOverrides: {}, enabledAddons: ["booking", "inventory"] }}
-                                    slug={slugInfo?.slug ?? ""}
+                                    slug={claimedSlug ?? ""}
                                     basePath=""
                                     tenantId="preview"
                                     pages={preview.pages.map(page => ({ id: page.id, slug: page.slug, title: page.title, order: page.order }))}

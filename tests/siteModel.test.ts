@@ -3,7 +3,7 @@ import { componentCategorySchema, dataSchemaByCategory, defaultComponentData, de
 import { scopeCss, stylesToVars } from "@/lib/sites/styles"
 import { variants, variantsById, variantsForCategory } from "@/lib/sites/registry"
 import { siteTemplates, instantiateTemplate } from "@/lib/sites/siteTemplates"
-import { componentsForPage, siblingComponents, sortByOrder } from "@/lib/sites/site"
+import { componentsForPage, placementForGap, siblingComponents, sortByOrder } from "@/lib/sites/site"
 import { hashPassword, verifyPassword } from "@/lib/sites/passwords"
 import { monthlyTotal, BASE_MONTHLY_PRICE, AddonId } from "@/lib/sites/addons"
 
@@ -120,6 +120,49 @@ describe("page assembly", () => {
         const input = [{ order: 2 }, { order: 1 }]
         sortByOrder(input)
         expect(input[0].order).toBe(2)
+    })
+})
+
+//============================================================
+// canvas insertion — where "+ Add here" picks land
+//============================================================
+
+describe("placementForGap", () => {
+    const byId = Object.fromEntries(rows.map(row => [row.id, row]))
+
+    it("drops a section exactly at a gap between the page's sections", () => {
+        expect(placementForGap("text", { after: byId["hero-a"], before: byId["hero-b"] }, "p1", rows))
+            .toEqual({ region: "main", pageId: "p1", beforeId: "hero-b" })
+    })
+
+    it("routes a section picked at the header boundary to the top of the page", () => {
+        expect(placementForGap("text", { after: null, before: byId.nav }, "p1", rows))
+            .toEqual({ region: "main", pageId: "p1", beforeId: "hero-a" })
+    })
+
+    it("appends a section picked at the footer boundary or bottom", () => {
+        expect(placementForGap("text", { after: byId["hero-b"], before: byId.foot }, "p1", rows))
+            .toEqual({ region: "main", pageId: "p1", beforeId: null })
+        expect(placementForGap("text", { after: byId.foot, before: null }, "p1", rows))
+            .toEqual({ region: "main", pageId: "p1", beforeId: null })
+    })
+
+    it("always sends navbars to the header and footers to the footer region", () => {
+        expect(placementForGap("navbar", { after: byId["hero-a"], before: byId["hero-b"] }, "p1", rows))
+            .toEqual({ region: "header", pageId: null, beforeId: null })
+        expect(placementForGap("navbar", { after: null, before: byId.nav }, "p1", rows))
+            .toEqual({ region: "header", pageId: null, beforeId: "nav" })
+        expect(placementForGap("footer", { after: byId["hero-b"], before: byId.foot }, "p1", rows))
+            .toEqual({ region: "footer", pageId: null, beforeId: "foot" })
+        expect(placementForGap("footer", { after: null, before: byId.nav }, "p1", rows))
+            .toEqual({ region: "footer", pageId: null, beforeId: null })
+    })
+
+    it("handles an empty site: everything lands on the page (or its shared region)", () => {
+        expect(placementForGap("hero", { after: null, before: null }, "p1", []))
+            .toEqual({ region: "main", pageId: "p1", beforeId: null })
+        expect(placementForGap("navbar", { after: null, before: null }, "p1", []))
+            .toEqual({ region: "header", pageId: null, beforeId: null })
     })
 })
 

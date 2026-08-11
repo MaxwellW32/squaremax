@@ -441,8 +441,10 @@ function PricingPlansForm({ value, onChange }: { value: PricingPlansData; onChan
                                 onChange={e => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, period: e.target.value }) })} />
                             <RemoveButton onClick={() => onChange({ ...value, plans: removeAt(value.plans, planIndex) })} />
                         </div>
+                        {/* keep empty lines while typing so Enter opens a new line; the
+                            renderer skips blank features */}
                         <textarea className={inputClass} rows={2} placeholder={"One feature per line"} value={plan.features.join("\n")}
-                            onChange={e => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, features: e.target.value.split("\n").map(f => f.slice(0, 120)).filter((f, i, arr) => f !== "" || i < arr.length - 1) }) })} />
+                            onChange={e => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, features: e.target.value.split("\n").map(f => f.slice(0, 120)).slice(0, 15) }) })} />
                         <CheckField label="Highlight this plan" checked={plan.highlighted} onChange={highlighted => onChange({ ...value, plans: setAt(value.plans, planIndex, { ...plan, highlighted }) })} />
                     </div>
                 ))}
@@ -630,6 +632,8 @@ function EventsForm({ value, onChange }: { value: EventsData; onChange: (next: E
                             <input className={inputClass} placeholder="Details (optional)" value={event.description}
                                 onChange={e => onChange({ ...value, events: setAt(value.events, eventIndex, { ...event, description: e.target.value }) })} />
                         </div>
+                        <input className={inputClass} placeholder="Ticket / details link (optional — https://…)" value={event.href}
+                            onChange={e => onChange({ ...value, events: setAt(value.events, eventIndex, { ...event, href: e.target.value }) })} />
                     </div>
                 ))}
             </ListSection>

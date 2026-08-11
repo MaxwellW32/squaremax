@@ -1,5 +1,6 @@
 "use client"
 import React, { useState } from "react"
+import Link from "next/link"
 import toast from "react-hot-toast"
 import { SiteMeta, BusinessInfo, socialLinkSchema } from "@/lib/sites/content"
 import { SiteConfig } from "@/lib/sites/config"
@@ -93,6 +94,7 @@ export default function TenantDashboard(props: {
     const input = "rounded-md border border-line bg-surface px-3 py-2 font-normal"
 
     const run = async (work: () => Promise<unknown>, success: string) => {
+        if (busy) return //disabled= only applies after re-render; block double-clicks
         busySet(true)
         try {
             await work()
@@ -146,9 +148,14 @@ export default function TenantDashboard(props: {
                         squaremaxtech.com/{props.slug} ↗
                     </a>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusCopy[props.status].className}`}>
-                    {statusCopy[props.status].label}
-                </span>
+                <div className="flex items-center gap-2">
+                    <Link href="/sites/start" className="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-mist hover:border-cobalt hover:text-cobalt">
+                        + New site
+                    </Link>
+                    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusCopy[props.status].className}`}>
+                        {statusCopy[props.status].label}
+                    </span>
+                </div>
             </div>
 
             <nav className="flex flex-wrap gap-1 border-b border-line">

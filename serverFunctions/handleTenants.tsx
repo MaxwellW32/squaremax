@@ -1,6 +1,6 @@
 "use server"
 import { z } from "zod"
-import { and, eq } from "drizzle-orm"
+import { and, eq, ne } from "drizzle-orm"
 import { db } from "@/db"
 import { tenantAvailability, tenantBookings, tenantComponents, tenantMessages, tenantPages, tenants } from "@/db/schema"
 import { defaultSiteMeta } from "@/lib/sites/content"
@@ -10,6 +10,7 @@ import { siteTemplatesById, instantiateTemplate } from "@/lib/sites/siteTemplate
 import { slugSchema, normalizeSlug } from "@/lib/sites/slug"
 import { sessionCheckWithError } from "@/useful/sessionCheck"
 import { getOwnedTenant, bustTenant } from "@/lib/sites/owner"
+import { sendEmailInBackground } from "@/lib/email/transporter"
 
 //============================================================
 // Tenant CRUD. Public tenant pages read through the per-slug
@@ -58,21 +59,31 @@ export async function createDraftTenant(input: z.infer<typeof createDraftSchema>
     const meta = defaultSiteMeta(validated.businessName)
     const { pages, components } = instantiateTemplate(template, meta.business)
 
-    const created = await db.transaction(async tx => {
-        const [tenant] = await tx.insert(tenants).values({
-            slug: availability.slug,
-            businessName: validated.businessName,
-            ownerUserId: session.user.id,
-            content: meta,
-            config: defaultSiteConfig(template.themeId),
-        }).returning()
+    let created
+    try {
+        created = await db.transaction(async tx => {
+            const [tenant] = await tx.insert(tenants).values({
+                slug: availability.slug,
+                businessName: validated.businessName,
+                ownerUserId: session.user.id,
+                content: meta,
+                config: defaultSiteConfig(template.themeId),
+            }).returning()
 
-        await tx.insert(tenantPages).values(pages.map(page => ({ ...page, tenantId: tenant.id })))
-        if (components.length > 0) {
-            await tx.insert(tenantComponents).values(components.map(component => ({ ...component, tenantId: tenant.id })))
+            await tx.insert(tenantPages).values(pages.map(page => ({ ...page, tenantId: tenant.id })))
+            if (components.length > 0) {
+                await tx.insert(tenantComponents).values(components.map(component => ({ ...component, tenantId: tenant.id })))
+            }
+            return tenant
+        })
+    } catch (error) {
+        //two people can pass the availability check at once; the unique index
+        //decides — surface it as a normal "taken" message, not a DB error
+        if (error instanceof Error && /unique|duplicate/i.test(error.message)) {
+            throw new Error("that name was just taken — try another")
         }
-        return tenant
-    })
+        throw error
+    }
 
     return { tenantId: created.id, slug: created.slug }
 }
@@ -157,9 +168,35 @@ export async function getTenantBookings(tenantId: string) {
 
 export async function setBookingStatus(tenantId: string, bookingId: string, status: "confirmed" | "cancelled") {
     const tenant = await getOwnedTenant(z.string().parse(tenantId))
-    await db.update(tenantBookings)
-        .set({ status })
-        .where(and(eq(tenantBookings.id, z.string().parse(bookingId)), eq(tenantBookings.tenantId, tenant.id)))
+    const validatedStatus = z.enum(["confirmed", "cancelled"]).parse(status)
+
+    //no-op (and no duplicate email) when the booking is already in that state
+    const [booking] = await db.update(tenantBookings)
+        .set({ status: validatedStatus })
+        .where(and(
+            eq(tenantBookings.id, z.string().parse(bookingId)),
+            eq(tenantBookings.tenantId, tenant.id),
+            ne(tenantBookings.status, validatedStatus),
+        ))
+        .returning()
+
+    //the notifications add-on promises booking confirmations — tell the
+    //customer when the business confirms or cancels their booking
+    if (booking !== undefined && tenant.config.enabledAddons.includes("notifications") && booking.customerEmail !== "") {
+        const when = booking.startsAt.toLocaleString("en-US", { dateStyle: "full", timeStyle: "short", timeZone: "America/Jamaica" })
+        sendEmailInBackground(status === "confirmed"
+            ? {
+                to: booking.customerEmail,
+                subject: `Booking confirmed — ${tenant.content.business.name}`,
+                text: `Hi ${booking.customerName},\n\nYour booking for ${booking.serviceName} on ${when} is confirmed. See you then!\n\n${tenant.content.business.phone !== "" ? `Questions? Call ${tenant.content.business.phone}.` : ""}`,
+            }
+            : {
+                to: booking.customerEmail,
+                subject: `Booking cancelled — ${tenant.content.business.name}`,
+                text: `Hi ${booking.customerName},\n\nYour booking for ${booking.serviceName} on ${when} was cancelled.\n${tenant.content.business.phone !== "" ? `If this is unexpected, call ${tenant.content.business.phone}.` : ""}`,
+            })
+    }
+
     return { ok: true }
 }
 

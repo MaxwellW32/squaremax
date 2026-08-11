@@ -110,11 +110,15 @@ export default function StoreTab(props: {
         if (form.name.trim() === "") throw new Error("name the product")
         if (!Number.isFinite(priceCents) || priceCents < 0) throw new Error("price must be a number")
 
+        //editing keeps the product's shown/hidden state — saving a price fix
+        //must never silently re-publish a hidden product
+        const editing = editingId === null ? null : products.find(product => product.id === editingId) ?? null
         const payload = {
             name: form.name.trim(), description: form.description, priceCents,
             costCents: Number.isFinite(costCents) && costCents >= 0 ? costCents : 0,
             taxRateBps: Number.isFinite(taxRateBps) ? taxRateBps : 0,
-            stock, trackStock: form.trackStock, imageSrc: form.imageSrc, active: true,
+            stock, trackStock: form.trackStock, imageSrc: form.imageSrc,
+            active: editing !== null ? editing.active : true,
         }
         if (editingId === null) await addProduct(props.tenantId, payload)
         else await updateProduct(props.tenantId, editingId, payload)
@@ -124,13 +128,27 @@ export default function StoreTab(props: {
         await refreshAll()
     }, editingId === null ? "Product added" : "Product updated")
 
-    const cartLines = Object.entries(cart).filter(([, qty]) => qty > 0)
-    const cartTotalCents = cartLines.reduce((sum, [productId, qty]) => {
+    //only products that still exist and are shown — deleting or hiding a
+    //product must drop it from an in-progress sale
+    const cartLines = Object.entries(cart).filter(([productId, qty]) =>
+        qty > 0 && products.some(product => product.id === productId && product.active))
+
+    //mirror recordSale exactly: discount capped at the subtotal and
+    //apportioned per line BEFORE tax, so the button total matches the receipt
+    const cartDiscountCents = Math.max(0, Math.round(Number(saleDiscount || "0") * 100)) || 0
+    const cartSubtotalCents = cartLines.reduce((sum, [productId, qty]) => {
+        const product = products.find(candidate => candidate.id === productId)
+        return product === undefined ? sum : sum + product.priceCents * qty
+    }, 0)
+    const cartAppliedDiscountCents = Math.min(cartDiscountCents, cartSubtotalCents)
+    const cartTaxCents = cartLines.reduce((sum, [productId, qty]) => {
         const product = products.find(candidate => candidate.id === productId)
         if (product === undefined) return sum
         const lineSubtotal = product.priceCents * qty
-        return sum + lineSubtotal + Math.round(lineSubtotal * product.taxRateBps / 10_000)
+        const lineDiscounted = cartSubtotalCents === 0 ? 0 : lineSubtotal - Math.round(cartAppliedDiscountCents * lineSubtotal / cartSubtotalCents)
+        return sum + Math.round(lineDiscounted * product.taxRateBps / 10_000)
     }, 0)
+    const cartTotalCents = cartSubtotalCents - cartAppliedDiscountCents + cartTaxCents
 
     return (
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -284,7 +302,7 @@ export default function StoreTab(props: {
                             await recordSale(props.tenantId, {
                                 items: cartLines.map(([productId, qty]) => ({ productId, qty })),
                                 paymentMethod: salePayment,
-                                discountCents: Math.max(0, Math.round(Number(saleDiscount || "0") * 100)) || 0,
+                                discountCents: cartDiscountCents,
                                 customerName: saleCustomer, customerId: null, note: "",
                             })
                             cartSet({})

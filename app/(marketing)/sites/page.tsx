@@ -1,7 +1,7 @@
 import React from "react"
 import Link from "next/link"
 import type { Metadata } from "next"
-import { addons, BASE_MONTHLY_PRICE } from "@/lib/sites/addons"
+import { addons, monthlyTotal, BASE_MONTHLY_PRICE } from "@/lib/sites/addons"
 
 export const metadata: Metadata = {
     title: "Squaremax Sites — your business website, live tonight. $5/month.",
@@ -80,7 +80,7 @@ export default function Page() {
                     <div className="grid gap-2">
                         <h2 className="font-display text-3xl font-bold normal-case">Add exactly what your business needs</h2>
                         <p className="max-w-2xl text-mist">
-                            Every add-on is ${BASE_MONTHLY_PRICE}/month. Turn them on or off anytime — billing adjusts automatically.
+                            Every add-on is ${addons[0].monthlyPrice}/month. Turn them on or off anytime — billing adjusts automatically.
                         </p>
                     </div>
 
@@ -101,7 +101,7 @@ export default function Page() {
 
                     <div className="grid justify-items-start gap-3 rounded-xl border border-line bg-ink p-6 text-white md:flex md:items-center md:justify-between">
                         <div className="grid gap-1">
-                            <p className="font-display text-xl font-bold">Base page + 2 add-ons = ${BASE_MONTHLY_PRICE * 3}/month</p>
+                            <p className="font-display text-xl font-bold">Base page + 2 add-ons = ${monthlyTotal(["booking", "notifications"])}/month</p>
                             <p className="text-sm text-white/70">Cancel anytime. Your page pauses politely — never a broken link.</p>
                         </div>
                         <Link

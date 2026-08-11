@@ -72,7 +72,7 @@ export default function Page() {
                     </h1>
                     <p className="max-w-2xl text-lg text-mist">
                         Every service below is priced at its market rate. Your selections map to one flat tier —
-                        $1,000, $3,500 or $6,500 — and the flat rate is always the lower number. No hourly billing, no surprises.
+                        $1,000, $3,500 or $6,500 — so a full build always costs less than the itemized list. No hourly billing, no surprises.
                     </p>
                 </div>
             </section>

@@ -2,7 +2,7 @@
 import React, { useState } from "react"
 import toast from "react-hot-toast"
 import {
-    customerSignIn, customerSignOut, customerSignUp, updateCustomerPrefs, PublicCustomer,
+    customerSignIn, customerSignOut, customerSignUp, getMyCustomerBookings, updateCustomerPrefs, PublicCustomer,
 } from "@/serverFunctions/handleCustomers"
 
 //============================================================
@@ -35,6 +35,7 @@ export default function CustomerAccountPanel({
     initialBookings: BookingRow[]
 }) {
     const [customer, customerSet] = useState<PublicCustomer | null>(initialCustomer)
+    const [bookings, bookingsSet] = useState<BookingRow[]>(initialBookings)
     const [mode, modeSet] = useState<"signin" | "signup">("signin")
     const [busy, busySet] = useState(false)
 
@@ -64,7 +65,14 @@ export default function CustomerAccountPanel({
             notifyEmailSet(result.notifyEmail)
             notifyWhatsappSet(result.notifyWhatsapp)
             toast.success(mode === "signup" ? "Account created" : "Signed in")
-            //bookings for a fresh sign-in load on next visit; keep it simple here
+
+            //a returning customer's bookings must show right away, not on
+            //the next full page load
+            try {
+                bookingsSet(await getMyCustomerBookings(slug))
+            } catch {
+                //panel still works; bookings appear on the next visit
+            }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "something went wrong")
         } finally {
@@ -76,6 +84,7 @@ export default function CustomerAccountPanel({
         try {
             await customerSignOut(slug)
             customerSet(null)
+            bookingsSet([])
             toast.success("Signed out")
         } catch {
             toast.error("couldn't sign out")
@@ -150,11 +159,11 @@ export default function CustomerAccountPanel({
             {/* bookings */}
             <div className="grid gap-3 rounded-[var(--t-radius)] p-5" style={{ backgroundColor: "var(--t-surface)", border: "1px solid var(--t-border)" }}>
                 <h2 className="text-[length:var(--t-text-l)] text-[var(--t-text)]" style={{ fontFamily: "var(--t-font-heading)" }}>Your bookings</h2>
-                {initialBookings.length === 0 ? (
+                {bookings.length === 0 ? (
                     <p className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">No bookings yet.</p>
                 ) : (
                     <ul className="grid gap-2">
-                        {initialBookings.map(booking => (
+                        {bookings.map(booking => (
                             <li key={booking.id} className="flex flex-wrap items-baseline justify-between gap-2 rounded-[var(--t-radius)] px-4 py-2.5" style={{ backgroundColor: "var(--t-bg)", border: "1px solid var(--t-border)" }}>
                                 <span className="font-semibold text-[var(--t-text)]">{booking.serviceName}</span>
                                 <span className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">

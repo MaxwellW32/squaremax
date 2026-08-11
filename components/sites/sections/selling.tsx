@@ -207,9 +207,9 @@ export function PricingCards({ data, ctx }: SectionProps<PricingPlansData>) {
                                     {plan.price}<span className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">{plan.period}</span>
                                 </p>
                             </div>
-                            {plan.features.length > 0 && (
+                            {plan.features.some(feature => feature.trim() !== "") && (
                                 <ul className="grid gap-1.5 text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">
-                                    {plan.features.map((feature, featureIndex) => (
+                                    {plan.features.filter(feature => feature.trim() !== "").map((feature, featureIndex) => (
                                         <li key={featureIndex} className="flex items-baseline gap-2">
                                             <span aria-hidden style={{ color: "var(--t-primary)" }}>✓</span>{feature}
                                         </li>

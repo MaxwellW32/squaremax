@@ -86,11 +86,20 @@ function DesignCard({ entry, meta, config, current, onPick }: {
     current: boolean
     onPick: (entry: VariantEntry) => void
 }) {
+    //a div with button semantics: the live previews inside render real
+    //(inert) inputs/buttons, which are invalid inside a native <button>
     return (
-        <button
-            type="button"
+        <div
+            role="button"
+            tabIndex={0}
+            aria-label={`Use the ${entry.label} design`}
             onClick={() => onPick(entry)}
-            className={`group grid content-start overflow-hidden rounded-xl border text-left transition-shadow hover:shadow-lg ${current ? "border-cobalt ring-2 ring-cobalt/30" : "border-line hover:border-mist"}`}
+            onKeyDown={event => {
+                if (event.key !== "Enter" && event.key !== " ") return
+                event.preventDefault()
+                onPick(entry)
+            }}
+            className={`group grid cursor-pointer content-start overflow-hidden rounded-xl border text-left transition-shadow hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cobalt ${current ? "border-cobalt ring-2 ring-cobalt/30" : "border-line hover:border-mist"}`}
         >
             <DesignPreview entry={entry} meta={meta} config={config} />
             <span className="flex items-center justify-between gap-2 bg-surface px-3 py-2.5">
@@ -102,7 +111,7 @@ function DesignCard({ entry, meta, config, current, onPick }: {
                     {current ? "Current" : "Use"}
                 </span>
             </span>
-        </button>
+        </div>
     )
 }
 

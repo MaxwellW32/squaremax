@@ -32,6 +32,10 @@ export type RenderableComponent = {
 
 export type RenderablePage = { id: string; slug: string; title: string; order: number }
 
+//a slot between (or around) rendered components — the canvas editor turns
+//these into "+ add here" strips. after/before are the adjacent instances.
+export type EditorGap = { after: RenderableComponent | null; before: RenderableComponent | null }
+
 export default function TenantSite({
     meta,
     config,
@@ -43,6 +47,7 @@ export default function TenantSite({
     currentPageId,
     products,
     preview,
+    renderEditorGap,
 }: {
     meta: SiteMeta
     config: SiteConfig
@@ -54,6 +59,8 @@ export default function TenantSite({
     currentPageId: string
     products?: ProductLite[]
     preview?: boolean
+    //editor-only: rendered between/around components (client callers only)
+    renderEditorGap?: (gap: EditorGap) => React.ReactNode
 }) {
     const theme = themesById[config.themeId] ?? themes[0]
 
@@ -84,7 +91,7 @@ export default function TenantSite({
             }}
             className={`${tenantFontsClassName} min-h-screen`}
         >
-            {visible.map(component => {
+            {visible.map((component, index) => {
                 const entry = variantsById[component.variantId]
                 if (entry === undefined || entry.category !== component.category) return null
 
@@ -95,12 +102,16 @@ export default function TenantSite({
                 const customCss = component.styles?.css ?? ""
 
                 return (
-                    <div key={component.id} data-c={component.id} style={{ display: "contents", ...styleVars }}>
-                        {customCss !== "" && <style>{scopeCss(customCss, component.id)}</style>}
-                        <Component data={component.data} id={component.id} ctx={ctx} />
-                    </div>
+                    <React.Fragment key={component.id}>
+                        {renderEditorGap !== undefined && renderEditorGap({ after: visible[index - 1] ?? null, before: component })}
+                        <div data-c={component.id} style={{ display: "contents", ...styleVars }}>
+                            {customCss !== "" && <style>{scopeCss(customCss, component.id)}</style>}
+                            <Component data={component.data} id={component.id} ctx={ctx} />
+                        </div>
+                    </React.Fragment>
                 )
             })}
+            {renderEditorGap !== undefined && renderEditorGap({ after: visible[visible.length - 1] ?? null, before: null })}
         </div>
     )
 }

@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { componentCategorySchema, componentDataSchema } from "./content"
+import { componentCategorySchema, componentDataSchema, ComponentCategory } from "./content"
 import { componentStylesSchema } from "./styles"
 
 //============================================================
@@ -68,4 +68,41 @@ export function siblingComponents<T extends Placeable>(components: T[], componen
         candidate.region === component.region &&
         (component.region !== "main" || candidate.pageId === component.pageId),
     ))
+}
+
+//------------------------------------------------------------
+// canvas insertion: where a newly picked design lands, given the
+// "+ Add here" gap it was picked from. Navbars always join the
+// header and footers the footer region (they show on every page);
+// everything else lands on the current page — at the exact gap
+// when the gap sat between that page's sections, at the top when
+// it sat in/above the header, at the end otherwise.
+//------------------------------------------------------------
+
+export type InsertPlacement = { region: ComponentRegion; pageId: string | null; beforeId: string | null }
+
+type PlaceableWithId = Placeable & { id: string }
+
+export function placementForGap<T extends PlaceableWithId>(
+    category: ComponentCategory,
+    gap: { after: T | null; before: T | null },
+    currentPageId: string,
+    components: T[],
+): InsertPlacement {
+    if (category === "navbar") {
+        const beforeId = gap.before !== null && gap.before.region === "header" ? gap.before.id : null
+        return { region: "header", pageId: null, beforeId }
+    }
+    if (category === "footer") {
+        const beforeId = gap.before !== null && gap.before.region === "footer" ? gap.before.id : null
+        return { region: "footer", pageId: null, beforeId }
+    }
+    if (gap.before !== null && gap.before.region === "main") {
+        return { region: "main", pageId: currentPageId, beforeId: gap.before.id }
+    }
+    if (gap.before !== null && gap.before.region === "header") {
+        const mains = sortByOrder(components.filter(component => component.region === "main" && component.pageId === currentPageId))
+        return { region: "main", pageId: currentPageId, beforeId: mains[0]?.id ?? null }
+    }
+    return { region: "main", pageId: currentPageId, beforeId: null }
 }
