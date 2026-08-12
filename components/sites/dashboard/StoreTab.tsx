@@ -128,10 +128,17 @@ export default function StoreTab(props: {
         await refreshAll()
     }, editingId === null ? "Product added" : "Product updated")
 
-    //only products that still exist and are shown — deleting or hiding a
-    //product must drop it from an in-progress sale
+    //hide/delete prune the cart state directly; this filter is the safety
+    //net for entries that went stale some other way (e.g. another tab)
     const cartLines = Object.entries(cart).filter(([productId, qty]) =>
         qty > 0 && products.some(product => product.id === productId && product.active))
+
+    const dropFromCart = (productId: string) => cartSet(prev => {
+        if (!(productId in prev)) return prev
+        const next = { ...prev }
+        delete next[productId]
+        return next
+    })
 
     //mirror recordSale exactly: discount capped at the subtotal and
     //apportioned per line BEFORE tax, so the button total matches the receipt
@@ -254,6 +261,9 @@ export default function StoreTab(props: {
                                         taxRateBps: product.taxRateBps, stock: product.stock, trackStock: product.trackStock,
                                         imageSrc: product.imageSrc, active: !product.active,
                                     })
+                                    //hiding removes it from an in-progress sale for good —
+                                    //re-showing must not resurrect the old quantity
+                                    if (product.active) dropFromCart(product.id)
                                     await refreshAll()
                                 }, product.active ? "Hidden from site" : "Shown on site")}>
                                 {product.active ? "Hide" : "Show"}
@@ -261,7 +271,11 @@ export default function StoreTab(props: {
                             <button type="button" disabled={busy} className="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-mist hover:text-brand"
                                 onClick={() => {
                                     if (!window.confirm(`Delete ${product.name}? Past sales keep their records.`)) return
-                                    run(async () => { await deleteProduct(props.tenantId, product.id); await refreshAll() }, "Deleted")
+                                    run(async () => {
+                                        await deleteProduct(props.tenantId, product.id)
+                                        dropFromCart(product.id)
+                                        await refreshAll()
+                                    }, "Deleted")
                                 }}>
                                 Delete
                             </button>

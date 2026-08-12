@@ -78,8 +78,11 @@ export async function createDraftTenant(input: z.infer<typeof createDraftSchema>
         })
     } catch (error) {
         //two people can pass the availability check at once; the unique index
-        //decides — surface it as a normal "taken" message, not a DB error
-        if (error instanceof Error && /unique|duplicate/i.test(error.message)) {
+        //decides. drizzle wraps the pg error, so the unique-violation code
+        //(23505) lives on error.cause — the wrapper message is just the SQL
+        const cause = error instanceof Error ? (error as Error & { cause?: unknown }).cause : undefined
+        const pgCode = typeof cause === "object" && cause !== null && "code" in cause ? (cause as { code?: unknown }).code : undefined
+        if (pgCode === "23505") {
             throw new Error("that name was just taken — try another")
         }
         throw error
