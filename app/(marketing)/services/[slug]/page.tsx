@@ -5,8 +5,6 @@ import Image from 'next/image'
 import ShowServiceProcess from '@/components/services/ShowServiceProcess'
 import { tesimonials } from '@/lib/testimonials'
 import Link from 'next/link'
-import { projectsData } from '@/lib/projectsData'
-import DisplayProjects from '@/components/projects/DisplayProjects'
 import ShowService from '@/components/services/ShowService'
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
@@ -76,14 +74,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             <Link href={"/contact"} style={{ justifySelf: "center", marginTop: "var(--spacingR)" }}>
                 <button className='button1'>Get Started</button>
             </Link>
-
-            {projectsData.filter(eachProject => eachProject.representingService.includes(seenService.name)).length > 0 && (
-                <>
-                    <h2 style={{ marginBottom: "var(--spacingS)" }}>{seenService.name} projects</h2>
-
-                    <DisplayProjects seenProjectData={projectsData.filter(eachProject => eachProject.representingService.includes(seenService.name))} />
-                </>
-            )}
 
             <h2>Related services</h2>
 

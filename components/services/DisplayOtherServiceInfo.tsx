@@ -1,10 +1,8 @@
-import { projectsData } from '@/lib/projectsData'
 import { service, servicesData } from '@/lib/servicesData'
 import { tesimonials } from '@/lib/testimonials'
 import Link from 'next/link'
 import React from 'react'
 import ShowService from './ShowService'
-import DisplayProjects from '../projects/DisplayProjects'
 import ShowServiceProcess from './ShowServiceProcess'
 
 export default function DisplayOtherServiceInfo({ service }: { service: service }) {
@@ -54,14 +52,6 @@ export default function DisplayOtherServiceInfo({ service }: { service: service 
             <Link href={"/contact"} style={{ justifySelf: "center", marginTop: "var(--spacingR)" }}>
                 <button className='button1'>Get Started</button>
             </Link>
-
-            {projectsData.filter(eachProject => eachProject.representingService.includes(service.name)).length > 0 && (
-                <>
-                    <h2 style={{ marginBottom: "var(--spacingS)" }}>{service.name} projects</h2>
-
-                    <DisplayProjects seenProjectData={projectsData.filter(eachProject => eachProject.representingService.includes(service.name))} />
-                </>
-            )}
 
             <h2>Related services</h2>
 
