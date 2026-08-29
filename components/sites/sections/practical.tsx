@@ -12,7 +12,7 @@ export function PriceListClassic({ data, ctx }: SectionProps<PriceListData>) {
     if (data.sections.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section id="menu" className="bg-[var(--t-surface)] !p-0">
+        <section id="menu" className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-3xl gap-[calc(var(--t-space)*2)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} center />
                 {data.sections.length === 0 && <MissingHint preview={ctx.preview}>Add menu sections (Starters, Mains…)</MissingHint>}
@@ -51,7 +51,7 @@ export function PriceListColumns({ data, ctx }: SectionProps<PriceListData>) {
     if (data.sections.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section id="menu" className="bg-[var(--t-bg)] !p-0">
+        <section id="menu" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} />
                 {data.sections.length === 0 && <MissingHint preview={ctx.preview}>Add menu sections</MissingHint>}
@@ -87,7 +87,7 @@ export function LocationMapSplit({ data, ctx }: SectionProps<LocationMapData>) {
     const mapsSearchUrl = `https://maps.google.com/?q=${encodeURIComponent(address)}`
 
     return (
-        <section id="location" className="bg-[var(--t-bg)] !p-0">
+        <section id="location" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl items-start gap-[calc(var(--t-space)*2)] px-4 py-[calc(var(--t-space)*3.5)] md:grid-cols-[2fr_3fr]">
                 <div className="grid content-start gap-[var(--t-space)]">
                     <SectionHeading heading={data.heading} blurb={data.blurb} />
@@ -149,7 +149,7 @@ export function EventsList({ data, ctx }: SectionProps<EventsData>) {
     if (data.events.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section id="events" className="bg-[var(--t-surface)] !p-0">
+        <section id="events" className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-3xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} />
                 {data.events.length === 0 && <MissingHint preview={ctx.preview}>Add upcoming events</MissingHint>}

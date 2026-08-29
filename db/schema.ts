@@ -1,5 +1,3 @@
-import { fontsType, usedComponentLocationType, user, userUploadedImagesType, authorisedUserType } from "@/types";
-import { categoryName, templateDataType } from "@/types/templateDataTypes";
 import { SiteMeta, ComponentData, ComponentCategory } from "@/lib/sites/content";
 import { SiteConfig } from "@/lib/sites/config";
 import { ComponentRegion } from "@/lib/sites/site";
@@ -8,15 +6,13 @@ import { AddonId } from "@/lib/sites/addons";
 import { relations } from "drizzle-orm";
 import { timestamp, pgTable, text, primaryKey, integer, varchar, pgEnum, json, index, boolean, uniqueIndex } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
-// typeof users.$inferSelect;
-// typeof users.$inferInsert 
 
-// take from types array
 export const roleEnum = pgEnum("role", ["admin"]);
 
+//the account that OWNS hosted sites — an authenticated Squaremax user.
+//tenant customers (a client's own end users) are a separate table entirely.
 export const users = pgTable("users", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userGithubTokens: json("userGithubTokens").notNull().$type<user["userGithubTokens"]>().default([]),
 
     role: roleEnum(),
     name: text("name"),
@@ -25,191 +21,8 @@ export const users = pgTable("users", {
     emailVerified: timestamp("emailVerified", { mode: "date" }),
 })
 export const usersRelations = relations(users, ({ many }) => ({
-    websites: many(websites),
+    tenants: many(tenants),
 }));
-
-
-
-
-
-export const websites = pgTable("websites", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userId: varchar("userId", { length: 255 }).notNull().references(() => users.id),
-    name: varchar("name", { length: 255 }).notNull(),
-    title: varchar("title", { length: 255 }).default("").notNull(),
-    description: text("description").default("").notNull(),
-    fonts: json("fonts").$type<fontsType[]>().default([]).notNull(),
-    globalCss: text("globalCss").default("").notNull(),
-    userUploadedImages: json("userUploadedImages").$type<userUploadedImagesType>().default([]).notNull(),
-    authorisedUsers: json("authorisedUsers").$type<authorisedUserType[]>().default([]).notNull(),
-    dateAdded: timestamp("dateAdded", { mode: "date" }).defaultNow().notNull(),
-},
-    (table) => {
-        return {
-            websiteUserIdIndex: index("websiteUserIdIndex").on(table.userId),
-        };
-    })
-export const websiteRelations = relations(websites, ({ one, many }) => ({
-    fromUser: one(users, {
-        fields: [websites.userId],
-        references: [users.id]
-    }),
-    pages: many(pages),
-    usedComponents: many(usedComponents),
-}));
-
-
-
-
-
-export const pages = pgTable("pages", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-    link: varchar("link", { length: 255 }).notNull(),
-    websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
-},
-    (t) => {
-        return {
-            pageWebsiteIdIndex: index("pageWebsiteIdIndex").on(t.websiteId),
-        };
-    })
-export const pageRelations = relations(pages, ({ one, many }) => ({
-    fromWebsite: one(websites, {
-        fields: [pages.websiteId],
-        references: [websites.id],
-    })
-}));
-
-
-
-
-
-export const usedComponents = pgTable('usedComponents', {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//unqieu id for template
-    websiteId: varchar("websiteId", { length: 255 }).notNull().references(() => websites.id),
-    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
-    css: text("css").default("").notNull(),
-    order: integer("order").notNull(),
-    location: json("location").$type<usedComponentLocationType>().notNull(),
-    data: json("data").$type<templateDataType>().notNull(),
-
-}, (t) => ({
-    websiteIdIndex: index("websiteIdIndex").on(t.websiteId),
-    templateIdIndex: index("templateIdIndex").on(t.templateId),
-}),
-);
-export const usedComponentsRelations = relations(usedComponents, ({ one }) => ({
-    fromWebsite: one(websites, {
-        fields: [usedComponents.websiteId],
-        references: [websites.id],
-    }),
-    template: one(templates, {
-        fields: [usedComponents.templateId],
-        references: [templates.id],
-    }),
-}));
-
-
-
-
-
-export const templates = pgTable("templates", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),//where you find it
-    name: varchar("name", { length: 255 }).notNull().unique(),
-    uses: integer("uses").default(0).notNull(),
-    likes: integer("likes").default(0).notNull(),
-    categoryId: varchar("categoryId", { length: 255 }).notNull().references(() => categories.name),
-    defaultCss: text("defaultCss").notNull(),
-    defaultData: json("defaultData").$type<templateDataType>().notNull(),
-}, (t) => ({
-    templateNameIndex: index("templateNameIndex").on(t.name),
-    templateUsesIndex: index("templateUsesIndex").on(t.uses),
-    templateLikesIndex: index("templateLikesIndex").on(t.likes),
-}))
-export const templatesRelations = relations(templates, ({ one, many }) => ({
-    templatesToStyles: many(templatesToStyles),
-    usedComponents: many(usedComponents),
-    category: one(categories, {
-        fields: [templates.categoryId],
-        references: [categories.name],
-    }),
-}));
-
-
-
-
-
-export const categories = pgTable("categories", {
-    name: varchar("name", { length: 255 }).$type<categoryName>().notNull().unique(),
-})
-export const categoriesRelations = relations(categories, ({ many }) => ({
-    templates: many(templates),
-}));
-
-
-
-
-
-export const styles = pgTable("styles", {
-    name: varchar("name", { length: 255 }).notNull().unique(),
-})
-export const stylesRelations = relations(styles, ({ many }) => ({
-    templateToStyles: many(templatesToStyles),
-}));
-
-
-
-
-
-export const templatesToStyles = pgTable('templatesToStyles', {
-    templateId: varchar("templateId", { length: 255 }).notNull().references(() => templates.id),
-    styleName: varchar("styleName", { length: 255 }).notNull().references(() => styles.name),
-}, (t) => ({
-    pk: primaryKey({ columns: [t.templateId, t.styleName] }),
-}),
-);
-export const templatesToStylesRelations = relations(templatesToStyles, ({ one }) => ({
-    template: one(templates, {
-        fields: [templatesToStyles.templateId],
-        references: [templates.id],
-    }),
-    style: one(styles, {
-        fields: [templatesToStyles.styleName],
-        references: [styles.name],
-    }),
-}));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //============================================================
 // Squaremax Sites — multi-tenant hosted product.

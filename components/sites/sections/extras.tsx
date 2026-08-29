@@ -18,7 +18,7 @@ export function GalleryGrid({ data }: SectionProps<GalleryData>) {
     if (data.images.length === 0) return null
 
     return (
-        <section id="gallery" className="bg-[var(--t-bg)] !p-0">
+        <section id="gallery" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading>{data.heading}</SectionHeading>
 
@@ -40,7 +40,7 @@ export function GalleryStrip({ data }: SectionProps<GalleryData>) {
     if (data.images.length === 0) return null
 
     return (
-        <section id="gallery" className="bg-[var(--t-surface)] !p-0">
+        <section id="gallery" className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading>{data.heading}</SectionHeading>
 
@@ -69,7 +69,7 @@ export function TestimonialsCards({ data }: SectionProps<TestimonialsData>) {
     if (data.items.length === 0) return null
 
     return (
-        <section className="bg-[var(--t-surface)] !p-0">
+        <section className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading center>{data.heading}</SectionHeading>
 
@@ -99,7 +99,7 @@ export function TestimonialsSpotlight({ data }: SectionProps<TestimonialsData>) 
     if (data.items.length === 0) return null
 
     return (
-        <section className="bg-[var(--t-bg)] !p-0">
+        <section className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-3xl gap-[calc(var(--t-space)*2)] px-4 py-[calc(var(--t-space)*3.5)] text-center">
                 <SectionHeading center>{data.heading}</SectionHeading>
 
@@ -128,7 +128,7 @@ export function HoursTable({ data }: SectionProps<HoursData>) {
     if (data.entries.length === 0) return null
 
     return (
-        <section id="hours" className="bg-[var(--t-bg)] !p-0">
+        <section id="hours" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-3xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading center>{data.heading}</SectionHeading>
 
@@ -155,7 +155,7 @@ export function AnnouncementBar({ data, ctx }: SectionProps<AnnouncementData>) {
 
     return (
         <aside
-            className="!p-0 text-center text-[length:var(--t-text-s)] font-semibold"
+            className="text-center text-[length:var(--t-text-s)] font-semibold"
             style={{ backgroundColor: "var(--t-accent)", color: "var(--t-primary-contrast)" }}
         >
             <p className="mx-auto max-w-5xl px-4 py-2.5">

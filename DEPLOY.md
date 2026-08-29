@@ -16,11 +16,11 @@ Copy `.env.example` → `.env.local` next to the app and fill everything in. `li
 git pull
 npm ci
 npm run build          # next build (Turbopack)
-pm2 restart squaremax  # first time: pm2 start server.js --name squaremax
+pm2 startOrRestart ecosystem.config.js   # supervises `next start` directly
 pm2 save
 ```
 
-`server.js` serves Next + the `ws` websocket endpoint on port 3000. **Run exactly one instance** (`exec_mode: fork`, not cluster): the payment redirect-page store and ws rooms are in-process memory.
+`ecosystem.config.js` runs the Next binary on port 3000. **Run exactly one instance** (`exec_mode: fork`, not cluster): the payment redirect-page store is in-process memory.
 
 ### Zero-downtime-ish deploys
 

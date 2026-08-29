@@ -1,8 +1,10 @@
-import type { Session } from 'next-auth';
-import { user } from '@/types';
+import type { users } from "@/db/schema"
 
-declare module 'next-auth' {
+//the session user IS the row — app code reads session.user.id and .role
+type SquaremaxUser = typeof users.$inferSelect
+
+declare module "next-auth" {
   interface Session {
-    user: user
+    user: SquaremaxUser
   }
 }

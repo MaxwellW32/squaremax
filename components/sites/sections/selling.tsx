@@ -12,7 +12,7 @@ export function FeatureGridCards({ data, ctx }: SectionProps<FeatureGridData>) {
     if (data.items.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-bg)] !p-0">
+        <section className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} />
                 {data.items.length === 0 && <MissingHint preview={ctx.preview}>Add your highlights (icon, title, text)</MissingHint>}
@@ -45,7 +45,7 @@ export function FeatureGridChecklist({ data, ctx }: SectionProps<FeatureGridData
     if (data.items.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-surface)] !p-0">
+        <section className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-4xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} center />
                 {data.items.length === 0 && <MissingHint preview={ctx.preview}>Add your highlights</MissingHint>}
@@ -70,7 +70,7 @@ export function StatsStrip({ data, ctx }: SectionProps<StatsData>) {
     if (data.items.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section className="!p-0" style={{ backgroundColor: "var(--t-primary)" }}>
+        <section style={{ backgroundColor: "var(--t-primary)" }}>
             <div className="mx-auto grid max-w-5xl gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*2.5)]">
                 {data.heading !== "" && (
                     <p className="text-center text-[length:var(--t-text-s)] font-semibold uppercase tracking-widest" style={{ color: "var(--t-primary-contrast)", opacity: 0.8 }}>
@@ -116,7 +116,7 @@ function CtaButton({ data, ctx, inverted }: { data: CtaBannerData; ctx: SectionP
 //variant: ctaBanner.band — bold full-width call to action
 export function CtaBand({ data, ctx }: SectionProps<CtaBannerData>) {
     return (
-        <section className="!p-0" style={{ backgroundColor: "var(--t-primary)" }}>
+        <section style={{ backgroundColor: "var(--t-primary)" }}>
             <div className="mx-auto grid max-w-4xl justify-items-center gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*3)] text-center">
                 <h2
                     className="text-[length:var(--t-text-xl)]"
@@ -134,7 +134,7 @@ export function CtaBand({ data, ctx }: SectionProps<CtaBannerData>) {
 //variant: ctaBanner.split — text beside an image
 export function CtaSplit({ data, ctx }: SectionProps<CtaBannerData>) {
     return (
-        <section className="bg-[var(--t-surface)] !p-0">
+        <section className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-5xl items-center gap-[calc(var(--t-space)*2)] px-4 py-[calc(var(--t-space)*3)] md:grid-cols-[3fr_2fr]">
                 <div className="grid gap-[var(--t-space)]">
                     <h2
@@ -157,7 +157,7 @@ export function FaqAccordion({ data, ctx }: SectionProps<FaqData>) {
     if (data.items.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section id="faq" className="bg-[var(--t-bg)] !p-0">
+        <section id="faq" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-3xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} />
                 {data.items.length === 0 && <MissingHint preview={ctx.preview}>Add questions & answers</MissingHint>}
@@ -187,7 +187,7 @@ export function PricingCards({ data, ctx }: SectionProps<PricingPlansData>) {
     if (data.plans.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section id="plans" className="bg-[var(--t-surface)] !p-0">
+        <section id="plans" className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} center />
                 {data.plans.length === 0 && <MissingHint preview={ctx.preview}>Add your plans</MissingHint>}
@@ -238,7 +238,7 @@ export function StepsNumbered({ data, ctx }: SectionProps<StepsData>) {
     if (data.steps.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-bg)] !p-0">
+        <section className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} />
                 {data.steps.length === 0 && <MissingHint preview={ctx.preview}>Add your steps</MissingHint>}
@@ -267,7 +267,7 @@ export function StepsTimeline({ data, ctx }: SectionProps<StepsData>) {
     if (data.steps.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-surface)] !p-0">
+        <section className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-3xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} />
                 {data.steps.length === 0 && <MissingHint preview={ctx.preview}>Add your steps</MissingHint>}

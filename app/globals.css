@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Squaremax marketing design tokens (Phase 1)
-   6 named colors, modular type scale, 4px spacing base.
-   Marketing pages consume ONLY these via Tailwind utilities.
+   Squaremax design tokens.
+   6 named colors, modular type scale. Marketing pages and the
+   dashboard consume ONLY these via Tailwind utilities; tenant
+   sites render on their own --t-* theme tokens instead
+   (lib/sites/themes.ts) so a client's palette never leaks here.
    ============================================================ */
 @theme {
     --color-ink: #141828;
@@ -16,6 +18,12 @@
     --color-mist: #5c6274;
     --color-line: #dfe2e9;
 
+    /* form controls need a darker edge than --color-line: a hairline that
+       reads as structure between two cards is invisible around an empty
+       white input, which is the one place the user must see the box. */
+    --color-field: #9aa1b1;
+    --color-field-hover: #6f7789;
+
     --font-display: var(--font-space-grotesk), system-ui, sans-serif;
     --font-body: var(--geist), system-ui, sans-serif;
 
@@ -23,6 +31,21 @@
     --text-display-l: 2.6rem;
     --text-display-m: 1.9rem;
     --text-display-s: 1.35rem;
+}
+
+html {
+    scroll-behavior: smooth;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    overflow: auto;
+    font-size: 1rem;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
 }
 
 :focus-visible {
@@ -43,7 +66,106 @@
     }
 }
 
-/* blueprint grid texture — the site's signature backdrop */
+*::-webkit-scrollbar-thumb {
+    background-color: var(--color-ink);
+}
+
+*::-webkit-scrollbar {
+    height: .35rem;
+    width: .35rem;
+}
+
+*::-webkit-scrollbar-track {
+    background-color: var(--color-paper);
+}
+
+/* ============================================================
+   Form controls — every form in the app (contact, intake,
+   onboarding, dashboard editor) inherits this, so the box is
+   always visible on white and focus is unmistakable.
+   ============================================================ */
+
+input,
+textarea,
+select {
+    padding: .625rem .75rem;
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    border: 1px solid var(--color-field);
+    border-radius: .375rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+input:hover:not(:disabled),
+textarea:hover:not(:disabled),
+select:hover:not(:disabled) {
+    border-color: var(--color-field-hover);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--color-cobalt);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-cobalt) 18%, transparent);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-mist);
+    opacity: .75;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+    background-color: var(--color-paper);
+    color: var(--color-mist);
+    cursor: not-allowed;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+    border-color: var(--color-brand);
+}
+
+input[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 18%, transparent);
+}
+
+/* checkboxes and radios keep their native box — the padding above would
+   balloon them — but still need the visible edge and the focus ring. */
+input[type="checkbox"],
+input[type="radio"] {
+    padding: 0;
+    accent-color: var(--color-cobalt);
+}
+
+input[type="color"] {
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-field);
+    background: transparent;
+    cursor: pointer;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: none;
+}
+
+input[type="color"]::-moz-color-swatch {
+    border: none;
+}
+
+/* ============================================================
+   Signature motifs
+   ============================================================ */
+
+/* blueprint grid texture — the site's backdrop */
 .blueprintGrid {
     background-image:
         linear-gradient(to right, color-mix(in srgb, var(--color-cobalt) 7%, transparent) 1px, transparent 1px),
@@ -87,471 +209,4 @@
 
 .tabularNums {
     font-variant-numeric: tabular-nums;
-}
-
-/* ============================================================
-   LEGACY block — consumed by the builder UI + old templates.
-   Retired progressively in Phases 1-4; do not use in new code.
-   ============================================================ */
-
-:root {
-    --color1: #e52b50;
-    --color2: #F4F7FC;
-    --color3: #0582f0;
-    --color5: #f60d3b;
-
-    --bg1: #252628;
-    --bg2: #fff;
-
-    --shade1: #ddd;
-    --shade2: #777;
-    --shade3: #aaa;
-    --shade4: #111;
-    --shade5: #fff;
-
-    --fontWeightM: 500;
-
-    --fontSizeEL: 2.3rem;
-    --fontSizeL: 2rem;
-    --fontSizeM: 1.3rem;
-    --fontSizeR: 1rem;
-    --fontSizeS: .7rem;
-
-    --sizeR: 1rem;
-
-    --iconSizeL: 3rem;
-    --iconSizeS: 1.2rem;
-
-    --spacingS: .5rem;
-    --spacingR: 1rem;
-    --spacingL: 1.5rem;
-    --spacingEL: 2rem;
-}
-
-*::-webkit-scrollbar-thumb {
-    background-color: var(--color-ink);
-}
-
-*::-webkit-scrollbar {
-    height: .35rem;
-    width: .35rem;
-}
-
-*::-webkit-scrollbar-track {
-    background-color: var(--color-paper);
-}
-
-html {
-    scroll-behavior: smooth;
-    width: 100%;
-    height: 100%;
-}
-
-body {
-    height: 100%;
-    overflow: auto;
-    font-size: 1rem;
-    background-color: var(--color-paper);
-    color: var(--color-ink);
-    font-family: var(--font-body);
-}
-
-label {
-    font-weight: bold;
-    text-transform: capitalize;
-}
-
-input,
-textarea {
-    padding: var(--spacingR);
-    background-color: var(--color2);
-    border-radius: .2rem;
-    border: 1px solid #ddd;
-}
-
-input:focus,
-textarea:focus {
-    background-color: #fff;
-    outline: none;
-}
-
-input[type="color"] {
-    appearance: none;
-    width: 40px;
-    height: 40px;
-    border: none;
-    cursor: pointer;
-    background: transparent;
-    padding: 0;
-    outline: none;
-}
-
-input[type="color"]::-webkit-color-swatch {
-    border: 2px solid var(--shade1);
-}
-
-input[type="color"]::-moz-color-swatch {
-    border: 2px solid var(--shade1);
-}
-
-svg {
-    width: var(--sizeR);
-    aspect-ratio: 1/1;
-}
-
-/* legacy page sections (old pages only) */
-section {
-    padding: var(--spacingEL) var(--spacingR);
-}
-
-.material-symbols-outlined {
-    font-family: var(--materialSymbolsOutlined);
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-.material-symbols-rounded {
-    font-family: var(--materialSymbolsRounded);
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-.material-symbols-sharp {
-    font-family: var(--materialSymbolsSharp);
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-.noScrollBar::-webkit-scrollbar {
-    display: none;
-}
-
-.button1 {
-    background-color: var(--color1);
-    border-radius: .5rem;
-    text-transform: uppercase;
-    color: #fff;
-    padding: var(--spacingR) var(--spacingEL);
-    transition: filter 400ms;
-    white-space: nowrap;
-}
-
-.button1:hover {
-    filter: brightness(.8);
-}
-
-.button1:disabled {
-    opacity: .5;
-}
-
-.button2 {
-    background-color: color-mix(in hsl, var(--bg1) 60%, transparent);
-    border-radius: .2rem;
-    text-transform: uppercase;
-    color: var(--shade5);
-    padding: var(--spacingS);
-    transition: background-color 400ms, color 400ms;
-    font-size: var(--fontSizeS);
-}
-
-.button2>svg {
-    fill: #fff
-}
-
-.button2:hover {
-    background-color: #fff;
-    color: #000;
-}
-
-.button2:hover>svg {
-    fill: #000
-}
-
-.button3 {
-    text-transform: capitalize;
-    background-color: var(--color2);
-    text-transform: uppercase;
-    color: #000;
-    font-weight: bold;
-    display: flex;
-    gap: var(--spacingR);
-    justify-content: space-between;
-    align-items: center;
-    overflow: hidden;
-    padding: var(--spacingS);
-    transition: background-color 400ms, color 400ms;
-}
-
-.button3:hover,
-.button3.hovering {
-    background-color: var(--color1);
-    color: #fff;
-}
-
-.button3:hover>div,
-.button3.hovering>div {
-    background-color: #000
-}
-
-.button3 svg {
-    fill: #fff
-}
-
-.button3>div {
-    background-color: var(--color1);
-    transition: background-color 400ms;
-}
-
-.button4 {
-    background-color: var(--bg1);
-    color: var(--shade5);
-    padding: var(--spacingS);
-    font-size: var(--fontSizeS);
-    text-transform: capitalize;
-    font-weight: 700;
-    transition: scale .4s;
-    display: grid;
-    justify-items: center;
-}
-
-.tag {
-    background-color: var(--color1);
-    color: var(--shade2);
-    padding: var(--spacingS) var(--spacingR);
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-.snap {
-    scroll-snap-type: x mandatory;
-}
-
-.snap>* {
-    scroll-snap-align: start;
-}
-
-.toolTip::before {
-    content: attr(data-tooltip);
-    color: var(--shade1);
-    background-color: var(--shade2);
-    border: 1px solid var(--shade1);
-    padding: var(--spacingS);
-    position: fixed;
-    translate: var(--translate, 0 -100%);
-    margin: var(--spacingR);
-    opacity: 0;
-    pointer-events: none;
-    user-select: none;
-    white-space: nowrap;
-    transition: opacity 400ms;
-    font-size: var(--fontSizeS);
-    z-index: 99999;
-    text-transform: capitalize;
-}
-
-.toolTip:hover::before {
-    animation: slowOpacity 600ms 2s forwards;
-}
-
-@keyframes slowOpacity {
-    to {
-        opacity: 1;
-    }
-}
-
-.hideNav {
-    display: none !important;
-}
-
-.hideNavButton {
-    transition: opacity 400ms ease;
-    animation: fadeOut 6s ease;
-    position: fixed;
-    opacity: 0;
-    bottom: 0;
-    left: 0;
-    padding: var(--spacingS);
-    z-index: 9999;
-    border-bottom-left-radius: 0rem;
-}
-
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
-}
-
-.hideNavButton:hover {
-    opacity: 1;
-}
-
-.svgChildFill>svg {
-    fill: var(--fill, var(--bg2));
-}
-
-.resizeSvg>svg {
-    width: 100%;
-    aspect-ratio: 1/1;
-}
-
-.highlight {
-    color: var(--color1);
-    fill: var(--color1);
-}
-
-.hoverHighlight:hover {
-    transition: color 400ms, fill 400ms;
-}
-
-.hoverHighlight:hover {
-    color: var(--color1);
-    fill: var(--color1);
-}
-
-.noDisplay {
-    display: none !important;
-}
-
-.fadeIn {
-    animation: fadeIn calc(var(--fadeTime, 1s)) both;
-}
-
-.closeButton {
-    transition: color 200ms, rotate 200ms;
-}
-
-.closeButton:hover {
-    color: var(--color1);
-    rotate: 10deg;
-}
-
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-.slideInCont {
-    overflow: hidden;
-}
-
-.slideIn {
-    position: relative;
-    animation: slideIn 1s both;
-    transform-origin: bottom left;
-}
-
-@keyframes slideIn {
-    0% {
-        translate: 0 100%;
-    }
-
-    100% {
-        translate: 0 0%;
-    }
-}
-
-.slideFromRight {
-    position: relative;
-    animation: slideFromRight 1s both;
-}
-
-@keyframes slideFromRight {
-    0% {
-        translate: 100vw 0;
-    }
-
-    100% {
-        translate: 0 0;
-    }
-}
-
-.slideFromLeft {
-    position: relative;
-    animation: slideFromLeft 1s both;
-}
-
-@keyframes slideFromLeft {
-    0% {
-        translate: -100vw 0;
-    }
-
-    100% {
-        translate: 0 0;
-    }
-}
-
-.supportingTitle1 {
-    text-transform: uppercase;
-    position: relative;
-    justify-self: flex-start;
-}
-
-.supportingTitle1::before {
-    content: "";
-    position: absolute;
-    top: -0.5rem;
-    left: 0;
-    width: 100%;
-    border-top: solid 2px #fff;
-    text-transform: uppercase;
-}
-
-.supportingTitle2 {
-    text-transform: uppercase;
-    color: var(--color1);
-    font-weight: bold;
-}
-
-.errorText {
-    color: var(--color5);
-    font-size: var(--fontSizeS);
-}
-
-.reset * {
-    all: unset;
-    display: revert;
-    box-sizing: border-box;
-}
-
-.reset img,
-.reset svg {
-    display: block;
-}
-
-.reset img {
-    overflow: hidden;
-}
-
-.reset ul,
-.reset ol,
-.reset li {
-    list-style: none;
-}
-
-.reset a {
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-}
-
-.reset .material-symbols-outlined {
-    cursor: pointer;
-}
-
-.hide {
-    display: none !important;
-}
-
-.hoverUnderline:hover {
-    text-decoration: underline;
 }

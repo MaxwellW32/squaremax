@@ -10,7 +10,7 @@ export function BookingPanel({ data, ctx }: SectionProps<BookingData>) {
     if (data.services.length === 0) return null
 
     return (
-        <section id="booking" className="bg-[var(--t-bg)] !p-0">
+        <section id="booking" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-3xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <h2
                     className="text-center text-[length:var(--t-text-xl)] text-[var(--t-text)]"

@@ -12,7 +12,7 @@ export function FooterSimple(props: SectionProps<FooterData>) {
     const { data, ctx } = props
 
     return (
-        <footer className="border-t bg-[var(--t-bg)] !p-0" style={{ borderColor: "var(--t-border)" }}>
+        <footer className="border-t bg-[var(--t-bg)]" style={{ borderColor: "var(--t-border)" }}>
             <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">
                 <FooterText {...props} />
                 {data.links.length > 0 && (
@@ -36,7 +36,7 @@ export function FooterColumns(props: SectionProps<FooterData>) {
     const business = ctx.business
 
     return (
-        <footer className="border-t bg-[var(--t-surface)] !p-0" style={{ borderColor: "var(--t-border)" }}>
+        <footer className="border-t bg-[var(--t-surface)]" style={{ borderColor: "var(--t-border)" }}>
             <div className="mx-auto grid max-w-5xl gap-8 px-4 py-10 text-[length:var(--t-text-s)] md:grid-cols-3">
                 <div className="grid content-start gap-2">
                     <p

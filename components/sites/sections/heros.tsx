@@ -25,7 +25,7 @@ export function HeroSplit(props: SectionProps<HeroData>) {
     const heading = data.heading !== "" ? data.heading : ctx.business.name
 
     return (
-        <section id="top" className="bg-[var(--t-bg)] !p-0">
+        <section id="top" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl items-center gap-[calc(var(--t-space)*2)] px-4 py-[calc(var(--t-space)*4)] md:grid-cols-2">
                 <div className="grid gap-[var(--t-space)]">
                     <h1
@@ -65,7 +65,7 @@ export function HeroCentered(props: SectionProps<HeroData>) {
     const heading = data.heading !== "" ? data.heading : ctx.business.name
 
     return (
-        <section id="top" className="bg-[var(--t-bg)] !p-0">
+        <section id="top" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-3xl justify-items-center gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*5)] text-center">
                 {ctx.business.tagline !== "" && (
                     <p className="text-[length:var(--t-text-s)] font-semibold uppercase tracking-[0.2em] text-[var(--t-primary)]">
@@ -93,7 +93,7 @@ export function HeroBanner(props: SectionProps<HeroData>) {
     const heading = data.heading !== "" ? data.heading : ctx.business.name
 
     return (
-        <section id="top" className="relative isolate !p-0">
+        <section id="top" className="relative isolate">
             {data.imageSrc !== "" ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={data.imageSrc} alt="" aria-hidden className="absolute inset-0 -z-10 h-full w-full object-cover" />

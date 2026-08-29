@@ -11,14 +11,17 @@ export const RESERVED_SLUGS = new Set([
     "www", "api", "app", "admin", "auth", "login", "signin", "signout", "signup",
     "static", "assets", "public", "_next", "cdn", "mail", "smtp", "ftp",
     //current routes
-    "sites", "custom-builds", "projects", "contact", "blog", "services",
-    "aboutus", "about", "faq", "testimonials", "specifications", "websites",
-    "templates", "users", "privacypolicy", "opengraph-image.png", "dashboard",
+    "sites", "custom-builds", "projects", "contact", "care-plan",
+    "privacypolicy", "dashboard", "opengraph-image.png",
+    //retired routes — stay reserved so a tenant can't claim a path that
+    //was public once and may be wanted again
+    "blog", "services", "aboutus", "about", "faq", "testimonials",
+    "specifications", "websites", "templates", "users",
     //future-proofing
     "pricing", "portfolio", "work", "help", "support", "docs", "status",
     "careers", "jobs", "shop", "store", "news", "press", "legal", "terms",
     "privacy", "billing", "account", "settings", "search", "explore",
-    "squaremax", "care-plan", "start", "onboarding", "pay", "checkout", "domains",
+    "squaremax", "start", "onboarding", "pay", "checkout", "domains",
 ])
 
 //url-safe normalization: "Joe's Barbershop!" -> "joes-barbershop"

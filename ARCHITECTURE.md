@@ -1,13 +1,13 @@
 # Squaremax Architecture
 
-Two products on one Next.js 16 app (custom `server.js`, App Router, React 19, Drizzle + Postgres, Tailwind 4, Zod 4):
+Two products on one Next.js 16 app (App Router, React 19, Drizzle + Postgres, Tailwind 4, Zod 4):
 
 1. **Squaremax Sites** — the core product: multi-tenant hosted business websites at `squaremaxtech.com/{slug}`, $5/mo base + $5/mo per add-on (booking, notifications, store & inventory, custom domain). The home page sells this.
 2. **Custom Builds** — bespoke flat-rate studio work (marketing + configurator + intake funnel) at `/custom-builds`.
 
 ## Route map
 
-- `app/(marketing)/**` — everything with the Squaremax header/footer (home, sites, custom-builds, dashboard, admin, legacy pages). The route group owns the chrome; the root layout only has providers + fonts.
+- `app/(marketing)/**` — everything with the Squaremax header/footer: home, `/sites` (+ `/sites/start` onboarding, `/sites/live/[slug]` go-live), `/custom-builds` (+ `/custom-builds/start` intake), `/projects`, `/contact`, `/care-plan`, `/privacyPolicy`, `/dashboard[/tenantId]`, `/admin`. The route group owns the chrome; the root layout only has providers + fonts.
 - `app/[businessSlug]/` — public tenant home page. `app/[businessSlug]/[pageSlug]/` — tenant sub-pages (up to 5 pages per site). `app/[businessSlug]/account/` — the tenant's CUSTOMER portal (static segment beats the dynamic one, so `account` is reserved from page slugs).
 - `app/domains/[domain]/**` — custom-domain rendering targets mirroring the three routes above (see proxy below).
 - `app/api/pay/*` — payment session + callback (PowerTranz).
@@ -78,17 +78,13 @@ Caddy (on-demand TLS) proxies the tenant's domain to the app → `proxy.ts` sees
 
 `lib/pricing/catalog.ts` is the single source of truth (services, tier bands ≤$2,500 / ≤$5,000 / above, presets). The configurator lives on `/custom-builds`; the intake (`/custom-builds/start` → `serverFunctions/handleIntake.tsx`) **recomputes the quote server-side from service ids** and emails the studio inbox.
 
-## Legacy builder
-
-The pre-overhaul builder (`app/(marketing)/websites/**`, `components/websites/**`, `usedComponents` tables, export/codegen pipeline) is frozen: kept working for Custom Builds delivery, excluded from new-code lint standards, not used by the hosted product. Retire at will.
-
 ## Email
 
 `lib/email/transporter.ts` (server-only, recipients from trusted sources) does SMTP. `sendNodeEmail` (client-callable action) is pinned to the studio inbox. Tenant notifications (booking confirmations, message alerts, announcement blasts) go through `sendEmailInBackground` so SMTP hiccups never break a booking or a save.
 
 ## Tests
 
-`npm test` (Vitest, `tests/`, 57 tests): tier-band edges, discount math, slug rules, booking slot generation + conflict overlap, effective-status transitions, and the instance model (`siteModel.test.ts`): every category default validates, cross-category data rejected (swap safety), registry integrity, every template instantiates into valid uniquely-identified rows, page assembly order, `scopeCss` (incl. @media, no double-prefixing), scrypt password roundtrip, $5 pricing math. All pure functions — no DB needed (`SKIP_ENV_VALIDATION` set by vitest config).
+`npm test` (Vitest, `tests/`, 62 tests): tier-band edges, discount math, slug rules, booking slot generation + conflict overlap, effective-status transitions, and the instance model (`siteModel.test.ts`): every category default validates, cross-category data rejected (swap safety), registry integrity, every template instantiates into valid uniquely-identified rows, page assembly order, `scopeCss` (incl. @media, no double-prefixing), scrypt password roundtrip, $5 pricing math. All pure functions — no DB needed (`SKIP_ENV_VALIDATION` set by vitest config).
 
 ## Scripts
 

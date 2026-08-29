@@ -12,7 +12,7 @@ import NewsletterForm from "@/components/sites/islands/NewsletterForm"
 //pairs with the notifications add-on's announcement blasts)
 export function NewsletterStrip({ data, ctx }: SectionProps<NewsletterData>) {
     return (
-        <section id="updates" className="bg-[var(--t-surface)] !p-0">
+        <section id="updates" className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-3xl justify-items-center gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*2.5)] text-center">
                 <h2
                     className="text-[length:var(--t-text-xl)] text-[var(--t-text)]"
@@ -47,7 +47,7 @@ export function EmbedFrame({ data, ctx }: SectionProps<EmbedData>) {
     if (url === "" && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-bg)] !p-0">
+        <section className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-4xl gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*2.5)]">
                 {data.heading !== "" && (
                     <h2

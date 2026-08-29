@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Squaremax
 
-## Getting Started
+Two products on one Next.js 16 app:
 
-First, run the development server:
+1. **Squaremax Sites** — hosted business websites at `squaremaxtech.com/{slug}`, $5/month base plus $5/month per add-on (booking, notifications, store & inventory, custom domain). Clients build and edit their own page from a dashboard.
+2. **Custom Builds** — bespoke flat-rate development work, sold through a configurator and intake funnel at `/custom-builds`.
+
+## Running it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill it in — lib/env.ts validates at boot and fails loudly
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set `POWERTRANZ_SIMULATE=1` in `.env.local` so checkout completes without a real gateway.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm test` | Vitest suite (pure functions, no DB needed) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm run deploy` | `deploy.sh` — pull, install, build, pm2 restart |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Seed the two demo tenants (`/fade-district`, `/pepper-and-thyme`) with
+`npx tsx scripts/seedDemoTenants.ts` — idempotent.
 
-## Learn More
+## Where things live
 
-To learn more about Next.js, take a look at the following resources:
+| Path | |
+|---|---|
+| `app/(marketing)/**` | Marketing site, contact, client dashboard, admin — everything wearing the Squaremax header/footer |
+| `app/[businessSlug]/**` | A client's public hosted site (+ `/account`, their own customer portal) |
+| `app/domains/[domain]/**` | The same pages served over a client's custom domain (`proxy.ts` rewrites by Host) |
+| `lib/sites/**` | The hosted-site engine: content schemas, themes, variant registry, templates, billing status |
+| `components/sites/**` | Section variants, the dashboard editor, and the public-page islands |
+| `db/schema.ts` | Drizzle schema — `drizzle/*.sql` holds hand-written additive migrations, applied manually |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Read [ARCHITECTURE.md](ARCHITECTURE.md) before changing the hosted-site engine — the instance
+model and the caching rules are load-bearing. [DEPLOY.md](DEPLOY.md) covers the VPS, Caddy and
+backups; [GROWTH-PLAN.md](GROWTH-PLAN.md) covers scaling and pricing as clients arrive.

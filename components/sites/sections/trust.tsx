@@ -12,7 +12,7 @@ export function TeamCards({ data, ctx }: SectionProps<TeamData>) {
     if (data.members.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section id="team" className="bg-[var(--t-bg)] !p-0">
+        <section id="team" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} blurb={data.blurb} />
                 {data.members.length === 0 && <MissingHint preview={ctx.preview}>Add your team members</MissingHint>}
@@ -58,7 +58,7 @@ export function LogoStripRow({ data, ctx }: SectionProps<LogoStripData>) {
     if (data.logos.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-surface)] !p-0">
+        <section className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-5xl gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*2)]">
                 {data.heading !== "" && (
                     <p className="text-center text-[length:var(--t-text-s)] font-semibold uppercase tracking-widest text-[var(--t-text-muted)]">{data.heading}</p>
@@ -90,7 +90,7 @@ export function BeforeAfterPairs({ data, ctx }: SectionProps<BeforeAfterData>) {
     if (data.pairs.length === 0 && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-bg)] !p-0">
+        <section className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <SectionHeading heading={data.heading} />
                 {data.pairs.length === 0 && <MissingHint preview={ctx.preview}>Add before & after photo pairs</MissingHint>}
@@ -141,7 +141,7 @@ export function VideoEmbed({ data, ctx }: SectionProps<VideoData>) {
     if (embedUrl === null && ctx.preview !== true) return null
 
     return (
-        <section className="bg-[var(--t-bg)] !p-0">
+        <section className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-4xl gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*3)]">
                 <SectionHeading heading={data.heading} center />
 

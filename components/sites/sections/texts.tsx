@@ -20,7 +20,7 @@ function Paragraphs({ body }: { body: string }) {
 //variant: text.simple — centered heading + prose
 export function TextSimple({ data, id }: SectionProps<TextData>) {
     return (
-        <section id={`s-${id.slice(0, 8)}`} className="bg-[var(--t-bg)] !p-0">
+        <section id={`s-${id.slice(0, 8)}`} className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-3xl gap-[var(--t-space)] px-4 py-[calc(var(--t-space)*3.5)]">
                 {data.heading !== "" && (
                     <h2
@@ -46,7 +46,7 @@ export function TextImage({ data, id, ctx }: SectionProps<TextData>) {
     ) : null
 
     return (
-        <section id={`s-${id.slice(0, 8)}`} className="bg-[var(--t-surface)] !p-0">
+        <section id={`s-${id.slice(0, 8)}`} className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-5xl items-center gap-[calc(var(--t-space)*2)] px-4 py-[calc(var(--t-space)*3.5)] md:grid-cols-2">
                 {data.imageSide === "left" && image}
                 <div className="grid content-start gap-[var(--t-space)]">

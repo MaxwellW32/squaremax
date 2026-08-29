@@ -18,7 +18,7 @@ export default function Page() {
 
     return (
         <main className="bg-paper text-ink">
-            <section className="blueprintGrid border-b border-line !p-0">
+            <section className="blueprintGrid border-b border-line">
                 <div className="mx-auto grid max-w-4xl gap-4 px-4 py-16">
                     <h1 className="font-display text-4xl font-bold normal-case">
                         Care Plan — <span className="text-brand">$100/month</span>
@@ -30,7 +30,7 @@ export default function Page() {
                 </div>
             </section>
 
-            <section className="!p-0">
+            <section>
                 <div className="mx-auto grid max-w-4xl gap-8 px-4 py-14">
                     <div className="grid gap-4 sm:grid-cols-2">
                         {included.map(item => (

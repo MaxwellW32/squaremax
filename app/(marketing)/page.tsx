@@ -35,7 +35,7 @@ export default function Page() {
   return (
     <main className="bg-paper text-ink">
       {/* hero */}
-      <section className="blueprintGrid border-b border-line !p-0">
+      <section className="blueprintGrid border-b border-line">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-20 md:py-28">
           <h1 className="max-w-3xl font-display text-4xl font-bold leading-tight tracking-tight normal-case md:text-6xl">
             Your business online <span className="text-cobalt">tonight</span> —
@@ -65,7 +65,7 @@ export default function Page() {
       </section>
 
       {/* the modules: $5 base + $5 add-ons */}
-      <section id="pricing" className="border-b border-line bg-surface !p-0">
+      <section id="pricing" className="border-b border-line bg-surface">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16">
           <div className="grid gap-2">
             <h2 className="font-display text-3xl font-bold normal-case">Pay for exactly what you use</h2>
@@ -100,7 +100,7 @@ export default function Page() {
       </section>
 
       {/* how the builder works */}
-      <section className="!p-0">
+      <section>
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16">
           <div className="grid gap-2">
             <h2 className="font-display text-3xl font-bold normal-case">A website you can actually change</h2>
@@ -140,7 +140,7 @@ export default function Page() {
       </section>
 
       {/* business tools narrative */}
-      <section className="border-y border-line bg-surface !p-0">
+      <section className="border-y border-line bg-surface">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16">
           <h2 className="font-display text-3xl font-bold normal-case">Not just a website — the whole front desk</h2>
           <div className="grid gap-4 md:grid-cols-3">
@@ -176,7 +176,7 @@ export default function Page() {
       </section>
 
       {/* how it works */}
-      <section className="!p-0">
+      <section>
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-16">
           <h2 className="font-display text-3xl font-bold normal-case">Live in five steps</h2>
           <ol className="grid gap-3 md:grid-cols-5">
@@ -197,7 +197,7 @@ export default function Page() {
       </section>
 
       {/* custom builds — the studio, on its own page */}
-      <section className="border-t border-line bg-surface !p-0">
+      <section className="border-t border-line bg-surface">
         <div className="mx-auto grid max-w-6xl gap-4 px-4 py-14 md:grid-cols-[1fr_auto] md:items-center">
           <div className="grid gap-2">
             <p className="font-display text-sm font-semibold uppercase tracking-widest text-brand">Need more than a template?</p>

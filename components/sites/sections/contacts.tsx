@@ -8,7 +8,7 @@ export function ContactSplit({ data, ctx }: SectionProps<ContactData>) {
     const business = ctx.business
 
     return (
-        <section id="contact" className="bg-[var(--t-surface)] !p-0">
+        <section id="contact" className="bg-[var(--t-surface)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*2)] px-4 py-[calc(var(--t-space)*3.5)] md:grid-cols-2">
                 <div className="grid content-start gap-[var(--t-space)]">
                     <h2

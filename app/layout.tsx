@@ -5,19 +5,6 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
-const materialSymbolsOutlined = localFont({
-  src: "./fonts/MaterialSymbolsOutlined-VariableFont_FILL,GRAD,opsz,wght.ttf",
-  variable: "--materialSymbolsOutlined",
-});
-const materialSymbolsRounded = localFont({
-  src: "./fonts/MaterialSymbolsRounded-VariableFont_FILL,GRAD,opsz,wght.ttf",
-  variable: "--materialSymbolsRounded",
-});
-const materialSymbolsSharp = localFont({
-  src: "./fonts/MaterialSymbolsSharp-VariableFont_FILL,GRAD,opsz,wght.ttf",
-  variable: "--materialSymbolsSharp",
-});
-
 const geist = localFont({
   src: "./fonts/Geist.ttf",
   variable: "--geist",
@@ -51,9 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geist.variable} ${spaceGrotesk.variable} ${materialSymbolsOutlined.variable} ${materialSymbolsRounded.variable} ${materialSymbolsSharp.variable} antialiased`}
-      >
+      <body className={`${geist.variable} ${spaceGrotesk.variable} antialiased`}>
         <SessionProvider>
           <Toaster position="top-center" reverseOrder={false} />
 

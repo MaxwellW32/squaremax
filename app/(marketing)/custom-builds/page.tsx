@@ -65,7 +65,7 @@ const engagementTerms: { title: string; body: string }[] = [
 export default function Page() {
     return (
         <main className="bg-paper text-ink">
-            <section className="blueprintGrid border-b border-line !p-0">
+            <section className="blueprintGrid border-b border-line">
                 <div className="mx-auto grid max-w-6xl gap-4 px-4 py-16">
                     <h1 className="max-w-3xl font-display text-4xl font-bold leading-tight normal-case md:text-5xl">
                         Pick your features. <span className="text-brand">See your flat price.</span>
@@ -77,14 +77,14 @@ export default function Page() {
                 </div>
             </section>
 
-            <section id="configurator" className="bg-surface !p-0">
+            <section id="configurator" className="bg-surface">
                 <div className="mx-auto max-w-6xl px-4 py-14">
                     <Configurator />
                 </div>
             </section>
 
             {/* how it works */}
-            <section id="how-it-works" className="border-t border-line !p-0">
+            <section id="how-it-works" className="border-t border-line">
                 <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16">
                     <div className="grid gap-2">
                         <h2 className="font-display text-3xl font-bold normal-case">How it works</h2>
@@ -117,7 +117,7 @@ export default function Page() {
             </section>
 
             {/* engagement terms */}
-            <section className="border-t border-line bg-surface !p-0">
+            <section className="border-t border-line bg-surface">
                 <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16">
                     <div className="grid gap-2">
                         <h2 className="font-display text-3xl font-bold normal-case">Every build includes exactly this</h2>

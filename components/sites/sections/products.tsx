@@ -17,7 +17,7 @@ export function ProductsGrid({ data, ctx }: SectionProps<ProductsData>) {
     const whatsappDigits = ctx.business.whatsapp.replace(/\D/g, "")
 
     return (
-        <section id="shop" className="bg-[var(--t-bg)] !p-0">
+        <section id="shop" className="bg-[var(--t-bg)]">
             <div className="mx-auto grid max-w-5xl gap-[calc(var(--t-space)*1.5)] px-4 py-[calc(var(--t-space)*3.5)]">
                 <div className="grid gap-2">
                     <h2
