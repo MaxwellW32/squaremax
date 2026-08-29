@@ -7,6 +7,8 @@ import { getSiteForOwner } from "@/serverFunctions/handleSiteBuilder"
 import { getTenantCustomers } from "@/serverFunctions/handleCustomers"
 import { getProducts, getSales, getSalesSummary } from "@/serverFunctions/handleInventory"
 import { getAnnouncements } from "@/serverFunctions/handleNotifications"
+import { getTenantPayments } from "@/serverFunctions/handleTenantBilling"
+import { daysRemaining, renewBase } from "@/lib/sites/billing"
 import { effectiveStatus } from "@/lib/sites/status"
 import TenantDashboard from "@/components/sites/dashboard/TenantDashboard"
 
@@ -27,7 +29,7 @@ export default async function Page({ params }: { params: Promise<{ tenantId: str
         notFound()
     }
 
-    const [site, bookings, messages, availability, customers, products, sales, salesSummary, announcements, myTenants] = await Promise.all([
+    const [site, bookings, messages, availability, customers, products, sales, salesSummary, announcements, myTenants, payments] = await Promise.all([
         getSiteForOwner(tenant.id),
         getTenantBookings(tenant.id),
         getTenantMessages(tenant.id),
@@ -38,6 +40,7 @@ export default async function Page({ params }: { params: Promise<{ tenantId: str
         getSalesSummary(tenant.id),
         getAnnouncements(tenant.id),
         getMyTenants(),
+        getTenantPayments(tenant.id),
     ])
 
     return (
@@ -47,6 +50,9 @@ export default async function Page({ params }: { params: Promise<{ tenantId: str
                 slug={tenant.slug}
                 status={effectiveStatus(tenant)}
                 currentPeriodEnd={tenant.currentPeriodEnd?.toISOString() ?? null}
+                payments={payments}
+                paidDaysLeft={daysRemaining(tenant.currentPeriodEnd)}
+                renewBaseISO={renewBase(tenant.currentPeriodEnd).toISOString()}
                 initialMeta={tenant.content}
                 initialConfig={tenant.config}
                 pages={site.pages}

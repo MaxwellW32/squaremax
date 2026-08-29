@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
-import { revalidateTag } from "next/cache"
 import { db } from "@/db"
 import { tenants } from "@/db/schema"
+import { bustTenantCache } from "@/lib/sites/tenantCache"
 import { sessionCheckWithError } from "@/useful/sessionCheck"
 
 //shared owner-gating for tenant server actions ("use server" modules may only
@@ -18,8 +18,5 @@ export async function getOwnedTenant(tenantId: string) {
 }
 
 export function bustTenant(slug: string, customDomain: string | null) {
-    revalidateTag(`tenant:${slug}`, "max")
-    //the custom-domain page caches under its own tag — bust it too or the
-    //tenant's own domain serves stale content for up to an hour
-    if (customDomain !== null) revalidateTag(`tenant-domain:${customDomain}`, "max")
+    bustTenantCache(slug, customDomain)
 }

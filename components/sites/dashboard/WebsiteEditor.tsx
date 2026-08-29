@@ -5,7 +5,7 @@ import { EditorGap, RenderableComponent, RenderablePage } from "@/components/sit
 import { SiteMeta, ComponentData, ComponentCategory, categoryLabels } from "@/lib/sites/content"
 import { SiteConfig } from "@/lib/sites/config"
 import { ComponentStyles } from "@/lib/sites/styles"
-import { ThemeColors } from "@/lib/sites/themes"
+import { ThemeColors, themeColorsSchema, themes } from "@/lib/sites/themes"
 import { ProductLite } from "@/lib/sites/sectionProps"
 import { variantsById, VariantEntry } from "@/lib/sites/registry"
 import { sortByOrder, componentsForPage, placementForGap, ComponentRegion, PAGE_LIMIT } from "@/lib/sites/site"
@@ -15,7 +15,7 @@ import ComponentPicker, { PickerMode } from "./ComponentPicker"
 import EditorCanvas from "./EditorCanvas"
 import {
     addComponent, addSitePage, applySiteTemplate, deleteComponent, deleteSitePage,
-    getSiteForOwner, moveComponent, relocateComponent, swapComponentVariant,
+    getSiteForOwner, moveComponent, relocateComponent, setSiteTheme, swapComponentVariant,
     updateComponentData, updateComponentStyles, updateSitePage,
 } from "@/serverFunctions/handleSiteBuilder"
 
@@ -27,6 +27,12 @@ import {
 // form (one standard form per component TYPE, so a design swap
 // keeps every word). Every mutation is a server action followed
 // by a full re-fetch — simple and always consistent.
+//
+// With nothing selected the sidebar has two faces — Page (what's
+// on this page) and Design (site-wide colors & fonts). Design
+// lives here rather than in a tab of its own so every theme
+// change is previewed on the canvas beside it, and instance
+// style overrides sit one click away on the same screen.
 //============================================================
 
 const input = "rounded-md border border-line bg-surface px-3 py-2 text-sm font-normal"
@@ -53,6 +59,8 @@ export default function WebsiteEditor(props: {
     slug: string
     meta: SiteMeta
     config: SiteConfig
+    //the theme is edited here, so the owner of the state is the dashboard
+    onConfigChange: (config: SiteConfig) => void
     initialPages: RenderablePage[]
     initialComponents: RenderableComponent[]
     products?: ProductLite[]
@@ -71,6 +79,10 @@ export default function WebsiteEditor(props: {
     const [styleDirty, styleDirtySet] = useState(false)
 
     const [newPageTitle, newPageTitleSet] = useState("")
+
+    //which face the sidebar shows while no component is selected
+    const [sidebarMode, sidebarModeSet] = useState<"page" | "design">("page")
+    const [designDirty, designDirtySet] = useState(false)
 
     const selected = components.find(component => component.id === selectedId) ?? null
     const currentPage = pages.find(page => page.id === currentPageId)
@@ -96,6 +108,17 @@ export default function WebsiteEditor(props: {
             busySet(false)
         }
     }
+
+    //theme edits render on the canvas immediately; Save writes them site-wide
+    const editConfig = (patch: Partial<SiteConfig>) => {
+        props.onConfigChange({ ...props.config, ...patch })
+        designDirtySet(true)
+    }
+
+    const saveDesign = () => run(async () => {
+        await setSiteTheme(props.tenantId, { themeId: props.config.themeId, themeOverrides: props.config.themeOverrides })
+        designDirtySet(false)
+    }, "Design saved — every page picked it up")
 
     const select = (component: RenderableComponent | null) => {
         selectedIdSet(component?.id ?? null)
@@ -333,8 +356,80 @@ export default function WebsiteEditor(props: {
                         </button>
                     </div>
                 ) : (
-                    /* -------- nothing selected: page outline + settings -------- */
+                    /* -------- nothing selected: this page, or the site's look -------- */
                     <div className="grid content-start gap-4">
+                        {/* which face of the sidebar */}
+                        <div className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-surface p-1">
+                            {(["page", "design"] as const).map(mode => (
+                                <button key={mode} type="button" onClick={() => sidebarModeSet(mode)}
+                                    aria-pressed={sidebarMode === mode}
+                                    className={`rounded-md px-3 py-2 text-sm font-semibold ${sidebarMode === mode ? "bg-cobalt text-white" : "text-mist hover:text-ink"}`}>
+                                    {mode === "page" ? "This page" : "Design"}
+                                    {mode === "design" && designDirty && (
+                                        <span className={`ml-1.5 inline-block size-1.5 rounded-full align-middle ${sidebarMode === mode ? "bg-white" : "bg-amber-500"}`} />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {sidebarMode === "design" ? (
+                        /* -------- site-wide look: previewed live on the canvas -------- */
+                        <>
+                            <div className="grid gap-2 rounded-xl border border-line bg-surface p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-mist">Theme — colors & fonts for every page</p>
+                                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                                    {themes.map(theme => (
+                                        <button key={theme.id} type="button"
+                                            onClick={() => editConfig({ themeId: theme.id, themeOverrides: {} })}
+                                            className={`flex items-center gap-3 rounded-lg border p-3 text-left ${props.config.themeId === theme.id ? "border-cobalt bg-cobalt/5" : "border-line hover:border-mist"}`}>
+                                            <span className="grid size-10 shrink-0 place-items-center rounded-full border border-line" style={{ backgroundColor: theme.colors.background }}>
+                                                <span className="size-4 rounded-full" style={{ backgroundColor: theme.colors.primary }} />
+                                            </span>
+                                            <span className="grid gap-0.5">
+                                                <span className="font-display font-bold">{theme.name}</span>
+                                                <span className="text-xs text-mist">{theme.fonts.heading} / {theme.fonts.body}</span>
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2 rounded-xl border border-line bg-surface p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-mist">Fine-tune colors (optional)</p>
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
+                                    {themeColorsSchema.keyof().options.map(tokenKey => {
+                                        const themeDefault = themes.find(theme => theme.id === props.config.themeId)?.colors[tokenKey] ?? "#888888"
+                                        const current = props.config.themeOverrides[tokenKey] ?? ""
+                                        return (
+                                            <div key={tokenKey} className="flex items-center gap-1.5 text-xs">
+                                                <input type="color" value={current !== "" ? current : themeDefault} aria-label={tokenLabels[tokenKey]}
+                                                    className="size-8 shrink-0 cursor-pointer rounded border border-line"
+                                                    onChange={e => editConfig({ themeOverrides: { ...props.config.themeOverrides, [tokenKey]: e.target.value } })} />
+                                                <span className={`truncate ${current !== "" ? "font-semibold" : "text-mist"}`}>{tokenLabels[tokenKey]}</span>
+                                                {current !== "" && (
+                                                    <button type="button" className="ml-auto shrink-0 text-mist hover:text-brand" aria-label={`Reset ${tokenLabels[tokenKey]}`}
+                                                        onClick={() => {
+                                                            const themeOverrides = { ...props.config.themeOverrides }
+                                                            delete themeOverrides[tokenKey]
+                                                            editConfig({ themeOverrides })
+                                                        }}>×</button>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                                <p className="text-xs text-mist">Single components can override these again — select one on the canvas, then &ldquo;Style overrides&rdquo;.</p>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button type="button" disabled={busy || !designDirty} className={primaryButton} onClick={saveDesign}>
+                                    Save design
+                                </button>
+                                {designDirty && <span className="text-xs font-semibold text-amber-600">Unsaved — the canvas is a preview</span>}
+                            </div>
+                        </>
+                        ) : (
+                        <>
                         <div className="grid gap-2 rounded-xl border border-line bg-surface p-4">
                             <p className="text-xs font-semibold uppercase tracking-wide text-mist">On this page — top to bottom</p>
                             {visible.length === 0 && (
@@ -419,7 +514,7 @@ export default function WebsiteEditor(props: {
                         )}
 
                         <p className="px-1 text-xs text-mist">
-                            Site-wide colors & fonts live in the <strong>Design</strong> tab; your name, phone and socials in <strong>Business</strong> — every component reads them automatically.
+                            Colors & fonts for the whole site are under <strong>Design</strong> above; your name, phone and socials in the <strong>Business</strong> tab — every component reads them automatically.
                         </p>
 
                         {/* start over from a template */}
@@ -434,6 +529,9 @@ export default function WebsiteEditor(props: {
                                             run(async () => {
                                                 await applySiteTemplate(props.tenantId, template.id)
                                                 const site = await refresh()
+                                                //templates carry their own theme — take the server's word for it
+                                                props.onConfigChange(site.tenant.config)
+                                                designDirtySet(false)
                                                 const home = sortByOrder(site.pages).find(candidate => candidate.slug === "")
                                                 currentPageIdSet(home?.id ?? "")
                                                 select(null)
@@ -445,6 +543,8 @@ export default function WebsiteEditor(props: {
                                 ))}
                             </div>
                         </details>
+                        </>
+                        )}
                     </div>
                 )}
             </div>

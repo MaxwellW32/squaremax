@@ -4,26 +4,27 @@ import Link from "next/link"
 import toast from "react-hot-toast"
 import { SiteMeta, BusinessInfo, socialLinkSchema } from "@/lib/sites/content"
 import { SiteConfig } from "@/lib/sites/config"
-import { themes, themeColorsSchema, ThemeColors } from "@/lib/sites/themes"
 import { addons, BASE_MONTHLY_PRICE, monthlyTotal, AddonId } from "@/lib/sites/addons"
-import { EffectiveStatus } from "@/lib/sites/status"
+import { PaymentRow } from "@/lib/sites/billing"
+import { EffectiveStatus, effectiveStatus } from "@/lib/sites/status"
 import { RenderableComponent, RenderablePage } from "@/components/sites/TenantSite"
 import { ProductLite } from "@/lib/sites/sectionProps"
 import { setBookingStatus, markMessageRead, setTenantAvailability, setTenantAddons } from "@/serverFunctions/handleTenants"
-import { setSiteTheme, updateBusinessInfo } from "@/serverFunctions/handleSiteBuilder"
-import { startTenantCheckout } from "@/serverFunctions/handleTenantBilling"
+import { updateBusinessInfo } from "@/serverFunctions/handleSiteBuilder"
 import WebsiteEditor from "./WebsiteEditor"
+import SubscriptionTab from "./SubscriptionTab"
 import StoreTab, { ProductRow, SaleRow, SalesSummary } from "./StoreTab"
 import CustomersTab, { CustomerRow } from "./CustomersTab"
 import MarketingTab, { AnnouncementRow } from "./MarketingTab"
 
 //============================================================
 // The tenant dashboard: run the whole business from one place.
-//  Website   — the instance-based page builder
-//  Design    — site-wide theme (components can override per instance)
+//  Website   — the page builder AND the site-wide look (theme
+//              lives beside the canvas that previews it)
 //  Business  — profile every component reads (phone, socials, SEO)
 //  Store     — inventory add-on · Customers — the tenant's own users
 //  Bookings/Messages/Marketing/Add-ons — operations
+//  Subscription — plan, paying ahead, receipts, site on/off
 //============================================================
 
 type BookingRow = {
@@ -54,19 +55,17 @@ type AvailabilityRow = {
     slotMinutes: number
 }
 
-const tabs = ["Overview", "Website", "Design", "Business", "Store", "Customers", "Bookings", "Messages", "Marketing", "Add-ons"] as const
+const tabs = ["Overview", "Website", "Business", "Store", "Customers", "Bookings", "Messages", "Marketing", "Add-ons", "Subscription"] as const
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-
-const tokenLabels: Record<keyof ThemeColors, string> = {
-    background: "Background", surface: "Surface", text: "Text", textMuted: "Muted text",
-    primary: "Primary", primaryContrast: "On primary", accent: "Accent", border: "Borders",
-}
 
 export default function TenantDashboard(props: {
     tenantId: string
     slug: string
     status: EffectiveStatus
     currentPeriodEnd: string | null
+    payments: PaymentRow[]
+    paidDaysLeft: number
+    renewBaseISO: string
     initialMeta: SiteMeta
     initialConfig: SiteConfig
     pages: RenderablePage[]
@@ -86,12 +85,20 @@ export default function TenantDashboard(props: {
 
     const [meta, metaSet] = useState<SiteMeta>(props.initialMeta)
     const [config, configSet] = useState<SiteConfig>(props.initialConfig)
+    //the subscription tab can take the site offline / back online, so the
+    //badge and the tab both read this rather than the server prop
+    const [rawStatus, rawStatusSet] = useState<"draft" | "live" | "cancelled" | null>(null)
     const [bookings, bookingsSet] = useState(props.bookings)
     const [messages, messagesSet] = useState(props.messages)
     const [availability, availabilitySet] = useState<AvailabilityRow[]>(props.availability)
 
     const monthly = monthlyTotal(config.enabledAddons)
     const input = "rounded-md border border-line bg-surface px-3 py-2 font-normal"
+
+    //server-computed status until the owner flips the site off/on in this session
+    const status: EffectiveStatus = rawStatus === null
+        ? props.status
+        : effectiveStatus({ status: rawStatus, currentPeriodEnd: props.currentPeriodEnd })
 
     const run = async (work: () => Promise<unknown>, success: string) => {
         if (busy) return //disabled= only applies after re-render; block double-clicks
@@ -110,24 +117,9 @@ export default function TenantDashboard(props: {
         await updateBusinessInfo(props.tenantId, meta.business, meta.seo)
     }, "Saved — your whole site picked it up")
 
-    const saveTheme = () => run(async () => {
-        await setSiteTheme(props.tenantId, { themeId: config.themeId, themeOverrides: config.themeOverrides })
-    }, "Theme saved")
-
     const saveAddons = () => run(async () => {
         await setTenantAddons(props.tenantId, config.enabledAddons)
     }, "Add-ons saved")
-
-    const renew = async () => {
-        busySet(true)
-        try {
-            const { url } = await startTenantCheckout(props.tenantId)
-            window.location.href = url
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : "couldn't start checkout")
-            busySet(false)
-        }
-    }
 
     const setBusiness = (patch: Partial<BusinessInfo>) => metaSet({ ...meta, business: { ...meta.business, ...patch } })
 
@@ -152,8 +144,8 @@ export default function TenantDashboard(props: {
                     <Link href="/sites/start" className="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-mist hover:border-cobalt hover:text-cobalt">
                         + New site
                     </Link>
-                    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusCopy[props.status].className}`}>
-                        {statusCopy[props.status].label}
+                    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusCopy[status].className}`}>
+                        {statusCopy[status].label}
                     </span>
                 </div>
             </div>
@@ -179,13 +171,14 @@ export default function TenantDashboard(props: {
                         </p>
                         <p className="text-sm text-mist">
                             {props.currentPeriodEnd !== null
-                                ? `Paid through ${new Date(props.currentPeriodEnd).toLocaleDateString("en-US", { dateStyle: "long", timeZone: "America/Jamaica" })}`
+                                ? `Paid through ${new Date(props.currentPeriodEnd).toLocaleDateString("en-US", { dateStyle: "long", timeZone: "America/Jamaica" })} — ${props.paidDaysLeft} day${props.paidDaysLeft === 1 ? "" : "s"} left`
                                 : "No active period — pay to go live."}
                         </p>
-                        <button type="button" disabled={busy} onClick={renew}
-                            className="mt-1 w-fit rounded-lg bg-cobalt px-5 py-2.5 font-display font-bold text-white hover:bg-ink disabled:opacity-50">
-                            {props.status === "active" ? `Renew 30 days — $${monthly}` : `Pay $${monthly} & go live`}
+                        <button type="button" onClick={() => tabSet("Subscription")}
+                            className="mt-1 w-fit rounded-lg bg-cobalt px-5 py-2.5 font-display font-bold text-white hover:bg-ink">
+                            {status === "active" ? "Manage subscription" : `Pay $${monthly} & go live`}
                         </button>
+                        <p className="text-xs text-mist">Pay for several months at once, see every receipt, or take the site offline — all in the Subscription tab.</p>
                     </div>
 
                     <div className="grid content-start gap-2 rounded-xl border border-line bg-surface p-6 text-sm">
@@ -208,6 +201,7 @@ export default function TenantDashboard(props: {
                     slug={props.slug}
                     meta={meta}
                     config={config}
+                    onConfigChange={configSet}
                     initialPages={props.pages}
                     initialComponents={props.components}
                     products={props.products.filter(product => product.active).map((product): ProductLite => ({
@@ -216,61 +210,6 @@ export default function TenantDashboard(props: {
                         stock: product.stock, trackStock: product.trackStock,
                     }))}
                 />
-            )}
-
-            {tab === "Design" && (
-                <div className="grid max-w-2xl gap-5">
-                    <div className="grid gap-2">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-mist">Theme — colors & fonts for the whole site</p>
-                        <div className="grid gap-2 sm:grid-cols-2">
-                            {themes.map(theme => (
-                                <button key={theme.id} type="button"
-                                    onClick={() => configSet({ ...config, themeId: theme.id, themeOverrides: {} })}
-                                    className={`flex items-center gap-3 rounded-lg border p-3 text-left ${config.themeId === theme.id ? "border-cobalt bg-surface" : "border-line bg-surface/60 hover:border-mist"}`}>
-                                    <span className="grid size-10 shrink-0 place-items-center rounded-full border border-line" style={{ backgroundColor: theme.colors.background }}>
-                                        <span className="size-4 rounded-full" style={{ backgroundColor: theme.colors.primary }} />
-                                    </span>
-                                    <span className="grid gap-0.5">
-                                        <span className="font-display font-bold">{theme.name}</span>
-                                        <span className="text-xs text-mist">{theme.fonts.heading} / {theme.fonts.body}</span>
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-mist">Fine-tune colors (optional)</p>
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                            {themeColorsSchema.keyof().options.map(tokenKey => {
-                                const themeDefault = themes.find(theme => theme.id === config.themeId)?.colors[tokenKey] ?? "#888888"
-                                const current = config.themeOverrides[tokenKey] ?? ""
-                                return (
-                                    <div key={tokenKey} className="flex items-center gap-1.5 text-xs">
-                                        <input type="color" value={current !== "" ? current : themeDefault} aria-label={tokenLabels[tokenKey]}
-                                            className="size-8 cursor-pointer rounded border border-line"
-                                            onChange={e => configSet({ ...config, themeOverrides: { ...config.themeOverrides, [tokenKey]: e.target.value } })} />
-                                        <span className={current !== "" ? "font-semibold" : "text-mist"}>{tokenLabels[tokenKey]}</span>
-                                        {current !== "" && (
-                                            <button type="button" className="text-mist hover:text-brand" aria-label={`Reset ${tokenLabels[tokenKey]}`}
-                                                onClick={() => {
-                                                    const themeOverrides = { ...config.themeOverrides }
-                                                    delete themeOverrides[tokenKey]
-                                                    configSet({ ...config, themeOverrides })
-                                                }}>×</button>
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                        <p className="text-xs text-mist">Individual components can override these again from the Website tab — instance styles always win.</p>
-                    </div>
-
-                    <button type="button" disabled={busy} onClick={saveTheme}
-                        className="w-fit rounded-lg bg-cobalt px-6 py-3 font-display font-bold text-white hover:bg-ink disabled:opacity-50">
-                        Save design
-                    </button>
-                </div>
             )}
 
             {tab === "Business" && (
@@ -512,6 +451,20 @@ export default function TenantDashboard(props: {
                         Save add-ons
                     </button>
                 </div>
+            )}
+
+            {tab === "Subscription" && (
+                <SubscriptionTab
+                    tenantId={props.tenantId}
+                    status={status}
+                    currentPeriodEnd={props.currentPeriodEnd}
+                    enabledAddons={config.enabledAddons}
+                    initialPayments={props.payments}
+                    paidDaysLeft={props.paidDaysLeft}
+                    renewBaseISO={props.renewBaseISO}
+                    onStatusChange={rawStatusSet}
+                    onManageAddons={() => tabSet("Add-ons")}
+                />
             )}
         </div>
     )

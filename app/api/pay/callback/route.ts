@@ -1,8 +1,9 @@
 import { eq, sql } from "drizzle-orm"
-import { revalidateTag } from "next/cache"
 import { db } from "@/db"
 import { tenantPayments, tenants } from "@/db/schema"
 import { completeGatewayPayment, gatewaySimulated } from "@/lib/payments/powertranz"
+import { periodEndAfter } from "@/lib/sites/billing"
+import { bustTenantCache } from "@/lib/sites/tenantCache"
 
 //============================================================
 // PowerTranz MerchantResponseUrl. Intentionally unauthenticated:
@@ -15,9 +16,10 @@ import { completeGatewayPayment, gatewaySimulated } from "@/lib/payments/powertr
 // re-read and the tenant row locked FOR UPDATE. This makes
 // duplicate callbacks idempotent AND makes two different
 // payments for the same tenant stack (+30d each), never clobber.
+//
+// A payment buys `months` prepaid periods — the customer can
+// settle several months in one charge from the Subscription tab.
 //============================================================
-
-const PERIOD_DAYS = 30
 
 async function parseCallbackBody(request: Request): Promise<{ spiToken: string | null; simApproved: string | null }> {
     const contentType = request.headers.get("content-type") ?? ""
@@ -46,11 +48,6 @@ function redirectHtml(target: string): Response {
         `<!doctype html><html><body><script>window.top.location.replace(${JSON.stringify(target)})</script></body></html>`,
         { status: 200, headers: { "content-type": "text/html" } },
     )
-}
-
-function bustTenantTags(slug: string, customDomain: string | null) {
-    revalidateTag(`tenant:${slug}`, "max")
-    if (customDomain !== null) revalidateTag(`tenant-domain:${customDomain}`, "max")
 }
 
 export async function POST(request: Request) {
@@ -121,7 +118,8 @@ export async function POST(request: Request) {
             const base = lockedTenant.currentPeriodEnd !== null && lockedTenant.currentPeriodEnd > now
                 ? lockedTenant.currentPeriodEnd
                 : now
-            const periodEnd = new Date(base.getTime() + PERIOD_DAYS * 24 * 60 * 60 * 1000)
+            //months come off the payment row we just locked, never the request
+            const periodEnd = periodEndAfter(lockedTenant.currentPeriodEnd, Math.max(1, fresh.months), now)
 
             await tx.update(tenantPayments)
                 .set({ status: "succeeded", gatewayTransactionId: transactionId, periodStart: base, periodEnd })
@@ -144,7 +142,7 @@ export async function POST(request: Request) {
 
     if (outcome === "credited") {
         //billing state changed → public pages must reflect it immediately
-        bustTenantTags(tenant.slug, tenant.customDomain)
+        bustTenantCache(tenant.slug, tenant.customDomain)
     }
 
     return redirectHtml(successTarget)

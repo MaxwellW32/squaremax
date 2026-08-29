@@ -253,6 +253,8 @@ export const tenantPayments = pgTable("tenantPayments", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
     tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id),
     amountCents: integer("amountCents").notNull(),
+    //how many 30-day periods this one charge buys (pay several months at once)
+    months: integer("months").default(1).notNull(),
     status: tenantPaymentStatusEnum("status").default("pending").notNull(),
     gatewayTransactionId: text("gatewayTransactionId"),
     //the span this prepaid charge buys
