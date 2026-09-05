@@ -22,13 +22,15 @@ type ResumeTenant = {
     config: SiteConfig
 }
 
-export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, initialName, initialPlan }: {
+export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, initialName, initialPlan, currency }: {
     signedIn: boolean
     resumeTenant: ResumeTenant | null
     cancelled: boolean
     initialName?: string
     //a plan card on the marketing site pre-selects its bundle
     initialPlan?: Bundle["id"] | null
+    //what the card is actually charged in (JMD merchant accounts convert at a fixed rate)
+    currency: { currency: "usd" | "jmd"; symbol: string; jmdPerUsd: number | null }
 }) {
     const [step, stepSet] = useState(resumeTenant !== null ? 2 : 0)
     const [busy, busySet] = useState(false)
@@ -91,6 +93,8 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
 
     const quote = priceQuote(config.enabledAddons)
     const monthly = quote.monthly
+    const chargedAsJmd = currency.jmdPerUsd === null ? null
+        : `J$${(Math.round(monthly * 100 * currency.jmdPerUsd) / 100).toLocaleString("en-US", { maximumFractionDigits: 0 })}`
     const input = "rounded-md border border-line bg-surface px-3 py-2.5 font-normal"
 
     const chosenTemplate = siteTemplates.find(template => template.id === templateId) ?? siteTemplates[0]
@@ -447,6 +451,9 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                         </button>
                     </div>
 
+                    {chargedAsJmd !== null && (
+                        <p className="text-sm text-mist">Your card is charged <strong className="text-ink">{chargedAsJmd}</strong> (US${monthly} at our fixed rate).</p>
+                    )}
                     <p className="text-xs text-mist">
                         Payments are processed on a secure PowerTranz page — your card never touches our servers.
                         Questions first? <Link className="underline" href="/contact">Talk to us</Link>.

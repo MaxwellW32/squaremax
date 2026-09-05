@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from "next"
 import { auth } from "@/auth/auth"
 import { getOwnedTenantById } from "@/serverFunctions/handleTenants"
+import { getBillingCurrency } from "@/serverFunctions/handleTenantBilling"
 import OnboardingWizard from "@/components/sites/onboarding/OnboardingWizard"
 
 export const metadata: Metadata = {
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default async function Page({ searchParams }: { searchParams: Promise<{ tenant?: string; cancelled?: string; name?: string; plan?: string }> }) {
     const { tenant: tenantParam, cancelled, name, plan } = await searchParams
     const session = await auth()
+    const currency = await getBillingCurrency()
 
     //resume an in-progress draft (also how a cancelled payment returns)
     let resumeTenant = null
@@ -31,6 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
                 cancelled={cancelled === "1"}
                 initialName={typeof name === "string" ? name.slice(0, 160) : undefined}
                 initialPlan={plan === "service" || plan === "storefront" ? plan : null}
+                currency={currency}
             />
         </main>
     )

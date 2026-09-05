@@ -22,7 +22,7 @@ const billingFaq: { q: string; a: string }[] = [
     { q: "How does payment work?", a: `You prepay by card on a secure PowerTranz page: one month, or 3, 6 or 12 at once. Twelve months costs ten (${FREE_MONTHS_PER_YEAR} free). We never charge your card automatically — you decide when to add more time from your dashboard.` },
     { q: "What happens when my paid period ends?", a: `Your site stays online for a ${GRACE_DAYS}-day grace window, and we email you before and after it ends. If you don't renew, visitors see a polite holding page until you do. Nothing is deleted.` },
     { q: "Can I change tools later?", a: "Any time, from your dashboard. Switch on booking today, add the store next month. The new price applies from your next payment, and bundles apply themselves whenever your tools qualify." },
-    { q: "Are prices in Jamaican dollars?", a: "Prices are set in US dollars so they stay stable. Your card statement will show the charge in whatever currency your bank settles, at that day's rate." },
+    { q: "Are prices in Jamaican dollars?", a: "Prices are set in US dollars so they stay stable. Your card is charged the Jamaican-dollar equivalent at our published rate, and you see the exact J$ amount before you pay." },
     { q: "Is there a fee on my sales?", a: "No. Orders and bookings that come through your site are yours, with no commission. You pay the flat monthly price and nothing else." },
     { q: "Can you build the site for me?", a: "Yes: concierge setup. Send your photos, menu or services and hours, and we build the whole site for you for a one-time US$99. Ask via the contact page." },
 ]
