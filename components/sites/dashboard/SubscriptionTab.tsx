@@ -1,16 +1,16 @@
 "use client"
 import React, { useState } from "react"
 import toast from "react-hot-toast"
-import { AddonId, monthlyTotal } from "@/lib/sites/addons"
-import { PaymentRow, addMonthlyPeriods, monthChoices, planLines } from "@/lib/sites/billing"
+import { AddonId, priceQuote } from "@/lib/sites/addons"
+import { PaymentRow, addMonthlyPeriods, chargeableMonths, checkoutAmountCents, freeMonthsFor, monthChoices, planLines } from "@/lib/sites/billing"
 import { EffectiveStatus, GRACE_DAYS } from "@/lib/sites/status"
 import { getTenantPayments, setTenantOnline, startTenantCheckout } from "@/serverFunctions/handleTenantBilling"
 
 //============================================================
 // Everything a client needs to run their own subscription:
 // what they pay for and why, how long they're covered, buying
-// several months in one charge, taking the site offline (paid
-// time is kept) and every receipt to date.
+// several months in one charge (a year = 2 months free), taking
+// the site offline (paid time is kept) and every receipt to date.
 //
 // Prepaid, never auto-charged — so "renew" is a deliberate act
 // and the UI's job is to make the consequences obvious.
@@ -19,8 +19,16 @@ import { getTenantPayments, setTenantOnline, startTenantCheckout } from "@/serve
 const card = "grid content-start gap-3 rounded-xl border border-line bg-surface p-5"
 const label = "text-xs font-semibold uppercase tracking-wide text-mist"
 
+export type BillingCurrency = { currency: "usd" | "jmd"; symbol: string; jmdPerUsd: number | null }
+
 function money(cents: number): string {
-    return `$${(cents / 100).toFixed(2)}`
+    return `US$${(cents / 100).toFixed(2)}`
+}
+
+function chargedAs(cents: number, currency: BillingCurrency): string | null {
+    if (currency.currency !== "jmd" || currency.jmdPerUsd === null) return null
+    const jmd = Math.round(cents * currency.jmdPerUsd) / 100
+    return `charged as J$${jmd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
 }
 
 function longDate(value: string | Date): string {
@@ -48,19 +56,21 @@ export default function SubscriptionTab(props: {
     //one of its own (and the first client render can't disagree with the HTML)
     paidDaysLeft: number
     renewBaseISO: string
+    currency: BillingCurrency
     onStatusChange: (status: "live" | "cancelled") => void
-    onManageAddons: () => void
 }) {
     const [months, monthsSet] = useState(1)
     const [busy, busySet] = useState(false)
     const [payments, paymentsSet] = useState(props.initialPayments)
 
-    const monthly = monthlyTotal(props.enabledAddons)
+    const quote = priceQuote(props.enabledAddons)
     const lines = planLines(props.enabledAddons)
-    const totalCents = monthly * 100 * months
+    const totalCents = checkoutAmountCents(props.enabledAddons, months)
+    const freeMonths = freeMonthsFor(months)
     const left = props.paidDaysLeft
     const coveredUntil = addMonthlyPeriods(props.renewBaseISO, months)
     const neverPaid = props.currentPeriodEnd === null
+    const jmd = chargedAs(totalCents, props.currency)
 
     //what the top of the tab says, in the client's language
     const headline: Record<EffectiveStatus, { title: string; detail: string; className: string }> = {
@@ -120,7 +130,7 @@ export default function SubscriptionTab(props: {
     }
 
     const toggleOnline = (online: boolean) => {
-        if (!online && !window.confirm("Take your site offline? Visitors will see a holding page. Your pages, bookings and customers are kept, and so is the time you've already paid for.")) return
+        if (!online && !window.confirm("Take your site offline? Visitors will see a holding page. Your pages, bookings, orders and customers are kept, and so is the time you've already paid for.")) return
         run(async () => {
             const result = await setTenantOnline(props.tenantId, online)
             props.onStatusChange(result.status)
@@ -144,21 +154,33 @@ export default function SubscriptionTab(props: {
                     <p className="text-sm text-mist">How many months would you like to pay for?</p>
 
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                        {monthChoices.map(choice => (
-                            <button key={choice} type="button" onClick={() => monthsSet(choice)}
-                                aria-pressed={months === choice}
-                                className={`grid gap-0.5 rounded-lg border px-3 py-2.5 text-center ${months === choice ? "border-cobalt bg-cobalt/5" : "border-line hover:border-mist"}`}>
-                                <span className="font-display text-lg font-bold leading-none">{choice}</span>
-                                <span className="text-xs text-mist">month{choice === 1 ? "" : "s"}</span>
-                            </button>
-                        ))}
+                        {monthChoices.map(choice => {
+                            const free = freeMonthsFor(choice)
+                            return (
+                                <button key={choice} type="button" onClick={() => monthsSet(choice)}
+                                    aria-pressed={months === choice}
+                                    className={`relative grid gap-0.5 rounded-lg border px-3 py-2.5 text-center ${months === choice ? "border-cobalt bg-cobalt/5" : "border-line hover:border-mist"}`}>
+                                    <span className="font-display text-lg font-bold leading-none">{choice}</span>
+                                    <span className="text-xs text-mist">month{choice === 1 ? "" : "s"}</span>
+                                    {free > 0 && (
+                                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                                            {free} free
+                                        </span>
+                                    )}
+                                </button>
+                            )
+                        })}
                     </div>
 
                     <div className="mt-1 grid gap-1 rounded-lg bg-paper p-4">
                         <div className="flex items-baseline justify-between gap-3">
-                            <span className="text-sm text-mist">{months} × {money(monthly * 100)}/month</span>
+                            <span className="text-sm text-mist">
+                                {freeMonths > 0 ? `${chargeableMonths(months)} × ` : `${months} × `}{money(quote.monthly * 100)}/month
+                                {freeMonths > 0 && <span className="ml-1 font-semibold text-emerald-700">+ {freeMonths} free</span>}
+                            </span>
                             <span className="font-display text-2xl font-bold">{money(totalCents)}</span>
                         </div>
+                        {jmd !== null && <p className="text-right text-xs text-mist">{jmd}</p>}
                         <p className="text-xs text-mist">
                             One charge. Covers you through <strong className="text-ink">{longDate(coveredUntil)}</strong>
                             {left > 0 && !neverPaid ? " — your remaining days are added on, not replaced." : "."}
@@ -167,11 +189,11 @@ export default function SubscriptionTab(props: {
 
                     <button type="button" disabled={busy} onClick={pay}
                         className="w-full rounded-lg bg-cobalt px-5 py-3 font-display font-bold text-white hover:bg-ink disabled:opacity-50 sm:w-fit">
-                        Pay {money(totalCents)}
+                        {neverPaid ? `Pay ${money(totalCents)} & go live` : `Pay ${money(totalCents)}`}
                     </button>
                     <p className="text-xs text-mist">
-                        Secure card payment. We never store your card, and nothing is ever charged automatically —
-                        you decide when to add more months.
+                        Secure card payment on a PowerTranz page — your card never touches our servers, and nothing is
+                        ever charged automatically. You decide when to add more months.
                     </p>
                 </div>
 
@@ -188,15 +210,16 @@ export default function SubscriptionTab(props: {
                     </ul>
                     <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
                         <span className="font-display font-bold">Your monthly price</span>
-                        <span className="font-display text-xl font-bold">${monthly}</span>
+                        <span className="font-display text-xl font-bold">US${quote.monthly}</span>
                     </div>
-                    <button type="button" onClick={props.onManageAddons}
-                        className="w-fit rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-mist hover:border-cobalt hover:text-cobalt">
-                        Add or remove features
-                    </button>
+                    {quote.savings > 0 && (
+                        <p className="rounded-md bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
+                            {quote.bundle?.name} applied — you save ${quote.savings}/month versus paying per tool.
+                        </p>
+                    )}
                     <p className="text-xs text-mist">
-                        Changing features changes your monthly price from your next payment — the months you&apos;ve
-                        already paid for are never re-charged.
+                        Change your tools above any time. A new price applies from your next payment — the months
+                        you&apos;ve already paid for are never re-charged.
                     </p>
                 </div>
             </div>

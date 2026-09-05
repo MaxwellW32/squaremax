@@ -17,8 +17,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 const metadataInfo = {
-  title: "Squaremax — your business website + booking, notifications & inventory. $5/month per piece.",
-  description: "A beautiful hosted website at squaremaxtech.com/your-business from $5/month, with booking, customer notifications and inventory tracking at $5/month each. Need fully custom? Flat-price builds from $1,000.",
+  title: "Squaremax — your business online tonight. Websites with booking & orders from US$10/month.",
+  description: "Professional websites for Jamaican small businesses at squaremaxtech.com/your-business, with online booking, orders and customer messaging built in. From US$10/month, edit it yourself from your phone. Custom builds from US$1,000.",
 }
 
 export const metadata: Metadata = {

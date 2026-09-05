@@ -222,10 +222,10 @@ export default function EditorCanvas(props: {
                 <span className="mx-auto truncate rounded-md bg-paper px-3 py-1 font-mono text-xs text-mist">
                     squaremaxtech.com/{props.slug}{pagePath}
                 </span>
-                <span className="text-xs text-mist">{props.busy ? "Saving…" : "Click any part to edit it"}</span>
+                <span className="hidden text-xs text-mist sm:inline">{props.busy ? "Saving…" : "Tap any part to edit it"}</span>
             </div>
 
-            <div ref={scrollerRef} className="relative max-h-[78vh] min-h-[420px] overflow-y-auto overscroll-contain">
+            <div ref={scrollerRef} className="relative max-h-[62vh] min-h-[360px] overflow-y-auto overscroll-contain xl:max-h-[78vh] xl:min-h-[420px]">
                 <div
                     ref={canvasRef}
                     onMouseMove={handleMouseMove}

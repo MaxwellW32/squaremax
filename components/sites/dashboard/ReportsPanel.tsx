@@ -2,6 +2,7 @@
 import React, { useState } from "react"
 import toast from "react-hot-toast"
 import { addExpense, deleteExpense, getReport } from "@/serverFunctions/handleInventory"
+import { businessDateISO } from "@/lib/sites/bookingLogic"
 
 //============================================================
 // Reports & expenses: pick a range, see what an accountant asks
@@ -14,14 +15,14 @@ type Report = Awaited<ReturnType<typeof getReport>>
 const input = "rounded-md border border-line bg-surface px-3 py-2 text-sm font-normal"
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`
 
-function todayISO(offsetDays: number = 0): string {
-    const date = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000)
-    return date.toISOString().slice(0, 10)
+//calendar dates in Jamaica time — a 10pm entry belongs to today, not to
+//tomorrow's UTC date
+function todayISO(): string {
+    return businessDateISO(new Date())
 }
 
 function monthStartISO(): string {
-    const now = new Date()
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+    return `${todayISO().slice(0, 7)}-01`
 }
 
 function downloadCsv(filename: string, rows: (string | number)[][]) {

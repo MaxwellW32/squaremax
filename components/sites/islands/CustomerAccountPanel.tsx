@@ -19,6 +19,22 @@ type BookingRow = {
     status: "pending" | "confirmed" | "cancelled"
 }
 
+type OrderSummaryRow = {
+    id: string
+    ref: string
+    summary: string
+    totalCents: number
+    status: "new" | "paid" | "fulfilled" | "cancelled"
+    createdAt: string | Date
+}
+
+const orderStatusText: Record<OrderSummaryRow["status"], string> = {
+    new: "Received",
+    paid: "Paid",
+    fulfilled: "Completed",
+    cancelled: "Cancelled",
+}
+
 const inputStyle: React.CSSProperties = { backgroundColor: "var(--t-bg)", border: "1px solid var(--t-border)", color: "var(--t-text)" }
 const inputClass = "rounded-[var(--t-radius)] px-3 py-2.5"
 const buttonStyle: React.CSSProperties = { backgroundColor: "var(--t-primary)", color: "var(--t-primary-contrast)" }
@@ -28,11 +44,17 @@ export default function CustomerAccountPanel({
     businessName,
     initialCustomer,
     initialBookings,
+    initialOrders,
+    showBookings,
+    showOrders,
 }: {
     slug: string
     businessName: string
     initialCustomer: PublicCustomer | null
     initialBookings: BookingRow[]
+    initialOrders: OrderSummaryRow[]
+    showBookings: boolean
+    showOrders: boolean
 }) {
     const [customer, customerSet] = useState<PublicCustomer | null>(initialCustomer)
     const [bookings, bookingsSet] = useState<BookingRow[]>(initialBookings)
@@ -156,7 +178,30 @@ export default function CustomerAccountPanel({
                 </button>
             </div>
 
+            {/* orders */}
+            {showOrders && (
+                <div className="grid gap-3 rounded-[var(--t-radius)] p-5" style={{ backgroundColor: "var(--t-surface)", border: "1px solid var(--t-border)" }}>
+                    <h2 className="text-[length:var(--t-text-l)] text-[var(--t-text)]" style={{ fontFamily: "var(--t-font-heading)" }}>Your orders</h2>
+                    {initialOrders.length === 0 ? (
+                        <p className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">No orders yet.</p>
+                    ) : (
+                        <ul className="grid gap-2">
+                            {initialOrders.map(order => (
+                                <li key={order.id} className="grid gap-0.5 rounded-[var(--t-radius)] px-4 py-2.5" style={{ backgroundColor: "var(--t-bg)", border: "1px solid var(--t-border)" }}>
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                        <span className="font-semibold text-[var(--t-text)]">{order.ref} · ${(order.totalCents / 100).toFixed(2)}</span>
+                                        <span className="text-[length:var(--t-text-s)] font-semibold uppercase tracking-wide" style={{ color: order.status === "cancelled" ? "var(--t-text-muted)" : "var(--t-primary)" }}>{orderStatusText[order.status]}</span>
+                                    </div>
+                                    <span className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">{order.summary} · {new Date(order.createdAt).toLocaleDateString("en-US", { dateStyle: "medium" })}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
+
             {/* bookings */}
+            {showBookings && (
             <div className="grid gap-3 rounded-[var(--t-radius)] p-5" style={{ backgroundColor: "var(--t-surface)", border: "1px solid var(--t-border)" }}>
                 <h2 className="text-[length:var(--t-text-l)] text-[var(--t-text)]" style={{ fontFamily: "var(--t-font-heading)" }}>Your bookings</h2>
                 {bookings.length === 0 ? (
@@ -167,7 +212,7 @@ export default function CustomerAccountPanel({
                             <li key={booking.id} className="flex flex-wrap items-baseline justify-between gap-2 rounded-[var(--t-radius)] px-4 py-2.5" style={{ backgroundColor: "var(--t-bg)", border: "1px solid var(--t-border)" }}>
                                 <span className="font-semibold text-[var(--t-text)]">{booking.serviceName}</span>
                                 <span className="text-[length:var(--t-text-s)] text-[var(--t-text-muted)]">
-                                    {new Date(booking.startsAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                                    {new Date(booking.startsAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Jamaica" })}
                                 </span>
                                 <span className="text-[length:var(--t-text-s)] font-semibold uppercase tracking-wide" style={{ color: booking.status === "cancelled" ? "var(--t-text-muted)" : "var(--t-primary)" }}>
                                     {booking.status}
@@ -177,6 +222,7 @@ export default function CustomerAccountPanel({
                     </ul>
                 )}
             </div>
+            )}
 
             {/* profile + notification preferences */}
             <form onSubmit={handleSavePrefs} className="grid gap-3 rounded-[var(--t-radius)] p-5" style={{ backgroundColor: "var(--t-surface)", border: "1px solid var(--t-border)" }}>

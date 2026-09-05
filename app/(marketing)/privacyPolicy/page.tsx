@@ -73,8 +73,9 @@ const sections: { title: string; body: React.ReactNode }[] = [
         body: (
             <p>
                 We use cookies for one thing: keeping you signed in. There is a session cookie for site owners, and a
-                separate per-business cookie for customers signed in to a hosted page. No advertising or cross-site
-                tracking cookies are set.
+                separate per-business cookie for customers signed in to a hosted page. On squaremaxtech.com&apos;s own
+                marketing pages we may additionally load Google Analytics and the Meta (Facebook) pixel to measure our
+                advertising; those never load on hosted business pages, on customer account pages, or in the dashboard.
             </p>
         ),
     },

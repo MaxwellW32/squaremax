@@ -1,26 +1,34 @@
 import React from "react"
 import type { Metadata } from "next"
 import { notFound, redirect } from "next/navigation"
+import { toDataURL } from "qrcode"
 import { auth } from "@/auth/auth"
 import { getMyTenants, getOwnedTenantById, getTenantAvailability, getTenantBookings, getTenantMessages } from "@/serverFunctions/handleTenants"
 import { getSiteForOwner } from "@/serverFunctions/handleSiteBuilder"
 import { getTenantCustomers } from "@/serverFunctions/handleCustomers"
 import { getProducts, getSales, getSalesSummary } from "@/serverFunctions/handleInventory"
 import { getAnnouncements } from "@/serverFunctions/handleNotifications"
-import { getTenantPayments } from "@/serverFunctions/handleTenantBilling"
+import { getBillingCurrency, getTenantPayments } from "@/serverFunctions/handleTenantBilling"
+import { getOrders } from "@/serverFunctions/handleOrders"
+import { getDomainStatus } from "@/serverFunctions/handleDomains"
 import { daysRemaining, renewBase } from "@/lib/sites/billing"
 import { effectiveStatus } from "@/lib/sites/status"
-import TenantDashboard from "@/components/sites/dashboard/TenantDashboard"
+import { env } from "@/lib/env"
+import TenantDashboard, { DashboardTabId, dashboardTabIds } from "@/components/sites/dashboard/TenantDashboard"
 
 export const metadata: Metadata = {
     title: "Dashboard | Squaremax",
 }
 
-export default async function Page({ params }: { params: Promise<{ tenantId: string }> }) {
+export default async function Page({ params, searchParams }: {
+    params: Promise<{ tenantId: string }>
+    searchParams: Promise<{ tab?: string; paid?: string; cancelled?: string }>
+}) {
     const { tenantId } = await params
+    const { tab, paid, cancelled } = await searchParams
 
     const session = await auth()
-    if (session === null) redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent(`/dashboard/${tenantId}`)}`)
+    if (session === null) redirect(`/signin?callbackUrl=${encodeURIComponent(`/dashboard/${tenantId}`)}`)
 
     let tenant
     try {
@@ -29,7 +37,7 @@ export default async function Page({ params }: { params: Promise<{ tenantId: str
         notFound()
     }
 
-    const [site, bookings, messages, availability, customers, products, sales, salesSummary, announcements, myTenants, payments] = await Promise.all([
+    const [site, bookings, messages, availability, customers, products, sales, salesSummary, announcements, myTenants, payments, orders, domain, currency] = await Promise.all([
         getSiteForOwner(tenant.id),
         getTenantBookings(tenant.id),
         getTenantMessages(tenant.id),
@@ -41,25 +49,43 @@ export default async function Page({ params }: { params: Promise<{ tenantId: str
         getAnnouncements(tenant.id),
         getMyTenants(),
         getTenantPayments(tenant.id),
+        getOrders(tenant.id),
+        getDomainStatus(tenant.id),
+        getBillingCurrency(),
     ])
+
+    const liveUrl = tenant.customDomain !== null && tenant.config.enabledAddons.includes("custom-domain")
+        ? `https://${tenant.customDomain}`
+        : `${env.SITE_URL}/${tenant.slug}`
+    const qrDataUrl = await toDataURL(liveUrl, { margin: 1, width: 220 })
+
+    const initialTab: DashboardTabId = (dashboardTabIds as readonly string[]).includes(tab ?? "") ? tab as DashboardTabId : "overview"
 
     return (
         <main className="bg-paper text-ink">
             <TenantDashboard
                 tenantId={tenant.id}
                 slug={tenant.slug}
+                liveUrl={liveUrl}
+                qrDataUrl={qrDataUrl}
+                initialTab={initialTab}
+                justPaid={paid === "1"}
+                checkoutCancelled={cancelled === "1"}
                 status={effectiveStatus(tenant)}
                 currentPeriodEnd={tenant.currentPeriodEnd?.toISOString() ?? null}
                 payments={payments}
                 paidDaysLeft={daysRemaining(tenant.currentPeriodEnd)}
                 renewBaseISO={renewBase(tenant.currentPeriodEnd).toISOString()}
+                currency={currency}
                 initialMeta={tenant.content}
                 initialConfig={tenant.config}
+                domain={domain}
                 pages={site.pages}
                 components={site.components}
                 products={products}
                 sales={sales}
                 salesSummary={salesSummary}
+                orders={orders}
                 customers={customers}
                 announcements={announcements}
                 otherTenants={myTenants

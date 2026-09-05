@@ -16,12 +16,32 @@ import { env } from "@/lib/env";
 // swaps the gateway for an in-app approve/decline page.
 // Pattern ported from the cheers project (proven in production).
 
-export const CURRENCY = "usd"; //switch to "jmd" when the merchant account settles in JMD
+//prices are quoted in USD everywhere in the product; the merchant account
+//may settle in JMD, in which case the gateway is charged the converted
+//amount (JMD_PER_USD) and both figures are stored on the payment row.
+export type GatewayCurrency = "usd" | "jmd";
+export const CURRENCY: GatewayCurrency = env.POWERTRANZ_CURRENCY;
 
-const CURRENCY_NUMERIC: Record<string, string> = {
+const CURRENCY_NUMERIC: Record<GatewayCurrency, string> = {
     usd: "840",
     jmd: "388",
 };
+
+export const CURRENCY_SYMBOL: Record<GatewayCurrency, string> = {
+    usd: "US$",
+    jmd: "J$",
+};
+
+//USD list-price cents -> cents in the currency the gateway actually charges
+export function toGatewayAmountCents(usdCents: number): number {
+    if (CURRENCY === "jmd") return Math.round(usdCents * (env.JMD_PER_USD ?? 1));
+    return usdCents;
+}
+
+//what the dashboard needs to explain the charge ("US$15 · charged as J$2,400")
+export function gatewayCurrencyInfo(): { currency: GatewayCurrency; symbol: string; jmdPerUsd: number | null } {
+    return { currency: CURRENCY, symbol: CURRENCY_SYMBOL[CURRENCY], jmdPerUsd: CURRENCY === "jmd" ? env.JMD_PER_USD ?? null : null };
+}
 
 const BASE_URL = env.POWERTRANZ_BASE_URL ?? "https://staging.ptranz.com";
 
@@ -80,7 +100,7 @@ export async function initiateHostedPayment(opts: {
         body: JSON.stringify({
             TransactionIdentifier: transactionIdentifier,
             TotalAmount: decimalAmount(opts.amountCents),
-            CurrencyCode: CURRENCY_NUMERIC[CURRENCY] ?? "840",
+            CurrencyCode: CURRENCY_NUMERIC[CURRENCY],
             ThreeDSecure: true,
             OrderIdentifier: opts.orderId,
             ExtendedData: {
@@ -158,7 +178,7 @@ export async function refundGatewayPayment(transactionId: string, amountCents: n
             body: JSON.stringify({
                 TransactionIdentifier: transactionId,
                 TotalAmount: decimalAmount(amountCents),
-                CurrencyCode: CURRENCY_NUMERIC[CURRENCY] ?? "840",
+                CurrencyCode: CURRENCY_NUMERIC[CURRENCY],
             }),
         });
         if (!res.ok) return false;
@@ -205,7 +225,7 @@ function simulatedGatewayPage(
     opts: { amountCents: number; orderId: string; responseUrl: string },
     spiToken: string
 ): string {
-    const amount = `$${(opts.amountCents / 100).toFixed(2)}`;
+    const amount = `${CURRENCY_SYMBOL[CURRENCY]}${(opts.amountCents / 100).toFixed(2)}`;
     return `<!doctype html><html><head><title>Simulated gateway</title></head>
 <body style="font-family:sans-serif;background:#111;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center;">
 <div style="max-width:420px;padding:32px;border:1px solid #444;border-radius:12px;">

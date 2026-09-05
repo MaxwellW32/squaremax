@@ -2,29 +2,34 @@ import nodemailer from "nodemailer"
 import { env } from "@/lib/env"
 
 //server-only module (never a server action) — recipients here come from
-//trusted sources: the studio inbox or tenant emails stored in the DB.
+//trusted sources: the studio inbox, tenant emails stored in the DB, or the
+//address a person just typed to sign in.
 
-const transporter = nodemailer.createTransport({
-    host: "smtp.hostinger.com",
-    port: 465,
-    secure: true,
+export const smtpServer = {
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_PORT === 465,
     auth: {
         user: env.EMAIL,
         pass: env.EMAIL_PASS,
     },
-})
+}
+
+const transporter = nodemailer.createTransport(smtpServer)
 
 export async function sendEmail(input: {
     to: string
     replyTo?: string
     subject: string
     text: string
+    html?: string
 }): Promise<void> {
     await transporter.sendMail({
-        from: env.EMAIL,
+        from: `Squaremax <${env.EMAIL}>`,
         to: input.to,
         subject: input.subject,
         text: input.text,
+        html: input.html,
         replyTo: input.replyTo,
     })
 }

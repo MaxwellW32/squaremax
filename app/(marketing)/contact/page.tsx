@@ -4,11 +4,11 @@ import ContactForm from "@/components/contactForm/ContactForm"
 
 export const metadata: Metadata = {
     title: "Contact | Squaremax",
-    description: "Ask about a hosted Squaremax page from $5/month, or a flat-price custom build. A human — the developer — answers.",
+    description: "Ask about a Squaremax site from US$10/month, concierge setup, or a flat-price custom build. A human — the developer — answers.",
 }
 
 const answers: { title: string; body: string }[] = [
-    { title: "Hosted page", body: "You want a page at squaremaxtech.com/your-business with booking, notifications or inventory. Tell me the business and I'll point you at the right add-ons." },
+    { title: "A Squaremax site", body: "You want a site at squaremaxtech.com/your-business with booking, orders or customer messaging (from US$10/month). Tell me the business and I'll point you at the right tools — or ask about concierge setup and I'll build the whole thing for you." },
     { title: "Custom build", body: "You need something bespoke — a full site or app at a flat price. Send the goal and any deadline." },
     { title: "Already a client", body: "Content changes, billing questions, a new page. Say which site and what you need." },
 ]

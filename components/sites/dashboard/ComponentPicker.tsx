@@ -49,9 +49,9 @@ function DesignPreview({ entry, meta, config }: { entry: VariantEntry; meta: Sit
         pages: [{ slug: "", title: "Home" }, { slug: "about", title: "About" }],
         enabledAddons: ["booking", "notifications", "inventory", "custom-domain"],
         products: [
-            { id: "p1", name: "Sample product", description: "Looks great here.", priceCents: 2500, imageSrc: "", stock: 5, trackStock: true },
-            { id: "p2", name: "Another one", description: "", priceCents: 1200, imageSrc: "", stock: 0, trackStock: true },
-            { id: "p3", name: "Best seller", description: "", priceCents: 4000, imageSrc: "", stock: 9, trackStock: true },
+            { id: "p1", name: "Sample product", description: "Looks great here.", priceCents: 2500, imageSrc: "", taxRateBps: 0, stock: 5, trackStock: true },
+            { id: "p2", name: "Another one", description: "", priceCents: 1200, imageSrc: "", taxRateBps: 0, stock: 0, trackStock: true },
+            { id: "p3", name: "Best seller", description: "", priceCents: 4000, imageSrc: "", taxRateBps: 0, stock: 9, trackStock: true },
         ],
         preview: true,
     }), [meta.business])

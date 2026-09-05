@@ -2,9 +2,8 @@
 import { z } from "zod"
 import { and, eq, gte, lt, ne, sql } from "drizzle-orm"
 import { db } from "@/db"
-import { tenantAvailability, tenantBookings, tenantComponents, tenantMessages, tenants } from "@/db/schema"
-import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
-import { slugSchema } from "@/lib/sites/slug"
+import { tenantAvailability, tenantBookings, tenantComponents, tenantMessages } from "@/db/schema"
+import { getVisibleTenantBySlug } from "@/lib/sites/publicTenant"
 import { businessDateISO, businessDayAnchor, computeSlots, dateISOSchemaPattern, rangesOverlap } from "@/lib/sites/bookingLogic"
 import { sendEmailInBackground } from "@/lib/email/transporter"
 import { getCurrentCustomer } from "@/lib/sites/customerAuth"
@@ -12,13 +11,7 @@ import { getCurrentCustomer } from "@/lib/sites/customerAuth"
 //public server actions callable from tenant pages — every input is
 //zod-validated and every action re-checks tenant visibility + add-on flags.
 
-async function getVisibleTenant(slugRaw: string) {
-    const slug = slugSchema.parse(slugRaw)
-    const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
-    if (tenant === undefined) throw new Error("page not found")
-    if (!isPubliclyVisible(effectiveStatus(tenant))) throw new Error("page is paused")
-    return tenant
-}
+const getVisibleTenant = getVisibleTenantBySlug
 
 //bookable services now live on the tenant's BOOKING components (each placed
 //instance owns its data) — search across them for the requested service
@@ -177,7 +170,7 @@ export async function submitBooking(input: z.infer<typeof bookingInputSchema>) {
     })
 
     if (tenant.config.enabledAddons.includes("notifications")) {
-        const when = startsAt.toLocaleString("en-US", { dateStyle: "full", timeStyle: "short" })
+        const when = startsAt.toLocaleString("en-US", { dateStyle: "full", timeStyle: "short", timeZone: "America/Jamaica" })
 
         if (tenant.content.business.email !== "") {
             sendEmailInBackground({

@@ -1,17 +1,21 @@
 "use server"
 import { z } from "zod"
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm"
+import { and, desc, eq, gte, lt } from "drizzle-orm"
 import { db } from "@/db"
-import { tenantExpenses, tenantProducts, tenantSales, SaleItem, SalePaymentMethod } from "@/db/schema"
+import { tenantExpenses, tenantProducts, tenantSales, SalePaymentMethod } from "@/db/schema"
 import { getOwnedTenant, bustTenant } from "@/lib/sites/owner"
+import { businessDateISO, businessDayAnchor, dateISOSchemaPattern } from "@/lib/sites/bookingLogic"
+import { createSaleInTx, lockInventory } from "@/lib/sites/salesCore"
 
 //============================================================
 // Store & inventory add-on (owner-gated). Accounting-grade:
 //  - prices, COSTS (COGS) and tax in integer cents / basis points
 //  - sales snapshot price+cost+tax per line; receipt-level
-//    discount applied proportionally BEFORE tax
+//    discount applied proportionally BEFORE tax (lib/sites/saleMath)
 //  - refunds keep the row (audit trail) and restock items
-//  - an expenses ledger + date-range report for tax filing
+//  - an expenses ledger + date-range report for tax filing,
+//    with days anchored to Jamaica time so a 10pm sale on the
+//    31st never slips into next month's report
 //============================================================
 
 const paymentMethodSchema = z.enum(["cash", "card", "transfer", "whatsapp", "other"])
@@ -89,63 +93,15 @@ export async function recordSale(tenantId: string, input: z.infer<typeof saleInp
     const validated = saleInputSchema.parse(input)
 
     const sale = await db.transaction(async tx => {
-        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${tenant.id + ":inventory"}))`)
-
-        const products = await tx.query.tenantProducts.findMany({ where: eq(tenantProducts.tenantId, tenant.id) })
-        const productsById = new Map(products.map(product => [product.id, product]))
-
-        //pass 1: subtotal (to cap + apportion the discount)
-        let subtotalCents = 0
-        for (const line of validated.items) {
-            const product = productsById.get(line.productId)
-            if (product === undefined) throw new Error("product not found")
-            subtotalCents += product.priceCents * line.qty
-        }
-        const discountCents = Math.min(validated.discountCents, subtotalCents)
-
-        //pass 2: per-line tax on the discounted amount + stock decrement
-        const items: SaleItem[] = []
-        let taxCents = 0
-        for (const line of validated.items) {
-            const product = productsById.get(line.productId)!
-            if (product.trackStock && product.stock < line.qty) {
-                throw new Error(`not enough stock for ${product.name} (${product.stock} left)`)
-            }
-
-            const lineSubtotal = product.priceCents * line.qty
-            const lineDiscounted = subtotalCents === 0 ? 0 : lineSubtotal - Math.round(discountCents * lineSubtotal / subtotalCents)
-            const lineTax = Math.round(lineDiscounted * product.taxRateBps / 10_000)
-            taxCents += lineTax
-            items.push({
-                productId: product.id,
-                name: product.name,
-                qty: line.qty,
-                unitPriceCents: product.priceCents,
-                unitCostCents: product.costCents,
-                taxCents: lineTax,
-            })
-
-            if (product.trackStock) {
-                await tx.update(tenantProducts)
-                    .set({ stock: product.stock - line.qty })
-                    .where(eq(tenantProducts.id, product.id))
-            }
-        }
-
-        const [inserted] = await tx.insert(tenantSales).values({
-            tenantId: tenant.id,
-            items,
-            subtotalCents,
-            discountCents,
-            taxCents,
-            totalCents: subtotalCents - discountCents + taxCents,
+        await lockInventory(tx, tenant.id)
+        return createSaleInTx(tx, tenant.id, {
+            items: validated.items,
             paymentMethod: validated.paymentMethod,
+            discountCents: validated.discountCents,
             customerId: validated.customerId,
             customerName: validated.customerName,
             note: validated.note,
-        }).returning()
-
-        return inserted
+        })
     })
 
     //stock badges on the public shop section change with every sale
@@ -158,7 +114,7 @@ export async function refundSale(tenantId: string, saleId: string) {
     const tenant = await getOwnedTenant(z.string().parse(tenantId))
 
     await db.transaction(async tx => {
-        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${tenant.id + ":inventory"}))`)
+        await lockInventory(tx, tenant.id)
 
         const sale = await tx.query.tenantSales.findFirst({
             where: and(eq(tenantSales.id, z.string().parse(saleId)), eq(tenantSales.tenantId, tenant.id)),
@@ -199,7 +155,7 @@ const expenseInputSchema = z.object({
     label: z.string().min(1).max(160),
     category: z.string().max(60).default("general"),
     amountCents: z.number().int().min(1).max(1_000_000_000),
-    incurredAtISO: z.string(), //"2026-07-20"
+    incurredAtISO: z.string().regex(dateISOSchemaPattern), //"2026-07-20" (Jamaica calendar date)
     note: z.string().max(1000).default(""),
 })
 
@@ -207,7 +163,9 @@ export async function addExpense(tenantId: string, input: z.infer<typeof expense
     const tenant = await getOwnedTenant(z.string().parse(tenantId))
     const validated = expenseInputSchema.parse(input)
 
-    const incurredAt = new Date(validated.incurredAtISO)
+    //noon business-local, so the date survives any timezone round trip
+    const { dayStart } = businessDayAnchor(validated.incurredAtISO)
+    const incurredAt = new Date(dayStart.getTime() + 12 * 60 * 60 * 1000)
     if (Number.isNaN(incurredAt.getTime())) throw new Error("invalid date")
 
     const [created] = await db.insert(tenantExpenses).values({
@@ -242,27 +200,26 @@ export async function getExpenses(tenantId: string, limit: number = 100) {
 //------------------------------------------------------------
 
 const rangeSchema = z.object({
-    fromISO: z.string(),
-    toISO: z.string(),
+    fromISO: z.string().regex(dateISOSchemaPattern),
+    toISO: z.string().regex(dateISOSchemaPattern),
 })
 
 export async function getReport(tenantId: string, rangeRaw: z.infer<typeof rangeSchema>) {
     const tenant = await getOwnedTenant(z.string().parse(tenantId))
     const range = rangeSchema.parse(rangeRaw)
 
-    const from = new Date(range.fromISO)
-    const to = new Date(range.toISO)
-    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) throw new Error("invalid date range")
-    //make the end date inclusive (whole day)
-    const toEnd = new Date(to.getTime() + 24 * 60 * 60 * 1000)
+    //whole Jamaica calendar days, end date inclusive
+    const from = businessDayAnchor(range.fromISO).dayStart
+    const toEnd = new Date(businessDayAnchor(range.toISO).dayStart.getTime() + 24 * 60 * 60 * 1000)
+    if (Number.isNaN(from.getTime()) || Number.isNaN(toEnd.getTime()) || toEnd <= from) throw new Error("invalid date range")
 
     const [sales, expenses, products] = await Promise.all([
         db.query.tenantSales.findMany({
-            where: and(eq(tenantSales.tenantId, tenant.id), gte(tenantSales.createdAt, from), lte(tenantSales.createdAt, toEnd)),
+            where: and(eq(tenantSales.tenantId, tenant.id), gte(tenantSales.createdAt, from), lt(tenantSales.createdAt, toEnd)),
             orderBy: [desc(tenantSales.createdAt)],
         }),
         db.query.tenantExpenses.findMany({
-            where: and(eq(tenantExpenses.tenantId, tenant.id), gte(tenantExpenses.incurredAt, from), lte(tenantExpenses.incurredAt, toEnd)),
+            where: and(eq(tenantExpenses.tenantId, tenant.id), gte(tenantExpenses.incurredAt, from), lt(tenantExpenses.incurredAt, toEnd)),
             orderBy: [desc(tenantExpenses.incurredAt)],
         }),
         db.query.tenantProducts.findMany({ where: eq(tenantProducts.tenantId, tenant.id) }),
@@ -328,16 +285,13 @@ export async function getReport(tenantId: string, rangeRaw: z.infer<typeof range
     }
 }
 
-//kept for the dashboard overview card (month-to-date snapshot)
+//kept for the dashboard overview card (month-to-date snapshot, Jamaica time)
 export async function getSalesSummary(tenantId: string) {
-    const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const report = await getReport(tenantId, {
-        fromISO: monthStart.toISOString().slice(0, 10),
-        toISO: now.toISOString().slice(0, 10),
-    })
+    const todayISO = businessDateISO(new Date())
+    const monthStartISO = `${todayISO.slice(0, 7)}-01`
+    const report = await getReport(tenantId, { fromISO: monthStartISO, toISO: todayISO })
     return {
-        monthStartISO: monthStart.toISOString(),
+        monthStartISO,
         receipts: report.receipts,
         revenueCents: report.revenueCents,
         taxCents: report.taxCents,

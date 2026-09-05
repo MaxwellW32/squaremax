@@ -1,8 +1,8 @@
 "use client"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import toast from "react-hot-toast"
 import { EditorGap, RenderableComponent, RenderablePage } from "@/components/sites/TenantSite"
-import { SiteMeta, ComponentData, ComponentCategory, categoryLabels } from "@/lib/sites/content"
+import { SiteMeta, ComponentData, ComponentCategory, categoryLabels, dataSchemaByCategory } from "@/lib/sites/content"
 import { SiteConfig } from "@/lib/sites/config"
 import { ComponentStyles } from "@/lib/sites/styles"
 import { ThemeColors, themeColorsSchema, themes } from "@/lib/sites/themes"
@@ -120,9 +120,14 @@ export default function WebsiteEditor(props: {
         designDirtySet(false)
     }, "Design saved — every page picked it up")
 
+    const sidebarRef = useRef<HTMLDivElement | null>(null)
+
     const select = (component: RenderableComponent | null) => {
         selectedIdSet(component?.id ?? null)
-        draftDataSet(component?.data ?? null)
+        //rows saved before a field existed pick up the schema defaults, so
+        //every control in the form is controlled from the first render
+        const normalized = component === null ? null : dataSchemaByCategory[component.category].safeParse(component.data)
+        draftDataSet(component === null ? null : normalized !== null && normalized.success ? normalized.data : component.data)
         draftStylesSet(component?.styles ?? { tokens: {}, css: "" })
         contentDirtySet(false)
         styleDirtySet(false)
@@ -144,6 +149,15 @@ export default function WebsiteEditor(props: {
         select(null)
         currentPageIdSet(pageId)
     }
+
+    //on phones the sidebar sits under the canvas — bring the form into view
+    //the moment something is selected, so a tap always shows its controls
+    useEffect(() => {
+        if (selectedId === null || sidebarRef.current === null) return
+        if (window.matchMedia("(min-width: 1280px)").matches) return
+        const timer = setTimeout(() => sidebarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50)
+        return () => clearTimeout(timer)
+    }, [selectedId])
 
     //Escape deselects (the picker handles its own Escape while open)
     useEffect(() => {
@@ -249,7 +263,7 @@ export default function WebsiteEditor(props: {
                 {/* ============ sidebar ============ */}
                 {selected !== null && draftData !== null ? (
                     /* -------- selected component: its own content form -------- */
-                    <div className="grid content-start gap-4 rounded-xl border border-cobalt/40 bg-surface p-4">
+                    <div ref={sidebarRef} className="grid scroll-mt-20 content-start gap-4 rounded-xl border border-cobalt/40 bg-surface p-4">
                         <div className="flex items-baseline justify-between gap-2">
                             <div className="grid gap-0.5">
                                 <p className="font-display text-lg font-bold">{categoryLabels[selected.category]}</p>

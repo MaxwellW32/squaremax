@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
     const session = await auth()
-    if (session === null) redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent("/dashboard")}`)
+    if (session === null) redirect(`/signin?callbackUrl=${encodeURIComponent("/dashboard")}`)
 
     const myTenants = await getMyTenants()
 

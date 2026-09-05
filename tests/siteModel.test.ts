@@ -224,13 +224,13 @@ describe("passwords", () => {
 //============================================================
 
 describe("add-on pricing", () => {
-    it("base is $5 and each add-on adds its price", () => {
-        expect(BASE_MONTHLY_PRICE).toBe(5)
-        expect(monthlyTotal([])).toBe(5)
-        expect(monthlyTotal(["booking", "inventory"])).toBe(15)
+    it("base is $10 and each add-on adds its price", () => {
+        expect(BASE_MONTHLY_PRICE).toBe(10)
+        expect(monthlyTotal([])).toBe(10)
+        expect(monthlyTotal(["booking", "inventory"])).toBe(20)
     })
 
     it("tolerates retired add-on ids from old tenant rows", () => {
-        expect(monthlyTotal(["booking", "email-notifications" as AddonId])).toBe(10)
+        expect(monthlyTotal(["booking", "email-notifications" as AddonId])).toBe(15)
     })
 })

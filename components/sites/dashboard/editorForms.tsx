@@ -8,6 +8,7 @@ import {
     BeforeAfterData, VideoData, PriceListData, LocationMapData, EventsData,
     NewsletterData, DividerData, EmbedData,
 } from "@/lib/sites/content"
+import ImageField from "./ImageField"
 
 //============================================================
 // Per-category data forms for the website editor. Each placed
@@ -84,7 +85,7 @@ function NavbarForm({ value, onChange }: { value: NavbarData; onChange: (next: N
         <div className="grid gap-3">
             <div className="grid gap-3 sm:grid-cols-2">
                 <TextField label="Logo text (empty = business name)" value={value.logoText} onChange={logoText => onChange({ ...value, logoText })} />
-                <TextField label="Logo image URL" value={value.logoImageSrc} onChange={logoImageSrc => onChange({ ...value, logoImageSrc })} />
+                <ImageField label="Logo image (optional)" value={value.logoImageSrc} onChange={logoImageSrc => onChange({ ...value, logoImageSrc })} />
             </div>
 
             <ListSection label="Menu (link like /about, #contact or a full URL)" onAdd={() => onChange({ ...value, menu: [...value.menu, { label: "", href: "", subMenu: [] }] })}>
@@ -133,7 +134,7 @@ function HeroForm({ value, onChange }: { value: HeroData; onChange: (next: HeroD
         <div className="grid gap-3">
             <TextField label="Heading (empty = business name)" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
             <AreaField label="Subheading" rows={2} value={value.subheading} onChange={subheading => onChange({ ...value, subheading })} />
-            <TextField label="Image URL" value={value.imageSrc} onChange={imageSrc => onChange({ ...value, imageSrc })} />
+            <ImageField label="Photo" value={value.imageSrc} onChange={imageSrc => onChange({ ...value, imageSrc })} />
             <div className="grid gap-3 sm:grid-cols-2">
                 <TextField label="Button label (empty = smart default)" value={value.ctaLabel} onChange={ctaLabel => onChange({ ...value, ctaLabel })} />
                 <TextField label="Button link (empty = booking/contact)" value={value.ctaHref} onChange={ctaHref => onChange({ ...value, ctaHref })} />
@@ -148,7 +149,7 @@ function TextForm({ value, onChange }: { value: TextData; onChange: (next: TextD
             <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
             <AreaField label="Text (blank line = new paragraph)" rows={6} value={value.body} onChange={body => onChange({ ...value, body })} />
             <div className="grid gap-3 sm:grid-cols-2">
-                <TextField label="Image URL (optional)" value={value.imageSrc} onChange={imageSrc => onChange({ ...value, imageSrc })} />
+                <ImageField label="Photo (optional)" value={value.imageSrc} onChange={imageSrc => onChange({ ...value, imageSrc })} />
                 <Field label="Image side">
                     <select className={inputClass} value={value.imageSide} onChange={e => onChange({ ...value, imageSide: e.target.value === "left" ? "left" : "right" })}>
                         <option value="right">Right</option>
@@ -180,8 +181,8 @@ function ServicesForm({ value, onChange }: { value: ServicesData; onChange: (nex
                         </div>
                         <input className={inputClass} placeholder="Short description (optional)" value={item.description}
                             onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, description: e.target.value }) })} />
-                        <input className={inputClass} placeholder="Image URL (optional)" value={item.imageSrc}
-                            onChange={e => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, imageSrc: e.target.value }) })} />
+                        <ImageField compact placeholder="Photo (optional)" value={item.imageSrc}
+                            onChange={imageSrc => onChange({ ...value, items: setAt(value.items, itemIndex, { ...item, imageSrc }) })} />
                     </div>
                 ))}
             </ListSection>
@@ -195,14 +196,18 @@ function GalleryForm({ value, onChange }: { value: GalleryData; onChange: (next:
             <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
             <ListSection label="Images" onAdd={() => onChange({ ...value, images: [...value.images, { src: "", alt: "", caption: "" }] })}>
                 {value.images.map((image, imageIndex) => (
-                    <div key={imageIndex} className="grid grid-cols-[2fr_1fr_1fr_auto] gap-1.5">
-                        <input className={inputClass} placeholder="Image URL" value={image.src}
-                            onChange={e => onChange({ ...value, images: setAt(value.images, imageIndex, { ...image, src: e.target.value }) })} />
-                        <input className={inputClass} placeholder="Alt text" value={image.alt}
-                            onChange={e => onChange({ ...value, images: setAt(value.images, imageIndex, { ...image, alt: e.target.value }) })} />
-                        <input className={inputClass} placeholder="Caption" value={image.caption}
-                            onChange={e => onChange({ ...value, images: setAt(value.images, imageIndex, { ...image, caption: e.target.value }) })} />
-                        <RemoveButton onClick={() => onChange({ ...value, images: removeAt(value.images, imageIndex) })} />
+                    <div key={imageIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
+                        <div className="grid grid-cols-[1fr_auto] gap-1.5">
+                            <ImageField compact placeholder="Photo" value={image.src}
+                                onChange={src => onChange({ ...value, images: setAt(value.images, imageIndex, { ...image, src }) })} />
+                            <RemoveButton onClick={() => onChange({ ...value, images: removeAt(value.images, imageIndex) })} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <input className={inputClass} placeholder="Describe it (for search & accessibility)" value={image.alt}
+                                onChange={e => onChange({ ...value, images: setAt(value.images, imageIndex, { ...image, alt: e.target.value }) })} />
+                            <input className={inputClass} placeholder="Caption (optional)" value={image.caption}
+                                onChange={e => onChange({ ...value, images: setAt(value.images, imageIndex, { ...image, caption: e.target.value }) })} />
+                        </div>
                     </div>
                 ))}
             </ListSection>
@@ -299,21 +304,33 @@ function BookingForm({ value, onChange }: { value: BookingData; onChange: (next:
 }
 
 function ProductsForm({ value, onChange }: { value: ProductsData; onChange: (next: ProductsData) => void }) {
+    const orderMethod = value.orderMethod ?? "order"
     return (
         <div className="grid gap-3">
             <div className="grid gap-3 sm:grid-cols-2">
                 <TextField label="Heading" value={value.heading} onChange={heading => onChange({ ...value, heading })} />
                 <TextField label="Blurb" value={value.blurb} onChange={blurb => onChange({ ...value, blurb })} />
             </div>
-            <Field label="How customers order">
-                <select className={inputClass} value={value.orderMethod}
-                    onChange={e => onChange({ ...value, orderMethod: e.target.value === "contact" ? "contact" : e.target.value === "none" ? "none" : "whatsapp" })}>
-                    <option value="whatsapp">WhatsApp (uses your Business info number)</option>
+            <Field label="How customers buy">
+                <select className={inputClass} value={orderMethod}
+                    onChange={e => onChange({ ...value, orderMethod: e.target.value === "whatsapp" ? "whatsapp" : e.target.value === "contact" ? "contact" : e.target.value === "none" ? "none" : "order" })}>
+                    <option value="order">Order form — orders land in your Orders tab (recommended)</option>
+                    <option value="whatsapp">WhatsApp message (uses your Business info number)</option>
                     <option value="contact">Contact form</option>
                     <option value="none">Display only</option>
                 </select>
             </Field>
-            <p className="text-xs text-mist">The products themselves live in the Store tab — this section just shows them.</p>
+            {orderMethod === "order" && (
+                <div className="grid gap-2 rounded-lg border border-line bg-surface/60 p-3">
+                    <CheckField label="Offer pickup" checked={value.allowPickup !== false} onChange={allowPickup => onChange({ ...value, allowPickup })} />
+                    <CheckField label="Offer delivery" checked={value.allowDelivery === true} onChange={allowDelivery => onChange({ ...value, allowDelivery })} />
+                    {value.allowDelivery === true && (
+                        <TextField label="Delivery note (areas, fee, timing)" placeholder="Kingston & St Andrew · J$500 · same day before 2pm" value={value.deliveryNote ?? ""} onChange={deliveryNote => onChange({ ...value, deliveryNote })} />
+                    )}
+                    <AreaField label="Note on the order form (how to pay, when it's ready)" rows={2} value={value.orderNote ?? ""} onChange={orderNote => onChange({ ...value, orderNote })} />
+                </div>
+            )}
+            <p className="text-xs text-mist">Products, prices and stock live in the Store tab — this section shows them. Orders arrive in the Orders tab.</p>
         </div>
     )
 }
@@ -393,7 +410,7 @@ function CtaBannerForm({ value, onChange }: { value: CtaBannerData; onChange: (n
                 <TextField label="Button label (empty = smart default)" value={value.ctaLabel} onChange={ctaLabel => onChange({ ...value, ctaLabel })} />
                 <TextField label="Button link (empty = booking/contact)" value={value.ctaHref} onChange={ctaHref => onChange({ ...value, ctaHref })} />
             </div>
-            <TextField label="Image URL (used by the split design)" value={value.imageSrc} onChange={imageSrc => onChange({ ...value, imageSrc })} />
+            <ImageField label="Photo (used by the split design)" value={value.imageSrc} onChange={imageSrc => onChange({ ...value, imageSrc })} />
         </div>
     )
 }
@@ -492,9 +509,9 @@ function TeamForm({ value, onChange }: { value: TeamData; onChange: (next: TeamD
                                 onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, role: e.target.value }) })} />
                             <RemoveButton onClick={() => onChange({ ...value, members: removeAt(value.members, memberIndex) })} />
                         </div>
-                        <div className="grid grid-cols-2 gap-1.5">
-                            <input className={inputClass} placeholder="Photo URL (optional)" value={member.photoSrc}
-                                onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, photoSrc: e.target.value }) })} />
+                        <div className="grid gap-1.5 sm:grid-cols-2">
+                            <ImageField compact placeholder="Photo (optional)" value={member.photoSrc}
+                                onChange={photoSrc => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, photoSrc }) })} />
                             <input className={inputClass} placeholder="Link (Instagram etc., optional)" value={member.href}
                                 onChange={e => onChange({ ...value, members: setAt(value.members, memberIndex, { ...member, href: e.target.value }) })} />
                         </div>
@@ -516,8 +533,8 @@ function LogoStripForm({ value, onChange }: { value: LogoStripData; onChange: (n
                     <div key={logoIndex} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-1.5">
                         <input className={inputClass} placeholder="Brand name" value={logo.name}
                             onChange={e => onChange({ ...value, logos: setAt(value.logos, logoIndex, { ...logo, name: e.target.value }) })} />
-                        <input className={inputClass} placeholder="Logo URL (optional)" value={logo.src}
-                            onChange={e => onChange({ ...value, logos: setAt(value.logos, logoIndex, { ...logo, src: e.target.value }) })} />
+                        <ImageField compact placeholder="Logo (optional)" value={logo.src}
+                            onChange={src => onChange({ ...value, logos: setAt(value.logos, logoIndex, { ...logo, src }) })} />
                         <input className={inputClass} placeholder="Link (optional)" value={logo.href}
                             onChange={e => onChange({ ...value, logos: setAt(value.logos, logoIndex, { ...logo, href: e.target.value }) })} />
                         <RemoveButton onClick={() => onChange({ ...value, logos: removeAt(value.logos, logoIndex) })} />
@@ -535,11 +552,13 @@ function BeforeAfterForm({ value, onChange }: { value: BeforeAfterData; onChange
             <ListSection label="Photo pairs" onAdd={() => onChange({ ...value, pairs: [...value.pairs, { beforeSrc: "", afterSrc: "", caption: "" }] })}>
                 {value.pairs.map((pair, pairIndex) => (
                     <div key={pairIndex} className="grid gap-1.5 rounded-md border border-line/70 p-2">
-                        <div className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
-                            <input className={inputClass} placeholder="Before photo URL" value={pair.beforeSrc}
-                                onChange={e => onChange({ ...value, pairs: setAt(value.pairs, pairIndex, { ...pair, beforeSrc: e.target.value }) })} />
-                            <input className={inputClass} placeholder="After photo URL" value={pair.afterSrc}
-                                onChange={e => onChange({ ...value, pairs: setAt(value.pairs, pairIndex, { ...pair, afterSrc: e.target.value }) })} />
+                        <div className="grid grid-cols-[1fr_auto] gap-1.5">
+                            <div className="grid gap-1.5 sm:grid-cols-2">
+                                <ImageField compact placeholder="Before photo" value={pair.beforeSrc}
+                                    onChange={beforeSrc => onChange({ ...value, pairs: setAt(value.pairs, pairIndex, { ...pair, beforeSrc }) })} />
+                                <ImageField compact placeholder="After photo" value={pair.afterSrc}
+                                    onChange={afterSrc => onChange({ ...value, pairs: setAt(value.pairs, pairIndex, { ...pair, afterSrc }) })} />
+                            </div>
                             <RemoveButton onClick={() => onChange({ ...value, pairs: removeAt(value.pairs, pairIndex) })} />
                         </div>
                         <input className={inputClass} placeholder="Caption (optional)" value={pair.caption}

@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    //image uploads travel through a server action as FormData
+    experimental: {
+        serverActions: {
+            bodySizeLimit: "12mb",
+        },
+    },
     images: {
         remotePatterns: [
             {

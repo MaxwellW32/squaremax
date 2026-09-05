@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation"
 import type { Session } from "next-auth"
 
 const navItems = [
-    { title: "Squaremax Sites", link: "/sites" },
+    { title: "How it works", link: "/sites" },
+    { title: "Pricing", link: "/pricing" },
     { title: "Custom Builds", link: "/custom-builds" },
-    { title: "Work", link: "/projects" },
     { title: "Contact", link: "/contact" },
 ]
 
@@ -17,7 +17,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
 
     return (
         <nav id="mainNav" className="sticky top-0 z-50 border-b border-line bg-paper/90 backdrop-blur">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+            <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
                 <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tight text-ink" onClick={() => openSet(false)}>
                     <span aria-hidden className="grid size-7 place-items-center rounded-sm bg-ink text-sm font-bold text-white">S</span>
                     squaremax
@@ -36,7 +36,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                     ))}
 
                     <Link
-                        href={session !== null ? "/dashboard" : "/api/auth/signin"}
+                        href={session !== null ? "/dashboard" : "/signin"}
                         className="ml-2 rounded-md border border-ink px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-white"
                     >
                         {session !== null ? "Dashboard" : "Sign in"}
@@ -71,7 +71,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                         </Link>
                     ))}
                     <Link
-                        href={session !== null ? "/dashboard" : "/api/auth/signin"}
+                        href={session !== null ? "/dashboard" : "/signin"}
                         onClick={() => openSet(false)}
                         className="rounded-md px-3 py-2.5 font-semibold text-ink hover:bg-line/60"
                     >

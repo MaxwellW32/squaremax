@@ -22,6 +22,7 @@ export type ProductLite = {
     description: string
     priceCents: number
     imageSrc: string
+    taxRateBps: number
     stock: number
     trackStock: boolean
 }

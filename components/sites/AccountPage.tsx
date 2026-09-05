@@ -1,7 +1,8 @@
 import React from "react"
 import { and, desc, eq } from "drizzle-orm"
 import { db } from "@/db"
-import { tenantBookings } from "@/db/schema"
+import { tenantBookings, tenantOrders } from "@/db/schema"
+import { orderRef } from "@/lib/sites/saleMath"
 import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
 import { themesById, themeToStyle, themes } from "@/lib/sites/themes"
 import { tenantFontsClassName } from "@/lib/sites/fonts"
@@ -23,11 +24,18 @@ export default async function AccountPage({ site, basePath }: { site: SiteBundle
     }
 
     const customer = await getCurrentCustomer(tenant.id)
-    const bookings = customer === null ? [] : await db.query.tenantBookings.findMany({
-        where: and(eq(tenantBookings.tenantId, tenant.id), eq(tenantBookings.customerId, customer.id)),
-        orderBy: [desc(tenantBookings.startsAt)],
-        limit: 50,
-    })
+    const [bookings, orders] = customer === null ? [[], []] : await Promise.all([
+        db.query.tenantBookings.findMany({
+            where: and(eq(tenantBookings.tenantId, tenant.id), eq(tenantBookings.customerId, customer.id)),
+            orderBy: [desc(tenantBookings.startsAt)],
+            limit: 50,
+        }),
+        db.query.tenantOrders.findMany({
+            where: and(eq(tenantOrders.tenantId, tenant.id), eq(tenantOrders.customerId, customer.id)),
+            orderBy: [desc(tenantOrders.createdAt)],
+            limit: 50,
+        }),
+    ])
 
     const theme = themesById[tenant.config.themeId] ?? themes[0]
 
@@ -68,6 +76,16 @@ export default async function AccountPage({ site, basePath }: { site: SiteBundle
                         startsAt: booking.startsAt,
                         status: booking.status,
                     }))}
+                    initialOrders={orders.map(order => ({
+                        id: order.id,
+                        ref: orderRef(order.id),
+                        summary: order.items.map(item => `${item.qty}× ${item.name}`).join(", "),
+                        totalCents: order.totalCents,
+                        status: order.status,
+                        createdAt: order.createdAt,
+                    }))}
+                    showBookings={tenant.config.enabledAddons.includes("booking")}
+                    showOrders={tenant.config.enabledAddons.includes("inventory")}
                 />
             </div>
         </div>

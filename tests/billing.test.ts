@@ -12,8 +12,9 @@ const now = new Date("2026-06-01T12:00:00.000Z")
 describe("prepaid subscription math", () => {
     it("charges months × the monthly price, in cents", () => {
         expect(checkoutAmountCents([], 1)).toBe(BASE_MONTHLY_PRICE * 100)
-        expect(checkoutAmountCents([], 12)).toBe(BASE_MONTHLY_PRICE * 100 * 12)
-        //base + two add-ons at $5 = $15/mo, three months = $45.00
+        //a year is charged as ten months (2 free)
+        expect(checkoutAmountCents([], 12)).toBe(BASE_MONTHLY_PRICE * 100 * 10)
+        //booking + notifications = the $15 service bundle, three months = $45.00
         expect(checkoutAmountCents(["booking", "notifications"], 3)).toBe(4500)
     })
 
@@ -67,7 +68,7 @@ describe("plan breakdown shown to the client", () => {
         const lines = planLines(["booking", "inventory"])
         expect(lines).toHaveLength(3)
         expect(lines[0].monthlyPrice).toBe(BASE_MONTHLY_PRICE)
-        expect(lines.map(line => line.monthlyPrice).reduce((sum, price) => sum + price, 0)).toBe(15)
+        expect(lines.map(line => line.monthlyPrice).reduce((sum, price) => sum + price, 0)).toBe(20)
     })
 
     it("skips retired add-on ids rather than rendering a blank row", () => {

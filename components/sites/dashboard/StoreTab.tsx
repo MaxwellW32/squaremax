@@ -3,6 +3,8 @@ import React, { useState } from "react"
 import toast from "react-hot-toast"
 import { addProduct, deleteProduct, getProducts, getSales, getSalesSummary, recordSale, refundSale, updateProduct } from "@/serverFunctions/handleInventory"
 import ReportsPanel from "./ReportsPanel"
+import ImageField from "./ImageField"
+import { describeProblem, priceReceipt } from "@/lib/sites/saleMath"
 
 //============================================================
 // Store & inventory add-on tab: product list with stock + tax,
@@ -140,22 +142,12 @@ export default function StoreTab(props: {
         return next
     })
 
-    //mirror recordSale exactly: discount capped at the subtotal and
-    //apportioned per line BEFORE tax, so the button total matches the receipt
+    //the same receipt math the server runs, so the button total matches the
+    //receipt to the cent — and an over-stock quantity is flagged before submit
     const cartDiscountCents = Math.max(0, Math.round(Number(saleDiscount || "0") * 100)) || 0
-    const cartSubtotalCents = cartLines.reduce((sum, [productId, qty]) => {
-        const product = products.find(candidate => candidate.id === productId)
-        return product === undefined ? sum : sum + product.priceCents * qty
-    }, 0)
-    const cartAppliedDiscountCents = Math.min(cartDiscountCents, cartSubtotalCents)
-    const cartTaxCents = cartLines.reduce((sum, [productId, qty]) => {
-        const product = products.find(candidate => candidate.id === productId)
-        if (product === undefined) return sum
-        const lineSubtotal = product.priceCents * qty
-        const lineDiscounted = cartSubtotalCents === 0 ? 0 : lineSubtotal - Math.round(cartAppliedDiscountCents * lineSubtotal / cartSubtotalCents)
-        return sum + Math.round(lineDiscounted * product.taxRateBps / 10_000)
-    }, 0)
-    const cartTotalCents = cartSubtotalCents - cartAppliedDiscountCents + cartTaxCents
+    const cartPriced = priceReceipt(products, cartLines.map(([productId, qty]) => ({ productId, qty })), cartDiscountCents)
+    const cartTotalCents = cartPriced.ok ? cartPriced.receipt.totalCents : 0
+    const cartProblem = cartPriced.ok ? null : describeProblem(cartPriced.problem)
 
     return (
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -189,7 +181,7 @@ export default function StoreTab(props: {
                     <p className="font-display font-bold">{editingId === null ? "Add a product" : "Edit product"}</p>
                     <div className="grid gap-2 sm:grid-cols-2">
                         <input className={input} placeholder="Product name" value={form.name} onChange={e => formSet({ ...form, name: e.target.value })} />
-                        <input className={input} placeholder="Image URL (optional)" value={form.imageSrc} onChange={e => formSet({ ...form, imageSrc: e.target.value })} />
+                        <ImageField compact placeholder="Photo (optional)" value={form.imageSrc} onChange={imageSrc => formSet({ ...form, imageSrc })} />
                     </div>
                     <input className={input} placeholder="Short description (optional)" value={form.description} onChange={e => formSet({ ...form, description: e.target.value })} />
                     <div className="grid gap-2 sm:grid-cols-4">
@@ -287,7 +279,8 @@ export default function StoreTab(props: {
             {/* right rail: record a sale + recent sales */}
             <div className="grid h-fit content-start gap-4">
                 <div className="grid gap-3 rounded-xl border border-line bg-surface p-4">
-                    <p className="font-display font-bold">Record a sale</p>
+                    <p className="font-display font-bold">Record a counter sale</p>
+                    <p className="-mt-2 text-xs text-mist">Walk-in and phone sales. Website orders arrive in the Orders tab.</p>
                     {products.filter(product => product.active).map(product => (
                         <div key={product.id} className="flex items-center justify-between gap-2 text-sm">
                             <span>{product.name} <span className="text-xs text-mist">{money(product.priceCents)}</span></span>
@@ -310,7 +303,8 @@ export default function StoreTab(props: {
                         </label>
                     </div>
                     <input className={input} placeholder="Customer name (optional)" value={saleCustomer} onChange={e => saleCustomerSet(e.target.value)} />
-                    <button type="button" disabled={busy || cartLines.length === 0}
+                    {cartProblem !== null && <p className="text-xs font-semibold text-brand">{cartProblem}</p>}
+                    <button type="button" disabled={busy || cartLines.length === 0 || cartProblem !== null}
                         className="rounded-lg bg-cobalt px-4 py-2.5 font-display font-bold text-white hover:bg-ink disabled:opacity-50"
                         onClick={() => run(async () => {
                             await recordSale(props.tenantId, {

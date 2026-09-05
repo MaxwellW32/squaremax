@@ -1,5 +1,6 @@
 import React from "react"
 import Link from "next/link"
+import { BASE_MONTHLY_PRICE } from "@/lib/sites/addons"
 
 export default function SiteFooter() {
     return (
@@ -8,21 +9,23 @@ export default function SiteFooter() {
                 <div className="grid content-start gap-3">
                     <p className="font-display text-xl font-bold">squaremax</p>
                     <p className="max-w-sm text-sm text-white/70">
-                        Hosted business websites with booking, notifications and inventory from $5/month.
-                        Custom builds at flat prices. Built in Jamaica, shipped worldwide.
+                        Websites with online booking, orders and customer messaging for small businesses,
+                        from US${BASE_MONTHLY_PRICE}/month. Custom builds at flat prices. Built in Jamaica, shipped worldwide.
                     </p>
                 </div>
 
                 <nav aria-label="Products" className="grid content-start gap-2 text-sm">
                     <p className="font-semibold uppercase tracking-wide text-white/50">Products</p>
+                    <Link className="text-white/80 hover:text-white" href="/sites">How it works</Link>
+                    <Link className="text-white/80 hover:text-white" href="/pricing">Pricing</Link>
                     <Link className="text-white/80 hover:text-white" href="/custom-builds">Custom Builds</Link>
-                    <Link className="text-white/80 hover:text-white" href="/sites">Squaremax Sites</Link>
                     <Link className="text-white/80 hover:text-white" href="/projects">Work</Link>
                 </nav>
 
                 <nav aria-label="Company" className="grid content-start gap-2 text-sm">
                     <p className="font-semibold uppercase tracking-wide text-white/50">Company</p>
                     <Link className="text-white/80 hover:text-white" href="/contact">Contact</Link>
+                    <Link className="text-white/80 hover:text-white" href="/signin">Sign in</Link>
                     <Link className="text-white/80 hover:text-white" href="/care-plan">Care Plan</Link>
                     <Link className="text-white/80 hover:text-white" href="/privacyPolicy">Privacy</Link>
                     <a className="text-white/80 hover:text-white" href="mailto:info@squaremaxtech.com">info@squaremaxtech.com</a>

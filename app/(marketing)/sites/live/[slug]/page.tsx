@@ -7,17 +7,20 @@ import { auth } from "@/auth/auth"
 import { getTenantBySlugCached } from "@/lib/sites/tenantCache"
 import { effectiveStatus, isPubliclyVisible } from "@/lib/sites/status"
 import { env } from "@/lib/env"
+import { monthlyTotal } from "@/lib/sites/addons"
+import ConversionPing from "@/components/marketing/ConversionPing"
 
 export const metadata: Metadata = {
     title: "You're live! | Squaremax Sites",
 }
 
 //the payoff screen after checkout: live URL, QR code, what happens next
-export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Page({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ paid?: string }> }) {
     const { slug } = await params
+    const { paid } = await searchParams
 
     const session = await auth()
-    if (session === null) redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent(`/sites/live/${slug}`)}`)
+    if (session === null) redirect(`/signin?callbackUrl=${encodeURIComponent(`/sites/live/${slug}`)}`)
 
     const tenant = await getTenantBySlugCached(slug)
     if (tenant === null) notFound()
@@ -29,6 +32,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
     return (
         <main className="bg-paper text-ink">
+            {paid === "1" && isPubliclyVisible(status) && <ConversionPing event="purchase" value={monthlyTotal(tenant.config.enabledAddons)} />}
             <div className="mx-auto grid max-w-2xl justify-items-center gap-6 px-4 py-16 text-center">
                 <p aria-hidden className="text-5xl">🎉</p>
 
@@ -59,8 +63,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                 <div className="grid w-full gap-3 rounded-xl border border-line bg-surface p-6 text-left">
                     <h2 className="font-display text-lg font-bold normal-case">What happens next</h2>
                     <ul className="grid gap-2 text-sm text-mist">
-                        <li><span className="font-semibold text-ink">Edit anything, anytime</span> — content, design and add-ons live in your dashboard.</li>
-                        <li><span className="font-semibold text-ink">Billing</span> — your page is prepaid 30 days at a time; renew from the dashboard, and we&apos;ll remind you by email before it lapses.</li>
+                        <li><span className="font-semibold text-ink">Share it today</span> — put the link in your Instagram bio and WhatsApp Business profile, print the QR for the counter.</li>
+                        <li><span className="font-semibold text-ink">Edit anything, anytime</span> — tap any part of your site in the dashboard to change it; upload photos from your phone.</li>
+                        <li><span className="font-semibold text-ink">Billing</span> — prepaid 30 days at a time, never auto-charged; we email you before a period ends. Pay a year at once for 2 months free.</li>
                         <li><span className="font-semibold text-ink">Help</span> — email <a className="underline" href="mailto:info@squaremaxtech.com">info@squaremaxtech.com</a> and a human (the developer) answers.</li>
                     </ul>
                 </div>

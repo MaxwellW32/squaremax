@@ -203,7 +203,12 @@ async function main() {
                 order: homeComponents.length === 0 ? 0 : Math.max(...homeComponents.map(component => component.order)) + 1,
                 category: "products",
                 variantId: "products.grid",
-                data: { category: "products", heading: "Take the flavor home", blurb: "Bottled in our kitchen — order on WhatsApp, pick up in store.", orderMethod: "whatsapp" },
+                data: {
+                    category: "products", heading: "Take the flavor home", blurb: "Bottled in our kitchen — order online, collect in store or get it delivered.",
+                    orderMethod: "order", allowPickup: true, allowDelivery: true,
+                    deliveryNote: "Kingston & St Andrew · J$500 · same day if you order before 2pm",
+                    orderNote: "Pay when you collect, or by bank transfer / Lynk — we'll message you the details.",
+                },
                 styles: { tokens: {}, css: "" },
             })
         }

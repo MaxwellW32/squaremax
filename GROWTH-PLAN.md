@@ -73,25 +73,31 @@ invoices).
 
 ## 5. Pricing plan
 
-### Now (launch pricing — validate the market)
-- Website **$5/mo**, each add-on (booking, notifications, store & inventory,
-  custom domain) **+$5/mo**.
-- **Grandfather every early client at this price forever.** It costs you almost
-  nothing and becomes your loyalty story.
-
-### Target list pricing (after the first wave, ~50–100 clients)
+### Live list pricing (implemented 2026-09-04, `lib/sites/addons.ts`)
 Market anchors: Squarespace $16–23, Wix $17+, Fresha/Booksy $30+ for booking alone.
 
 | Offer | Price | What's in it |
 |---|---|---|
-| Website | **$10/mo** | Site, hosting, SSL, up to 5 pages |
-| Any single add-on | **+$5/mo** | Booking, notifications, store, domain |
-| **Service bundle** ⭐ | **$15/mo** | Website + booking + notifications |
-| **Storefront bundle** | **$20/mo** | Everything |
-| Annual prepay | **2 months free** | Better cash flow for you |
+| Website | **US$10/mo** | Site, hosting, SSL, up to 5 pages, contact form, customer accounts |
+| Any single add-on | **+US$5/mo** | Booking, notifications, store & orders, domain |
+| **Service bundle** ⭐ | **US$15/mo** | Website + booking + notifications |
+| **Storefront bundle** | **US$20/mo** | Everything |
+| Annual prepay | **2 months free** | 12 months charged as 10 (`lib/sites/billing.ts`) |
 
-Bundles are the real product — they raise average revenue and make choosing easy.
-Push the Service bundle as the default recommendation.
+Bundles are never chosen — `priceQuote()` always charges the cheapest price
+the enabled add-ons qualify for, so a client can switch tools on and off and
+the bill simply follows. Bundles are the real product: they raise average
+revenue and make choosing easy. The Service bundle is marked "most popular".
+
+Why we skipped the $5 launch price: there were no paying clients to
+grandfather, $5 signals "toy", gateway fixed fees eat ~10% of a $5 charge, and
+support cost per client is the same at $5 and $10. The founding-member lever is
+**free concierge setup + a free month on a 3-month prepay** (MARKETING-PLAN §1),
+not a permanently lower list price.
+
+### If prices ever change
+Grandfather existing clients, announce, never mid-cycle — the numbers live in
+one file and the payment row snapshots the add-ons charged.
 
 ### One-time fees
 - **No mandatory signup/onboarding fee** — it kills self-serve conversion on a
@@ -100,24 +106,34 @@ Push the Service bundle as the default recommendation.
   and hours — we build your site for you." Same revenue, framed as a service
   people happily pay for.
 
-### Transaction fee on product sales
-- **Not yet.** Today customers order via WhatsApp and owners record sales
-  themselves — you can't collect a fee on money you never touch, and taxing the
-  *recording* of sales discourages using the feature that makes clients sticky.
-- **When you add online checkout** for their customers (PowerTranz payouts):
-  charge **2% on payments processed through the platform** (undercuts Shopify's
-  ~2.9%). Never a fee on cash/counter sales they merely record.
+### Selling from client stores — the plan
+- **Now (shipped):** customers order from the site (cart + order form); the
+  business gets the order in the dashboard, by email, and as a pre-filled
+  WhatsApp thread; payment happens on pickup / bank transfer / Lynk / card
+  machine; "Mark paid" turns the order into a sale (stock + reports). Zero
+  fees, zero regulatory exposure, matches how Jamaican customers already buy.
+- **Next: bring-your-own gateway.** Each business connects its *own* PowerTranz
+  (or WiPay) merchant account in the dashboard and the order form charges the
+  card on their account. Squaremax never touches the money — no FAC aggregator
+  approval, no payout accounting, no chargeback liability — and sells it as a
+  flat **"Online payments" add-on (US$10/mo)** instead of a percentage. Flat
+  fees fit the "no surprise bills" promise better than 2%.
+- **Only if volume justifies it:** Squaremax as a platform merchant with FAC's
+  blessing, taking 2% and paying out. Real compliance work; not before ~100
+  stores are actually transacting.
+- Never a fee on cash/counter sales a business merely records.
 
 ---
 
 ## 6. Order of build priorities (each unlocks revenue)
 
-1. **Image uploads in the editor** (R2 + CDN) → makes galleries/logos real,
-   unlocks the Growth pack.
-2. **Online checkout for tenant customers** → unlocks the 2% transaction fee.
-3. **Reviews & analytics add-ons** (already stubbed as coming-soon) → two more
-   $5 modules with near-zero infra cost.
-4. Annual billing + concierge setup offer in the onboarding flow.
+1. ~~Image uploads in the editor~~ — shipped (R2 or local disk, WebP, 500 MB quota).
+2. ~~Online orders for tenant customers~~ — shipped (order form → dashboard → sale).
+3. ~~Annual billing, bundles, renewal reminders, custom-domain setup~~ — shipped.
+4. **Bring-your-own-gateway card payments** for tenant orders (see §5).
+5. **Reviews & analytics add-ons** (stubbed as coming-soon) → two more $5
+   modules with near-zero infra cost.
+6. Per-trade landing pages + concierge setup checkout (MARKETING-PLAN).
 
 ---
 

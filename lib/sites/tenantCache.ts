@@ -3,6 +3,7 @@ import { revalidateTag, unstable_cache } from "next/cache"
 import { db } from "@/db"
 import { tenants, tenantPages, tenantComponents, tenantProducts } from "@/db/schema"
 import { slugSchema } from "./slug"
+import { hostToLookupDomain } from "./domains"
 
 //server-only cached tenant reads. Deliberately NOT in a "use server" module:
 //as an exported server action this would be a public endpoint letting anyone
@@ -34,6 +35,7 @@ async function loadProductsIfNeeded(tenantId: string, components: { category: st
             description: row.description,
             priceCents: row.priceCents,
             imageSrc: row.imageSrc,
+            taxRateBps: row.taxRateBps,
             stock: row.stock,
             trackStock: row.trackStock,
         }))
@@ -83,7 +85,9 @@ export async function getTenantSiteBySlugCached(slugRaw: string) {
 }
 
 export async function getTenantSiteByDomainCached(domainRaw: string) {
-    const domain = domainRaw.toLowerCase().slice(0, 255)
+    //"www.joes.com" and "joes.com" are the same site; the tag matches the
+    //stored apex so busting on save reaches both
+    const domain = hostToLookupDomain(domainRaw)
 
     const cachedRead = unstable_cache(
         async () => {

@@ -52,7 +52,7 @@ export const services: Service[] = serviceSchema.array().parse([
     { id: "database", label: "Database design & integration", blurb: "Your data modeled properly in Postgres — built to grow.", price: 500 },
     { id: "api", label: "Third-party API integrations (per system)", blurb: "Connect the tools you already use — CRMs, maps, feeds.", price: 400 },
     { id: "forms", label: "Contact & lead forms with validation", blurb: "Forms that reject junk and land in your inbox.", price: 200 },
-    { id: "payments", label: "Payments (Stripe checkout)", blurb: "Take cards online with Stripe — checkout, receipts, refunds.", price: 500 },
+    { id: "payments", label: "Payments (online card checkout)", blurb: "Take cards online — PowerTranz for Jamaica, Stripe or PayPal abroad — checkout, receipts, refunds.", price: 500 },
     { id: "booking", label: "Booking / scheduling system", blurb: "Customers pick a slot; you manage the calendar.", price: 600 },
     { id: "admin", label: "Admin dashboard / CMS", blurb: "Edit your own content and see your data without calling me.", price: 650 },
     { id: "realtime", label: "Real-time features (chat, live updates)", blurb: "Websockets: live chat, notifications, activity feeds.", price: 550 },
@@ -113,7 +113,7 @@ export const useCases: UseCase[] = [
         picks: {
             design: "Product pages designed to sell",
             responsive: "Mobile checkout is most of your revenue",
-            payments: "Stripe checkout — cards, wallets, receipts",
+            payments: "Card checkout — PowerTranz, Stripe or PayPal, with receipts",
             database: "Products, orders and customers stored properly",
             auth: "Customer accounts and order history",
             email: "Order confirmations and shipping updates",

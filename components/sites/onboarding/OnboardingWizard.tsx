@@ -7,7 +7,8 @@ import { SiteMeta, defaultSiteMeta, BusinessInfo } from "@/lib/sites/content"
 import { SiteConfig, defaultSiteConfig } from "@/lib/sites/config"
 import { themes } from "@/lib/sites/themes"
 import { siteTemplates, instantiateTemplate } from "@/lib/sites/siteTemplates"
-import { addons, BASE_MONTHLY_PRICE, monthlyTotal, AddonId } from "@/lib/sites/addons"
+import { addons, addonsForBundle, bundles, BASE_MONTHLY_PRICE, priceQuote, AddonId, Bundle } from "@/lib/sites/addons"
+import { FREE_MONTHS_PER_YEAR, planLines } from "@/lib/sites/billing"
 import { checkSlugAvailability, createDraftTenant, setTenantAddons } from "@/serverFunctions/handleTenants"
 import { setSiteTheme, updateBusinessInfo } from "@/serverFunctions/handleSiteBuilder"
 import { startTenantCheckout } from "@/serverFunctions/handleTenantBilling"
@@ -21,11 +22,13 @@ type ResumeTenant = {
     config: SiteConfig
 }
 
-export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, initialName }: {
+export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, initialName, initialPlan }: {
     signedIn: boolean
     resumeTenant: ResumeTenant | null
     cancelled: boolean
     initialName?: string
+    //a plan card on the marketing site pre-selects its bundle
+    initialPlan?: Bundle["id"] | null
 }) {
     const [step, stepSet] = useState(resumeTenant !== null ? 2 : 0)
     const [busy, busySet] = useState(false)
@@ -48,7 +51,10 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
     const [tenantId, tenantIdSet] = useState<string | null>(resumeTenant?.id ?? null)
     const [tenantSlug, tenantSlugSet] = useState<string | null>(resumeTenant?.slug ?? null)
     const [meta, metaSet] = useState<SiteMeta>(resumeTenant?.meta ?? defaultSiteMeta(""))
-    const [config, configSet] = useState<SiteConfig>(resumeTenant?.config ?? defaultSiteConfig("linen"))
+    const [config, configSet] = useState<SiteConfig>(resumeTenant?.config ?? {
+        ...defaultSiteConfig("linen"),
+        enabledAddons: initialPlan != null ? addonsForBundle(initialPlan) : [],
+    })
 
     useEffect(() => {
         if (cancelled) toast("Payment cancelled — your page is saved, pick up where you left off.")
@@ -83,7 +89,8 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
         return () => clearTimeout(slugDebounce.current)
     }, [businessName, step])
 
-    const monthly = monthlyTotal(config.enabledAddons)
+    const quote = priceQuote(config.enabledAddons)
+    const monthly = quote.monthly
     const input = "rounded-md border border-line bg-surface px-3 py-2.5 font-normal"
 
     const chosenTemplate = siteTemplates.find(template => template.id === templateId) ?? siteTemplates[0]
@@ -104,7 +111,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
         if (!signedIn) {
             //carry the typed name through the auth round trip
             const returnTo = `/sites/start?name=${encodeURIComponent(businessName.trim())}`
-            window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent(returnTo)}`
+            window.location.href = `/signin?callbackUrl=${encodeURIComponent(returnTo)}`
             return
         }
 
@@ -189,8 +196,8 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                         <span className={`grid size-7 place-items-center rounded-full font-display text-xs font-bold ${index < step ? "bg-cobalt text-white" : index === step ? "bg-ink text-white" : "bg-line text-mist"}`}>
                             {index < step ? "✓" : index + 1}
                         </span>
-                        <span className={index === step ? "font-semibold text-ink" : "text-mist"}>{label}</span>
-                        {index < steps.length - 1 && <span aria-hidden className="mx-1 h-px w-6 bg-line" />}
+                        <span className={index === step ? "font-semibold text-ink" : "hidden text-mist sm:inline"}>{label}</span>
+                        {index < steps.length - 1 && <span aria-hidden className="mx-0.5 h-px w-3 bg-line sm:mx-1 sm:w-6" />}
                     </li>
                 ))}
             </ol>
@@ -293,8 +300,8 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                                     components={preview.components}
                                     currentPageId={preview.pages[0]?.id ?? ""}
                                     products={[
-                                        { id: "demo-1", name: "Sample product", description: "Shows when you add products in the Store tab.", priceCents: 2500, imageSrc: "", stock: 5, trackStock: true },
-                                        { id: "demo-2", name: "Another product", description: "", priceCents: 1200, imageSrc: "", stock: 12, trackStock: true },
+                                        { id: "demo-1", name: "Sample product", description: "Shows when you add products in the Store tab.", priceCents: 2500, imageSrc: "", taxRateBps: 0, stock: 5, trackStock: true },
+                                        { id: "demo-2", name: "Another product", description: "", priceCents: 1200, imageSrc: "", taxRateBps: 0, stock: 12, trackStock: true },
                                     ]}
                                     preview
                                 />
@@ -344,7 +351,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                     <div className="flex gap-3">
                         <button type="button" disabled={busy} onClick={() => saveBusiness(3)}
                             className="rounded-lg bg-cobalt px-6 py-3 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50">
-                            Save & choose add-ons
+                            Save & choose tools
                         </button>
                     </div>
                     <p className="text-xs text-mist">
@@ -356,8 +363,24 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
             {/* step 3 — add-ons */}
             {step === 3 && (
                 <div className="grid max-w-2xl gap-4">
-                    <h1 className="font-display text-3xl font-bold normal-case">Add exactly what you need</h1>
-                    <p className="text-mist">Your website is ${BASE_MONTHLY_PRICE}/month. Each add-on is $5 — toggle them anytime, billing follows.</p>
+                    <h1 className="font-display text-3xl font-bold normal-case">Choose your tools</h1>
+                    <p className="text-mist">Your website is US${BASE_MONTHLY_PRICE}/month. Each tool is US$5, and bundles apply themselves. Switch tools on or off any time from your dashboard.</p>
+
+                    <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => configSet({ ...config, enabledAddons: [] })}
+                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${config.enabledAddons.length === 0 ? "border-ink bg-ink text-white" : "border-line text-mist hover:border-ink hover:text-ink"}`}>
+                            Just the website · US${BASE_MONTHLY_PRICE}
+                        </button>
+                        {bundles.map(bundle => {
+                            const active = quote.bundle?.id === bundle.id && quote.extras.length === 0
+                            return (
+                                <button key={bundle.id} type="button" onClick={() => configSet({ ...config, enabledAddons: addonsForBundle(bundle.id) })}
+                                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${active ? "border-ink bg-ink text-white" : "border-line text-mist hover:border-ink hover:text-ink"}`}>
+                                    {bundle.name} · US${bundle.monthlyPrice}{bundle.recommended ? " ★" : ""}
+                                </button>
+                            )
+                        })}
+                    </div>
 
                     <div className="grid gap-3">
                         {addons.map(addon => {
@@ -375,7 +398,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                                         }} />
                                     <span className="grid gap-0.5">
                                         <span className="flex items-center gap-2 font-semibold normal-case">
-                                            {addon.name} <span className="text-sm text-cobalt">${addon.monthlyPrice}/mo</span>
+                                            {addon.name} <span className="text-sm text-cobalt">+US${addon.monthlyPrice}/mo</span>
                                             {comingSoon && <span className="rounded-full bg-line px-2 py-0.5 text-xs font-semibold text-mist">Coming soon</span>}
                                         </span>
                                         <span className="text-sm font-normal normal-case text-mist">{addon.blurb}</span>
@@ -385,9 +408,10 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                         })}
                     </div>
 
-                    <p className="rounded-lg bg-ink px-4 py-3 font-display text-lg font-bold text-white">
-                        Your total: ${monthly}/month
-                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-ink px-4 py-3 text-white">
+                        <p className="font-display text-lg font-bold">Your total: US${monthly}/month</p>
+                        {quote.savings > 0 && <p className="text-sm text-white/80">{quote.bundle?.name} — saving US${quote.savings}/mo</p>}
+                    </div>
 
                     <button type="button" disabled={busy} onClick={() => saveAddons(4)}
                         className="w-fit rounded-lg bg-cobalt px-6 py-3 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50">
@@ -404,20 +428,19 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                     <div className="grid gap-2 rounded-xl border border-line bg-surface p-6">
                         <p className="font-mono text-sm">squaremaxtech.com/<span className="font-bold text-cobalt">{tenantSlug}</span></p>
                         <ul className="grid gap-1 text-sm text-mist">
-                            <li>Your website — ${BASE_MONTHLY_PRICE}/mo</li>
-                            {config.enabledAddons.map(id => {
-                                const addon = addons.find(a => a.id === id)
-                                return addon !== undefined ? <li key={id}>{addon.name} — ${addon.monthlyPrice}/mo</li> : null
-                            })}
+                            {planLines(config.enabledAddons).map(line => (
+                                <li key={line.label} className="flex justify-between gap-3"><span>{line.label}</span><span className="shrink-0">US${line.monthlyPrice}/mo</span></li>
+                            ))}
                         </ul>
-                        <p className="border-t border-line pt-2 font-display text-2xl font-bold">${monthly}/month</p>
-                        <p className="text-xs text-mist">Prepaid 30 days at a time. Cancel anytime — your page pauses politely, never breaks.</p>
+                        <p className="border-t border-line pt-2 font-display text-2xl font-bold">US${monthly}/month</p>
+                        {quote.savings > 0 && <p className="text-xs font-semibold text-emerald-700">{quote.bundle?.name} applied — US${quote.savings}/month less than buying each tool.</p>}
+                        <p className="text-xs text-mist">Your first month goes live today. Prepay a year later from your dashboard and get {FREE_MONTHS_PER_YEAR} months free. No contract — stop paying and your site simply pauses, never breaks.</p>
                     </div>
 
                     <div className="flex flex-wrap gap-3">
                         <button type="button" disabled={busy} onClick={payNow}
                             className="rounded-lg bg-cobalt px-6 py-3.5 font-display text-lg font-bold text-white hover:bg-ink disabled:opacity-50">
-                            {busy ? "Opening secure checkout…" : `Pay $${monthly} & go live`}
+                            {busy ? "Opening secure checkout…" : `Pay US$${monthly} & go live`}
                         </button>
                         <button type="button" onClick={() => stepSet(2)} className="rounded-lg border border-line px-5 py-3 font-semibold text-mist hover:text-ink">
                             Back

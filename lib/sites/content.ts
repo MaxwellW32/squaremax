@@ -215,8 +215,17 @@ export const productsDataSchema = z.object({
     category: z.literal("products"),
     heading: z.string().max(120).default("Shop"),
     blurb: z.string().max(500).default(""),
-    //how a customer orders: whatsapp deep link, the contact form, or display-only
-    orderMethod: z.enum(["whatsapp", "contact", "none"]).default("whatsapp"),
+    //how a customer buys:
+    //  order    — cart + order form on the site; the owner gets the order in
+    //             the dashboard (and by email/WhatsApp with notifications)
+    //  whatsapp — a direct "I'd like to order X" deep link, no order record
+    //  contact  — jump to the contact form · none — display only
+    orderMethod: z.enum(["order", "whatsapp", "contact", "none"]).default("order"),
+    allowPickup: z.boolean().default(true),
+    allowDelivery: z.boolean().default(false),
+    deliveryNote: z.string().max(300).default(""), //"Kingston & St Andrew · J$500 flat"
+    //shown on the order form: how to pay, when it's ready, anything else
+    orderNote: z.string().max(500).default(""),
 })
 export type ProductsData = z.infer<typeof productsDataSchema>
 
@@ -545,7 +554,10 @@ export function defaultComponentData(category: ComponentCategory, business: Busi
                 services: [{ name: "Appointment", durationMinutes: 30, price: "" }],
             })
         case "products":
-            return productsDataSchema.parse({ category: "products" })
+            return productsDataSchema.parse({
+                category: "products",
+                orderNote: "Pay when you collect, or by bank transfer — we'll message you the details.",
+            })
         case "footer":
             return footerDataSchema.parse({
                 category: "footer",

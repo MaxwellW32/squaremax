@@ -45,6 +45,10 @@ export const tenants = pgTable("tenants", {
     currentPeriodEnd: timestamp("currentPeriodEnd", { mode: "date" }),
     //custom-domain add-on: apex/subdomain pointed at the VPS (Caddy handles TLS)
     customDomain: varchar("customDomain", { length: 255 }).unique(),
+    //renewal emails are idempotent per period: each column remembers the
+    //currentPeriodEnd it was sent for, so the daily cron never double-sends
+    renewalReminderFor: timestamp("renewalReminderFor", { mode: "date" }),
+    lapseNoticeFor: timestamp("lapseNoticeFor", { mode: "date" }),
     //site-wide meta: business profile + SEO (page structure lives in
     //tenantPages/tenantComponents — the instance model)
     content: json("content").$type<SiteMeta>().notNull(),
@@ -66,6 +70,8 @@ export const tenantsRelations = relations(tenants, ({ one, many }) => ({
     customers: many(tenantCustomers),
     products: many(tenantProducts),
     sales: many(tenantSales),
+    orders: many(tenantOrders),
+    media: many(tenantMedia),
 }));
 
 //============================================================
@@ -249,6 +255,79 @@ export const tenantAnnouncementsRelations = relations(tenantAnnouncements, ({ on
     tenant: one(tenants, { fields: [tenantAnnouncements.tenantId], references: [tenants.id] }),
 }));
 
+//============================================================
+// Online orders placed by a tenant's customers from the shop
+// section. An order is a REQUEST until the owner marks it paid —
+// at that point it becomes a tenantSales row (stock decremented,
+// receipt on the books) and saleId links the two. No money moves
+// through the platform: payment happens on pickup/delivery,
+// bank transfer, Lynk, or the tenant's own card gateway later.
+//============================================================
+
+export type OrderItem = {
+    productId: string
+    name: string //snapshot
+    qty: number
+    unitPriceCents: number
+    taxCents: number
+}
+
+export type OrderStatus = "new" | "paid" | "fulfilled" | "cancelled"
+export type OrderFulfillment = "pickup" | "delivery"
+
+export const tenantOrders = pgTable("tenantOrders", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    items: json("items").$type<OrderItem[]>().notNull(),
+    subtotalCents: integer("subtotalCents").notNull(),
+    taxCents: integer("taxCents").notNull(),
+    totalCents: integer("totalCents").notNull(),
+    status: varchar("status", { length: 16 }).$type<OrderStatus>().default("new").notNull(),
+    fulfillment: varchar("fulfillment", { length: 16 }).$type<OrderFulfillment>().default("pickup").notNull(),
+    customerId: varchar("customerId", { length: 255 }).references(() => tenantCustomers.id, { onDelete: "set null" }),
+    customerName: varchar("customerName", { length: 120 }).notNull(),
+    customerEmail: varchar("customerEmail", { length: 160 }).default("").notNull(),
+    customerPhone: varchar("customerPhone", { length: 40 }).default("").notNull(),
+    address: text("address").default("").notNull(),
+    note: text("note").default("").notNull(),
+    //set when the owner marks the order paid (the receipt that decremented stock)
+    saleId: varchar("saleId", { length: 255 }),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
+}, (t) => ({
+    tenantOrderTenantIndex: index("tenantOrderTenantIndex").on(t.tenantId),
+    tenantOrderDateIndex: index("tenantOrderDateIndex").on(t.tenantId, t.createdAt),
+    tenantOrderCustomerIndex: index("tenantOrderCustomerIndex").on(t.customerId),
+}));
+export const tenantOrdersRelations = relations(tenantOrders, ({ one }) => ({
+    tenant: one(tenants, { fields: [tenantOrders.tenantId], references: [tenants.id] }),
+    customer: one(tenantCustomers, { fields: [tenantOrders.customerId], references: [tenantCustomers.id] }),
+}));
+
+//============================================================
+// Uploaded media (logos, photos, product images). Files live in
+// object storage (R2) or, without R2 credentials, on local disk;
+// this table is the per-tenant ledger that powers quotas and a
+// future media library.
+//============================================================
+
+export const tenantMedia = pgTable("tenantMedia", {
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+    tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    url: text("url").notNull(),
+    bytes: integer("bytes").notNull(),
+    width: integer("width").default(0).notNull(),
+    height: integer("height").default(0).notNull(),
+    contentType: varchar("contentType", { length: 80 }).notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+}, (t) => ({
+    tenantMediaTenantIndex: index("tenantMediaTenantIndex").on(t.tenantId),
+}));
+export const tenantMediaRelations = relations(tenantMedia, ({ one }) => ({
+    tenant: one(tenants, { fields: [tenantMedia.tenantId], references: [tenants.id] }),
+}));
+
 export const tenantPayments = pgTable("tenantPayments", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
     tenantId: varchar("tenantId", { length: 255 }).notNull().references(() => tenants.id),
@@ -262,6 +341,10 @@ export const tenantPayments = pgTable("tenantPayments", {
     periodEnd: timestamp("periodEnd", { mode: "date" }),
     //add-ons included in this charge, for the audit trail
     addonsSnapshot: json("addonsSnapshot").$type<AddonId[]>().default([]).notNull(),
+    //amountCents is always the USD list price; when the merchant account
+    //settles in JMD the gateway is charged the converted figure recorded here
+    gatewayCurrency: varchar("gatewayCurrency", { length: 3 }).$type<"usd" | "jmd">().default("usd").notNull(),
+    gatewayAmountCents: integer("gatewayAmountCents"),
     createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
 }, (t) => ({
     tenantPaymentTenantIndex: index("tenantPaymentTenantIndex").on(t.tenantId),

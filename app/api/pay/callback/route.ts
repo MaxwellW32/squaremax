@@ -63,8 +63,12 @@ export async function POST(request: Request) {
         return redirectHtml("/sites")
     }
 
-    const successTarget = `/sites/live/${tenant.slug}?paid=1`
-    const failureTarget = `/sites/start?tenant=${tenant.id}&cancelled=1`
+    //a first payment lands on the go-live celebration; a renewal goes back to
+    //the dashboard. Declines return to wherever the customer started — a
+    //draft resumes the wizard, an existing site reopens its Plan tab.
+    const firstPayment = tenant.status === "draft"
+    const successTarget = firstPayment ? `/sites/live/${tenant.slug}?paid=1` : `/dashboard/${tenant.id}?tab=plan&paid=1`
+    const failureTarget = firstPayment ? `/sites/start?tenant=${tenant.id}&cancelled=1` : `/dashboard/${tenant.id}?tab=plan&cancelled=1`
 
     //replayed callback for an already-settled payment → just land on success
     if (payment.status === "succeeded") return redirectHtml(successTarget)
