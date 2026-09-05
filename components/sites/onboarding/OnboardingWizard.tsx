@@ -29,8 +29,8 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
     initialName?: string
     //a plan card on the marketing site pre-selects its bundle
     initialPlan?: Bundle["id"] | null
-    //what the card is actually charged in (JMD merchant accounts convert at a fixed rate)
-    currency: { currency: "usd" | "jmd"; symbol: string; jmdPerUsd: number | null }
+    //what the card is actually charged in (JMD merchant accounts convert at today's rate)
+    currency: { currency: "usd" | "jmd"; symbol: string; jmdPerUsd: number | null; rateMode: "fixed" | "auto" }
 }) {
     const [step, stepSet] = useState(resumeTenant !== null ? 2 : 0)
     const [busy, busySet] = useState(false)
@@ -452,7 +452,7 @@ export default function OnboardingWizard({ signedIn, resumeTenant, cancelled, in
                     </div>
 
                     {chargedAsJmd !== null && (
-                        <p className="text-sm text-mist">Your card is charged <strong className="text-ink">{chargedAsJmd}</strong> (US${monthly} at our fixed rate).</p>
+                        <p className="text-sm text-mist">Your card is charged <strong className="text-ink">{chargedAsJmd}</strong> — US${monthly} at today&apos;s rate of J${currency.jmdPerUsd} per US$1.</p>
                     )}
                     <p className="text-xs text-mist">
                         Payments are processed on a secure PowerTranz page — your card never touches our servers.

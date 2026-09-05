@@ -41,7 +41,7 @@ export async function getTenantPayments(tenantId: string): Promise<PaymentRow[]>
     }))
 }
 
-//the currency the card is actually charged in, for the pay button copy
+//the currency the card is actually charged in (and today's rate), for the pay button copy
 export async function getBillingCurrency() {
     return gatewayCurrencyInfo()
 }
@@ -56,8 +56,8 @@ export async function startTenantCheckout(tenantId: string, monthsRaw: number = 
     //price is recomputed here from the tenant's own add-ons — never trusted
     //from the browser — and snapshotted on the row for the audit trail
     const amountCents = checkoutAmountCents(tenant.config.enabledAddons, months)
-    const { currency } = gatewayCurrencyInfo()
-    const gatewayAmountCents = toGatewayAmountCents(amountCents)
+    const { currency, jmdPerUsd } = await gatewayCurrencyInfo()
+    const gatewayAmountCents = toGatewayAmountCents(amountCents, jmdPerUsd)
 
     //pending row first, so the callback has something to promote
     const [payment] = await db.insert(tenantPayments).values({

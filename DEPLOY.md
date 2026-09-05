@@ -8,7 +8,7 @@ Copy `.env.example` → `.env.local` next to the app and fill everything in. `li
 
 - `AUTH_URL` — unset in production behind Caddy (Auth.js infers), keep `AUTH_TRUST_HOST=true`.
 - `SITE_URL=https://squaremaxtech.com` — used for payment callbacks, QR codes, emails, upload URLs.
-- `POWERTRANZ_*` — production credentials + production base URL from FAC. Never set `POWERTRANZ_SIMULATE` in production (the code refuses it, but don't). If the merchant account settles in JMD, set `POWERTRANZ_CURRENCY=jmd` and `JMD_PER_USD` (the site quotes USD; the gateway is charged the converted amount, both figures are stored on the payment row).
+- `POWERTRANZ_*` — production credentials + production base URL from FAC. Never set `POWERTRANZ_SIMULATE` in production (the code refuses it, but don't). If the merchant account settles in JMD, set `POWERTRANZ_CURRENCY=jmd`. The site quotes USD; the gateway is charged the converted amount and both figures are stored on the payment row. The USD→JMD rate is fetched once per Jamaica calendar day (open.er-api.com), `JMD_RATE_MARGIN_PERCENT` (default 3) is added and the result rounded up to a whole J$. Set `JMD_PER_USD` only if you want to pin the rate by hand.
 - `CRON_SECRET` — any long random string; the renewal-reminder cron below sends it as a bearer token.
 - `CUSTOM_DOMAIN_A_RECORD` — the VPS's public IP. Shown to clients in the Plan tab as the A record to create, and used by the "Check DNS" button.
 - `R2_*` — Cloudflare R2 bucket for uploads. Leave all five unset and uploads land on local disk in `userUploadedData/` (gitignored), served by `/api/uploads/…`. Fine for the first clients; move to R2 before images become a backup problem (GROWTH-PLAN §2).

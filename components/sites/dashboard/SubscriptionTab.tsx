@@ -19,16 +19,17 @@ import { getTenantPayments, setTenantOnline, startTenantCheckout } from "@/serve
 const card = "grid content-start gap-3 rounded-xl border border-line bg-surface p-5"
 const label = "text-xs font-semibold uppercase tracking-wide text-mist"
 
-export type BillingCurrency = { currency: "usd" | "jmd"; symbol: string; jmdPerUsd: number | null }
+export type BillingCurrency = { currency: "usd" | "jmd"; symbol: string; jmdPerUsd: number | null; rateMode: "fixed" | "auto" }
 
 function money(cents: number): string {
     return `US$${(cents / 100).toFixed(2)}`
 }
 
 function chargedAs(cents: number, currency: BillingCurrency): string | null {
-    if (currency.currency !== "jmd" || currency.jmdPerUsd === null) return null
+    if (currency.currency !== "jmd") return null
+    if (currency.jmdPerUsd === null) return "charged in J$ at today's rate — shown on the payment page"
     const jmd = Math.round(cents * currency.jmdPerUsd) / 100
-    return `charged as J$${jmd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+    return `charged as J$${jmd.toLocaleString("en-US", { maximumFractionDigits: 0 })} (J$${currency.jmdPerUsd} per US$1 today)`
 }
 
 function longDate(value: string | Date): string {

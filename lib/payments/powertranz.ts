@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
 import { env } from "@/lib/env";
+import { getJmdPerUsd, jmdRateMode, JmdRateMode } from "./fx";
+import { usdCentsToJmdCents } from "./fxMath";
 
 // PowerTranz (First Atlantic Commerce / Fiserv Caribbean) gateway client —
 // hosted-page SPI flow, so card data NEVER touches this app:
@@ -18,7 +20,8 @@ import { env } from "@/lib/env";
 
 //prices are quoted in USD everywhere in the product; the merchant account
 //may settle in JMD, in which case the gateway is charged the converted
-//amount (JMD_PER_USD) and both figures are stored on the payment row.
+//amount (daily rate + margin, or a pinned JMD_PER_USD — see ./fx.ts) and
+//both figures are stored on the payment row.
 export type GatewayCurrency = "usd" | "jmd";
 export const CURRENCY: GatewayCurrency = env.POWERTRANZ_CURRENCY;
 
@@ -32,15 +35,33 @@ export const CURRENCY_SYMBOL: Record<GatewayCurrency, string> = {
     jmd: "J$",
 };
 
-//USD list-price cents -> cents in the currency the gateway actually charges
-export function toGatewayAmountCents(usdCents: number): number {
-    if (CURRENCY === "jmd") return Math.round(usdCents * (env.JMD_PER_USD ?? 1));
+//USD list-price cents -> cents in the currency the gateway actually charges.
+//The rate is passed in explicitly so the amount shown to the client and the
+//amount sent to the gateway come from the same lookup.
+export function toGatewayAmountCents(usdCents: number, jmdPerUsd: number | null): number {
+    if (CURRENCY === "jmd") {
+        if (jmdPerUsd === null) throw new Error("the exchange rate is temporarily unavailable — please try again in a minute");
+        return usdCentsToJmdCents(usdCents, jmdPerUsd);
+    }
     return usdCents;
 }
 
-//what the dashboard needs to explain the charge ("US$15 · charged as J$2,400")
-export function gatewayCurrencyInfo(): { currency: GatewayCurrency; symbol: string; jmdPerUsd: number | null } {
-    return { currency: CURRENCY, symbol: CURRENCY_SYMBOL[CURRENCY], jmdPerUsd: CURRENCY === "jmd" ? env.JMD_PER_USD ?? null : null };
+export type GatewayCurrencyInfo = {
+    currency: GatewayCurrency;
+    symbol: string;
+    //whole J$ per US$1 in force today (null in USD mode, or if no rate is known yet)
+    jmdPerUsd: number | null;
+    rateMode: JmdRateMode;
+};
+
+//what the dashboard needs to explain the charge ("US$15 · charged as J$2,445")
+export async function gatewayCurrencyInfo(): Promise<GatewayCurrencyInfo> {
+    return {
+        currency: CURRENCY,
+        symbol: CURRENCY_SYMBOL[CURRENCY],
+        jmdPerUsd: CURRENCY === "jmd" ? await getJmdPerUsd() : null,
+        rateMode: jmdRateMode(),
+    };
 }
 
 const BASE_URL = env.POWERTRANZ_BASE_URL ?? "https://staging.ptranz.com";

@@ -32,9 +32,12 @@ const envSchema = z.object({
     POWERTRANZ_BASE_URL: z.url().optional(),
     POWERTRANZ_SIMULATE: z.enum(["0", "1"]).optional(),
     //prices are quoted in USD everywhere; if the merchant account settles in
-    //JMD the gateway is charged the converted amount at JMD_PER_USD
+    //JMD the gateway is charged the converted amount. JMD_PER_USD pins the
+    //rate; leave it unset and lib/payments/fx.ts fetches the daily rate and
+    //adds JMD_RATE_MARGIN_PERCENT on top (bank-spread protection)
     POWERTRANZ_CURRENCY: z.enum(["usd", "jmd"]).default("usd"),
     JMD_PER_USD: z.coerce.number().positive().optional(),
+    JMD_RATE_MARGIN_PERCENT: z.coerce.number().min(0).max(25).default(3),
 
     //daily renewal-reminder cron authenticates with this bearer token
     CRON_SECRET: z.string().min(16).optional(),
@@ -62,9 +65,6 @@ const envSchema = z.object({
         process.env.NODE_ENV === "production" ? "https://squaremaxtech.com" : "http://localhost:3000"
     ),
 }).refine(
-    value => value.POWERTRANZ_CURRENCY !== "jmd" || value.JMD_PER_USD !== undefined,
-    { path: ["JMD_PER_USD"], message: "required when POWERTRANZ_CURRENCY=jmd" },
-).refine(
     value => {
         const r2 = [value.R2_ACCOUNT_ID, value.R2_ACCESS_KEY_ID, value.R2_SECRET_ACCESS_KEY, value.R2_BUCKET, value.R2_PUBLIC_URL]
         const set = r2.filter(part => part !== undefined).length
@@ -78,7 +78,7 @@ export type Env = z.infer<typeof envSchema>;
 function loadEnv(): Env {
     //escape hatch for CI/builds without secrets: SKIP_ENV_VALIDATION=1 npm run build
     if (process.env.SKIP_ENV_VALIDATION) {
-        return { POWERTRANZ_CURRENCY: "usd", SMTP_HOST: "smtp.hostinger.com", SMTP_PORT: 465, ...process.env } as unknown as Env;
+        return { POWERTRANZ_CURRENCY: "usd", JMD_RATE_MARGIN_PERCENT: 3, SMTP_HOST: "smtp.hostinger.com", SMTP_PORT: 465, ...process.env } as unknown as Env;
     }
 
     const parsed = envSchema.safeParse(process.env);
